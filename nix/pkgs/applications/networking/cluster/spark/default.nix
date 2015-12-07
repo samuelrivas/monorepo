@@ -18,7 +18,7 @@ stdenv.mkDerivation rec {
 
   untarDir = "${name}-bin-cdh4";
   installPhase = ''
-    mkdir -p $out/{lib/${untarDir}/conf,bin}
+    mkdir -p $out/{lib/${untarDir}/conf,bin,/share/java}
     mv * $out/lib/${untarDir}
 
     cat > $out/lib/${untarDir}/conf/spark-env.sh <<- EOF
@@ -33,6 +33,7 @@ stdenv.mkDerivation rec {
     for n in $(find $out/lib/${untarDir}/bin -type f ! -name "*.*"); do
       makeWrapper "$n" "$out/bin/$(basename $n)"
     done
+    ln -s $out/lib/spark-1.4.0-bin-cdh4/lib/spark-assembly-*.jar $out/share/java
   '';
 
   meta = {
