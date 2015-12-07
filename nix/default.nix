@@ -19,6 +19,11 @@ let
     # Just so that we can use them when debugging in nix-repl
     inherit builders;
 
+    # Patches from upstream, to be pull requested
+    # ===========================================
+    java-json = callPackage ./pkgs/development/java/json { };
+    java-mailapi = callPackage ./pkgs/development/java/mailapi { };
+
     # Patches not yet in channels, but merged upstream
     # These should go away soon
     # ================================================
