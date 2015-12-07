@@ -3,7 +3,7 @@
 }:
 
 rec {
-  # Tenerate an empty $out, useful for derivations where we care only about
+  # Generate an empty $out, useful for derivations where we care only about
   # sandboxing
   empty-builder = writeScript "empty-builder" ''
     source "$stdenv/setup"
