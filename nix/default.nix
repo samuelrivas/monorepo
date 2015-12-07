@@ -23,6 +23,7 @@ let
     # ===========================================
     java-json = callPackage ./pkgs/development/java/json { };
     java-mailapi = callPackage ./pkgs/development/java/mailapi { };
+    spark = callPackage ./pkgs/applications/networking/cluster/spark { };
 
     # Patches not yet in channels, but merged upstream
     # These should go away soon
