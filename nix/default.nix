@@ -33,6 +33,10 @@ let
     # Scala stuff
     # ===========
     scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
+
+    # Old stuff cowardly kept here, delete when you are tired of seeing it
+    # ====================================================================
+    spark_1_4_0 = callPackage ./pkgs/applications/networking/cluster/spark/1.4.0.nix { };
   };
 in
 self

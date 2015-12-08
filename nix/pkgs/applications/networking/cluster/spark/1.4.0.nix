@@ -1,4 +1,4 @@
-{ stdenv, fetchzip, makeWrapper, jre, pythonPackages
+{ stdenv, fetchurl, makeWrapper, jre, pythonPackages
 , mesosSupport ? true, mesos
 }:
 
@@ -6,11 +6,11 @@ with stdenv.lib;
 
 stdenv.mkDerivation rec {
   name    = "spark-${version}";
-  version = "1.5.2";
+  version = "1.4.0";
 
-  src = fetchzip {
+  src = fetchurl {
     url    = "mirror://apache/spark/${name}/${name}-bin-cdh4.tgz";
-    sha256 = "0bgpz3bqj24flrbajzhbkz38fjsd53qmji1kls9izji8vprcjr5v";
+    sha256 = "1w60xzzg9mcymin1pmqwx1mvcqmdpfyxhd2dmw5alhnrzi21ycxi";
   };
 
   buildInputs = [ makeWrapper jre pythonPackages.python pythonPackages.numpy ]
@@ -20,10 +20,6 @@ stdenv.mkDerivation rec {
   installPhase = ''
     mkdir -p $out/{lib/${untarDir}/conf,bin,/share/java}
     mv * $out/lib/${untarDir}
-
-    sed -e 's/INFO, console/WARN, console/' < \
-       $out/lib/${untarDir}/conf/log4j.properties.template > \
-       $out/lib/${untarDir}/conf/log4j.properties
 
     cat > $out/lib/${untarDir}/conf/spark-env.sh <<- EOF
     export JAVA_HOME="${jre}"
@@ -37,7 +33,7 @@ stdenv.mkDerivation rec {
     for n in $(find $out/lib/${untarDir}/bin -type f ! -name "*.*"); do
       makeWrapper "$n" "$out/bin/$(basename $n)"
     done
-    ln -s $out/lib/${untarDir}/lib/spark-assembly-*.jar $out/share/java
+    ln -s $out/lib/spark-1.4.0-bin-cdh4/lib/spark-assembly-*.jar $out/share/java
   '';
 
   meta = {
