@@ -29,6 +29,29 @@ let
     # These should go away soon
     # ================================================
     scala = callPackage ./pkgs/development/compilers/scala { };
+    color-theme-solarized = callPackage ./pkgs/applications/editors/emacs-modes/color-theme-solarized {
+      inherit (pkgs.emacs24Packages) colorTheme;
+    };
+    erlang-mode = callPackage ./pkgs/applications/editors/emacs-modes/erlang-mode { };
+
+    # Emacs stuff
+    # ===========
+
+    # TODO:
+    #  * Read the config for this from a file a-la configuration.nix
+    #  * Make this modular, so we don't need to install the world just to get
+    #    one mode configured
+    emacs-config = callPackage ./config/emacs {
+      inherit (pkgs.emacsPackages) haskellMode tuaregMode scalaMode2;
+      inherit (pkgs.ocamlPackages_4_02_1) merlin ocpIndent utop;
+
+      user = "samuel";
+      full-user-name = "Samuel Rivas";
+      extra-config = ''
+        ;; workarounds
+        (require 'iso-transl) ; required for dead keys to work with ibus
+      '';
+    };
 
     # Scala stuff
     # ===========
