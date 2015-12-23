@@ -36,6 +36,7 @@ let
     # which is a slight departure of what nixpkgs typically does
     local-config = import ./lib/load-config.nix {
       inherit (pkgs) lib;
+      pkgs = pkgs // self;
       config-file = local-config-file;
       modules = [ ./modules/emacs-config.nix ];
     };

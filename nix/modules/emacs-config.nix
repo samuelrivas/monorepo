@@ -2,6 +2,7 @@
   config,
   lib,
   options,
+  pkgs,
 }:
 {
   options = {

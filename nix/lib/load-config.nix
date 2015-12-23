@@ -6,14 +6,19 @@
   config-file,
   lib,
   modules,
+  pkgs,
 }:
 let
   user-config =
     if   builtins.pathExists config-file
     then import config-file
     else {};
+
+  # Pass pkgs through using _module.args
+  module-config = { config._module.args.pkgs = pkgs; };
+
   local-config = lib.evalModules {
-    modules = [user-config] ++ modules;
+    modules = [ user-config module-config ] ++ modules;
   };
 in
 local-config.config
