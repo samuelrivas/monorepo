@@ -24,16 +24,22 @@ stdenv.mkDerivation rec {
 
   name = "emacs-config";
 
-  static-config = ./static.el;
+  static-config  = ./static.el;
+  static-haskell = ./static-haskell.el;
+  static-erlang  = ./static-erlang.el;
+  static-scala   = ./static-scala.el;
+  static-ocaml   = ./static-ocaml.el;
 
   erlang-config = mode-config "erlang" ''
     (add-to-list 'load-path "${erlang-mode}/share/emacs/site-lisp")
     (require 'erlang-start)
+    (load "${static-erlang}")
   '';
 
   haskell-config = mode-config "haskell" ''
     (add-to-list 'load-path "${haskellMode}/share/emacs/site-lisp")
     (require 'haskell-mode)
+    (load "${static-haskell}")
   '';
 
   ocaml-config = mode-config "ocaml" ''
@@ -45,6 +51,7 @@ stdenv.mkDerivation rec {
     (setq merlin-command "${merlin}/bin/ocamlmerlin")
     (setq ocp-indent-path "${ocpIndent}/bin/ocp-indent")
     (setq utop-command "${utop}/bin/utop -emacs")
+    (load "${static-ocaml}")
   '';
 
   nix-config = mode-config "nix" ''
@@ -55,6 +62,7 @@ stdenv.mkDerivation rec {
   scala-config = mode-config "scala" ''
     (add-to-list 'load-path "${scalaMode2}/share/emacs/site-lisp")
     (require 'scala-mode2)
+    (load "${static-scala}")
   '';
 
   base-config = writeTextFile {
