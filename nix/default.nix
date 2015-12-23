@@ -7,6 +7,8 @@
 { system ? builtins.currentSystem }:
 
 let
+  home-dir = builtins.getEnv "HOME";
+  local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
   pkgs = import <nixpkgs> { inherit system; };
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
   callPackage = pkgs.lib.callPackageWith (pkgs
@@ -18,6 +20,25 @@ let
     # =================
     # Just so that we can use them when debugging in nix-repl
     inherit builders;
+
+    # Config
+    # ======
+
+    # This is similar to nixos modules, but for the local user:
+    #  * We read the file ${local-config-file} if it exists so that we can
+    #    customise the build for different environments
+    #  * We blend that with our ow configuration modules (using the same
+    #    mechanisms as nixos)
+    #  * The resulting config (local-config) can then be used by the derivations
+    #    below
+    #
+    # Note that this is mainly for derivations that create configuration files,
+    # which is a slight departure of what nixpkgs typically does
+    local-config = import ./lib/load-config.nix {
+      inherit (pkgs) lib;
+      config-file = local-config-file;
+      modules = [ ./config/emacs/module.nix ];
+    };
 
     # Patches from upstream, to be pull requested
     # ===========================================
@@ -38,20 +59,13 @@ let
     # ===========
 
     # TODO:
-    #  * Read the config for this from a file a-la configuration.nix
     #  * Make this modular, so we don't need to install the world just to get
     #    one mode configured
-    emacs-config = callPackage ./config/emacs {
-      inherit (pkgs.emacsPackages) haskellMode tuaregMode scalaMode2;
-      inherit (pkgs.ocamlPackages_4_02_1) merlin ocpIndent utop;
-
-      user = "samuel";
-      full-user-name = "Samuel Rivas";
-      extra-config = ''
-        ;; workarounds
-        (require 'iso-transl) ; required for dead keys to work with ibus
-      '';
-    };
+    emacs-config = callPackage ./config/emacs
+      (self.local-config.emacs-config // {
+         inherit (pkgs.emacsPackages) haskellMode tuaregMode scalaMode2;
+         inherit (pkgs.ocamlPackages_4_02_1) merlin ocpIndent utop;
+      });
 
     # Scala stuff
     # ===========
