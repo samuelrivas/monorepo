@@ -73,13 +73,13 @@ stdenv.mkDerivation rec {
       ${nix-config}
       ${scala-config}
 
-      ;; Nix profile (we shouldn't need this once everything is nixed)
+      ;; Nix profile (for modes installed in the environment)
       (add-to-list 'load-path "/home/${user}/.nix-profile/share/emacs/site-lisp")
 
       ;; Load the static configuration
       (load "${static-config}")
 
-      ;; Extra config added by the extra-config parameter of the  derivation
+      ;; Extra config added by the extra-config option of the emacs-config module
       ${extra-config}
     '';
   };
