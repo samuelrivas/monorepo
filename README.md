@@ -1,5 +1,7 @@
 # A nix tree of everything
 
+[![Build Status](https://travis-ci.org/samuelrivas/monorepo.svg?branch=master)](https://travis-ci.org/samuelrivas/monorepo)
+
 ## Usage
 
 From the top level, you can build everything by running
