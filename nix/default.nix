@@ -65,12 +65,22 @@ let
     emacs-config = callPackage ./pkgs/applications/editors/emacs-config
       (self.local-config.emacs-config // {
          inherit (pkgs.emacsPackages) haskellMode tuaregMode scalaMode2;
-         inherit (pkgs.ocamlPackages_4_02_1) merlin ocpIndent utop;
+         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
       });
 
     # Scala stuff
     # ===========
     scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
+
+    # Ocaml stuff
+    # ===========
+
+    # Stolen from upstream, as 4.02.1 is broken in the channel right now
+    ocaml_4_02 = callPackage ./pkgs/development/compilers/ocaml/4.02.nix {
+      inherit (pkgs.xorg) libX11 xproto;
+    };
+    ocamlPackages_4_02 = pkgs.mkOcamlPackages self.ocaml_4_02 self.ocamlPackages_4_02;
+
 
     # Old stuff cowardly kept here, delete when you are tired of seeing it
     # ====================================================================
