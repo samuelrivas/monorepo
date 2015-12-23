@@ -58,10 +58,6 @@ let
 
     # Emacs stuff
     # ===========
-
-    # TODO:
-    #  * Make this modular, so we don't need to install the world just to get
-    #    one mode configured
     emacs-config = callPackage ./pkgs/applications/editors/emacs-config
       (self.local-config.emacs-config // {
          inherit (pkgs.emacsPackages) haskellMode tuaregMode scalaMode2;
