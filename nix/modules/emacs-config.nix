@@ -4,6 +4,15 @@
   options,
   pkgs,
 }:
+let
+  configured-modes = [
+    "erlang"
+    "haskell"
+    "nix"
+    "ocaml"
+    "scala"
+  ];
+in
 {
   options = {
 
@@ -27,6 +36,11 @@
           ;; workarounds
           (require 'iso-transl) ; required for dead keys to work with ibus
         '';
+      };
+      modes = lib.mkOption {
+        type = lib.types.listOf (lib.types.enum configured-modes);
+        default = configured-modes;
+        example = [ "erlang" "haskell" ];
       };
     };
   };
