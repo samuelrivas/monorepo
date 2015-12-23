@@ -37,7 +37,7 @@ let
     local-config = import ./lib/load-config.nix {
       inherit (pkgs) lib;
       config-file = local-config-file;
-      modules = [ ./config/emacs/module.nix ];
+      modules = [ ./modules/emacs-config.nix ];
     };
 
     # Patches from upstream, to be pull requested
@@ -61,7 +61,7 @@ let
     # TODO:
     #  * Make this modular, so we don't need to install the world just to get
     #    one mode configured
-    emacs-config = callPackage ./config/emacs
+    emacs-config = callPackage ./pkgs/applications/editors/emacs-config
       (self.local-config.emacs-config // {
          inherit (pkgs.emacsPackages) haskellMode tuaregMode scalaMode2;
          inherit (pkgs.ocamlPackages_4_02_1) merlin ocpIndent utop;
