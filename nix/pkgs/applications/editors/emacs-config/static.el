@@ -25,15 +25,24 @@
 
 ;; Global variables
 (setq-default fill-column 80)
+
 (setq inhibit-splash-screen t)
+
 (setq-default indent-tabs-mode nil)
+
+(setq backup-by-copying t)
+(setq backup-directory-alist '(("." . "~/.emacs-backups")))
+(setq delete-old-versions t)
+(setq kept-new-versions 10)
+(setq kept-old-versions 0)
+(setq version-control t)
 
 ;; Whitespace mode
 (global-whitespace-mode t)
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face trailing empty tabs lines-tail))
 
-; Erlang mode
+;; Erlang mode
 (defun my-erlang-mode-hook ()
   "Erlang mode hook"
   (setq indent-tabs-mode nil)
