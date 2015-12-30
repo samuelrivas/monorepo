@@ -68,7 +68,7 @@ let
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
         inherit (self) color-theme-solarized;
-        inherit (emacsPackagesNg) flycheck-haskell haskell-mode tuareg;
+        inherit (emacsPackagesNg) flycheck-haskell haskell-mode;
         inherit (emacsPackages) scalaMode2;
         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
@@ -86,6 +86,11 @@ let
       inherit (pkgs.xorg) libX11 xproto;
     };
     ocamlPackages_4_02 = pkgs.mkOcamlPackages self.ocaml_4_02 self.ocamlPackages_4_02;
+
+    # Stolen from upstream, broken in the channels right now
+    tuareg = callPackage ./pkgs/applications/editors/emacs-modes/tuareg {
+      inherit (pkgs) emacs;
+    };
 
     # Old stuff cowardly kept here, delete when you are tired of seeing it
     # ====================================================================
