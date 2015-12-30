@@ -53,6 +53,7 @@ let
     scala = callPackage ./pkgs/development/compilers/scala { };
     color-theme-solarized = callPackage ./pkgs/applications/editors/emacs-modes/color-theme-solarized {
       inherit (pkgs.emacs24Packages) colorTheme;
+      inherit (pkgs) emacs; # don't use self.emacs, causes infinite recursion
     };
     erlang-mode = callPackage ./pkgs/applications/editors/emacs-modes/erlang-mode { };
 
@@ -60,8 +61,17 @@ let
     # ===========
     emacs-config = callPackage ./pkgs/applications/editors/emacs-config
       (self.local-config.emacs-config // {
-         inherit (pkgs.emacsPackages) haskellMode tuaregMode scalaMode2;
-         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
+        inherit (pkgs) emacs;
+      });
+
+    # An emacs wrapper with the needed packages accessible
+    emacs = callPackage ./pkgs/applications/editors/my-emacs
+      (with pkgs; {
+        inherit (self) color-theme-solarized;
+        inherit (emacsPackagesNg) flycheck-haskell haskell-mode;
+        inherit (emacsPackages) scalaMode2;
+        inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
+        emacs-config-options = self.local-config.emacs-config;
       });
 
     # Scala stuff
@@ -77,6 +87,10 @@ let
     };
     ocamlPackages_4_02 = pkgs.mkOcamlPackages self.ocaml_4_02 self.ocamlPackages_4_02;
 
+    # Stolen from upstream, broken in the channels right now
+    tuareg = callPackage ./pkgs/applications/editors/emacs-modes/tuareg {
+      inherit (pkgs) emacs;
+    };
 
     # Old stuff cowardly kept here, delete when you are tired of seeing it
     # ====================================================================

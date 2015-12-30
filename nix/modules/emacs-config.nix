@@ -8,21 +8,13 @@ let
   configured-modes = [
     "erlang"
     "haskell"
-    "nix"
     "ocaml"
-    "scala"
   ];
 in
 {
   options = {
 
     emacs-config = {
-
-      user = lib.mkOption {
-        type = lib.types.string;
-        default = "unknown-fella";
-        description = "The short user name (your id in the system).";
-      };
       full-user-name = lib.mkOption {
         type = lib.types.string;
         default = "Unknown Fella";
@@ -37,9 +29,15 @@ in
           (require 'iso-transl) ; required for dead keys to work with ibus
         '';
       };
-      modes = lib.mkOption {
+      blacklisted-modes = lib.mkOption {
         type = lib.types.listOf (lib.types.enum configured-modes);
-        default = configured-modes;
+        default = [ ];
+        description = ''
+          You can prevent installing the dependencies of heavy modules by
+          blakclisting them here. The configuration will still be present,
+          but all the needed packages will not, so those modes will not work
+          if you require them.
+        '';
         example = [ "erlang" "haskell" ];
       };
     };

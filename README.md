@@ -38,7 +38,7 @@ For example:
       emacs-config = {
         user = "samuel";
         full-user-name = "Samuel Rivas";
-        # modes = [ "ocaml" ];
+        blacklisted-modes = [ "ocaml" ];
       };
     }
 
