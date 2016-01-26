@@ -39,6 +39,9 @@
 
 (setq-default indent-tabs-mode nil)
 
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "chromium-browser")
+
 (setq backup-by-copying t)
 (setq backup-directory-alist '(("." . "~/.emacs-backups")))
 (setq delete-old-versions t)
