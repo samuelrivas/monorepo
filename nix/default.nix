@@ -51,6 +51,7 @@ let
     # These should go away soon
     # ================================================
     scala = callPackage ./pkgs/development/compilers/scala { };
+    scala-2_10_5 = callPackage ./pkgs/development/compilers/scala/2.10.5.nix { };
     color-theme-solarized = callPackage ./pkgs/applications/editors/emacs-modes/color-theme-solarized {
       inherit (pkgs.emacs24Packages) colorTheme;
       inherit (pkgs) emacs; # don't use self.emacs, causes infinite recursion
