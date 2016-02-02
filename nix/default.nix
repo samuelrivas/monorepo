@@ -78,6 +78,7 @@ let
     # Scala stuff
     # ===========
     scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
+    samtime = callPackage ./pkgs/development/scala/samtime { };
 
     # Ocaml stuff
     # ===========
