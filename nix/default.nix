@@ -67,7 +67,7 @@ let
 
     # Emacs stuff
     # ===========
-    emacs-config = callPackage ./pkgs/applications/editors/emacs-config
+    emacs-config = callPackage ./../src/elisp/emacs-config/nix
       (self.local-config.emacs-config // {
         inherit (pkgs) emacs;
       });
