@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Some web interfaces don't handle the primary selection correctly, and some
+# tasty old tools to have easy ways to cut-and-paste a-la CTRL-C CTRL-V. This
+# alleviates these infortunate situations by moving what is selected to the
+# clipboard, so it can be pasted a-la CTRL-V
+#
+# Why is the world so complicated? Don't ask me...
+
+xclip -o | xclip -selection clipboard

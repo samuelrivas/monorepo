@@ -1,0 +1,4 @@
+-ifndef(_@@UPCASE_NAME@@_HRL_).
+-define(_@@UPCASE_NAME@@_HRL_, true).
+
+-endif.

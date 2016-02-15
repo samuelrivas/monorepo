@@ -1,0 +1,11 @@
+*.beam
+*~
+deps
+doc/*.css
+doc/*.html
+doc/edoc-info
+doc/erlang.png
+ebin/*.app
+src/temp
+.eunit/
+rebar/*

@@ -1,0 +1,11 @@
+%% -*- mode: erlang; erlang-indent-level: 2 -*-
+{application, @@APP_NAME@@,
+ [ {description , "The one that created this was too lazy to provide a proper"
+                  "description"}
+ , {vsn         , git}
+ , {registered  , []}
+ , {applications, [ kernel
+                  , stdlib
+                  ]}
+ , {env         , []}
+ ]}.
