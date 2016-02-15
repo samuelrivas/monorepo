@@ -3,6 +3,13 @@
 #  * This structure is probably going to change
 #  * I don't like camel case, so I won't use it for my stuff, even at the cost
 #    of needing to rewrite when contributing
+#
+# Right now, the high level structure is:
+#
+#  * For the sources contained in this monorepo, the nix expressions to build
+#    them are colocated with the source and linked from here
+#  * For the packages that use external sources (usually packages that are
+#    patches to the official nix tree) we use nixpkgs-like struture inside pkgs
 
 { system ? builtins.currentSystem }:
 
