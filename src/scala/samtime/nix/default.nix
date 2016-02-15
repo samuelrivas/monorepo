@@ -3,7 +3,7 @@
   stdenv,
 }:
 stdenv.mkDerivation {
-  src = ./../../../../../src/scala/samtime/src;
+  src = ./../src;
   name = "samtime-0.0.0";
   buildInputs = [
     scala
