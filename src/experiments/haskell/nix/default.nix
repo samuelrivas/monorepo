@@ -4,7 +4,7 @@
   stdenv,
 }:
 let
-  haskell-packages-selector = pkgs: [pkgs.lens];
+  haskell-packages-selector = pkgs: [ ];
 in
 stdenv.mkDerivation rec {
 
