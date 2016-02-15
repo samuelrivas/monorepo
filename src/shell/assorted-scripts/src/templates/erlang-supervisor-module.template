@@ -1,0 +1,46 @@
+%%% @doc
+-module(@@MODULE@@).
+-behaviour(supervisor).
+%%%_* Exports ==========================================================
+
+%% API
+-export([start_link/0]).
+
+%% Callbacks
+-export([init/1]).
+
+%%%_* API ==============================================================
+
+%% @doc start the supervisor
+-spec start_link() -> {ok, pid()}.
+start_link() ->
+  supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+%%%_* Callbacks ========================================================
+init([]) ->
+  {ok, {supervisor_spec(), []}}.
+
+%%%_* Private Functions ================================================
+supervisor_spec() ->
+  MaxRestarts = 0,
+  MaxSecondsBetweenRestarts = 1,
+  {one_for_one, MaxRestarts, MaxSecondsBetweenRestarts}.
+
+%% Use this template to write your child specs or kill it entirely, your choice
+%% :)
+%%
+%% child_spec() ->
+%%   WorkerMod   = <worker_name>,
+%%   Id          = WorkerMod,
+%%   StartFunc   = WorkerMod, start_link, []},
+%%   RestartType = temporary,
+%%   Shutdown    = 2000,
+%%   Type        = worker,
+%%   Modules     = [WorkerMod],
+%%   {Id, StartFunc, RestartType, Shutdown, Type, Modules}.
+
+%%%_* Emacs ============================================================
+%%% Local Variables:
+%%% allout-layout: t
+%%% erlang-indent-level: 2
+%%% End:

@@ -1,0 +1,15 @@
+%%% @doc Unit tests for @@TESTED_MODULE@@
+-module(@@MODULE@@).
+
+%%%_* Includes =========================================================
+-include_lib("eunit/include/eunit.hrl").
+
+%%%_* Test Cases =======================================================
+
+%%%_* Private Functions ================================================
+
+%%%_* Emacs ============================================================
+%%% Local Variables:
+%%% allout-layout: t
+%%% erlang-indent-level: 2
+%%% End:

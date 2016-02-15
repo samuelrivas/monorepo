@@ -101,6 +101,12 @@ let
       inherit (pkgs) emacs;
     };
 
+    # Shell-scripts
+    # =============
+    assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {
+      inherit (pkgs.xlibs) xbacklight xrandr xset;
+    };
+
     # Old stuff cowardly kept here, delete when you are tired of seeing it
     # ====================================================================
     spark_1_4_0 = callPackage ./pkgs/applications/networking/cluster/spark/1.4.0.nix { };

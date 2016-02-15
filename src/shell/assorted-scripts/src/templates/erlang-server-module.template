@@ -1,0 +1,60 @@
+%%% @doc
+-module(@@MODULE@@).
+-behaviour(gen_server).
+
+%%%_* Exports ==========================================================
+-export([start_link/0]).
+
+%% gen_server callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+         terminate/2, code_change/3]).
+
+%%%_* Types ============================================================
+
+-record(state, {}).
+
+%%%_* API ==============================================================
+
+%% @doc starts the server
+-spec start_link() -> {ok, pid()} | ignore | {error, term()}.
+start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, none, []).
+
+%%%_* gen_server callbacks =============================================
+
+%% @private
+init(none) -> {ok, #state{}}.
+
+%% @private
+handle_call(Request, From, State) ->
+    try
+        safe_handle_call(Request, From, State)
+    catch
+        Excpt ->
+            {reply, {error, Excpt}, State};
+        error:Reason ->
+            Error = {Reason, erlang:get_stacktrace()},
+            {stop, Error, {error, Error}, State}
+    end.
+
+safe_handle_call(Request, _From, _State) ->
+    throw({bad_call, Request}).
+
+%% @private
+handle_cast(_Msg, State) -> {noreply, State}.
+
+%% @private
+handle_info(_Info, State) -> {noreply, State}.
+
+%% @private
+terminate(_Reason, _State) -> ok.
+
+%% @private
+code_change(_OldVsn, State, _Extra) -> {ok, State}.
+
+%%%_* Private functions ================================================
+
+%%%_* Emacs ============================================================
+%%% Local Variables:
+%%% allout-layout: t
+%%% erlang-indent-level: 4
+%%% End:
