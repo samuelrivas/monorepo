@@ -120,6 +120,12 @@ let
     assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {
       inherit (pkgs.xlibs) xbacklight xrandr xset;
     };
+
+    # Experiments
+    # ===========
+    experiments-haskell = callPackage ./../src/experiments/haskell/nix {
+      inherit (pkgs.haskellPackages) ghcWithPackages;
+    };
   };
 in
 self
