@@ -51,9 +51,12 @@ I'd like to prevent it rebuilding things that have been compiled and stored in
 the store. However most standard project structures create artifacts in the same
 tree directory where the sources are. By default, Nix scans the whole source
 directory and recreates a different package if anything has changed there. Thus
-I would prefer layouts like this:
+I would prefer layouts like this (with the nix expressions in `nix/` pointing to
+the first `src` level:
 
     project
+      |
+      +-- nix/
       |
       +-- src/
       |    |
@@ -67,9 +70,10 @@ I would prefer layouts like this:
       |
       +-- build/
 
-Note the double src directory, that is just to preserve the most common
-structure of sources, which usually includes a source directory. The Makefile
-should strive to just generate things in the build directory.
+The double src directory is just to preserve the most common structure of
+sources, which usually includes a source directory, while isolating the
+compilation producs from the `immutable` source from nix's point of view. The
+Makefile should strive to just generate things in the build directory.
 
 Additionally, I'd like editors not to generate backups along with the sources
 either, but that is up to you, since they must not be checked in the repository.

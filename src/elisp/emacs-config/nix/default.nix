@@ -10,7 +10,7 @@
 stdenv.mkDerivation rec {
 
   name = "emacs-config-0.0.0";
-  src = ./../../../../../src/elisp/emacs-config/src;
+  src = ./../src;
 
   emacs-custom = writeTextFile {
     name = "emacs-custom.el";
