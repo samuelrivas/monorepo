@@ -86,7 +86,7 @@ all_lines board =
 winner :: Board -> Maybe Player
 winner board =
   let is_winner x = Set.member (replicate 3 (Cell $ Just x)) $ all_lines board
-  in do List.find is_winner [X, O]
+  in List.find is_winner [X, O]
 
 main :: IO ()
 main = putStrLn $ show empty_board
