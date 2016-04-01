@@ -44,6 +44,7 @@ main() {
     wrap_calls "absolute-which" "$which/bin $gawk/bin"
     wrap_calls "join-pdf.sh" "$pdftk/bin"
     wrap_calls "pp-json.sh" "$python/bin"
+    wrap_calls "http-easy-server" "$python/bin"
     wrap_calls "selection-to-clipboard" "$xclip/bin"
 }
 
