@@ -76,7 +76,7 @@ let
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
         inherit (self) color-theme-solarized;
-        inherit (emacsPackagesNg) flycheck-haskell haskell-mode;
+        inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode;
         inherit (emacsPackages) scalaMode2;
         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
