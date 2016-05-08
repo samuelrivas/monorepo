@@ -82,6 +82,9 @@ let
         emacs-config-options = self.local-config.emacs-config;
       });
 
+    # aspell needs to be configured to find the dictionaries
+    aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
+
     # Scala stuff
     # ===========
     scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
