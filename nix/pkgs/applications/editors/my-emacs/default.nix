@@ -18,6 +18,7 @@
   ghc,
   haskell-mode,
   merlin,
+  nix-mode,
   ocpIndent,
   scalaMode2,
   stdenv,
@@ -41,6 +42,7 @@ let
     aspell-wrapped
     color-theme-solarized
     emacs-config
+    nix-mode
     scalaMode2
   ];
 
