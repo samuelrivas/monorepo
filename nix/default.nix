@@ -82,6 +82,13 @@ let
         emacs-config-options = self.local-config.emacs-config;
       });
 
+    # We need upstream emacs wrapper, since the one in the channel install stuff
+    # in site-lisp, bin, etc
+    emacsWithPackages = import ./build-support/emacs/wrapper.nix {
+      inherit (pkgs) lib makeWrapper stdenv;
+      inherit (pkgs.xorg) lndir;
+    } pkgs.emacsPackagesNg;
+
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
 
@@ -109,10 +116,6 @@ let
     assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {
       inherit (pkgs.xlibs) xbacklight xrandr xset;
     };
-
-    # Old stuff cowardly kept here, delete when you are tired of seeing it
-    # ====================================================================
-    spark_1_4_0 = callPackage ./pkgs/applications/networking/cluster/spark/1.4.0.nix { };
   };
 in
 self
