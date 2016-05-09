@@ -8,6 +8,7 @@
 ## blacklist them if you need to generate an emacs but don't want to spend the
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
+  aspell-wrapped,
   color-theme-solarized,
   emacs-config,
   emacs-config-options,
@@ -37,6 +38,7 @@ let
 
   # Cheap or always needed, dependencies, just install them no matter what
   hardcoded-deps = [
+    aspell-wrapped
     color-theme-solarized
     emacs-config
     scalaMode2
