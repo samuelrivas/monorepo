@@ -14,7 +14,14 @@ stdenv.mkDerivation rec {
     sha256 = "06yb3pjvk39b3mwkk3wy7lzl9rxngq7b7wjvscbz3f47s6v4vh8m";
   };
 
-  phases = [ "installPhase" ];
+  phases = [ "checkPhase" "installPhase" ];
+
+  doCheck = true;
+
+  # Just make sure it runs
+  checkPhase = ''
+    $src/packer version > /dev/null
+  '';
 
   installPhase = ''
     mkdir -p $out/bin
