@@ -48,6 +48,10 @@ let
       modules = [ ./modules/emacs-config.nix ];
     };
 
+    # Own packages, not general enough
+    # ================================
+    packer = callPackage ./pkgs/development/tools/packer { };
+
     # Patches from upstream, to be pull requested
     # ===========================================
     java-json = callPackage ./pkgs/development/java/json { };
