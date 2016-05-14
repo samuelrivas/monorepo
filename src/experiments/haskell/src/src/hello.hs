@@ -5,6 +5,7 @@ import qualified Data.List     as List
 import qualified Data.Map.Lazy as Map
 import           Data.Maybe
 import qualified Data.Set      as Set
+import           System.IO
 
 data Pos = A | B | C
          deriving (Eq, Show, Bounded, Enum, Ord)
@@ -102,7 +103,10 @@ swap_player X = O
 swap_player O = X
 
 get_coordinate :: IO (Maybe Coordinate)
-get_coordinate = parse_coordinate <$> getLine
+get_coordinate = parse_coordinate <$> prompt_line
+
+prompt_line :: IO String
+prompt_line = putStr "> " >> hFlush stdout >> getLine
 
 repeat_until_just :: IO (Maybe a) -> IO a
 repeat_until_just action =
@@ -111,7 +115,6 @@ repeat_until_just action =
 turn :: Board -> Player -> IO Board
 turn board player = do
   putStrLn $ show board
-  putStr "> "
   coordinate <- repeat_until_just get_coordinate
   return $ set_cell board player coordinate
 
