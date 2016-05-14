@@ -7,6 +7,7 @@
   emacs,
   empty-builder,
   haskellPackages,
+  sandbox ? false,
   stdenv,
 }:
 let
@@ -20,9 +21,8 @@ stdenv.mkDerivation rec {
   src = ./../src;
 
   buildInputs = [
-    (emacs.override { inherit ghc; })
     ghc
-  ];
+  ] ++ (if sandbox then [(emacs.override { inherit ghc; })] else []);
 
   builder = empty-builder;
 }

@@ -3,7 +3,7 @@ BUILD-DIR=../build
 NIX-DIR := $(CURDIR)/../../../../nix
 NIX-EXPRESSIONS := $(NIX-DIR)
 NIX-GC-ROOT-DIR := $(BUILD-DIR)/nix-gc-roots
-NIX-DERIVATION := experiments-haskell
+NIX-DERIVATION := "with import $(NIX-DIR) {}; experiments-haskell.override {sandbox = true;}"
 
 .PHONY: all
 
@@ -18,5 +18,5 @@ nix-shell:
 	nix-shell					\
 	  --pure					\
 	  --indirect --add-root $(NIX-GC-ROOT-DIR)	\
-	  -A $(NIX-DERIVATION)				\
+	  -E $(NIX-DERIVATION)				\
 	  $(NIX-EXPRESSIONS)
