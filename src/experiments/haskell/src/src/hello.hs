@@ -1,8 +1,10 @@
 -- TODO: Consider make the board a state monad
 
+import           Control.Monad
+import qualified Data.List     as List
 import qualified Data.Map.Lazy as Map
-import qualified Data.Set as Set
-import qualified Data.List as List
+import           Data.Maybe
+import qualified Data.Set      as Set
 
 data Pos = A | B | C
          deriving (Eq, Show, Bounded, Enum, Ord)
@@ -27,9 +29,6 @@ instance Show Cell where
 newtype Board = Board {get_map :: Map.Map Coordinate Cell}
 instance Show Board where
   show = show_board
-
-cell_to_player :: Cell -> Maybe Player
-cell_to_player (Cell x) = x
 
 coord :: (Pos, Pos) -> Coordinate
 coord (x, y) = Coordinate(Row x, Column y)
@@ -70,10 +69,6 @@ get_cell :: Board -> Coordinate -> Cell
 get_cell board coordinate =
   get_map board Map.! coordinate
 
-all_cells :: [Cell] -> Maybe Player
-all_cells (x:xs) = if all (==x) xs then cell_to_player x else Nothing
-
--- all_lines :: Board -> Set.Set [Cell]
 all_lines :: Board -> Set.Set [Cell]
 all_lines board =
    let map = get_map board
@@ -88,5 +83,43 @@ winner board =
   let is_winner x = Set.member (replicate 3 (Cell $ Just x)) $ all_lines board
   in List.find is_winner [X, O]
 
+parse_coordinate :: String -> Maybe Coordinate
+parse_coordinate [first, second] =
+  do
+    x <- parse_position first
+    y <- parse_position second
+    return $ coord(x, y)
+parse_coordinate _ = Nothing
+
+parse_position :: Char -> Maybe Pos
+parse_position 'A' = Just A
+parse_position 'B' = Just B
+parse_position 'C' = Just C
+parse_position _ = Nothing
+
+swap_player :: Player -> Player
+swap_player X = O
+swap_player O = X
+
+get_coordinate :: IO (Maybe Coordinate)
+get_coordinate = parse_coordinate <$> getLine
+
+repeat_until_just :: IO (Maybe a) -> IO a
+repeat_until_just action =
+  action >>= maybe (repeat_until_just action) return
+
+turn :: Board -> Player -> IO Board
+turn board player = do
+  putStrLn $ show board
+  putStr "> "
+  coordinate <- repeat_until_just get_coordinate
+  return $ set_cell board player coordinate
+
+game_loop :: Board -> Player -> IO ()
+game_loop board player =
+  when (isNothing $ winner board) $ do
+    newBoard <- turn board player
+    game_loop newBoard (swap_player player)
+
 main :: IO ()
-main = putStrLn $ show empty_board
+main = game_loop empty_board X
