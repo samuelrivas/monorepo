@@ -24,5 +24,8 @@ stdenv.mkDerivation rec {
     ghc
   ] ++ (if sandbox then [(emacs.override { inherit ghc; })] else []);
 
-  builder = empty-builder;
+  installPhase = ''
+    mkdir -p $out/bin
+    cp ../build/bin/* $out/bin # */ emacs ...
+  '';
 }

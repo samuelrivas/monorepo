@@ -5,14 +5,18 @@ NIX-EXPRESSIONS := $(NIX-DIR)
 NIX-GC-ROOT-DIR := $(BUILD-DIR)/nix-gc-roots
 NIX-DERIVATION := "with import $(NIX-DIR) {}; experiments-haskell.override {sandbox = true;}"
 
-.PHONY: all
+.PHONY: all compile
 
 all: compile
 
-compile: src/hello.hs
+$(BUILD-DIR):
+	mkdir -p $(BUILD-DIR)/bin
+	mkdir -p $(BUILD-DIR)/lib
+
+compile: $(BUILD-DIR) src/hello.hs
 	ghc src/hello.hs
-	mv src/hello ../build
-	mv src/*.hi src/*.o $(BUILD-DIR)
+	mv src/hello $(BUILD-DIR)/bin
+	mv src/*.hi src/*.o $(BUILD-DIR)/lib
 
 nix-shell:
 	nix-shell					\
