@@ -22,12 +22,13 @@
   ocpIndent,
   scalaMode2,
   stdenv,
+  stylish-haskell,
   tuareg,
   utop,
 }:
 let
   deps = {
-    "haskell" = [ haskell-mode ghc flycheck-haskell ];
+    "haskell" = [ haskell-mode ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocpIndent tuareg utop ];
     "erlang"  = [ erlang-mode ];
   };

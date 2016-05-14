@@ -82,6 +82,7 @@ let
         inherit (self) color-theme-solarized;
         inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode;
         inherit (emacsPackages) scalaMode2;
+        inherit (haskellPackages) stylish-haskell;
         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
       });
