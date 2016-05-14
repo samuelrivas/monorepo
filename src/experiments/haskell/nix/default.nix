@@ -1,10 +1,18 @@
+/* This derivation is currently only meant to be used for sandboxing (see make
+ * nix-shell)
+ * It configures ghc with the desired packages (wanted-packages), and adds an
+ * emacs with access to that ghc
+ */
 {
+  emacs,
   empty-builder,
-  ghcWithPackages,
+  haskellPackages,
   stdenv,
 }:
 let
-  haskell-packages-selector = pkgs: [ ];
+  wanted-packages = with haskellPackages; [ ];
+  haskell-packages-selector = pkgs: wanted-packages;
+  ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
 in
 stdenv.mkDerivation rec {
 
@@ -12,7 +20,8 @@ stdenv.mkDerivation rec {
   src = ./../src;
 
   buildInputs = [
-    (ghcWithPackages haskell-packages-selector)
+    (emacs.override { inherit ghc; })
+    ghc
   ];
 
   builder = empty-builder;

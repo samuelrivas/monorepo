@@ -124,9 +124,7 @@ let
 
     # Experiments
     # ===========
-    experiments-haskell = callPackage ./../src/experiments/haskell/nix {
-      inherit (pkgs.haskellPackages) ghcWithPackages;
-    };
+    experiments-haskell = callPackage ./../src/experiments/haskell/nix { };
   };
 in
 self
