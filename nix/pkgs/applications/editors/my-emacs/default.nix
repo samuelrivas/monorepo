@@ -9,11 +9,11 @@
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
   aspell-wrapped,
-  color-theme-solarized,
+  colorThemeSolarized,
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
-  erlang-mode,
+  erlangMode,
   flycheck-haskell,
   ghc,
   haskell-mode,
@@ -30,7 +30,7 @@ let
   deps = {
     "haskell" = [ haskell-mode ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocpIndent tuareg utop ];
-    "erlang"  = [ erlang-mode ];
+    "erlang"  = [ erlangMode ];
   };
 
   mode-deps = mode:
@@ -41,7 +41,7 @@ let
   # Cheap or always needed, dependencies, just install them no matter what
   hardcoded-deps = [
     aspell-wrapped
-    color-theme-solarized
+    colorThemeSolarized
     emacs-config
     nix-mode
     scalaMode2
