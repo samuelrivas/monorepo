@@ -76,7 +76,7 @@ let
       (with pkgs; {
         inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode;
         inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
-        inherit (haskellPackages) stylish-haskell;
+        inherit (haskellPackages) hlint stylish-haskell;
         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
       });

@@ -17,6 +17,7 @@
   flycheck-haskell,
   ghc,
   haskell-mode,
+  hlint,
   merlin,
   nix-mode,
   ocpIndent,
@@ -28,7 +29,7 @@
 }:
 let
   deps = {
-    "haskell" = [ haskell-mode ghc flycheck-haskell stylish-haskell ];
+    "haskell" = [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocpIndent tuareg utop ];
     "erlang"  = [ erlangMode ];
   };
