@@ -63,11 +63,6 @@ let
     # ================================================
     scala = callPackage ./pkgs/development/compilers/scala { };
     scala-2_10_5 = callPackage ./pkgs/development/compilers/scala/2.10.5.nix { };
-    color-theme-solarized = callPackage ./pkgs/applications/editors/emacs-modes/color-theme-solarized {
-      inherit (pkgs.emacs24Packages) colorTheme;
-      inherit (pkgs) emacs; # don't use self.emacs, causes infinite recursion
-    };
-    erlang-mode = callPackage ./pkgs/applications/editors/emacs-modes/erlang-mode { };
 
     # Emacs stuff
     # ===========
@@ -79,10 +74,9 @@ let
     # An emacs wrapper with the needed packages accessible
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
-        inherit (self) color-theme-solarized;
         inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode;
-        inherit (emacsPackages) scalaMode2;
-        inherit (haskellPackages) stylish-haskell;
+        inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
+        inherit (haskellPackages) hlint stylish-haskell;
         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
       });
