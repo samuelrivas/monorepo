@@ -171,7 +171,8 @@
 (add-to-list 'auto-mode-alist '("\\.scala\\'" . scala-mode))
 
 (defun my-scala-mode-hook ()
-  (setq whitespace-line-column 120))
+  (setq whitespace-line-column 120)
+  (flyspell-prog-mode))
 (add-hook 'scala-mode-hook 'my-scala-mode-hook)
 
 ;; Octave mode
