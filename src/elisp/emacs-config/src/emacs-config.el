@@ -92,6 +92,8 @@
   (auto-fill-mode t)
   (flyspell-mode t))
 
+(add-to-list 'auto-mode-alist '("COMMIT_EDITMSG\\'" . text-mode))
+
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
 ;; ORG
