@@ -4,8 +4,9 @@ module Board
   , Player(..)
   , Pos(..)
   , empty_board
+  , empty_cells
   , from_ints
-  , get_cell
+  , get_cell_player
   , set_cell
   , show_board
   , winner
@@ -66,13 +67,21 @@ show_board board =
   let rows = [Row pos | pos <- [A .. C]]
       shown_rows = map (show_row board) rows
       sep = "+---+---+---+"
-  in unlines $ [sep] ++ (List.intersperse sep shown_rows) ++ [sep]
+  in unlines $ ["", sep] ++ (List.intersperse sep shown_rows) ++ [sep]
 
 set_cell :: Board -> Player -> Coordinate -> Board
 set_cell board player coordinate =
   let m = get_map board
       cell = Cell $ Just player
   in Board (Map.insert coordinate cell m)
+
+-- We probably need a destructor for Cell, but I want to refactor all this
+-- anyway
+cell_to_player :: Cell -> Maybe Player
+cell_to_player (Cell x) = x
+
+get_cell_player :: Board -> Coordinate -> Maybe Player
+get_cell_player board = cell_to_player . get_cell board
 
 get_cell :: Board -> Coordinate -> Cell
 get_cell board coordinate =
@@ -90,3 +99,6 @@ winner :: Board -> Maybe Player
 winner board =
   let is_winner x = Set.member (replicate 3 (Cell $ Just x)) $ all_lines board
   in List.find is_winner [X, O]
+
+empty_cells :: Board -> Set.Set Coordinate
+empty_cells = Map.keysSet . Map.filter (== Cell Nothing) . get_map

@@ -2,10 +2,7 @@
 
 import           Board
 import           Control.Monad
-import qualified Data.List     as List
-import qualified Data.Map.Lazy as Map
 import           Data.Maybe
-import qualified Data.Set      as Set
 import           System.IO
 
 parse_coordinate :: String -> Maybe Board.Coordinate
