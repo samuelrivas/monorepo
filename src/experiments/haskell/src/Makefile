@@ -14,13 +14,17 @@ OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
 DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
 GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
+GHC-LD-FLAGS := -Wall
 GHC := ghc $(GHC-FLAGS)
+
+GHC-PACKAGES := containers
+GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
+
+PROGRAM := $(BIN-DIR)/main
 
 .PHONY: all compile clean
 
-include $(DEPENDENCIES-FILE)
-
-all: compile
+all: $(PROGRAM)
 
 $(LIB-DIR):
 	mkdir -p $@
@@ -43,12 +47,10 @@ $(LIB-DIR)/%.o: src/%.hs
 clean:
 	rm -rf $(BUILD-DIR)
 
-# compile: $(BUILD-DIR) src/main.hs
-# 	ghc src/main.hs
-# 	mv src/main $(BUILD-DIR)/bin
-# 	mv src/*.hi src/*.o $(BUILD-DIR)/lib
-
 compile: $(OBJECT-FILES)
+
+$(PROGRAM): $(BIN-DIR) $(OBJECT-FILES)
+	$(GHC-LD) $(OBJECT-FILES) -o $@
 
 nix-shell: $(NIX-GC-ROOT-DIR)
 	nix-shell					\
@@ -59,3 +61,5 @@ nix-shell: $(NIX-GC-ROOT-DIR)
 
 $(DEPENDENCIES-FILE): $(HS-FILES) $(GEN-DIR)
 	$(GHC) -dep-suffix '' -dep-makefile $@ -M $(HS-FILES)
+
+include $(DEPENDENCIES-FILE)
