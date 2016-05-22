@@ -27,6 +27,9 @@ $(BIN-DIR):
 $(NIX-GC-ROOT-DIR):
 	mkdir -p $@
 
+$(LIB-DIR)/%.hi: $(LIB-DIR)/%.o
+	@:
+
 $(LIB-DIR)/%.o: src/%.hs
 	$(GHC) -i$(LIB-DIR) -c $< -odir $(LIB-DIR) -hidir $(LIB-DIR)
 
