@@ -13,7 +13,7 @@ HS-FILES := $(wildcard src/*.hs)
 OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
 DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
-GHC-FLAGS := -Wall -odir $(LIB-DIR) -hidir $(LIB-DIR)
+GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
 GHC := ghc $(GHC-FLAGS)
 
 .PHONY: all compile clean
