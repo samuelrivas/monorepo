@@ -1,6 +1,7 @@
 BUILD-DIR := ../build
 LIB-DIR := $(BUILD-DIR)/lib
 BIN-DIR := $(BUILD-DIR)/bin
+GEN-DIR := $(BUILD-DIR)/generated
 
 NIX-DIR := $(CURDIR)/../../../../nix
 NIX-EXPRESSIONS := $(NIX-DIR)
@@ -10,11 +11,14 @@ NIX-DERIVATION := "with import $(NIX-DIR) {}; experiments-haskell.override {sand
 
 HS-FILES := $(wildcard src/*.hs)
 OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
+DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
-GHC-FLAGS := -Wall
+GHC-FLAGS := -Wall -odir $(LIB-DIR) -hidir $(LIB-DIR)
 GHC := ghc $(GHC-FLAGS)
 
 .PHONY: all compile clean
+
+include $(DEPENDENCIES-FILE)
 
 all: compile
 
@@ -27,11 +31,14 @@ $(BIN-DIR):
 $(NIX-GC-ROOT-DIR):
 	mkdir -p $@
 
+$(GEN-DIR):
+	mkdir -p $@
+
 $(LIB-DIR)/%.hi: $(LIB-DIR)/%.o
 	@:
 
 $(LIB-DIR)/%.o: src/%.hs
-	$(GHC) -i$(LIB-DIR) -c $< -odir $(LIB-DIR) -hidir $(LIB-DIR)
+	$(GHC) -i$(LIB-DIR) -c $<
 
 clean:
 	rm -rf $(BUILD-DIR)
@@ -49,3 +56,6 @@ nix-shell: $(NIX-GC-ROOT-DIR)
 	  --indirect --add-root $(NIX-GC-ROOTS)		\
 	  -E $(NIX-DERIVATION)				\
 	  $(NIX-EXPRESSIONS)
+
+$(DEPENDENCIES-FILE): $(HS-FILES) $(GEN-DIR)
+	$(GHC) -dep-suffix '' -dep-makefile $@ -M $(HS-FILES)
