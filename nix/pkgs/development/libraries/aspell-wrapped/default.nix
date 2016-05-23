@@ -18,6 +18,7 @@ stdenv.mkDerivation rec {
       aspellDicts.en
       aspellDicts.es
       aspellDicts.sv
+      aspellDicts.nb
     ];
 
   conf_file = writeText "aspell-conf" "dict-dir ${dicts}/lib/aspell";
