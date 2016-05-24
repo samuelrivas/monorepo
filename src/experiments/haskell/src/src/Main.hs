@@ -1,8 +1,8 @@
 -- TODO: Consider make the board a state monad
 
 import           Board
-import           Control.Monad
-import           Data.Maybe
+import qualified Data.Map.Lazy as Map
+import qualified GameState     as GameState
 import           System.IO
 
 parse_coordinate :: String -> Maybe Board.Coordinate
@@ -19,10 +19,6 @@ parse_position 'B' = Just B
 parse_position 'C' = Just C
 parse_position _ = Nothing
 
-swap_player :: Player -> Player
-swap_player X = O
-swap_player O = X
-
 get_coordinate :: IO (Maybe Coordinate)
 get_coordinate = parse_coordinate <$> prompt_line
 
@@ -33,17 +29,42 @@ repeat_until_just :: IO (Maybe a) -> IO a
 repeat_until_just action =
   action >>= maybe (repeat_until_just action) return
 
-turn :: Board -> Player -> IO Board
-turn board player = do
-  putStrLn $ show board
-  coordinate <- repeat_until_just get_coordinate
-  return $ set_cell board player coordinate
+read_move_and_update :: GameState.State -> IO (Maybe GameState.State)
+read_move_and_update state =
+  let update_state maybe_coordinate = do
+        coordinate <- maybe_coordinate
+        move <- GameState.mk_move state coordinate
+        GameState.next_state state move
+  in do
+    coordinate <- get_coordinate
+    return $ update_state coordinate
 
-game_loop :: Board -> Player -> IO ()
-game_loop board player =
-  when (isNothing $ winner board) $ do
-    newBoard <- turn board player
-    game_loop newBoard (swap_player player)
+turn :: GameState.State -> IO GameState.State
+turn state = do
+  putStrLn $ show state
+  repeat_until_just $ read_move_and_update state
+
+game_loop :: GameState.State -> IO GameState.State
+game_loop state =
+  let more_moves = (length $ GameState.possible_moves state) > 0
+  in
+    if (more_moves)
+    then do
+      new_state <- turn state
+      game_loop new_state
+    else
+      return state
+
+show_winner :: GameState.State -> IO ()
+show_winner state =
+  let scores = Map.toList $ GameState.scores state
+      show_score (player, score) = show player ++ ": " ++ show score
+      to_print_lines = map show_score scores
+  in
+    mapM_ putStrLn to_print_lines
 
 main :: IO ()
-main = game_loop empty_board X
+main = do
+  end_state <- game_loop GameState.initial_state
+  putStrLn $ show end_state
+  show_winner end_state

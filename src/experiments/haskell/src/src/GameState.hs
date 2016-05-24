@@ -1,6 +1,9 @@
 module GameState (
+  State,
+  Move,
   initial_state,
   possible_moves,
+  mk_move,
   next_state,
   players,
   scores,
@@ -14,12 +17,16 @@ import qualified Data.Set      as Set
 data Move = Move { get_player     :: Board.Player
                  , get_coordinate :: Board.Coordinate
                  }
-            deriving Show
+            deriving (Show, Eq)
 
 data State = State { get_board          :: Board.Board
                    , get_control_player :: Board.Player
                    }
-             deriving Show
+
+instance Show State where
+  show state = (show $ get_board state)
+               ++ "Playing "
+               ++ (show $ get_control_player state)
 
 initial_state :: State
 initial_state = State { get_board = Board.empty_board
@@ -40,6 +47,15 @@ possible_moves state =
   in if Maybe.isJust $ Board.winner board
      then []
      else moves
+
+mk_move :: State -> Board.Coordinate -> Maybe Move
+mk_move state coordinate =
+  let move = Move { get_player = get_control_player state
+                  , get_coordinate = coordinate
+                  }
+  in if legal_move state move
+     then Just move
+     else Nothing
 
 legal_move :: State -> Move -> Bool
 legal_move state move =
