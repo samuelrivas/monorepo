@@ -17,7 +17,7 @@ force_move :: GameState.State -> IO GameState.State
 force_move state =
   let player = GameState.get_control_player state
   in do
-  print $ "Player " ++ show player ++ "didn't return a valid move, forcing one"
+  print $ "Player " ++ show player ++ " didn't return a valid move, forcing one"
   return $ fst $ GameState.force_next_state state
 
 game_loop :: GameState.State -> IO GameState.State
