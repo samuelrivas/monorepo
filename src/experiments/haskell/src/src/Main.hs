@@ -3,6 +3,7 @@
 import qualified Board
 import qualified Data.Map.Lazy as Map
 import qualified GameState
+import qualified IOUtils
 import           System.IO
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
@@ -27,10 +28,6 @@ get_coordinate = parse_coordinate <$> prompt_line
 prompt_line :: IO String
 prompt_line = putStr "> " >> hFlush stdout >> getLine
 
-repeat_until_just :: IO (Maybe a) -> IO a
-repeat_until_just action =
-  action >>= maybe (repeat_until_just action) return
-
 mk_legal_move :: GameState.State -> Board.Coordinate -> Maybe GameState.Move
 mk_legal_move state coordinate =
   let
@@ -54,7 +51,7 @@ read_move_and_update state =
 turn :: GameState.State -> IO GameState.State
 turn state = do
   print state
-  repeat_until_just $ read_move_and_update state
+  IOUtils.repeat_until_just $ read_move_and_update state
 
 game_loop :: GameState.State -> IO GameState.State
 game_loop state =
@@ -81,5 +78,6 @@ show_winner state =
 main :: IO ()
 main = do
   end_state <- game_loop GameState.initial_state
+  print "The game has ended"
   print end_state
   show_winner end_state

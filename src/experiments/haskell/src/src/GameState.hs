@@ -1,5 +1,5 @@
 module GameState (
-  State(get_control_player),
+  State(..),
   Player,
   Move,
   initial_state,
