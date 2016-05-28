@@ -2,12 +2,13 @@ module GameState (
   State(..),
   Player,
   Move,
+  force_next_state,
   initial_state,
-  possible_moves,
   legal_move,
   mk_move,
   next_state,
   players,
+  possible_moves,
   scores,
   ) where
 
@@ -73,17 +74,26 @@ legal_move state move =
 
 next_state :: State -> Move -> Maybe State
 next_state state move =
+  if legal_move state move then
+    Just $ apply_move state move
+  else
+    Nothing
+
+apply_move :: State -> Move -> State
+apply_move state move =
   let
     board = get_board state
     player = get_player move
     coordinate = get_coordinate move
-  in
-  if legal_move state move then
-    Just State { get_board = Board.set_cell board player coordinate
-               , get_control_player = swap_player player
-               }
-  else
-    Nothing
+  in State { get_board = Board.set_cell board player coordinate
+           , get_control_player = swap_player player
+           }
+
+-- This will blow up if forcing in a final position
+force_next_state :: State -> (State, Move)
+force_next_state state =
+  let move = head $ possible_moves state
+  in (apply_move state move, move)
 
 players :: Set.Set Player
 players = Set.fromList [Board.X, Board.O]
