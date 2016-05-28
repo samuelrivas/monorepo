@@ -2,7 +2,7 @@
 
 import           Board
 import qualified Data.Map.Lazy as Map
-import qualified GameState     as GameState
+import qualified GameState
 import           System.IO
 
 parse_coordinate :: String -> Maybe Board.Coordinate
@@ -41,14 +41,14 @@ read_move_and_update state =
 
 turn :: GameState.State -> IO GameState.State
 turn state = do
-  putStrLn $ show state
+  print state
   repeat_until_just $ read_move_and_update state
 
 game_loop :: GameState.State -> IO GameState.State
 game_loop state =
-  let more_moves = (length $ GameState.possible_moves state) > 0
+  let more_moves = null $ GameState.possible_moves state
   in
-    if (more_moves)
+    if more_moves
     then do
       new_state <- turn state
       game_loop new_state
@@ -58,7 +58,10 @@ game_loop state =
 show_winner :: GameState.State -> IO ()
 show_winner state =
   let scores = Map.toList $ GameState.scores state
+
+      show_score :: (GameState.Player, Integer) -> String
       show_score (player, score) = show player ++ ": " ++ show score
+
       to_print_lines = map show_score scores
   in
     mapM_ putStrLn to_print_lines
@@ -66,5 +69,5 @@ show_winner state =
 main :: IO ()
 main = do
   end_state <- game_loop GameState.initial_state
-  putStrLn $ show end_state
+  print end_state
   show_winner end_state

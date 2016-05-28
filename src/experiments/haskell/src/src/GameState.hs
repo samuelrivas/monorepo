@@ -1,5 +1,6 @@
 module GameState (
   State,
+  Player,
   Move,
   initial_state,
   possible_moves,
@@ -14,13 +15,15 @@ import qualified Data.Map.Lazy as Map
 import qualified Data.Maybe    as Maybe
 import qualified Data.Set      as Set
 
-data Move = Move { get_player     :: Board.Player
+type Player = Board.Player
+
+data Move = Move { get_player     :: Player
                  , get_coordinate :: Board.Coordinate
                  }
             deriving (Show, Eq)
 
 data State = State { get_board          :: Board.Board
-                   , get_control_player :: Board.Player
+                   , get_control_player :: Player
                    }
 
 instance Show State where
@@ -81,10 +84,10 @@ next_state state move =
   else
     Nothing
 
-players :: Set.Set Board.Player
+players :: Set.Set Player
 players = Set.fromList [Board.X, Board.O]
 
-swap_player :: Board.Player -> Board.Player
+swap_player :: Player -> Player
 swap_player Board.X = Board.O
 swap_player Board.O = Board.X
 
@@ -93,14 +96,14 @@ score :: Num a => Bool -> a
 score True = 100
 score False = 0
 
-player_score :: Num a => State -> Board.Player -> a
+player_score :: Num a => State -> Player -> a
 player_score state player =
   let
     board = get_board state
   in
     Maybe.fromMaybe 0 (score . (== player) <$> Board.winner board)
 
-scores :: Num a => State -> Map.Map Board.Player a
+scores :: Num a => State -> Map.Map Player a
 scores state =
   let player_list = Set.toList players
   in
