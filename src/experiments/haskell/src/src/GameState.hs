@@ -1,19 +1,23 @@
 module GameState (
-  State,
+  State(get_control_player),
   Player,
   Move,
   initial_state,
   possible_moves,
+  legal_move,
   mk_move,
   next_state,
   players,
   scores,
   ) where
 
+
 import qualified Board         as Board
 import qualified Data.Map.Lazy as Map
 import qualified Data.Maybe    as Maybe
 import qualified Data.Set      as Set
+
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
 type Player = Board.Player
 
@@ -51,14 +55,11 @@ possible_moves state =
      then []
      else moves
 
-mk_move :: State -> Board.Coordinate -> Maybe Move
-mk_move state coordinate =
-  let move = Move { get_player = get_control_player state
-                  , get_coordinate = coordinate
-                  }
-  in if legal_move state move
-     then Just move
-     else Nothing
+mk_move :: Player -> Board.Coordinate -> Move
+mk_move player coordinate =
+  Move { get_player = player
+       , get_coordinate = coordinate
+       }
 
 legal_move :: State -> Move -> Bool
 legal_move state move =
@@ -78,9 +79,9 @@ next_state state move =
     coordinate = get_coordinate move
   in
   if legal_move state move then
-    Just $ State { get_board = Board.set_cell board player coordinate
-                 , get_control_player = swap_player player
-                 }
+    Just State { get_board = Board.set_cell board player coordinate
+               , get_control_player = swap_player player
+               }
   else
     Nothing
 

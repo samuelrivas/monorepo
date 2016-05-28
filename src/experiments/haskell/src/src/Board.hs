@@ -5,8 +5,8 @@ module Board
   , Pos(..)
   , empty_board
   , empty_cells
-  , from_ints
   , get_cell_player
+  , mk_coordinate
   , set_cell
   , show_board
   , winner
@@ -40,13 +40,13 @@ newtype Board = Board {get_map :: Map.Map Coordinate Cell}
 instance Show Board where
   show = show_board
 
-from_ints :: (Pos, Pos) -> Coordinate
-from_ints (x, y) = Coordinate(Row x, Column y)
+mk_coordinate :: (Pos, Pos) -> Coordinate
+mk_coordinate (x, y) = Coordinate(Row x, Column y)
 
 empty_board :: Board
 empty_board =
   let positions = [A .. C]
-      coordinates = [from_ints (x, y)
+      coordinates = [mk_coordinate (x, y)
                     | x <- positions
                     , y <- positions]
       add = \m c -> Board (Map.insert c (Cell Nothing) (get_map m))
@@ -58,7 +58,7 @@ show_cell (Cell Nothing) = " "
 
 show_row :: Board -> Row -> String
 show_row board (Row row) =
- let coords = [from_ints (row, col) | col <- [A .. C]]
+ let coords = [mk_coordinate (row, col) | col <- [A .. C]]
      cells = [get_map board Map.! c | c <- coords]
  in "| " ++ (List.intercalate " | " $ map show cells) ++ " |"
 
@@ -89,11 +89,12 @@ get_cell board coordinate =
 
 all_lines :: Board -> Set.Set [Cell]
 all_lines board =
-   let rows = [[from_ints (r, A), from_ints (r, B), from_ints (r, C)] | r <- [A .. C]]
-       cols = [[from_ints (A, c), from_ints (B, c), from_ints (C, c)] | c <- [A .. C]]
-       diag = [[from_ints (A, A), from_ints (B, B), from_ints (C, C)],
-               [from_ints (A, C), from_ints (B, B), from_ints (C, A)]]
-   in Set.fromList $ List.map (List.map (get_cell board)) $ concat [rows, cols, diag]
+   let rows = [map mk_coordinate [(r, A), (r, B), (r, C)] | r <- [A .. C]]
+       cols = [map mk_coordinate [(A, c), (B, c), (C, c)] | c <- [A .. C]]
+       diag = map (map mk_coordinate)
+              [[(A, A), (B, B), (C, C)],
+               [(A, C), (B, B), (C, A)]]
+   in Set.fromList $ map (map (get_cell board)) $ concat [rows, cols, diag]
 
 winner :: Board -> Maybe Player
 winner board =

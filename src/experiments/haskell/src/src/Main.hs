@@ -1,25 +1,27 @@
 -- TODO: Consider make the board a state monad
 
-import           Board
+import qualified Board
 import qualified Data.Map.Lazy as Map
 import qualified GameState
 import           System.IO
+
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
 parse_coordinate :: String -> Maybe Board.Coordinate
 parse_coordinate [first, second] =
   do
     x <- parse_position first
     y <- parse_position second
-    return $ from_ints(x, y)
+    return $ Board.mk_coordinate(x, y)
 parse_coordinate _ = Nothing
 
-parse_position :: Char -> Maybe Pos
-parse_position 'A' = Just A
-parse_position 'B' = Just B
-parse_position 'C' = Just C
+parse_position :: Char -> Maybe Board.Pos
+parse_position 'A' = Just Board.A
+parse_position 'B' = Just Board.B
+parse_position 'C' = Just Board.C
 parse_position _ = Nothing
 
-get_coordinate :: IO (Maybe Coordinate)
+get_coordinate :: IO (Maybe Board.Coordinate)
 get_coordinate = parse_coordinate <$> prompt_line
 
 prompt_line :: IO String
@@ -29,11 +31,21 @@ repeat_until_just :: IO (Maybe a) -> IO a
 repeat_until_just action =
   action >>= maybe (repeat_until_just action) return
 
+mk_legal_move :: GameState.State -> Board.Coordinate -> Maybe GameState.Move
+mk_legal_move state coordinate =
+  let
+    player = GameState.get_control_player state
+    move = GameState.mk_move player coordinate
+  in
+    if GameState.legal_move state move
+    then Just move
+    else Nothing
+
 read_move_and_update :: GameState.State -> IO (Maybe GameState.State)
 read_move_and_update state =
   let update_state maybe_coordinate = do
         coordinate <- maybe_coordinate
-        move <- GameState.mk_move state coordinate
+        move <- mk_legal_move state coordinate
         GameState.next_state state move
   in do
     coordinate <- get_coordinate
