@@ -12,7 +12,7 @@ module GameState (
   ) where
 
 
-import qualified Board         as Board
+import qualified Board
 import qualified Data.Map.Lazy as Map
 import qualified Data.Maybe    as Maybe
 import qualified Data.Set      as Set
@@ -31,9 +31,9 @@ data State = State { get_board          :: Board.Board
                    }
 
 instance Show State where
-  show state = (show $ get_board state)
+  show state = show (get_board state)
                ++ "Playing "
-               ++ (show $ get_control_player state)
+               ++ show (get_control_player state)
 
 initial_state :: State
 initial_state = State { get_board = Board.empty_board
@@ -69,7 +69,7 @@ legal_move state move =
     control_player = get_control_player state
   in
     (control_player == get_player move)
-    && (Maybe.isNothing $ Board.get_cell_player board coordinate)
+    && Maybe.isNothing (Board.get_cell_player board coordinate)
 
 next_state :: State -> Move -> Maybe State
 next_state state move =
