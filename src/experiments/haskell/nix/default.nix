@@ -22,6 +22,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     ghc
+    haskellPackages.hlint
   ] ++ (if sandbox then [(emacs.override { inherit ghc; })] else []);
 
   installPhase = ''
