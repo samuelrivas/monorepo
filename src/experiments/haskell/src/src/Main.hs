@@ -5,6 +5,7 @@ import qualified Data.Map.Lazy as Map
 import qualified GameState
 import qualified Player
 import qualified PlayerHuman   as Human
+import qualified PlayerNaive   as Computer
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -18,7 +19,8 @@ turn state =
       Nothing -> force_move state
 
 select_player :: Board.Player -> Player.Player
-select_player _ = Human.mk_player
+select_player Board.X = Human.mk_player
+select_player Board.O = Computer.mk_player
 
 force_move :: GameState.State -> IO GameState.State
 force_move state =

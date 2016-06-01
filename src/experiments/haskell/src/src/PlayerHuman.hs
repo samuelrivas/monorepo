@@ -1,5 +1,5 @@
-module PlayerHuman
-  ( mk_player
+module PlayerHuman (
+  mk_player
   ) where
 
 import qualified Board
