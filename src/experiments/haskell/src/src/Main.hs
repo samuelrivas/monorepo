@@ -1,17 +1,24 @@
 -- TODO: Consider make the board a state monad
 
+import qualified Board
 import qualified Data.Map.Lazy as Map
 import qualified GameState
 import qualified Player
+import qualified PlayerHuman   as Human
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 turn :: GameState.State -> IO GameState.State
-turn state = do
-  move <- Player.next_move state
-  case GameState.next_state state move of
-    Just next_state -> return next_state
-    Nothing -> force_move state
+turn state =
+  let player = select_player $ GameState.get_control_player state
+  in do
+    move <- Player.next_move state player
+    case GameState.next_state state move of
+      Just next_state -> return next_state
+      Nothing -> force_move state
+
+select_player :: Board.Player -> Player.Player
+select_player _ = Human.mk_player
 
 force_move :: GameState.State -> IO GameState.State
 force_move state =
