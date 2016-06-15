@@ -8,6 +8,7 @@ module GameState (
   mk_move,
   next_state,
   players,
+  player_score,
   possible_moves,
   scores,
   ) where
