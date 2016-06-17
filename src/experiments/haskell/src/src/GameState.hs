@@ -1,3 +1,11 @@
+-- Somewhat convenient way of generating a sequence of states
+--
+--  let states = GameState.initial_state : map
+--    (\s -> fromJust $ GameState.next_state s (head $ GameState.possible_moves s))
+--    states
+--
+-- Note that this will blow up if you reach the last state
+
 module GameState (
   State(..),
   Player,

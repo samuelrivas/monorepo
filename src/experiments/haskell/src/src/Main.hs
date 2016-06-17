@@ -5,7 +5,7 @@ import qualified Data.Map.Lazy as Map
 import qualified GameState
 import qualified Player
 import qualified PlayerHuman   as Human
-import qualified PlayerRandom  as Computer
+import qualified PlayerMinMax  as Computer
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
