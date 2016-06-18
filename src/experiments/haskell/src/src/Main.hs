@@ -26,7 +26,7 @@ force_move :: GameState.State -> IO GameState.State
 force_move state =
   let player = GameState.get_control_player state
   in do
-  print $ "Player " ++ show player ++ " didn't return a valid move, forcing one"
+  putStrLn $ "Player " ++ show player ++ " didn't return a valid move, forcing one"
   return $ fst $ GameState.force_next_state state
 
 game_loop :: GameState.State -> IO GameState.State
@@ -55,6 +55,6 @@ show_winner state =
 main :: IO ()
 main = do
   end_state <- game_loop GameState.initial_state
-  print "The game has ended"
+  putStrLn "The game has ended"
   print end_state
   show_winner end_state
