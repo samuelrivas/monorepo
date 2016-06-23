@@ -74,7 +74,7 @@ let
     # An emacs wrapper with the needed packages accessible
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
-        inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode;
+        inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode groovy-mode;
         inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;

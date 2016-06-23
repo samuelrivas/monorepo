@@ -16,6 +16,7 @@
   erlangMode,
   flycheck-haskell,
   ghc,
+  groovy-mode,
   haskell-mode,
   hlint,
   merlin,
@@ -44,6 +45,7 @@ let
     aspell-wrapped
     colorThemeSolarized
     emacs-config
+    groovy-mode
     nix-mode
     scalaMode2
   ];

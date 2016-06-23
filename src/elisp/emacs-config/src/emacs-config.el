@@ -179,3 +179,10 @@
 
 ;; Octave mode
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
+
+;; Groovy mode
+(defun my-groovy-mode-hook ()
+  (auto-fill-mode)
+  (flyspell-prog-mode))
+
+(add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
