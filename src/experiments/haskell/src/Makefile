@@ -1,26 +1,49 @@
-BUILD-DIR=../build
+BUILD-DIR := ../build
+LIB-DIR := $(BUILD-DIR)/lib
+BIN-DIR := $(BUILD-DIR)/bin
+GEN-DIR := $(BUILD-DIR)/generated
 
-NIX-DIR := $(CURDIR)/../../../../nix
-NIX-EXPRESSIONS := $(NIX-DIR)
-NIX-GC-ROOT-DIR := $(BUILD-DIR)/nix-gc-roots
-NIX-DERIVATION := "with import $(NIX-DIR) {}; experiments-haskell.override {sandbox = true;}"
+HS-FILES := $(wildcard src/*.hs)
+OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
+DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
-.PHONY: all compile
+GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
+GHC-LD-FLAGS := -Wall
+GHC := ghc $(GHC-FLAGS)
 
-all: compile
+GHC-PACKAGES := containers random-fu
+GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
 
-$(BUILD-DIR):
-	mkdir -p $(BUILD-DIR)/bin
-	mkdir -p $(BUILD-DIR)/lib
+PROGRAM := $(BIN-DIR)/main
 
-compile: $(BUILD-DIR) src/hello.hs
-	ghc src/hello.hs
-	mv src/hello $(BUILD-DIR)/bin
-	mv src/*.hi src/*.o $(BUILD-DIR)/lib
+.PHONY: all compile clean
 
-nix-shell:
-	nix-shell					\
-	  --pure					\
-	  --indirect --add-root $(NIX-GC-ROOT-DIR)	\
-	  -E $(NIX-DERIVATION)				\
-	  $(NIX-EXPRESSIONS)
+all: $(PROGRAM)
+
+$(LIB-DIR):
+	mkdir -p $@
+
+$(BIN-DIR):
+	mkdir -p $@
+
+$(GEN-DIR):
+	mkdir -p $@
+
+$(LIB-DIR)/%.hi: $(LIB-DIR)/%.o
+	@:
+
+$(LIB-DIR)/%.o: src/%.hs
+	$(GHC) -i$(LIB-DIR) -c $<
+
+clean:
+	rm -rf $(BUILD-DIR)
+
+compile: $(OBJECT-FILES)
+
+$(PROGRAM): $(BIN-DIR) $(OBJECT-FILES)
+	$(GHC-LD) $(OBJECT-FILES) -o $@
+
+$(DEPENDENCIES-FILE): $(HS-FILES) $(GEN-DIR)
+	$(GHC) -dep-suffix '' -dep-makefile $@ -M $(HS-FILES)
+
+include $(DEPENDENCIES-FILE)
