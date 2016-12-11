@@ -5,7 +5,7 @@
   stdenv,
 }:
 let
-  version = "1.12.5";
+  version = "1.13.4";
   scala_minor = with stdenv.lib;
     concatStringsSep "." (take 2 (splitString "." (getVersion scala)));
 in
@@ -16,7 +16,7 @@ stdenv.mkDerivation {
   # one works only for scala 2.11
   src = fetchurl {
     url =  "https://www.scalacheck.org/files/scalacheck_${scala_minor}-${version}.jar";
-    sha256 = "0rbwr432800fbli1zsd3ywvlzd33xyn1ncck90ndgllm71qmhi6k";
+    sha256 = "1mwgbzp1plb3znsbh450nzg0xlnkksb2f24dhll7vds3sr5gylp3";
   };
   builder = simple-java-builder;
 }
