@@ -103,10 +103,24 @@ backup() {
     fi
 }
 
+check_dir_exists() {
+    local dir="$1"
+
+    if [[ ! -r "$dir" ]]; then
+        echo "$dir doesn't exist or is not readable, aborting backup"
+        exit 1
+    fi
+    if [[ ! -d "$dir" ]]; then
+        echo "$dir is not a directory, aborting backup"
+        exit 1
+    fi
+}
+
 ## Main
 ##====================================================================
 main() {
     parse_args "${ARGS[@]:-}"
+    check_dir_exists "$SRC_DIR"
     backup "$SRC_DIR" "$DEST_DIR" "$RETENTION"
 }
 
