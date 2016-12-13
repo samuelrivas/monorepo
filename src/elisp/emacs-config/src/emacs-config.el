@@ -49,6 +49,9 @@
 (setq kept-old-versions 0)
 (setq version-control t)
 
+(setq require-final-newline nil)
+(setq mode-require-final-newline nil)
+
 ;; Whitespace mode
 (global-whitespace-mode t)
 (setq whitespace-line-column 80)
