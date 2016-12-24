@@ -13,13 +13,15 @@
 
 stdenv.mkDerivation rec {
   name = "aspell-wrapped-0.0.0";
-  dicts = symlinkJoin "dicts"
-    [
+  dicts = symlinkJoin {
+    name = "dicts";
+    paths = [
       aspellDicts.en
       aspellDicts.es
       aspellDicts.sv
       aspellDicts.nb
     ];
+  };
 
   conf_file = writeText "aspell-conf" "dict-dir ${dicts}/lib/aspell";
 
