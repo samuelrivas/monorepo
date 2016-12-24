@@ -12,7 +12,7 @@ install_nix() {
 
 reset_channel() {
     nix-channel --remove nixpkgs
-    nix-channel --add https://nixos.org/channels/nixos-16.03 nixpkgs
+    nix-channel --add https://nixos.org/channels/nixos-16.09 nixpkgs
     nix-channel --update
 }
 

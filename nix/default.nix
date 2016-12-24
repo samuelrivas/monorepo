@@ -56,7 +56,9 @@ let
     # ===========================================
     java-json = callPackage ./pkgs/development/java/json { };
     java-mailapi = callPackage ./pkgs/development/java/mailapi { };
-    spark = callPackage ./pkgs/applications/networking/cluster/spark { };
+    spark = callPackage ./pkgs/applications/networking/cluster/spark {
+      mesosSupport = false;
+    };
 
     # Patches not yet in channels, but merged upstream
     # These should go away soon
