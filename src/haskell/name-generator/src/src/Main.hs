@@ -18,7 +18,8 @@ random_syllable random_chars = sequence (Random.sample <$> random_chars)
 main :: IO ()
 main =
   let consonant = draw_from_set simple_consonant_set
-      vowel = draw_from_set simple_vowel_set
+      vowel     = draw_from_set simple_vowel_set
+      structure = [consonant, vowel, consonant]
   in do
-    syllable <- Random.sample $ random_syllable [consonant, vowel, consonant]
+    syllable <- Random.sample $ random_syllable structure
     putStrLn syllable
