@@ -15,9 +15,10 @@ vowels = Set.fromList ['a', 'e', 'i', 'o', 'u']
 random_vowel :: Random.RVar Char
 random_vowel = Random.randomElement $ Set.toList vowels
 
+random_syllable :: [Random.RVar Char] -> Random.RVar [Char]
+random_syllable random_chars = sequence (Random.sample <$> random_chars)
+
 main :: IO ()
 main = do
-  c1 <- Random.sample random_consonant
-  v <- Random.sample random_vowel
-  c2 <- Random.sample random_consonant
-  putStrLn [c1, v, c2]
+  vowel <- Random.sample $ random_syllable [random_consonant, random_vowel, random_consonant]
+  putStrLn vowel
