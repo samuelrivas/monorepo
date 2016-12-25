@@ -3,22 +3,22 @@ import qualified Data.Set    as Set
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
-consonants :: Set.Set Char
-consonants = Set.fromList ['p', 't', 'k', 'm', 'n', 's', 'l']
+simple_consonant_set :: Set.Set Char
+simple_consonant_set = Set.fromList ['p', 't', 'k', 'm', 'n', 's', 'l']
 
-random_consonant :: Random.RVar Char
-random_consonant = Random.randomElement $ Set.toList consonants
+simple_vowel_set :: Set.Set Char
+simple_vowel_set = Set.fromList ['a', 'e', 'i', 'o', 'u']
 
-vowels :: Set.Set Char
-vowels = Set.fromList ['a', 'e', 'i', 'o', 'u']
-
-random_vowel :: Random.RVar Char
-random_vowel = Random.randomElement $ Set.toList vowels
+draw_from_set :: Set.Set a -> Random.RVar a
+draw_from_set set = Random.randomElement $ Set.toList set
 
 random_syllable :: [Random.RVar Char] -> Random.RVar [Char]
 random_syllable random_chars = sequence (Random.sample <$> random_chars)
 
 main :: IO ()
-main = do
-  vowel <- Random.sample $ random_syllable [random_consonant, random_vowel, random_consonant]
-  putStrLn vowel
+main =
+  let consonant = draw_from_set simple_consonant_set
+      vowel = draw_from_set simple_vowel_set
+  in do
+    syllable <- Random.sample $ random_syllable [consonant, vowel, consonant]
+    putStrLn syllable
