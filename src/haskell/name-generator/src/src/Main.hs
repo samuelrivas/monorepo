@@ -76,9 +76,22 @@ vowel_set flavour =
 draw_from_set :: Set.Set a -> Random.RVar a
 draw_from_set set = Random.randomElement $ Set.toList set
 
+maybe_invalid_syllable :: SyllableStruct -> ComponentGen -> Random.RVar [String]
+maybe_invalid_syllable syllableStruct componentGen =
+  sequence (componentGen <$> syllableStruct)
+
+-- This can hang if the distribution doesn't offer enough chances for valid
+-- syllables
 random_syllable :: SyllableStruct -> ComponentGen -> Random.RVar [String]
 random_syllable syllableStruct componentGen =
-  sequence (componentGen <$> syllableStruct)
+  let to_maybe f x = if f x then Just x else Nothing
+      maybe_syllable = fmap (to_maybe valid_syllable) $
+        maybe_invalid_syllable syllableStruct componentGen
+  in repeat_until_just maybe_syllable
+
+repeat_until_just :: Random.RVar (Maybe a) -> Random.RVar a
+repeat_until_just action =
+  action >>= maybe (repeat_until_just action) return
 
 basic_letter_gen :: LetterGen
 basic_letter_gen Consonant = draw_from_set (consonant_set Arabic)
@@ -96,10 +109,31 @@ basic_component_gen (Optional letter_type) =
 basic_component_gen (Mandatory letter_type) = basic_letter_gen letter_type
 
 basic_syllable_struct :: SyllableStruct
-basic_syllable_struct = [Mandatory Sibilant,
-                         Optional Consonant,
+basic_syllable_struct = [Optional Sibilant,
+                         Mandatory Consonant,
                          Mandatory Vowel,
                          Mandatory Final]
+
+bigrams :: [String] -> [(String, String)]
+bigrams (x:y:t) = (x, y) : (bigrams (y:t))
+bigrams _       = []
+
+valid_syllable :: [String] -> Bool
+valid_syllable syllable =
+  let filtered = filter (/= "") syllable
+  in List.all valid_bigram (bigrams filtered)
+
+hard_bigrams :: Set.Set (String, String)
+hard_bigrams =
+  let cartesian_prod xs ys = Set.fromList [(x, y) | x <- xs, y <- ys]
+      shf = cartesian_prod ["s", "sh", "f"] ["s", "sh"]
+      rl = cartesian_prod ["r", "l"] ["r", "l"]
+  in
+    Set.union shf rl
+
+valid_bigram :: (String, String) -> Bool
+valid_bigram bigram@(x, y) = (x /= y) && (not $ Set.member bigram hard_bigrams)
+
 main :: IO ()
 main =
   let struct = basic_syllable_struct
