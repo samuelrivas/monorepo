@@ -30,6 +30,11 @@ type LetterGen = LetterType -> Random.RVar String
 type ComponentGen = SyllableComponent -> Random.RVar String
 type SyllableStruct = [SyllableComponent]
 
+data Orthography = Slavic
+                 | German
+                 | French
+                 | Chinese
+
 consonant_set :: ConsFlavour -> ConsSet
 consonant_set flavour =
   let strings Minimal =
@@ -85,7 +90,7 @@ maybe_invalid_syllable syllableStruct componentGen =
 random_syllable :: SyllableStruct -> ComponentGen -> Random.RVar [String]
 random_syllable syllableStruct componentGen =
   let to_maybe f x = if f x then Just x else Nothing
-      maybe_syllable = fmap (to_maybe valid_syllable) $
+      maybe_syllable = to_maybe valid_syllable <$>
         maybe_invalid_syllable syllableStruct componentGen
   in repeat_until_just maybe_syllable
 
@@ -134,6 +139,27 @@ hard_bigrams =
 valid_bigram :: (String, String) -> Bool
 valid_bigram bigram@(x, y) = (x /= y) && (not $ Set.member bigram hard_bigrams)
 
+spell :: Orthography -> String -> String
+spell Slavic "sh"  = "š"
+spell Slavic "zh"  = "ž"
+spell Slavic "ch"  = "č"
+spell Slavic "gh"  = "ǧ"
+
+spell German "sh"  = "sch"
+spell German "ch"  = "tsch"
+spell German "x"   = "ch"
+
+spell French "sh"  = "ch"
+spell French "zh"  = "j"
+spell French "ch"  = "tch"
+spell French "x"   = "kh"
+
+spell Chinese "sh" = "x"
+spell Chinese "ch" = "q"
+spell Chinese "gh" = "j"
+
+spell _ x          = x
+
 main :: IO ()
 main =
   let struct = basic_syllable_struct
@@ -142,3 +168,4 @@ main =
     syllable <- Random.sample $ random_syllable struct gen
     SIO.hSetEncoding SIO.stdout Encoding.utf8
     putStrLn $ List.intercalate "-" syllable
+    putStrLn $ concatMap (spell Slavic) syllable
