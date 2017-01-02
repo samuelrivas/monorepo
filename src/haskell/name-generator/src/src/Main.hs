@@ -16,7 +16,13 @@ data ConsFlavour = Minimal
                  | EnglishLite
 type ConsSet = Set.Set String
 
-data VowFlavour = Standard | Aiu | Eou
+data VowFlavour = Standard
+                | Aiu
+                | Eou
+                | ExtraAei
+                | ExtraU
+                | FiveAi
+                | ExtraAou
 type VowSet = Set.Set String
 
 data LetterType = Consonant
@@ -30,10 +36,16 @@ type LetterGen = LetterType -> Random.RVar String
 type ComponentGen = SyllableComponent -> Random.RVar String
 type SyllableStruct = [SyllableComponent]
 
-data Orthography = Slavic
-                 | German
-                 | French
-                 | Chinese
+data ConsonantOrthography = Slavic
+                          | German
+                          | French
+                          | Chinese
+
+data VowelOrthography = Acutes
+                      | Umlauts
+                      | Welsh
+                      | Diphthongs
+                      | Doubles
 
 consonant_set :: ConsFlavour -> ConsSet
 consonant_set flavour =
@@ -72,9 +84,15 @@ finals flavour =
 
 vowel_set :: VowFlavour -> VowSet
 vowel_set flavour =
-  let strings Standard = ["a", "e", "i", "o", "u"]
-      strings Aiu      = ["a", "i", "u"]
-      strings Eou      = ["e", "o", "u"]
+  let strings vowset =
+        case vowset of
+         Standard -> ["a", "e", "i", "o", "u"]
+         Aiu      -> ["a", "i", "u"]
+         Eou      -> ["e", "o", "u"]
+         ExtraAei -> ["a", "e", "i", "o", "u", "A", "E", "I"]
+         ExtraU   -> ["a", "e", "i", "o", "u", "U"]
+         FiveAi   -> ["a", "i", "u", "A", "I"]
+         ExtraAou -> ["a", "e", "i", "o", "u", "A", "O", "U"]
   in
     Set.fromList $ strings flavour
 
@@ -100,7 +118,7 @@ repeat_until_just action =
 
 basic_letter_gen :: LetterGen
 basic_letter_gen Consonant = draw_from_set (consonant_set Arabic)
-basic_letter_gen Vowel     = draw_from_set (vowel_set Standard)
+basic_letter_gen Vowel     = draw_from_set (vowel_set ExtraAou)
 basic_letter_gen Sibilant  = draw_from_set sibilants
 basic_letter_gen Liquid    = draw_from_set liquids
 basic_letter_gen Final     = draw_from_set (finals Arabic)
@@ -139,26 +157,36 @@ hard_bigrams =
 valid_bigram :: (String, String) -> Bool
 valid_bigram bigram@(x, y) = (x /= y) && (not $ Set.member bigram hard_bigrams)
 
-spell :: Orthography -> String -> String
-spell Slavic "sh"  = "š"
-spell Slavic "zh"  = "ž"
-spell Slavic "ch"  = "č"
-spell Slavic "gh"  = "ǧ"
+-- TODO Consnants and vowels should be separate types so that we can easily map
+-- both ortographies
+spell :: ConsonantOrthography -> VowelOrthography -> String -> String
+spell Slavic _ "sh"    = "š"
+spell Slavic _ "zh"    = "ž"
+spell Slavic _ "ch"    = "č"
+spell Slavic _ "gh"    = "ǧ"
 
-spell German "sh"  = "sch"
-spell German "ch"  = "tsch"
-spell German "x"   = "ch"
+spell German _ "sh"    = "sch"
+spell German _ "ch"    = "tsch"
+spell German _ "x"     = "ch"
 
-spell French "sh"  = "ch"
-spell French "zh"  = "j"
-spell French "ch"  = "tch"
-spell French "x"   = "kh"
+spell French _ "sh"    = "ch"
+spell French _ "zh"    = "j"
+spell French _ "ch"    = "tch"
+spell French _ "x"     = "kh"
 
-spell Chinese "sh" = "x"
-spell Chinese "ch" = "q"
-spell Chinese "gh" = "j"
+spell Chinese _ "sh"   = "x"
+spell Chinese _ "ch"   = "q"
+spell Chinese _ "gh"   = "j"
 
-spell _ x          = x
+spell _ Diphthongs "A" = "au"
+spell _ Diphthongs "E" = "ei"
+spell _ Diphthongs "I" = "ie"
+spell _ Diphthongs "O" = "ou"
+spell _ Diphthongs "U" = "uo"
+
+-- TODO Support the remaining vowel sets
+
+spell _ _ x            = x
 
 main :: IO ()
 main =
@@ -168,4 +196,4 @@ main =
     syllable <- Random.sample $ random_syllable struct gen
     SIO.hSetEncoding SIO.stdout Encoding.utf8
     putStrLn $ List.intercalate "-" syllable
-    putStrLn $ concatMap (spell Slavic) syllable
+    putStrLn $ concatMap (spell Slavic Diphthongs) syllable
