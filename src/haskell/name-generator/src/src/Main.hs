@@ -178,13 +178,35 @@ spell Chinese _ "sh"   = "x"
 spell Chinese _ "ch"   = "q"
 spell Chinese _ "gh"   = "j"
 
+spell _ Acutes "A"     = "á"
+spell _ Acutes "E"     = "é"
+spell _ Acutes "I"     = "í"
+spell _ Acutes "O"     = "ó"
+spell _ Acutes "U"     = "ú"
+
+spell _ Umlauts "A"    = "ä"
+spell _ Umlauts "E"    = "ë"
+spell _ Umlauts "I"    = "ï"
+spell _ Umlauts "O"    = "ö"
+spell _ Umlauts "U"    = "ü"
+
+spell _ Welsh "A"      = "â"
+spell _ Welsh "E"      = "ê"
+spell _ Welsh "I"      = "î"
+spell _ Welsh "O"      = "ô"
+spell _ Welsh "U"      = "û"
+
 spell _ Diphthongs "A" = "au"
 spell _ Diphthongs "E" = "ei"
 spell _ Diphthongs "I" = "ie"
 spell _ Diphthongs "O" = "ou"
 spell _ Diphthongs "U" = "uo"
 
--- TODO Support the remaining vowel sets
+spell _ Doubles "A"    = "aa"
+spell _ Doubles "E"    = "ee"
+spell _ Doubles "I"    = "ii"
+spell _ Doubles "O"    = "oo"
+spell _ Doubles "U"    = "uu"
 
 spell _ _ x            = x
 
