@@ -140,7 +140,7 @@ basic_syllable_struct :: SyllableStruct
 basic_syllable_struct = [Mandatory Consonant,
                          Optional Liquid,
                          Mandatory Vowel,
-                         Mandatory Final]
+                         Optional Final]
 
 bigrams :: [String] -> [(String, String)]
 bigrams (x:y:t) = (x, y) : (bigrams (y:t))
