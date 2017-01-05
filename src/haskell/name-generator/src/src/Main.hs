@@ -123,11 +123,11 @@ repeat_until_just action =
   action >>= maybe (repeat_until_just action) return
 
 basic_letter_gen :: LetterGen
-basic_letter_gen Consonant = draw_from_set (consonant_set Arabic)
-basic_letter_gen Vowel     = draw_from_set (vowel_set ExtraAou)
+basic_letter_gen Consonant = draw_from_set (consonant_set Hawaiian)
+basic_letter_gen Vowel     = draw_from_set (vowel_set FiveAi)
 basic_letter_gen Sibilant  = draw_from_set sibilants
 basic_letter_gen Liquid    = draw_from_set liquids
-basic_letter_gen Final     = draw_from_set (finals Arabic)
+basic_letter_gen Final     = draw_from_set (finals Hawaiian)
 
 basic_component_gen :: ComponentGen
 basic_component_gen (Optional letter_type) =
@@ -138,8 +138,8 @@ basic_component_gen (Optional letter_type) =
 basic_component_gen (Mandatory letter_type) = basic_letter_gen letter_type
 
 basic_syllable_struct :: SyllableStruct
-basic_syllable_struct = [Optional Sibilant,
-                         Mandatory Consonant,
+basic_syllable_struct = [Mandatory Consonant,
+                         Optional Liquid,
                          Mandatory Vowel,
                          Mandatory Final]
 
@@ -249,12 +249,11 @@ main =
       gen = basic_component_gen
       syllable = random_syllable struct gen
       syllable_length = poisson_length_gen
-      consonant_orthography = Slavic
-      vowel_orthography = Doubles
+      consonant_orthography = French
+      vowel_orthography = Diphthongs
 
   in do
     word <- Random.sample $ word_gen syllable syllable_length
     SIO.hSetEncoding SIO.stdout Encoding.utf8
     putStrLn $ format_word word
     putStrLn $ print_word consonant_orthography vowel_orthography word
-
