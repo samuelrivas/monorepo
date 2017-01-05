@@ -14,7 +14,7 @@ GHC := ghc $(GHC-FLAGS)
 GHC-PACKAGES := random-fu
 GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
 
-PROGRAM := $(BIN-DIR)/main
+PROGRAM := $(BIN-DIR)/name-gen
 
 .PHONY: all compile clean
 
