@@ -214,6 +214,9 @@ spell _ Doubles "I"    = "ii"
 spell _ Doubles "O"    = "oo"
 spell _ Doubles "U"    = "uu"
 
+spell _ _ "tt"         = "'"
+spell _ _ "x"          = "kh"
+spell _ _ "j"          = "y"
 spell _ _ x            = x
 
 poisson_length_gen :: LengthGen
@@ -254,3 +257,4 @@ main =
     SIO.hSetEncoding SIO.stdout Encoding.utf8
     putStrLn $ format_word word
     putStrLn $ print_word consonant_orthography vowel_orthography word
+
