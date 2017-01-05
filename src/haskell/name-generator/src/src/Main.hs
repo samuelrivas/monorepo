@@ -39,7 +39,6 @@ type LetterGen = LetterType -> Random.RVar String
 type ComponentGen = SyllableComponent -> Random.RVar String
 type SyllableGen = Random.RVar [String]
 type LengthGen = Random.RVar Int
-type WordGen = LengthGen -> Random.RVar [String]
 type SyllableStruct = [SyllableComponent]
 
 data ConsonantOrthography = Slavic
