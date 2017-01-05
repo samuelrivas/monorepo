@@ -1,8 +1,11 @@
-import qualified Data.List          as List
-import qualified Data.Random        as Random
-import qualified Data.Set           as Set
-import qualified System.IO          as SIO
-import qualified System.IO.Encoding as Encoding
+import qualified Control.Monad                    as Control
+import qualified Data.Char                        as Char
+import qualified Data.List                        as List
+import qualified Data.Random                      as Random
+import qualified Data.Random.Distribution.Poisson as Poisson
+import qualified Data.Set                         as Set
+import qualified System.IO                        as SIO
+import qualified System.IO.Encoding               as Encoding
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -34,6 +37,9 @@ data SyllableComponent = Optional LetterType | Mandatory LetterType
 
 type LetterGen = LetterType -> Random.RVar String
 type ComponentGen = SyllableComponent -> Random.RVar String
+type SyllableGen = Random.RVar [String]
+type LengthGen = Random.RVar Int
+type WordGen = LengthGen -> Random.RVar [String]
 type SyllableStruct = [SyllableComponent]
 
 data ConsonantOrthography = Slavic
@@ -105,7 +111,7 @@ maybe_invalid_syllable syllableStruct componentGen =
 
 -- This can hang if the distribution doesn't offer enough chances for valid
 -- syllables
-random_syllable :: SyllableStruct -> ComponentGen -> Random.RVar [String]
+random_syllable :: SyllableStruct -> ComponentGen -> SyllableGen
 random_syllable syllableStruct componentGen =
   let to_maybe f x = if f x then Just x else Nothing
       maybe_syllable = to_maybe valid_syllable <$>
@@ -210,12 +216,41 @@ spell _ Doubles "U"    = "uu"
 
 spell _ _ x            = x
 
+poisson_length_gen :: LengthGen
+poisson_length_gen = (+1) <$> Poisson.poisson (1::Double)
+
+word_gen :: SyllableGen -> LengthGen -> Random.RVar [[String]]
+word_gen syllableGen lengthGen =
+  do
+    len <- Random.sample lengthGen
+    Random.sample $ Control.replicateM len syllableGen
+    -- Random.sample $ sequence (replicate len syllableGen)
+
+format_syllable :: [String] -> String
+format_syllable = List.intercalate "-"
+
+format_word :: [[String]] -> String
+format_word syllables = List.intercalate "/" (format_syllable <$> syllables)
+
+print_word :: ConsonantOrthography -> VowelOrthography -> [[String]] -> String
+print_word cons_orth vowel_orth =
+  capitalise . concatMap (concatMap (spell cons_orth vowel_orth))
+
+capitalise :: String -> String
+capitalise ""    = ""
+capitalise (h:t) = Char.toUpper h : t
+
 main :: IO ()
 main =
   let struct = basic_syllable_struct
-      gen    = basic_component_gen
+      gen = basic_component_gen
+      syllable = random_syllable struct gen
+      syllable_length = poisson_length_gen
+      consonant_orthography = Slavic
+      vowel_orthography = Doubles
+
   in do
-    syllable <- Random.sample $ random_syllable struct gen
+    word <- Random.sample $ word_gen syllable syllable_length
     SIO.hSetEncoding SIO.stdout Encoding.utf8
-    putStrLn $ List.intercalate "-" syllable
-    putStrLn $ concatMap (spell Slavic Diphthongs) syllable
+    putStrLn $ format_word word
+    putStrLn $ print_word consonant_orthography vowel_orthography word
