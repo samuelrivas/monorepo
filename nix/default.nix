@@ -112,6 +112,10 @@ let
       inherit (pkgs) emacs;
     };
 
+    # Haskell stuff
+    # =============
+    name-generator = callPackage ./../src/haskell/name-generator/nix { };
+
     # Shell-scripts
     # =============
     assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {
