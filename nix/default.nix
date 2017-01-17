@@ -45,14 +45,18 @@ let
       inherit (pkgs) lib;
       pkgs = pkgs // self;
       config-file = local-config-file;
-      modules = [ ./modules/emacs-config.nix ];
+      modules = [ ./modules/emacs-config.nix
+                  ./modules/upstream-pkgs.nix
+                ];
     };
+
+    upstream-pkgs = import (self.local-config.upstream-pkgs.dir)  { inherit system; };
 
     # Own packages, not general enough
     # ================================
     packer = callPackage ./pkgs/development/tools/packer { };
 
-    # Patches from upstream, to be pull requested
+    # Patches to upstream, to be pull requested
     # ===========================================
     java-json = callPackage ./pkgs/development/java/json { };
     java-mailapi = callPackage ./pkgs/development/java/mailapi { };
@@ -61,7 +65,8 @@ let
     };
 
     # Patches not yet in channels, but merged upstream
-    # These should go away soon
+    # These should go away soon (now we have upstream
+    # referenced this should be cleaned out, lazy!!)
     # ================================================
     scala = callPackage ./pkgs/development/compilers/scala { };
     scala-2_10_5 = callPackage ./pkgs/development/compilers/scala/2.10.5.nix { };
