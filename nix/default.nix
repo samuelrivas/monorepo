@@ -64,12 +64,10 @@ let
       mesosSupport = false;
     };
 
-    # Patches not yet in channels, but merged upstream
-    # These should go away soon (now we have upstream
-    # referenced this should be cleaned out, lazy!!)
-    # ================================================
-    scala = callPackage ./pkgs/development/compilers/scala { };
-    scala-2_10_5 = callPackage ./pkgs/development/compilers/scala/2.10.5.nix { };
+    # Packages from upstream
+    # ======================
+    scala = self.upstream-pkgs.scala;
+    scala-2_10 = self.upstream-pkgs.scala_2_10;
 
     # Emacs stuff
     # ===========
