@@ -13,10 +13,10 @@ stdenv.mkDerivation {
   name = "scalacheck-${version}";
 
   # TODO: We would need a map matching compiler versions to sources here. This
-  # one works only for scala 2.11
+  # one works only for scala 2.12
   src = fetchurl {
     url =  "https://www.scalacheck.org/files/scalacheck_${scala_minor}-${version}.jar";
-    sha256 = "1mwgbzp1plb3znsbh450nzg0xlnkksb2f24dhll7vds3sr5gylp3";
+    sha256 = "11q1vzx5xz97yxdpqqpdwc9pzbyavw1zi7d11xwrs3d11xjfc9j5";
   };
   builder = simple-java-builder;
 }

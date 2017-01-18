@@ -45,14 +45,18 @@ let
       inherit (pkgs) lib;
       pkgs = pkgs // self;
       config-file = local-config-file;
-      modules = [ ./modules/emacs-config.nix ];
+      modules = [ ./modules/emacs-config.nix
+                  ./modules/upstream-pkgs.nix
+                ];
     };
+
+    upstream-pkgs = import (self.local-config.upstream-pkgs.dir)  { inherit system; };
 
     # Own packages, not general enough
     # ================================
     packer = callPackage ./pkgs/development/tools/packer { };
 
-    # Patches from upstream, to be pull requested
+    # Patches to upstream, to be pull requested
     # ===========================================
     java-json = callPackage ./pkgs/development/java/json { };
     java-mailapi = callPackage ./pkgs/development/java/mailapi { };
@@ -60,11 +64,10 @@ let
       mesosSupport = false;
     };
 
-    # Patches not yet in channels, but merged upstream
-    # These should go away soon
-    # ================================================
-    scala = callPackage ./pkgs/development/compilers/scala { };
-    scala-2_10_5 = callPackage ./pkgs/development/compilers/scala/2.10.5.nix { };
+    # Packages from upstream
+    # ======================
+    scala = self.upstream-pkgs.scala;
+    scala-2_10 = self.upstream-pkgs.scala_2_10;
 
     # Emacs stuff
     # ===========
@@ -76,10 +79,10 @@ let
     # An emacs wrapper with the needed packages accessible
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
-        inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode groovy-mode;
+        inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode groovy-mode tuareg;
         inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
-        inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
+        inherit (ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
       });
 
@@ -97,20 +100,6 @@ let
     # ===========
     scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
     samtime = callPackage ./../src/scala/samtime/nix { };
-
-    # Ocaml stuff
-    # ===========
-
-    # Stolen from upstream, as 4.02.1 is broken in the channel right now
-    ocaml_4_02 = callPackage ./pkgs/development/compilers/ocaml/4.02.nix {
-      inherit (pkgs.xorg) libX11 xproto;
-    };
-    ocamlPackages_4_02 = pkgs.mkOcamlPackages self.ocaml_4_02 self.ocamlPackages_4_02;
-
-    # Stolen from upstream, broken in the channels right now
-    tuareg = callPackage ./pkgs/applications/editors/emacs-modes/tuareg {
-      inherit (pkgs) emacs;
-    };
 
     # Haskell stuff
     # =============
