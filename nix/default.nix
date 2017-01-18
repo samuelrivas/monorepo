@@ -79,10 +79,10 @@ let
     # An emacs wrapper with the needed packages accessible
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
-        inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode groovy-mode;
+        inherit (emacsPackagesNg) flycheck-haskell haskell-mode nix-mode groovy-mode tuareg;
         inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
-        inherit (self.ocamlPackages_4_02) merlin ocpIndent utop;
+        inherit (ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
       });
 
@@ -100,20 +100,6 @@ let
     # ===========
     scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
     samtime = callPackage ./../src/scala/samtime/nix { };
-
-    # Ocaml stuff
-    # ===========
-
-    # Stolen from upstream, as 4.02.1 is broken in the channel right now
-    ocaml_4_02 = callPackage ./pkgs/development/compilers/ocaml/4.02.nix {
-      inherit (pkgs.xorg) libX11 xproto;
-    };
-    ocamlPackages_4_02 = pkgs.mkOcamlPackages self.ocaml_4_02 self.ocamlPackages_4_02;
-
-    # Stolen from upstream, broken in the channels right now
-    tuareg = callPackage ./pkgs/applications/editors/emacs-modes/tuareg {
-      inherit (pkgs) emacs;
-    };
 
     # Haskell stuff
     # =============
