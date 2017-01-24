@@ -25,6 +25,7 @@
   scalaMode2,
   stdenv,
   stylish-haskell,
+  terraform-mode,
   tuareg,
   utop,
 }:
@@ -48,6 +49,7 @@ let
     groovy-mode
     nix-mode
     scalaMode2
+    terraform-mode
   ];
 
   dep-packages = stdenv.lib.concatMap mode-deps [ "haskell" "ocaml" "erlang" ];
