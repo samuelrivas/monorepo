@@ -64,10 +64,17 @@ let
       mesosSupport = false;
     };
 
+    # Temporary hacks (while upstream finishes doing these correctly)
+    # ===============================================================
+    tensorflow = callPackage ./pkgs/applications/libraries/tensorflow {
+      pythonPackages = self.upstream-pkgs.pythonPackages;
+    };
+
     # Packages from upstream
     # ======================
     scala = self.upstream-pkgs.scala;
     scala-2_10 = self.upstream-pkgs.scala_2_10;
+    protobuf3_1 = self.upstream-pkgs.protobuf3_1;
 
     # Emacs stuff
     # ===========
