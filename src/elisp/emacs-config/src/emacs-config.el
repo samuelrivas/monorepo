@@ -100,6 +100,7 @@
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
 ;; ORG
+(define-key global-map "\C-ca" 'org-agenda)
 (setq org-catch-invisible-edits 'error)
 
 ;; Erlang mode
