@@ -1,8 +1,9 @@
 {
+  blacklisted-modes,
   emacs,
   extra-config,
   full-user-name,
-  blacklisted-modes,
+  org-mode-agendas,
   stdenv,
   writeTextFile
 }:
@@ -17,6 +18,14 @@ stdenv.mkDerivation rec {
     text = ''
       ;; User specific info
       (setq user-full-name "${full-user-name}")
+
+      ;; Org mode stuff
+      (setq org-agenda-files
+        '(${stdenv.lib.concatMapStringsSep
+              " "
+              (x: "\"" + builtins.toString x + "\"")
+              org-mode-agendas}))
+
 
       ;; Extra config added by the extra-config option of the emacs-config module
       ${extra-config}

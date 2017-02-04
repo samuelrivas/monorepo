@@ -20,6 +20,12 @@ in
         default = "Unknown Fella";
         description = "The full user name.";
       };
+      org-mode-agendas = lib.mkOption {
+        type = lib.types.listOf lib.types.path;
+        default = [];
+        description = "List of paths to add to org mode's agenda";
+        example = [/home/samuel/agendas /tmp/tmp-agenda.org];
+      };
       extra-config = lib.mkOption {
         type = lib.types.string;
         default = "";
