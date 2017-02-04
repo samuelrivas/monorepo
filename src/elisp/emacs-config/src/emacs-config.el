@@ -2,6 +2,9 @@
 (setq package-archives nil)
 (package-initialize)
 
+;; Disable customize (to avoid conflicts with this configuration)
+(setq custom-file "/dev/null")
+
 ;; Enable the solarised theme, with dark background We assume that
 ;; color-theme-solarized is in the path and use that info to set
 ;; custom-theme-load-path
@@ -100,6 +103,7 @@
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
 ;; ORG
+(define-key global-map "\C-ca" 'org-agenda)
 (setq org-catch-invisible-edits 'error)
 
 ;; Erlang mode
