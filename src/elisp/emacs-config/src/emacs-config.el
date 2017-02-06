@@ -5,6 +5,17 @@
 ;; Disable customize (to avoid conflicts with this configuration)
 (setq custom-file "/dev/null")
 
+;; Useful functions that are not there by default
+(defun revert-all-buffers ()
+  "Refreshes all open buffers from their respective files."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (and (buffer-file-name)
+                 (file-exists-p (buffer-file-name)) (not (buffer-modified-p)))
+        (revert-buffer t t t))))
+  (message "Refreshed open files."))
+
 ;; Enable the solarised theme, with dark background We assume that
 ;; color-theme-solarized is in the path and use that info to set
 ;; custom-theme-load-path
