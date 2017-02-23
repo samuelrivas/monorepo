@@ -64,6 +64,10 @@ let
       mesosSupport = false;
     };
 
+    oktaauth = callPackage ./pkgs/development/libraries/oktaauth {
+      inherit (pkgs.pythonPackages) argparse beautifulsoup4 requests2 flake8;
+    };
+
     # Temporary hacks (while upstream finishes doing these correctly)
     # ===============================================================
     tensorflow = callPackage ./pkgs/applications/libraries/tensorflow {
