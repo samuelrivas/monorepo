@@ -79,6 +79,7 @@ let
     scala = self.upstream-pkgs.scala;
     scala-2_10 = self.upstream-pkgs.scala_2_10;
     protobuf3_1 = self.upstream-pkgs.protobuf3_1;
+    pandas = self.upstream-pkgs.pythonPackages.pandas;
 
     # Emacs stuff
     # ===========
