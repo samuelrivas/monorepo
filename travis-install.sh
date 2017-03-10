@@ -5,7 +5,7 @@ set -euo pipefail
 export NIX_CURL_FLAGS=-sS
 
 readonly PKGS_DIR="/tmp/upstream-pkgs"
-readonly PKGS_SHA="e9109b1b979d8ce9385431b38d0f2eda693cbaf3"
+readonly PKGS_SHA="583c50ddceb45075852130e440b437d7943dff59"
 
 install_nix() {
     curl -sS https://nixos.org/nix/install > install-nix
