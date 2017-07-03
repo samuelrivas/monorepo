@@ -65,7 +65,8 @@ let
     };
 
     oktaauth = callPackage ./pkgs/development/libraries/oktaauth {
-      inherit (pkgs.pythonPackages) argparse beautifulsoup4 requests2 flake8;
+      inherit (pkgs.pythonPackages) argparse beautifulsoup4 requests2 flake8
+       buildPythonPackage;
     };
 
     # Packages from upstream
