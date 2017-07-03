@@ -65,7 +65,8 @@ let
     };
 
     oktaauth = callPackage ./pkgs/development/libraries/oktaauth {
-      inherit (pkgs.pythonPackages) argparse beautifulsoup4 requests2 flake8;
+      inherit (pkgs.pythonPackages) argparse beautifulsoup4 requests2 flake8
+       buildPythonPackage;
     };
 
     # Packages from upstream
@@ -91,13 +92,6 @@ let
         inherit (ocamlPackages_4_02) merlin ocpIndent utop;
         emacs-config-options = self.local-config.emacs-config;
       });
-
-    # We need upstream emacs wrapper, since the one in the channel install stuff
-    # in site-lisp, bin, etc
-    emacsWithPackages = import ./build-support/emacs/wrapper.nix {
-      inherit (pkgs) lib makeWrapper stdenv runCommand;
-      inherit (pkgs.xorg) lndir;
-    } pkgs.emacsPackagesNg;
 
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
