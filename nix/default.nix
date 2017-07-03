@@ -93,13 +93,6 @@ let
         emacs-config-options = self.local-config.emacs-config;
       });
 
-    # We need upstream emacs wrapper, since the one in the channel install stuff
-    # in site-lisp, bin, etc
-    emacsWithPackages = import ./build-support/emacs/wrapper.nix {
-      inherit (pkgs) lib makeWrapper stdenv runCommand;
-      inherit (pkgs.xorg) lndir;
-    } pkgs.emacsPackagesNg;
-
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
 
