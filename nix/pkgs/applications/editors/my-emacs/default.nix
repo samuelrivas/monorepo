@@ -10,18 +10,23 @@
 {
   aspell-wrapped,
   colorThemeSolarized,
+  coreutils,
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
+  ensime,
   erlangMode,
   flycheck-haskell,
+  gawk,
   ghc,
+  gnused,
   groovy-mode,
   haskell-mode,
   hlint,
   merlin,
   nix-mode,
   ocpIndent,
+  sbt,
   scalaMode2,
   stdenv,
   stylish-haskell,
@@ -34,6 +39,7 @@ let
     "haskell" = [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocpIndent tuareg utop ];
     "erlang"  = [ erlangMode ];
+    "scala"   = [ ensime sbt coreutils gnused gawk ]; #sbt doesn't run without all those extra things
   };
 
   mode-deps = mode:
@@ -48,10 +54,14 @@ let
     emacs-config
     groovy-mode
     nix-mode
-    scalaMode2
     terraform-mode
   ];
 
-  dep-packages = stdenv.lib.concatMap mode-deps [ "haskell" "ocaml" "erlang" ];
+  dep-packages = stdenv.lib.concatMap mode-deps [
+    "erlang"
+    "haskell"
+    "ocaml"
+    "scala"
+  ];
 in
 emacsWithPackages (hardcoded-deps ++ dep-packages)
