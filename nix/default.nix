@@ -86,7 +86,7 @@ let
       (with pkgs; {
         inherit (emacsPackagesNg) flycheck-haskell haskell-mode
                                   nix-mode groovy-mode tuareg
-                                  terraform-mode;
+                                  terraform-mode ensime;
         inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages_4_02) merlin ocpIndent utop;

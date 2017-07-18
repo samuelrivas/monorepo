@@ -179,12 +179,11 @@
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
 
 ;; Scala mode
-(autoload 'scala-mode "scala-mode2" "scala-mode" t)
-(add-to-list 'auto-mode-alist '("\\.scala\\'" . scala-mode))
-
 (defun my-scala-mode-hook ()
+  (setq ensime-auto-generate-config t)
   (setq whitespace-line-column 120)
-  (flyspell-prog-mode))
+  (flyspell-prog-mode)
+  (ensime))
 (add-hook 'scala-mode-hook 'my-scala-mode-hook)
 
 ;; Octave mode
