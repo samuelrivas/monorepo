@@ -107,6 +107,7 @@ let
     # Haskell stuff
     # =============
     name-generator = callPackage ./../src/haskell/name-generator/nix { };
+    ds-processing = callPackage ./../src/haskell/ds-processing/nix { };
 
     # Shell-scripts
     # =============
