@@ -50,8 +50,7 @@ parse_args _   = throwError $ T.pack "You must provide exactly one argument"
 get_context :: ExceptT T.Text IO Int
 get_context = do
   args <- lift $ fmap T.pack <$> getArgs
-  context <- ExceptT $ return $ parse_args args
-  return context
+  ExceptT $ return $ parse_args args
 
 -- Meat of the program
 
