@@ -3,7 +3,7 @@
   emacs,
   extra-config,
   full-user-name,
-  org-agendas,
+  org-agenda-file,
   org-interview-file,
   org-meeting-file,
   org-template-dir,
@@ -21,8 +21,13 @@ stdenv.mkDerivation rec {
   custom-variables = writeTextFile {
     name = "custom-variables.el";
     text = ''
+      ;; User specific info
+      (setq user-full-name "${full-user-name}")
+
+      ;; Org mode configuration
       (defvar sams-org-config)
       (setq sams-org-config '(
+        :agenda-file "${builtins.toString org-agenda-file}"
         :template-dir "${builtins.toString org-template-dir}"
         :todo-file "${builtins.toString org-todo-file}"
         :meeting-file "${builtins.toString org-meeting-file}"
@@ -34,18 +39,6 @@ stdenv.mkDerivation rec {
   emacs-custom = writeTextFile {
     name = "emacs-custom.el";
     text = ''
-      ;; User specific info
-      (setq user-full-name "${full-user-name}")
-
-      ;; Org mode stuff
-      (setq sams-org-template-dir "${builtins.toString org-template-dir}")
-
-      (setq org-agenda-files
-        '(${stdenv.lib.concatMapStringsSep
-              " "
-              (x: "\"" + builtins.toString x + "\"")
-              org-agendas}))
-
       ;; Extra config added by the extra-config option of the emacs-config module
       ${extra-config}
     '';

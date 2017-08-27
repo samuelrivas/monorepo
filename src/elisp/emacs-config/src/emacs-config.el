@@ -147,6 +147,9 @@
     (file ,(sams-template "interview-capturing.org"))
     :jump-to-captured t)))
 
+(defvar org-agenda-files)
+(setq org-agenda-files (plist-get sams-org-config :agenda-file))
+
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
 (add-to-list 'auto-mode-alist '("\\.[he]rl\\'" . erlang-mode))

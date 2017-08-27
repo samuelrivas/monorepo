@@ -20,33 +20,28 @@ in
         default = "Unknown Fella";
         description = "The full user name.";
       };
-      org-agendas = lib.mkOption {
-        type = lib.types.listOf lib.types.path;
-        default = [];
-        description = "List of paths to add to org mode's agenda";
-        example = [/home/samuel/agendas /tmp/tmp-agenda.org];
+      org-agenda-file = lib.mkOption {
+        type = lib.types.path;
+        description = "File with the list of paths to add to org mode's agenda";
+        example = /tmp/agendas;
       };
       org-template-dir = lib.mkOption {
         type = lib.types.path;
-        default = [];
         description = "Directory where the capturing templates live";
         example = /tmp/templates;
       };
       org-meeting-file = lib.mkOption {
         type = lib.types.path;
-        default = [];
         description = "File to capture meetings";
         example = /tmp/meetings.org;
       };
       org-interview-file = lib.mkOption {
         type = lib.types.path;
-        default = [];
         description = "File to capture interviews";
         example = /tmp/interviews.org;
       };
       org-todo-file = lib.mkOption {
         type = lib.types.path;
-        default = [];
         description = "File to capture tasks";
         example = /tmp/todo.org;
       };
