@@ -126,6 +126,27 @@
 (setq org-log-into-drawer t)
 (setq org-catch-invisible-edits 'error)
 
+
+(defvar sams-org-config)
+(defvar org-capture-templates)
+(defun sams-template (file)
+  (format "%s/%s" (plist-get sams-org-config :template-dir) file))
+
+(setq
+ org-capture-templates
+ `(("t" "Todo" entry
+    (file+headline ,(plist-get sams-org-config :todo-file) "Inkorg")
+    (file ,(sams-template "todo-capturing.org")))
+
+   ("m" "Meeting" entry
+    (file+datetree+prompt ,(plist-get sams-org-config :meeting-file))
+    (file ,(sams-template "meeting-capturing.org")))
+
+   ("i" "Interview" entry
+    (file+datetree+prompt ,(plist-get sams-org-config :interview-file))
+    (file ,(sams-template "interview-capturing.org"))
+    :jump-to-captured t)))
+
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
 (add-to-list 'auto-mode-alist '("\\.[he]rl\\'" . erlang-mode))
