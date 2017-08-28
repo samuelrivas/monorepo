@@ -1,4 +1,5 @@
 ;; Disable packages (we use nix for dependencies)
+(defvar package-archives)
 (setq package-archives nil)
 (package-initialize)
 
@@ -53,6 +54,7 @@
 
 (setq-default indent-tabs-mode nil)
 
+(defvar browse-url-generic-program)
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "chromium-browser")
 
@@ -68,6 +70,8 @@
 
 ;; Whitespace mode
 (global-whitespace-mode t)
+(defvar whitespace-line-column)
+(defvar whitespace-style)
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face trailing empty tabs lines-tail))
 
@@ -114,8 +118,37 @@
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
 ;; ORG
-(define-key global-map "\C-ca" 'org-agenda)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cc" 'org-capture)
+
+(defvar org-log-into-drawer)
+(defvar org-catch-invisible-edits)
+(setq org-log-into-drawer t)
 (setq org-catch-invisible-edits 'error)
+
+
+(defvar sams-org-config)
+(defvar org-capture-templates)
+(defun sams-template (file)
+  (format "%s/%s" (plist-get sams-org-config :template-dir) file))
+
+(setq
+ org-capture-templates
+ `(("t" "Todo" entry
+    (file+headline ,(plist-get sams-org-config :todo-file) "Inkorg")
+    (file ,(sams-template "todo-capturing.org")))
+
+   ("m" "Meeting" entry
+    (file+datetree+prompt ,(plist-get sams-org-config :meeting-file))
+    (file ,(sams-template "meeting-capturing.org")))
+
+   ("i" "Interview" entry
+    (file+datetree+prompt ,(plist-get sams-org-config :interview-file))
+    (file ,(sams-template "interview-capturing.org"))
+    :jump-to-captured t)))
+
+(defvar org-agenda-files)
+(setq org-agenda-files (plist-get sams-org-config :agenda-file))
 
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
@@ -132,6 +165,7 @@
 
 
 ;; Haskell mode
+(defvar haskell-mode-map)
 (eval-after-load 'flycheck
   '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
 
@@ -157,6 +191,9 @@
 (autoload 'utop-setup-ocaml-buffer "utop" "Toplevel for OCaml" t)
 (add-hook 'tuareg-mode-hook 'my-tuareg-mode-hook)
 
+(defvar utop-command)
+(defvar merlin-mode-map)
+(defvar merlin-use-auto-complete-mode)
 (defun my-tuareg-mode-hook ()
   (require 'merlin)
   (require 'ocp-indent)
@@ -179,6 +216,7 @@
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
 
 ;; Scala mode
+(defvar ensime-auto-generate-config)
 (defun my-scala-mode-hook ()
   (setq ensime-auto-generate-config t)
   (setq whitespace-line-column 120)

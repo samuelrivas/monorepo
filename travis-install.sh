@@ -17,6 +17,13 @@ create_config() {
     mkdir "$config_dir"
     cat > "$config_dir/configuration.nix"  <<EOF
 {
+  emacs-config = {
+    org-agenda-file = /dev/null;
+    org-template-dir = /dev/null;
+    org-meeting-file = /dev/null;
+    org-interview-file = /dev/null;
+    org-todo-file = /dev/null;
+  };
   upstream-pkgs = {
     dir = $PKGS_DIR/nixpkgs;
   };
