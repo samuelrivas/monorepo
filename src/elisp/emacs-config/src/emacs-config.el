@@ -123,12 +123,16 @@
 
 (defvar org-log-into-drawer)
 (defvar org-catch-invisible-edits)
-(setq org-log-into-drawer t)
-(setq org-catch-invisible-edits 'error)
-
-
 (defvar sams-org-config)
 (defvar org-capture-templates)
+(defvar org-agenda-files)
+(defvar org-log-reschedule)
+
+(setq org-log-into-drawer t)
+(setq org-catch-invisible-edits 'error)
+(setq org-agenda-files (plist-get sams-org-config :agenda-file))
+(setq org-log-reschedule 'note)
+
 (defun sams-template (file)
   (format "%s/%s" (plist-get sams-org-config :template-dir) file))
 
@@ -147,8 +151,6 @@
     (file ,(sams-template "interview-capturing.org"))
     :jump-to-captured t)))
 
-(defvar org-agenda-files)
-(setq org-agenda-files (plist-get sams-org-config :agenda-file))
 
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
