@@ -127,11 +127,13 @@
 (defvar org-capture-templates)
 (defvar org-agenda-files)
 (defvar org-log-reschedule)
+(defvar org-log-done)
 
 (setq org-log-into-drawer t)
 (setq org-catch-invisible-edits 'error)
 (setq org-agenda-files (plist-get sams-org-config :agenda-file))
 (setq org-log-reschedule 'note)
+(setq org-log-done 'time)
 
 (defun sams-template (file)
   (format "%s/%s" (plist-get sams-org-config :template-dir) file))
