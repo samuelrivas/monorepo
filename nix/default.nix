@@ -47,6 +47,7 @@ let
       config-file = local-config-file;
       modules = [ ./modules/emacs-config.nix
                   ./modules/upstream-pkgs.nix
+                  ./modules/sams-pkgs.nix
                 ];
     };
 
@@ -121,6 +122,10 @@ let
     };
 
     sh-lib = callPackage ./../src/shell/sh-lib/nix { };
+
+    sandbox = callPackage ./../src/shell/sandbox/nix {
+      nix-root = self.local-config.sams-pkgs.dir + "/default.nix";
+    };
 
     # Experiments
     # ===========
