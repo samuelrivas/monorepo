@@ -116,6 +116,8 @@ let
       inherit (pkgs.xlibs) xbacklight xrandr xset;
     };
 
+    sh-lib = callPackage ./../src/shell/sh-lib/nix { };
+
     # Experiments
     # ===========
     experiments-haskell = callPackage ./../src/experiments/haskell/nix { };
