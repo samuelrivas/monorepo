@@ -107,8 +107,12 @@ let
 
     # Haskell stuff
     # =============
-    name-generator = callPackage ./../src/haskell/name-generator/nix { };
-    ds-processing = callPackage ./../src/haskell/ds-processing/nix { };
+    name-generator = callPackage ./../src/haskell/name-generator/nix {
+      sandbox = false;
+    };
+    ds-processing = callPackage ./../src/haskell/ds-processing/nix {
+      sandbox = false;
+    };
 
     # Shell-scripts
     # =============
@@ -120,7 +124,9 @@ let
 
     # Experiments
     # ===========
-    experiments-haskell = callPackage ./../src/experiments/haskell/nix { };
+    experiments-haskell = callPackage ./../src/experiments/haskell/nix {
+      sandbox = false;
+    };
   };
 in
 self

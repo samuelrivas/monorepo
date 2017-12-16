@@ -7,7 +7,7 @@
   emacs,
   empty-builder,
   haskellPackages,
-  sandbox ? false,
+  sandbox,
   stdenv,
 }:
 let
