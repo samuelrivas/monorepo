@@ -1,7 +1,7 @@
 {
   emacs,
   haskellPackages,
-  sandbox ? false,
+  sandbox,
   stdenv,
 }:
 let

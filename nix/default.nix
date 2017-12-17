@@ -47,6 +47,7 @@ let
       config-file = local-config-file;
       modules = [ ./modules/emacs-config.nix
                   ./modules/upstream-pkgs.nix
+                  ./modules/sams-pkgs.nix
                 ];
     };
 
@@ -107,8 +108,12 @@ let
 
     # Haskell stuff
     # =============
-    name-generator = callPackage ./../src/haskell/name-generator/nix { };
-    ds-processing = callPackage ./../src/haskell/ds-processing/nix { };
+    name-generator = callPackage ./../src/haskell/name-generator/nix {
+      sandbox = false;
+    };
+    ds-processing = callPackage ./../src/haskell/ds-processing/nix {
+      sandbox = false;
+    };
 
     # Shell-scripts
     # =============
@@ -116,9 +121,17 @@ let
       inherit (pkgs.xlibs) xbacklight xrandr xset;
     };
 
+    sh-lib = callPackage ./../src/shell/sh-lib/nix { };
+
+    sandbox = callPackage ./../src/shell/sandbox/nix {
+      nix-root = self.local-config.sams-pkgs.dir + "/default.nix";
+    };
+
     # Experiments
     # ===========
-    experiments-haskell = callPackage ./../src/experiments/haskell/nix { };
+    experiments-haskell = callPackage ./../src/experiments/haskell/nix {
+      sandbox = false;
+    };
   };
 in
 self

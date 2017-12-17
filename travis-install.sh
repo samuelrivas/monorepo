@@ -27,6 +27,9 @@ create_config() {
   upstream-pkgs = {
     dir = $PKGS_DIR/nixpkgs;
   };
+  sams-pkgs = {
+    dir = "$PWD/nix";
+  };
 }
 EOF
 }
