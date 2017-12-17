@@ -28,7 +28,7 @@ create_config() {
     dir = $PKGS_DIR/nixpkgs;
   };
   sams-pkgs = {
-    dir = $PWD/nix;
+    dir = "$PWD/nix";
   };
 }
 EOF
