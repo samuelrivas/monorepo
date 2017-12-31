@@ -73,6 +73,8 @@ let
        buildPythonPackage;
     };
 
+    cpplint = callPackage ./pkgs/development/tools/cpplint { };
+
     # Packages from upstream
     # ======================
     scala = self.upstream-pkgs.scala;
