@@ -129,6 +129,15 @@ let
       nix-root = self.local-config.sams-pkgs.dir + "/default.nix";
     };
 
+    # C++ stuff
+    # =========
+    reservoir = callPackage ./../src/c++/reservoir/nix {
+      sandbox = false;
+    };
+    reservoir-sandbox = callPackage ./../src/c++/reservoir/nix {
+      sandbox = true;
+    };
+
     # Experiments
     # ===========
     experiments-haskell = callPackage ./../src/experiments/haskell/nix {
