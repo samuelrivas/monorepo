@@ -6,7 +6,7 @@ default-args := 10 < ./test/test-input
 
 CPPARGS := -Wall -Werror -std=c++11 -ggdb3 -fno-exceptions -O0
 
-.PHONY: clean build-dirs valgrind run cpplint strace
+.PHONY: check clean build-dirs valgrind run cpplint strace test
 
 all: build-dirs $(bin-dir)/reservoir
 
@@ -21,18 +21,23 @@ $(bin-dir)/reservoir: $(work-dir)/reservoir.o
 	g++ -o $@ $^
 
 valgrind: $(bin-dir)/reservoir
-	valgrind $^ $(default-args)
+	valgrind --leak-check=full --error-exitcode=1 $^ $(default-args)
 
 strace: $(bin-dir)/reservoir
 	strace $^ $(default-args) > /tmp/out
 
 run: $(bin-dir)/reservoir
-	$^
+	$^ $(default-args)
 
 cpplint: $(work-dir)/cpplint-report
 
 $(work-dir)/cpplint-report: src/reservoir.cpp
 	cpplint $^ 2>&1 | tee $(work-dir)/cpplint-report
+
+test: $(bin-dir)/reservoir
+	test/test.sh $^
+
+check: cpplint valgrind test
 
 clean:
 	find $(build-dir) -not -name .gitignore -and -type f -delete

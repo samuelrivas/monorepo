@@ -1,29 +1,37 @@
 {
+  bc,
   cpplint,
   empty-builder,
   gdb,
   gcc,
   sandbox,
+  sh-lib,
   stdenv,
   strace,
   valgrind,
 }:
 let
   extra-sandbox = [
-    cpplint
     gdb
     strace
-    valgrind
   ];
-  maybe-empty-builder = if sandbox then { builder = empty-builder; } else { };
+  sandbox-extras = if sandbox then {
+    builder = empty-builder;
+  } else { };
 in
-stdenv.mkDerivation (maybe-empty-builder // {
+stdenv.mkDerivation (sandbox-extras // {
   src = ./../src;
   name = "reservoir";
   buildInputs = [
+    cpplint
     gcc
+    valgrind
+    bc
   ] ++ (if sandbox then extra-sandbox else []);
 
+  SH_LIB = "${sh-lib}/lib";
+
+  doCheck = true;
   installPhase = ''
     mkdir -p "$out/bin"
     cp ../build/install/bin/reservoir $out/bin

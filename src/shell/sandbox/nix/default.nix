@@ -30,8 +30,6 @@ stdenv.mkDerivation rec {
           nix;
 
   postFixup = ''
-    SCHIBSTED_SH_LIB="$out/lib"
-
     wrapProgram "$out/bin/sandbox"              \
       --suffix-each PATH : "$nix/bin $gawk/bin" \
       --set SH_LIB "${lib-dir}"                 \
