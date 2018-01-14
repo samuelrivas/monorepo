@@ -122,11 +122,11 @@ repeat_until_just action =
   action >>= maybe (repeat_until_just action) return
 
 basic_letter_gen :: LetterGen
-basic_letter_gen Consonant = draw_from_set (consonant_set Hawaiian)
-basic_letter_gen Vowel     = draw_from_set (vowel_set FiveAi)
+basic_letter_gen Consonant = draw_from_set (consonant_set English)
+basic_letter_gen Vowel     = draw_from_set (vowel_set ExtraU)
 basic_letter_gen Sibilant  = draw_from_set sibilants
 basic_letter_gen Liquid    = draw_from_set liquids
-basic_letter_gen Final     = draw_from_set (finals Hawaiian)
+basic_letter_gen Final     = draw_from_set (finals Piraha)
 
 basic_component_gen :: ComponentGen
 basic_component_gen (Optional letter_type) =
@@ -248,8 +248,8 @@ main =
       gen = basic_component_gen
       syllable = random_syllable struct gen
       syllable_length = poisson_length_gen
-      consonant_orthography = French
-      vowel_orthography = Diphthongs
+      consonant_orthography = Slavic
+      vowel_orthography = Doubles
 
   in do
     word <- Random.sample $ word_gen syllable syllable_length
