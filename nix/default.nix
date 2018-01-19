@@ -65,14 +65,6 @@ let
       mesosSupport = false;
     };
 
-    # Tried to send this to upstream, but had problems building it. It complains
-    # about not finding argparse when building the package and din't have the
-    # energy to debug that
-    oktaauth = callPackage ./pkgs/development/libraries/oktaauth {
-      inherit (pkgs.pythonPackages) argparse beautifulsoup4 requests2 flake8
-       buildPythonPackage;
-    };
-
     cpplint = callPackage ./pkgs/development/tools/cpplint { };
 
     # Packages from upstream
