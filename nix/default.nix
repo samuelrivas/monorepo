@@ -137,6 +137,7 @@ let
     reservoir-sandbox = callPackage ./../src/c++/reservoir/nix {
       sandbox = true;
     };
+    algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix { };
 
     # Experiments
     # ===========
