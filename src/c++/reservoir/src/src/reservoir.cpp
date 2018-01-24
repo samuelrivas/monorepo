@@ -91,6 +91,7 @@ bool parse_command(int argc, char* argv[], size_t *size) {
   return true;
 }
 
+// TODO(Samuel): move this to a library
 bool get_seed(int *seed) {
   std::ifstream dev_random("/dev/random", std::ios::binary);
   dev_random.read(reinterpret_cast<char *>(seed), sizeof(int));
