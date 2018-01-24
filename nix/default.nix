@@ -126,7 +126,13 @@ let
     reservoir = callPackage ./../src/c++/reservoir/nix {
       sandbox = false;
     };
-    reservoir-sandbox = callPackage ./../src/c++/reservoir/nix {
+    reservoir-sandbox = callPackage ./../src/c++/randq/nix {
+      sandbox = true;
+    };
+    randq = callPackage ./../src/c++/reservoir/nix {
+      sandbox = false;
+    };
+    randq-sandbox = callPackage ./../src/c++/randq/nix {
       sandbox = true;
     };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix { };
