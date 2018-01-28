@@ -1,5 +1,3 @@
-# TODO: Update this to support multiple executables
-
 build-dir := ../build
 work-dir := $(build-dir)/work
 install-dir := $(build-dir)/install
@@ -8,36 +6,36 @@ bin-dir := $(install-dir)/bin
 sources := $(wildcard src/*.cpp)
 source-files := $(notdir $(sources))
 target-files := $(source-files:.cpp=)
-targets := $(addprefix $(bin-dir)/,$(target-files))
+bin-targets := $(addprefix $(bin-dir)/,$(target-files))
+valgrind-targets := $(addprefix valgrind-,$(target-files))
+run-targets := $(addprefix run-,$(target-files))
+strace-targets := $(addprefix strace-,$(target-files))
 
 CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -fno-exceptions -O0
 
-.PHONY: check clean build-dirs valgrind run cpplint strace test
+.PHONY: check clean build-dirs cpplint valgrind-targets run-targets strace-targets
 
-all: build-dirs $(targets)
+all: build-dirs $(bin-targets)
 
 # FIXME: this is kind of ugly ...
 build-dirs:
 	mkdir -p $(bin-dir) $(work-dir)
 
-# valgrind: $(bin-dir)/reverse-string
-# 	valgrind --leak-check=full --error-exitcode=1 $^ $(default-args)
+$(valgrind-targets): valgrind-%: $(bin-dir)/%
+	valgrind --leak-check=full --error-exitcode=1 $^
 
-# strace: $(bin-dir)/reverse-string
-# 	strace $^ $(default-args) > /tmp/out
+$(strace-targets): strace-%: $(bin-dir)/%
+	strace $^ > /tmp/out
 
-# run: $(bin-dir)/reverse-string
-# 	$^ $(default-args)
+$(run-targets): run-%: $(bin-dir)/%
+	$^
 
 cpplint: $(work-dir)/cpplint-report
 
 $(work-dir)/cpplint-report: $(sources)
 	cpplint $^ 2>&1 | tee $@
 
-# test: $(bin-dir)/reverse-string
-# 	test/test.sh $^
-
-# check: cpplint valgrind test
+check: cpplint $(valgrind-targets)
 
 clean:
 	find $(build-dir) -not -name .gitignore -and -type f -delete
