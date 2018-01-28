@@ -13,13 +13,12 @@ strace-targets := $(addprefix strace-,$(target-files))
 
 CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -fno-exceptions -O0
 
-.PHONY: check clean build-dirs cpplint valgrind-targets run-targets strace-targets
+.PHONY: check clean cpplint valgrind-targets run-targets strace-targets
 
-all: build-dirs $(bin-targets)
+all: $(bin-targets)
 
-# FIXME: this is kind of ugly ...
-build-dirs:
-	mkdir -p $(bin-dir) $(work-dir)
+$(work-dir) $(bin-dir):
+	mkdir -p $@
 
 $(valgrind-targets): valgrind-%: $(bin-dir)/%
 	valgrind --leak-check=full --error-exitcode=1 $^
@@ -32,17 +31,17 @@ $(run-targets): run-%: $(bin-dir)/%
 
 cpplint: $(work-dir)/cpplint-report
 
-$(work-dir)/cpplint-report: $(sources)
+$(work-dir)/cpplint-report: $(sources) | $(work-dir)
 	cpplint $^ 2>&1 | tee $@
 
 check: cpplint $(valgrind-targets)
 
 clean:
-	find $(build-dir) -not -name .gitignore -and -type f -delete
+	rm -r $(build-dir)
 
-$(work-dir)/%.o: src/%.cpp
+$(work-dir)/%.o: src/%.cpp | $(work-dir)
 	g++ $(CPPARGS) -c -o $@ $^
 
 ## We assume each little test is a single source file
-$(bin-dir)/%: $(work-dir)/%.o
+$(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 	g++ $(CPPARGS) -o $@ $^
