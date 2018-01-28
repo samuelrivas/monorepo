@@ -29,10 +29,10 @@ build-dirs:
 # run: $(bin-dir)/reverse-string
 # 	$^ $(default-args)
 
-# cpplint: $(work-dir)/cpplint-report
+cpplint: $(work-dir)/cpplint-report
 
-# $(work-dir)/cpplint-report: src/reverse-string.cpp
-# 	cpplint $^ 2>&1 | tee $(work-dir)/cpplint-report
+$(work-dir)/cpplint-report: $(sources)
+	cpplint $^ 2>&1 | tee $@
 
 # test: $(bin-dir)/reverse-string
 # 	test/test.sh $^
