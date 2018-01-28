@@ -1,45 +1,47 @@
-# TODO: Update this to support multiple executables
-
 build-dir := ../build
 work-dir := $(build-dir)/work
 install-dir := $(build-dir)/install
 bin-dir := $(install-dir)/bin
-default-args := 
+
+sources := $(wildcard src/*.cpp)
+source-files := $(notdir $(sources))
+target-files := $(source-files:.cpp=)
+bin-targets := $(addprefix $(bin-dir)/,$(target-files))
+valgrind-targets := $(addprefix valgrind-,$(target-files))
+run-targets := $(addprefix run-,$(target-files))
+strace-targets := $(addprefix strace-,$(target-files))
 
 CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -fno-exceptions -O0
 
-.PHONY: check clean build-dirs valgrind run cpplint strace test
+.PHONY: check clean cpplint valgrind-targets run-targets strace-targets
 
-all: build-dirs $(bin-dir)/mult-array
+all: $(bin-targets)
 
-# FIXME: this is kind of ugly ...
-build-dirs:
-	mkdir -p $(bin-dir) $(work-dir)
+$(work-dir) $(bin-dir):
+	mkdir -p $@
 
-$(work-dir)/mult-array.o: src/mult-array.cpp
-	g++ $(CPPARGS) -c -o $@ $^
+$(valgrind-targets): valgrind-%: $(bin-dir)/%
+	valgrind --leak-check=full --error-exitcode=1 $^
 
-$(bin-dir)/mult-array: $(work-dir)/mult-array.o
-	g++ -o $@ $^
+$(strace-targets): strace-%: $(bin-dir)/%
+	strace $^ > /tmp/out
 
-valgrind: $(bin-dir)/mult-array
-	valgrind --leak-check=full --error-exitcode=1 $^ $(default-args)
-
-strace: $(bin-dir)/mult-array
-	strace $^ $(default-args) > /tmp/out
-
-run: $(bin-dir)/mult-array
-	$^ $(default-args)
+$(run-targets): run-%: $(bin-dir)/%
+	$^
 
 cpplint: $(work-dir)/cpplint-report
 
-$(work-dir)/cpplint-report: src/mult-array.cpp
-	cpplint $^ 2>&1 | tee $(work-dir)/cpplint-report
+$(work-dir)/cpplint-report: $(sources) | $(work-dir)
+	cpplint $^ 2>&1 | tee $@
 
-test: $(bin-dir)/mult-array
-	test/test.sh $^
-
-check: cpplint valgrind test
+check: cpplint $(valgrind-targets)
 
 clean:
-	find $(build-dir) -not -name .gitignore -and -type f -delete
+	rm -r $(build-dir)
+
+$(work-dir)/%.o: src/%.cpp | $(work-dir)
+	g++ $(CPPARGS) -c -o $@ $^
+
+## We assume each little test is a single source file
+$(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
+	g++ $(CPPARGS) -o $@ $^
