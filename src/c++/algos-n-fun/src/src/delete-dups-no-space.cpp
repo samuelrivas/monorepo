@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include <utility>
 
 using std::vector;
 using std::cout;
@@ -16,7 +15,6 @@ void delete_dups(char* a) {
   int hi_mark = 0;
 
   for (int i = 0; a[i] != 0; i++) {
-
     bool dup = false;
     for (int j = 0; j < hi_mark && !dup; j++) {
       if (a[i] == a[j]) {
