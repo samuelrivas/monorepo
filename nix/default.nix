@@ -67,6 +67,15 @@ let
 
     cpplint = callPackage ./pkgs/development/tools/cpplint { };
 
+    py4j = callPackage ./pkgs/development/libraries/py4j {
+      inherit (pkgs.pythonPackages) buildPythonPackage;
+    };
+
+    pyspark = callPackage ./pkgs/development/libraries/pyspark {
+      inherit (pkgs.pythonPackages) buildPythonPackage;
+      inherit (self) py4j;
+    };
+
     # Packages from upstream
     # ======================
     scala = self.upstream-pkgs.scala;
