@@ -40,7 +40,6 @@ vector<unordered_map<char, int>> query_fsm(string query) {
   fsm[0][query[0]] = 1;
 
   for (size_t i = 1; i < query.length(); i++) {
-
     // Mismatcthing transitions
     for (char c : seen) {
       fsm[i][c] = fsm[mismatched_state][c];
@@ -91,7 +90,7 @@ int main(void) {
     "the quick brown fox"
   };
 
-  for(auto test : tests) {
+  for (auto test : tests) {
     cout << test << ":" << endl;
     print_fsm(query_fsm(test));
   }
