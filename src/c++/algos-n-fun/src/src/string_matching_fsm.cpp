@@ -23,32 +23,33 @@ using std::setw;
 /* fsm[i][c] returns the amount of matched characters after reading
  * c, given that the previous amount was i
  *
- * This is quadratic on the length o query
+ * This is linear on the length of query, but could be even "more linear" at the
+ * cost of memory if we used an array instead of a map to store the possible
+ * characters (which would let us use an array for "seen" too)
  */
 vector<unordered_map<char, int>> query_fsm(string query) {
   vector<unordered_map<char, int>> fsm(query.length());
 
-  // first pass setting the forward links 
+  // first pass setting the forward links
 
   for (size_t i = 0; i < query.length(); i++) {
     fsm[i][query[i]] = i + 1;
   }
 
-  // second pass setting the backward links
-  unordered_set<char> seen;
-  for (size_t i = 0; i < query.length(); i++) {
+  /* second pass setting the backward links
+   *
+   * mismatched_satate is the state of a machine that has matched all but the
+   * first character of the pattern
+   */
+  unordered_set<char> seen { query[0] };
+  int mismatched_state = 0;
+  for (size_t i = 1; i < query.length(); i++) {
     for (char c : seen) {
       if (fsm[i][c] == 0) {
-        int matched = 0;
-        for (size_t j = 1; j < i; j++) {
-          matched = fsm[matched][query[j]];
-        }
-        matched = fsm[matched][c];
-        if (matched > 0) {
-          fsm[i][c] = matched;
-        }
+        fsm[i][c] = fsm[mismatched_state][c];
       }
     }
+    mismatched_state = fsm[mismatched_state][query[i]];
     seen.insert(query[i]);
   }
   return fsm;
@@ -84,10 +85,11 @@ int main(void) {
   vector<string> tests = {
     "aaaab",
     "ababc",
+    "ababac",
     "abcabc",
     "abba",
     "aaaabaaaab",
-    "the quick brown fox jumps over the lazy dog"
+    "the quick brown fox"
   };
 
   for(auto test : tests) {
