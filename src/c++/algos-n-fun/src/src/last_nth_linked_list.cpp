@@ -1,7 +1,12 @@
+/* Copyright 2018 <samuelrivas@gmail.com
+ *
+ * find last nth element in a linked list
+ */
 #include <forward_list>
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include <utility>
 
 using std::forward_list;
 using std::pair;
@@ -21,8 +26,9 @@ bool nth_last(const forward_list<T> &l, int n, T* out) {
   }
 
   head++;
+
   auto nth_last = l.cbegin();
-  for(; head != l.cend(); head++, nth_last++) { }
+  for (; head != l.cend(); head++, nth_last++) { }
   *out = *nth_last;
 
   return true;
