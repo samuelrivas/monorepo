@@ -33,8 +33,31 @@ void dedup(forward_list<T>* l) {
   }
 }
 
+template <typename T>
+void dedup_mem_stingy(forward_list<T>* l) {
+  auto before_it = l -> cbefore_begin();
+  auto it = l -> cbegin();
+
+  before_it++;
+  it++;
+
+  while (it != l -> end()) {
+    auto find_dup = l -> cbegin();
+    while (find_dup != before_it && *find_dup != *it) {
+      find_dup++;
+    }
+
+    if (*find_dup == *it) {
+      it = l -> delete_after(before_it);
+    } else {
+      it++;
+      before_it++;
+    }
+  }
+}
+
 int main() {
-  vector<forward_list<int>> tests {
+  vector<forward_list<int>> tests_1 {
     { },
     {1, 1, 1},
     {1, 2, 1, 3 },
@@ -42,7 +65,29 @@ int main() {
     { 1, 2, 3 }
   };
 
-  for (forward_list<int> test : tests) {
+  vector<forward_list<int>> tests_2 {
+    { },
+    {1, 1, 1},
+    {1, 2, 1, 3 },
+    {2, 1, 2, 2, 1, 1, 3, 3},
+    { 1, 2, 3 }
+  };
+
+  cout << "Test 1:" << endl;
+  for (forward_list<int> test : tests_1) {
+    for (int i : test) {
+      cout << setw(2) << i;
+    }
+    cout << " ->";
+    dedup(&test);
+    for (int i : test) {
+      cout << setw(2) << i;
+    }
+    cout << endl;
+  }
+
+  cout << "Test 2:" << endl;
+  for (forward_list<int> test : tests_2) {
     for (int i : test) {
       cout << setw(2) << i;
     }
