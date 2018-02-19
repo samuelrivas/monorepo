@@ -18,10 +18,10 @@ using std::setw;
 template <typename T>
 void dedup(forward_list<T>* l) {
   unordered_set<T> seen;
-  typename std::forward_list<T>::const_iterator before_it = l -> cbefore_begin();
+  typename std::forward_list<T>::const_iterator before_it = l ->cbefore_begin();
   typename std::forward_list<T>::const_iterator it = l -> cbegin();
 
-  while(it  != l -> end()) {
+  while (it  != l -> end()) {
     T element = *(it);
     if (seen.find(element) == seen.end()) {
       seen.insert(element);
