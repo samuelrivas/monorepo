@@ -1,6 +1,6 @@
 /* Copyright 2018 <samuelrivas@gmail.com
  *
- * Just a simple way of reversing a string a-la C
+ * Delete duplicates in a vector using no extra space
  */
 #include <vector>
 #include <iostream>
