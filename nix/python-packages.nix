@@ -9,9 +9,8 @@ let
                                         // self);
   self = {
     py4j = callPackage ./pkgs/development/libraries/py4j { };
-
     pyspark = callPackage ./pkgs/development/libraries/pyspark { };
-
     requests = callPackage ./pkgs/development/libraries/requests { };
+    hyperopt = callPackage ./pkgs/development/libraries/hyperopt { };
   };
 in self
