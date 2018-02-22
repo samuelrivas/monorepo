@@ -14,7 +14,6 @@
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
-  ensime,
   erlangMode,
   flycheck-haskell,
   gawk,
@@ -39,7 +38,6 @@ let
     "haskell" = [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocpIndent tuareg utop ];
     "erlang"  = [ erlangMode ];
-    "scala"   = [ ensime sbt coreutils gnused gawk ]; #sbt doesn't run without all those extra things
   };
 
   mode-deps = mode:
@@ -61,7 +59,6 @@ let
     "erlang"
     "haskell"
     "ocaml"
-    "scala"
   ];
 in
 emacsWithPackages (hardcoded-deps ++ dep-packages)

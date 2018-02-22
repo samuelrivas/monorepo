@@ -67,15 +67,6 @@ let
 
     cpplint = callPackage ./pkgs/development/tools/cpplint { };
 
-    py4j = callPackage ./pkgs/development/libraries/py4j {
-      inherit (self.upstream-pkgs.python35Packages) buildPythonPackage;
-    };
-
-    pyspark = callPackage ./pkgs/development/libraries/pyspark {
-      inherit (self.upstream-pkgs.python35Packages) buildPythonPackage;
-      inherit (self) py4j;
-    };
-
     # Packages from upstream
     # ======================
     scala = self.upstream-pkgs.scala;
@@ -94,7 +85,6 @@ let
         inherit (emacsPackagesNg) flycheck-haskell haskell-mode
                                   nix-mode groovy-mode tuareg
                                   terraform-mode;
-        inherit (self.upstream-pkgs.emacsPackagesNg.melpaStablePackages) ensime;
         inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages_4_02) merlin ocpIndent utop;
@@ -139,6 +129,12 @@ let
       sandbox = true;
     };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix { };
+
+    # Python stuff
+    # ============
+    python36Packages = callPackage ./python-packages.nix {
+      pythonPackages = pkgs.python36Packages;
+    };
 
     # Experiments
     # ===========
