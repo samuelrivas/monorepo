@@ -16,7 +16,7 @@ buildPythonPackage rec {
   # the tests download stuff from the network
   doCheck=false;
 
-  buildInputs = [
+  propagatedBuildInputs = [
     chardet
     urllib3
   ];
