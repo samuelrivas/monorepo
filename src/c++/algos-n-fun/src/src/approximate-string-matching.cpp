@@ -26,7 +26,7 @@ enum class Op {
 };
 
 string to_string(Op op) {
-  switch(op) {
+  switch (op) {
   case Op::Match:
     return "M";
   case Op::Insert:
@@ -68,7 +68,7 @@ vector<vector<pair<Op, int>>> approximate_match_table(
 
   for (int i = 1; i < M; i++) {
     table[i][0] = { Op::Skip,
-                    table [i - 1][0].second + cost_skip(pattern[i - 1])
+                    table[i - 1][0].second + cost_skip(pattern[i - 1])
     };
   }
 
@@ -122,7 +122,6 @@ void print_table_costs(vector<vector<pair<Op, int>>> table, string pattern,
 
 void print_table_ops(vector<vector<pair<Op, int>>> table, string pattern,
                      string text) {
-
   cout << "     ";
 
   for (char c : text) {
@@ -179,7 +178,6 @@ void print_solution(vector<vector<pair<Op, int>>> table, string pattern,
 }
 
 int main(void) {
-
   string text { "There is a pattern in here" };
   string pattern { "Pattern" };
 
