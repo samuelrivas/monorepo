@@ -2,7 +2,9 @@ build-dir := ../build
 work-dir := $(build-dir)/work
 install-dir := $(build-dir)/install
 bin-dir := $(install-dir)/bin
+lib-dir := $(install-dir)/lib
 
+objects = $(wildcard src/lib/*.cpp)
 sources := $(wildcard src/*.cpp)
 source-files := $(notdir $(sources))
 target-files := $(source-files:.cpp=)
@@ -17,7 +19,7 @@ CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -fno-exceptions -O0
 
 all: $(bin-targets)
 
-$(work-dir) $(bin-dir):
+$(work-dir) $(bin-dir) $(lib-dir):
 	mkdir -p $@
 
 $(valgrind-targets): valgrind-%: $(bin-dir)/%
@@ -40,8 +42,16 @@ clean:
 	rm -r $(build-dir)
 
 $(work-dir)/%.o: src/%.cpp | $(work-dir)
-	g++ $(CPPARGS) -c -o $@ $^
+	g++ $(CPPARGS) -c -o $@ $(filter-out %.hpp, $^)
+
+$(work-dir)/%.o: src/lib/%.cpp src/lib/%.hpp | $(work-dir)
+	g++ $(CPPARGS) -c -o $@ $(filter-out %.hpp, $^)
 
 ## We assume each little test is a single source file
 $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 	g++ $(CPPARGS) -o $@ $^
+
+## Although we also support some rudimentary way of sharing objects
+## by listing explicit dependencies here
+$(work-dir)/binary-tree-tests.o: src/lib/binary-tree.hpp
+
