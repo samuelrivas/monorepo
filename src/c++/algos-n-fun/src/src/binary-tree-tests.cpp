@@ -16,15 +16,14 @@ using std::endl;
 using std::setw;
 
 class PrintNode : public ProcessNode<int, void> {
-public:
-  PrintNode() { };
+ public:
+  PrintNode() { }
   virtual void operator() (TreeNode<int>* node) const {
     cout << setw(3) << node -> value;
   }
 };
 
 int main(void) {
-
   vector<int> nodes {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   TreeNode<int>* tree = from_vector(nodes);
   const ProcessNode<int, void>* f = new PrintNode;

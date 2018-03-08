@@ -14,7 +14,7 @@ using std::vector;
 
 template<typename T>
 class TreeNode {
-public:
+ public:
   T value;
   TreeNode* left = nullptr;
   TreeNode* right = nullptr;

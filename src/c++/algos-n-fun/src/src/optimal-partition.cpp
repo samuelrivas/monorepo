@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <utility>
+#include <algorithm>
 
 using std::vector;
 using std::cout;
@@ -16,7 +17,6 @@ using std::pair;
 
 // For debugging
 void print_table(vector<vector<int>> table) {
-
   cout << "   ";
 
   for (size_t i = 0; i < table[0].size(); i++) {
@@ -112,7 +112,6 @@ vector<int> optimal_partition(vector<int> p, int k) {
 }
 
 void print_solution(vector<int> solution, vector<int> p) {
-
   cout <<  "Elements  :";
   for (int element : p) {
     cout << " " << element;

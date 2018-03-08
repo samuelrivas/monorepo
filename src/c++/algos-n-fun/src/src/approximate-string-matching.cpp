@@ -98,7 +98,6 @@ vector<vector<pair<Op, int>>> approximate_match_table(
 
 void print_table_costs(vector<vector<pair<Op, int>>> table, string pattern,
                        string text) {
-
   cout << "      ";
 
   for (char c : text) {
