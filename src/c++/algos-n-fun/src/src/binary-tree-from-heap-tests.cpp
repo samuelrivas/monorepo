@@ -26,9 +26,9 @@ class PrintNode : public ProcessNode<int, void> {
 int main(void) {
   // Using -1 as null here, will convert below
   vector<vector<int>> tests {
-    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, // To verify order easily
-    {5, 4, 6, 3, -1, -1, 7}, // V-shaped bst
-    {5, 3, 8, 2, 4, 6, -1, 1} // Packed bst
+    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},  // To verify order easily
+    {5, 4, 6, 3, -1, -1, 7},  // V-shaped bst
+    {5, 3, 8, 2, 4, 6, -1, 1}  // Packed bst
   };
   const ProcessNode<int, void>* f = new PrintNode;
 
