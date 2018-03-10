@@ -1,6 +1,6 @@
 /* Copyright 2018 <samuelrivas@gmail.com
  *
- * Homegronw binary trees
+ * Create a tree from an array
  */
 
 #include <vector>

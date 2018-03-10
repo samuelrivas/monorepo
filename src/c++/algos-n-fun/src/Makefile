@@ -53,5 +53,5 @@ $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 
 ## Although we also support some rudimentary way of sharing objects
 ## by listing explicit dependencies here
-$(work-dir)/binary-tree-tests.o: src/lib/binary-tree.hpp
-
+$(work-dir)/binary-tree-from-array-tests.o: src/lib/binary-tree.hpp
+$(work-dir)/binary-tree-from-heap-tests.o: src/lib/binary-tree.hpp
