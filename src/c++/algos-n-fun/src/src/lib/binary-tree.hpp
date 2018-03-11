@@ -76,6 +76,40 @@ namespace internal_builder {
 
     return node;
   }
+
+  /* The start arguments are the actual index where the order specification
+     starts, for each of the two orders */
+  template<typename T>
+  TreeNode<T>* reconstruct(const vector<T>& in_order,
+                           const vector<T>& pre_order,
+                           size_t start_in, size_t start_pre,
+                           size_t size) {
+    assert(in_order.size() == pre_order.size());
+
+    if (size == 0) {
+      return nullptr;
+    }
+
+    T root_val = pre_order[start_pre];
+    TreeNode<T>* root = new TreeNode<T>(root_val);
+
+    size_t elements_to_root = 0;
+    for (size_t i = start_in;
+         in_order[i] != root_val && i < start_in + size;
+         i++, elements_to_root++) { };
+
+    assert(elements_to_root < size);
+
+    root -> left = reconstruct(in_order, pre_order,
+                               start_in, start_pre + 1, elements_to_root);
+
+    root -> right = reconstruct(in_order, pre_order,
+                                start_in + elements_to_root + 1,
+                                start_pre + elements_to_root + 1,
+                                size - elements_to_root - 1);
+
+    return root;
+  }
 }
 
 template<typename T>
@@ -86,6 +120,16 @@ TreeNode<T>* from_vector(vector<T> elements) {
 template <typename T>
 TreeNode<T>* from_heap(const vector<T*>& elements) {
   return internal_builder::from_heap(elements, 0);
+}
+
+/* Reconstruct from in order and pre order vectors. The behaviour is largely
+   undefined the two vectors are inconsistent, or if there are duplicated
+   elements */
+template<typename T>
+TreeNode<T>* reconstruct(const vector<T>& in_order,
+                         const vector<T>& pre_order) {
+  return internal_builder::reconstruct(in_order, pre_order, 0, 0,
+                                       in_order.size());
 }
 
 /* Traversals */
