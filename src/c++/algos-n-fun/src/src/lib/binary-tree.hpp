@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
-
+#include <cassert>
 
 using std::vector;
 
