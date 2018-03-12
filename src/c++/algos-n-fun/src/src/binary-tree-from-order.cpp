@@ -1,3 +1,4 @@
+/* Copyright 2018 <samuelrivas@gmail.com */
 #include <vector>
 #include <cassert>
 #include <iomanip>
