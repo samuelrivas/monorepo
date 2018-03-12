@@ -3,12 +3,14 @@
 #include <queue>
 #include <iomanip>
 #include <vector>
+#include <utility>
 
 using std::queue;
 using std::vector;
 using std::cout;
 using std::endl;
 using std::setw;
+using std::move;
 
 #include "lib/binary-tree.hpp"
 
@@ -42,7 +44,7 @@ void print_all_paths(const TreeNode<int>* node, int target, queue<int> path,
   }
 
   print_all_paths(node -> left, target, path, path_sum);
-  print_all_paths(node -> right, target, path, path_sum);
+  print_all_paths(node -> right, target, path, move(path_sum));
 }
 
 int main(void) {
