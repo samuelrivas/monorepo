@@ -35,7 +35,7 @@ string to_s(uint32_t n) {
 int32_t blend(int32_t n, int32_t m, int i, int j) {
   assert(i >= 0 && i < 32);
   assert(j >= 0 && j < 32);
-  assert (i <= j);
+  assert(i <= j);
 
   int32_t mask = j - i == 31
     ? ~0
