@@ -65,8 +65,8 @@
 (setq kept-old-versions 0)
 (setq version-control t)
 
-(setq require-final-newline nil)
-(setq mode-require-final-newline nil)
+(setq require-final-newline 'ask)
+(setq mode-require-final-newline t)
 
 ;; Whitespace mode
 (global-whitespace-mode t)
