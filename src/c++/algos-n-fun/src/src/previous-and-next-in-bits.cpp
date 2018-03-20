@@ -1,14 +1,67 @@
-#include <array>
+/* Copyright 2018 <samuelrivas@gmail.com> */
+
 #include <cstdint>
-#include <utility>
 #include <cassert>
 #include <sstream>
 #include <string>
 
-using std::array;
-using std::move;
 using std::ostringstream;
 using std::string;
+
+bool get_bit(const uint32_t& x, int pos) {
+  assert(0 <= pos && pos < 32);
+
+  return (x & (1 << (31 - pos))) != 0;
+}
+
+uint32_t set_bit(const uint32_t& x, int pos, bool bit) {
+  assert(0 <= pos && pos < 32);
+
+  if (bit) {
+    return x | (1 << (31 - pos));
+  } else {
+    return x & ~(1 << (31 - pos));
+  }
+}
+
+string to_s(uint32_t x) {
+  ostringstream out;
+  for (int i = 0; i < 32; i++) {
+    out << (get_bit(x, i) ? '1' : '0');
+  }
+  return out.str();
+}
+
+uint32_t move_to_right(uint32_t x, bool bit) {
+  int trailing = 0;
+  size_t pos = 31;
+
+  for (; pos < 32 && get_bit(x, pos) == bit; trailing ++, pos --) { }
+
+  for (; pos < 32 && get_bit(x, pos) != bit; pos --) { }
+
+  assert(pos < 32);
+  assert(get_bit(x, pos) == bit);
+
+  x = set_bit(x, pos++, !bit);
+  x = set_bit(x, pos++, bit);
+  for (; trailing > 0; trailing--, pos++) {
+    x = set_bit(x, pos, bit);
+  }
+
+  for (; pos < 32; pos++) {
+    x = set_bit(x, pos, !bit);
+  }
+  return x;
+}
+
+uint32_t find_next(uint32_t x) {
+  return move_to_right(x, false);
+}
+
+uint32_t find_previous(uint32_t x) {
+  return move_to_right(x, true);
+}
 
 #include <vector>
 #include <iostream>
@@ -19,78 +72,13 @@ using std::cout;
 using std::endl;
 using std::setbase;
 
-typedef array<bool, 32> BitArray;
-
-BitArray to_bit_array(uint32_t x) {
-  BitArray result;
-
-  for (int i = 31; i >= 0; i--) {
-    result[i] = x % 2 == 1;
-    x /= 2;
-  }
-  return result;
-}
-
-uint32_t from_bit_array(const BitArray& x) {
-  uint32_t result = 0;
-  for (int i = 0; i < 32; i++) {
-    if (x[i]) {
-      result += 1 << (31 - i);
-    }
-  }
-  return result;
-}
-
-string to_s(const BitArray& x) {
-  ostringstream out;
-  for (int i = 0; i < 32; i++) {
-    out << (x[i] ? '1' : '0');
-  }
-  return out.str();
-}
-
-// We need to copy, x so we just do it right away passing by value
-BitArray move_to_right(BitArray x, bool bit) {
-  BitArray result = move(x);
-
-  int trailing = 0;
-  size_t pos = 31;
-
-  for (; pos < 32 && result[pos] == bit; trailing ++, pos --) { }
-
-  for (; pos < 32 && result[pos] != bit; pos --) { }
-
-  assert(pos < 32);
-  assert(result[pos] == bit);
-
-  result[pos++] = !bit;
-  result[pos++] = bit;
-  for (; trailing > 0; trailing--, pos++) {
-    result[pos] = bit;
-  }
-
-  for (; pos < 32; pos++) {
-    result[pos] = !bit;
-  }
-  return result;
-}
-
-uint32_t find_next(uint32_t x) {
-  return from_bit_array(move_to_right(to_bit_array(x), false));
-}
-
-uint32_t find_previous(uint32_t x) {
-  return from_bit_array(move_to_right(to_bit_array(x), true));
-}
-
 int main(void) {
   vector<uint32_t> tests = { 0x084C, 0xB3, 0x1C, 0x23 };
 
   for (uint32_t test : tests) {
-    BitArray bits = to_bit_array(test);
-    cout << "test: " << to_s(bits) << endl;
-    cout << "next: " << to_s(to_bit_array(find_next(test))) << endl;
-    cout << "prev: " << to_s(to_bit_array(find_previous(test))) << endl;
+    cout << "test: " << to_s(test) << endl;
+    cout << "next: " << to_s(find_next(test)) << endl;
+    cout << "prev: " << to_s(find_previous(test)) << endl;
     cout << endl;
   }
   return 0;
