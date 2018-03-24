@@ -1,4 +1,13 @@
-/* Copyright 2018 <samuelrivas@gmail.com */
+/* Copyright 2018 <samuelrivas@gmail.com
+
+   This works with reverse polish notation to avoid dealing with parenthesis,
+   but we could get them back just by translating.
+
+   A proper solution should use a graph of states to avoid copying over the
+   partial solutiona nd the figure stack for every tested permutation.
+
+   This will not work for long sequences of numbers but is enough for 8 or so.
+ */
 #include <vector>
 #include <queue>
 #include <stack>
@@ -159,7 +168,7 @@ int main(void) {
   test.push(3);
   test.push(6);
 
-  for (auto solution : guess_arithmetic(test, 20)) {
+  for (auto solution : guess_arithmetic(test, 8)) {
     cout << solution_to_string(solution) << endl;
   }
 
