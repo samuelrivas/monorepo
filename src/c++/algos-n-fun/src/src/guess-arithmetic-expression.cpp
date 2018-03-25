@@ -54,11 +54,11 @@ struct Element {
     Operator op;
     double value;
   };
-  public:
-  Element(Operator _op) :
+ public:
+  explicit Element(Operator _op) :
     type { Type::Operator },
     op { _op } { }
-  Element(double _value) :
+  explicit Element(double _value) :
     type { Type::Value },
     value { _value } { }
 };
@@ -122,7 +122,8 @@ void guess_arithmetic_rec(queue<double> figures, double goal, stack<double> st,
     new_stack.push(figure);
     new_partial_solution.push_back(element);
 
-    guess_arithmetic_rec(new_figures, goal, new_stack, new_partial_solution, solutions);
+    guess_arithmetic_rec(new_figures, goal, new_stack, new_partial_solution,
+                         solutions);
   }
 
   if (st.size() > 1) {
@@ -146,12 +147,14 @@ void guess_arithmetic_rec(queue<double> figures, double goal, stack<double> st,
       new_stack.push(result);
       new_partial_solution.push_back(element);
 
-      guess_arithmetic_rec(figures, goal, new_stack, new_partial_solution, solutions);
+      guess_arithmetic_rec(figures, goal, new_stack, new_partial_solution,
+                           solutions);
     }
   }
 }
 
-vector<vector<Element>> guess_arithmetic(const queue<double>& figures, double goal) {
+vector<vector<Element>> guess_arithmetic(const queue<double>& figures,
+                                         double goal) {
   vector<vector<Element>> solutions;
   stack<double> st;
   vector<Element> partials;
