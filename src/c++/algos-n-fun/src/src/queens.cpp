@@ -49,7 +49,7 @@ void queens(set<Coord> positions, RowCol rows, RowCol cols, Diag bltr, Diag tlbr
         Diag new_tlbr(tlbr);
         new_tlbr[7 + row - col] = false;
 
-        queens(new_positions, new_rows, new_cols, new_bltr, new_tlbr, solutions);
+        queens(move(new_positions), move(new_rows), move(new_cols), move(new_bltr), move(new_tlbr), solutions);
       }
     }
   }
@@ -67,7 +67,7 @@ set<set<Coord>> queens() {
   Diag tlbr;
   tlbr.fill(true);
 
-  queens(positions, rows, cols, bltr, tlbr, &solutions);
+  queens(move(positions), move(rows), move(cols), move(bltr), move(tlbr), &solutions);
   return solutions;
 }
 
