@@ -1,4 +1,6 @@
-/* We index the board as a double array where the first dimension is rows, top
+/* Copyright (C) 2018 by samuelrivas@gmail.com
+
+   We index the board as a double array where the first dimension is rows, top
    down, and the second is columns, left to right.
 
    We also index diagonals:
@@ -8,7 +10,7 @@
 
    Top left to bottom right diagonals are indexed so that cell[x][y] is in
    diagonal 7 + (x - y) (so that we can directly map this to an array index)
- */
+*/
 #include <unordered_set>
 #include <utility>
 #include <iostream>
@@ -28,7 +30,6 @@ typedef pair<int, int> Coord;
 void queens(array<Coord, 8> partial, int col, unordered_set<int> avail_rows,
             Diag avail_bltr, Diag avail_tlbr,
             vector<array<Coord, 8>>* solutions) {
-
   if (col == 8) {
     solutions -> push_back(move(partial));
     return;
@@ -65,8 +66,7 @@ vector<array<Coord, 8>> queens() {
 }
 
 int main(void) {
-
-  for (array<Coord, 8> solution: queens()) {
+  for (array<Coord, 8> solution : queens()) {
     for (Coord coord : solution) {
       cout << "(" << coord.first << "," << coord.second << ") ";
     }
