@@ -8,25 +8,25 @@ using std::string;
 using std::cout;
 using std::endl;
 
+void all_parens(int l, int r, string str, unordered_set<string>* solutions) {
+  if (l < 0 || r < l) {
+    return;
+  }
+  if (l == 0 && r == 0) {
+    solutions -> insert(str);
+    return;
+  }
+  if (l > 0) {
+    all_parens(l - 1, r, str + "(", solutions);
+  }
+  if (r > l) {
+    all_parens(l, r - 1, str + ")", solutions);
+  }
+}
+
 unordered_set<string> all_parens(int n) {
-  assert(n >= 0);
-
   unordered_set<string> solutions;
-
-  if (n <= 1) {
-     if (n == 1) {
-       solutions.insert("()");
-     }
-    return solutions;
-  }
-
-  unordered_set<string> partials = all_parens(n - 1);
-
-  for (string partial : partials) {
-    solutions.insert("()" + partial);
-    solutions.insert("(" + partial + ")");
-    solutions.insert(partial + "()");
-  }
+  all_parens(n, n, "", &solutions);
   return solutions;
 }
 
