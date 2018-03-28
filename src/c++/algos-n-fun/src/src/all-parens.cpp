@@ -1,3 +1,4 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
 #include <unordered_set>
 #include <string>
 #include <cassert>

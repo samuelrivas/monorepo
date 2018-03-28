@@ -1,3 +1,4 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
 #include <unordered_set>
 #include <set>
 #include <utility>
@@ -13,7 +14,7 @@ using std::vector;
 using std::set;
 
 void print_solution(const set<pair<int, int>>& solution) {
-  for (pair<int, int> p: solution) {
+  for (pair<int, int> p : solution) {
     cout << "(" << p.first << "," << p.second << ") ";
   }
   cout << endl;
@@ -45,7 +46,7 @@ int count_exchange(const int& n, const unordered_set<int>& coins,
 }
 
 int count_exchange(const int& n, const unordered_set<int>& coins) {
-  set<pair<int,int>> partial;
+  set<pair<int, int>> partial;
   return count_exchange(n, coins, move(partial));
 }
 
