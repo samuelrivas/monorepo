@@ -26,9 +26,6 @@ void merge(const vector<int>& orig, vector<int>* dest, size_t orig_pos,
   while (orig_pos < orig_size) {
     (*dest)[copy_pos--] = orig[orig_pos--];
   }
-  while (dest_pos < dest_size) {
-    (*dest)[copy_pos--] = (*dest)[dest_pos--];
-  }
 }
 
 void merge(const vector<int>& orig, vector<int>* dest, size_t dest_elements) {
