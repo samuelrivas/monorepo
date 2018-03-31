@@ -1,3 +1,5 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
+
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -8,7 +10,8 @@ using std::cout;
 using std::setw;
 using std::endl;
 
-bool is_it_there(const vector<int>& buff, int x, size_t low_index, size_t size) {
+bool is_it_there(const vector<int>& buff, int x, size_t low_index,
+                 size_t size) {
   assert(buff.size() > low_index + size - 1);
 
   if (size == 0) {
@@ -23,30 +26,29 @@ bool is_it_there(const vector<int>& buff, int x, size_t low_index, size_t size) 
   }
 }
 
-int find(const vector<int>& buff, int x, size_t low_index, size_t size) {
-  assert(size > 0);
+int find(const vector<int>& buff, int x) {
+  size_t low_index = 0;
+  size_t size = buff.size();
 
-  if (size == 1) {
+  while (size > 0) {
     if (buff[low_index] == x) {
       return low_index;
+    } else if (buff[low_index + size - 1] == x) {
+      return low_index + size - 1;
+    }
+
+    size_t new_size = size / 2;
+
+    if (is_it_there(buff, x, low_index, new_size)) {
+      size = new_size;
+    } else if (is_it_there(buff, x, low_index + new_size, size - new_size)) {
+      low_index += new_size;
+      size -= new_size;
     } else {
-      return - 1;
+      return -1;
     }
   }
-
-  size_t new_size = size / 2;
-
-  if (is_it_there(buff, x, low_index, new_size)) {
-    return find(buff, x, low_index, new_size);
-  } else if (is_it_there(buff, x, low_index + new_size, size - new_size)) {
-    return find(buff, x, low_index + new_size, size - new_size);
-  } else {
-    return -1;
-  }
-}
-
-int find(const vector<int>& buff, int x) {
-  return find(buff, x, 0, buff.size());
+  return -1;
 }
 
 int main(void) {
