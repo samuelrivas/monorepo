@@ -4,7 +4,7 @@ install-dir := $(build-dir)/install
 bin-dir := $(install-dir)/bin
 default-args := 10 < ./test/test-input
 
-CPPARGS := -Wall -Wextra -Werror -std=c++11 -ggdb3 -fno-exceptions -O0
+CPPARGS := -Wall -Wextra -Werror -std=c++11 -ggdb3 -fno-exceptions -O3
 
 .PHONY: check clean build-dirs valgrind run cpplint strace test
 
