@@ -37,7 +37,13 @@ class Reservoir {
   Reservoir(const Reservoir &that) = delete;
   Reservoir& operator=(const Reservoir &) = delete;
 
-  void push(const T x) {
+  /* We assume that we will call push much more often than the size of the
+     reservoir, In such scenario, items will be copied into the samples vector
+     infrequently. Thus, we choose to pass the items as const references and pay
+     the penalty of a sure copy when inserting. For large datasets, this is
+     faster than the alternative of pssing by value and moving into the samples
+     vector */
+  void push(const T& x) {
     std::size_t pos { count };
     if (pos >= size) {
       // Get a chance to replace an existing element
@@ -46,7 +52,7 @@ class Reservoir {
     }
 
     if (pos < size) {
-      samples.at(pos) = x;
+      samples.at(pos) = T(x);
     }
     count++;
   }
