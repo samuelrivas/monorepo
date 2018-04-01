@@ -117,6 +117,8 @@ int main(int argc, char* argv[]) {
 
   Reservoir<std::string> reservoir(size, seed);
 
+  std::cin.sync_with_stdio(false);
+
   for (std::string line; std::getline(std::cin, line);) {
     reservoir.push(line);
   }
