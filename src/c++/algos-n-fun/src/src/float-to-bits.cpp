@@ -4,9 +4,11 @@
 #include <cassert>
 #include <forward_list>
 #include <iostream>
+#include <cstdlib>
 
 using std::string;
 using std::stoi;
+using std::stod;
 using std::ostringstream;
 using std::forward_list;
 using std::cout;
@@ -25,7 +27,6 @@ string double_as_bits(double x, size_t maxbits) {
   ostringstream out;
 
   while (x != 0 && maxbits > 0) {
-    cout << x << endl;
     x *= 2;
     if (x >= 1) {
       x -= 1;
