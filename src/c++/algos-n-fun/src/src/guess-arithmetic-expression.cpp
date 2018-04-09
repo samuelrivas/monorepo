@@ -4,7 +4,7 @@
    but we could get them back just by translating.
 
    A proper solution should use a graph of states to avoid copying over the
-   partial solutiona nd the figure stack for every tested permutation.
+   partial solution and the figure stack for every tested permutation.
 
    This will not work for long sequences of numbers but is enough for 8 or so.
  */

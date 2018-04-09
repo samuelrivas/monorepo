@@ -1,4 +1,7 @@
-// Copyright (C) 2018 by samuelrivas@gmail.com
+/* Copyright (C) 2018 by samuelrivas@gmail.com
+
+   Inefficient solution, there is a somewhat obvious linear algorithm to solve
+   this */
 
 #include <queue>
 #include <unordered_set>

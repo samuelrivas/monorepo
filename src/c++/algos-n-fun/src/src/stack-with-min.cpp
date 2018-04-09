@@ -1,6 +1,6 @@
 /* Copyright 2018 <samuelrivas@gmail.com
  *
- * A stakc that also keeps track of the minimum element
+ * A stack that also keeps track of the minimum element
  */
 #include <stack>
 #include <iostream>

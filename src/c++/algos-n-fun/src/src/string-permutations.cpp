@@ -1,10 +1,10 @@
 // Copyright (C) 2018 by samuelrivas@gmail.com
 
-#include<string>
-#include<vector>
-#include<unordered_set>
-#include<utility>
-#include<iostream>
+#include <string>
+#include <vector>
+#include <unordered_set>
+#include <utility>
+#include <iostream>
 
 using std::string;
 using std::vector;
