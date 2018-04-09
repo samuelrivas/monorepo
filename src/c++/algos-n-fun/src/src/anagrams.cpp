@@ -18,16 +18,13 @@ bool anagrams(const string a, const string b) {
 
   for (const char c : a) {
     chars.insert(c);
-    cout << "inserted " << c << endl;
   }
 
   for (const char c : b) {
     if (chars.count(c) == 0) {
-      cout << "couldn't find " << c <<endl;
       return false;
     } else {
       chars.erase(chars.find(c));
-      cout << "erased " << c << endl;
     }
   }
 
