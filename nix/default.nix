@@ -67,6 +67,8 @@ let
 
     cpplint = callPackage ./pkgs/development/tools/cpplint { };
 
+    convox = callPackage ./pkgs/development/tools/convox { };
+
     # Packages from upstream
     # ======================
     scala = self.upstream-pkgs.scala;
