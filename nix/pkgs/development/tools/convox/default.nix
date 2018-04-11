@@ -10,7 +10,7 @@
 stdenv.mkDerivation rec {
   name = "convox";
   src = fetchzip {
-    url = "https://convox.com/install/linux.zip";
+    url = "https://bin.equinox.io/c/jewmwFCp7w9/convox-stable-linux-amd64.tgz";
     sha256 = "0hgd52m957agzb8ifn8b281nvdvs7i3fch5a6095hvmxqqykr0ds";
   };
 
