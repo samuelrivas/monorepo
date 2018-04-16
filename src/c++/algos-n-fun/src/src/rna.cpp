@@ -43,7 +43,7 @@ int best_fold_cost(const string& sequence, int x, int y, int freedom, const Tabl
   return min_cost;
 }
 
-// Freedom is the amount of nucleotides needed between separate bonds
+// Freedom is the amount of nucleotides needed to create a loop
 Table strand_costs(const string& sequence, size_t freedom) {
   Table table(sequence.size(), vector<int>(sequence.size()));
 
