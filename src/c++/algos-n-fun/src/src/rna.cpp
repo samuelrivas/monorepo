@@ -1,3 +1,20 @@
+/* Copyright (C) 2018 by samuelrivas@gmail.com
+ *
+ * This calculates the dynamic table for the RNA folding problem (finding the
+ * lowest energy structure for a given RNA strand). The values in the table
+ * represent the cost of each structure, being cost the amount of free
+ * nucleotides in each formation. The table must be read as `table[i][j]` being
+ * the minimum possible cost of the structure ranging from position i to j, both
+ * included. Thus, `table[0][n]` contains the optimum cost for the whole
+ * structure.
+ *
+ * There are a few notable TODOS:
+ *
+ * - We are using more than twice as much memory than needed for the table. Only
+ *   the top left diagonal is needed, and of that, values where j - i <=
+ *   freedom are known and don't need to be stored
+ * - We need a way to reconstruct, and display, the solution
+ */
 #include <vector>
 #include <utility>
 #include <string>
@@ -27,7 +44,8 @@ bool match(char x, char y) {
 
 typedef vector<vector<int>> Table;
 
-int best_fold_cost(const string& sequence, int x, int y, int freedom, const Table& table) {
+int best_fold_cost(const string& sequence, int x, int y, int freedom,
+                   const Table& table) {
   int min_cost = table[x][y - 1] + 1;
   for (int i = x; i < y - freedom; i++) {
     if (match(sequence[i], sequence[y])) {
@@ -50,7 +68,7 @@ Table strand_costs(const string& sequence, size_t freedom) {
   for (size_t y = 0; y < sequence.size(); y++) {
     for (size_t x = 0; x < sequence.size(); x++) {
       if (x > y) {
-        table[x][y] = -9; // for debugging
+        table[x][y] = -9;  // for debugging
       } else if (y - x <= freedom) {
         table[x][y] = y - x + 1;
       } else {
