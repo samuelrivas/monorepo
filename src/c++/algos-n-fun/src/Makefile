@@ -60,3 +60,5 @@ $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 $(work-dir)/binary-tree-from-array-tests.o: src/lib/binary-tree.hpp
 $(work-dir)/binary-tree-from-heap-tests.o: src/lib/binary-tree.hpp
 $(work-dir)/binary-tree-from-order.o: src/lib/binary-tree.hpp
+$(work-dir)/digraph-tests.o: src/lib/digraph.hpp
+$(bin-dir)/digraph-tests: $(work-dir)/digraph.o
