@@ -37,6 +37,7 @@ class Digraph {
 
 class Dfs {
   vector<bool> visited;
+  vector<bool> processed;
   vector<size_t> parent;
   int covered = 0;
   const Digraph& digraph;
