@@ -55,6 +55,7 @@ Dfs::Dfs(const Digraph& _digraph,
          const DfsCallbacks* _callbacks) :
   visited(_digraph.n_vertices(), false),
   processed(_digraph.n_vertices(), false),
+  state(_digraph.n_vertices(), State::Unprocessed),
   parent(_digraph.n_vertices(), -1),
   callbacks { _callbacks },
   digraph { _digraph } {
@@ -63,31 +64,43 @@ Dfs::Dfs(const Digraph& _digraph,
 #include <iostream>
 
 void Dfs::dfs(int vertex) {
+  State v_state = state[vertex];
+
+  assert(v_state != State::Processing);
   assert(!visited[vertex]);
 
+  if (v_state == State::Processed) {
+    return;
+  }
+
+  assert(v_state == State::Unprocessed);
+
   visited[vertex] = true;
+  state[vertex] = State::Processing;
   // std::cout << "visited " << vertex << std::endl;
 
   for (int v : digraph.connected(vertex)) {
-    callbacks -> on_seen(v, parent, processed);
-    if (visited[v]) {
-      // std::cout << "found already visited: " << v << std::endl;
-      if (!processed[v]) {
-        std::cout << "and this is a cycle!" << std::endl;
-        std::cout << v << " <- ";
-        for (int offender = vertex; offender != v; offender = parent[offender]) {
-          std::cout << offender << " <- ";
-        }
-        std::cout << v << std::endl;
+    if (state[v] == State::Processing) {
+      std::cout << "and this is a cycle!" << std::endl;
+      std::cout << v << " <- ";
+      for (int offender = vertex; offender != v; offender = parent[offender]) {
+        std::cout << offender << " <- ";
       }
+      std::cout << v << std::endl;
+      continue;
+    } else if (state[v] == State::Processed) {
+      std::cout << "There was a cross link from " << vertex
+                << " to " << v << std::endl;
       continue;
     }
+
+    assert(state[v] == State::Unprocessed);
     parent[v] = vertex;
     dfs(v);
   }
   std::cout << "covered: " << vertex << std::endl;
   processed[vertex] = true;
-  callbacks -> on_processed(vertex, parent, processed);
+  state[vertex] = State::Processed;
 }
 
 const vector<int> Dfs::parents() const {

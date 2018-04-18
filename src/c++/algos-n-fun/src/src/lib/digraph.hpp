@@ -35,6 +35,12 @@ class Digraph {
   string to_s() const;
 };
 
+enum class State {
+  Unprocessed,
+  Processing,
+  Processed
+};
+
 struct DfsCallbacks {
   virtual void on_processed(int vertex, const vector<int>& parent,
                             const vector<bool>& processed) const;
@@ -46,6 +52,7 @@ struct DfsCallbacks {
 class Dfs {
   vector<bool> visited;
   vector<bool> processed;
+  vector<State> state;
   vector<int> parent;
   const DfsCallbacks* callbacks;
   const Digraph& digraph;
