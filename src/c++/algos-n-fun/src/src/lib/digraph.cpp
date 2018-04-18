@@ -4,6 +4,7 @@
  */
 #include <vector>
 #include <forward_list>
+#include <cassert>
 
 #include "digraph.hpp"
 
@@ -36,24 +37,39 @@ string Digraph::to_s() const {
   return out.str();
 }
 
-Dfs::Dfs(const Digraph& _digraph) :
+void DfsCallbacks::on_processed(int vertex, const vector<int>& parent,
+                                const vector<bool>& processed) const {
+  (void) vertex;
+  (void) parent;
+  (void) processed;
+}
+
+void DfsCallbacks::on_seen(int vertex, const vector<int>& parent,
+                           const vector<bool>& processed) const {
+  (void) vertex;
+  (void) parent;
+  (void) processed;
+}
+
+Dfs::Dfs(const Digraph& _digraph,
+         const DfsCallbacks* _callbacks) :
   visited(_digraph.n_vertices(), false),
   processed(_digraph.n_vertices(), false),
   parent(_digraph.n_vertices(), -1),
+  callbacks { _callbacks },
   digraph { _digraph } {
 }
 
 #include <iostream>
 
 void Dfs::dfs(int vertex) {
-  if (visited[vertex]) {
-    std::cout << "This should not happen: " << vertex << std::endl;
-    return;
-  }
+  assert(!visited[vertex]);
+
   visited[vertex] = true;
   // std::cout << "visited " << vertex << std::endl;
 
   for (int v : digraph.connected(vertex)) {
+    callbacks -> on_seen(v, parent, processed);
     if (visited[v]) {
       // std::cout << "found already visited: " << v << std::endl;
       if (!processed[v]) {
@@ -71,13 +87,9 @@ void Dfs::dfs(int vertex) {
   }
   std::cout << "covered: " << vertex << std::endl;
   processed[vertex] = true;
-  covered++;
+  callbacks -> on_processed(vertex, parent, processed);
 }
 
 const vector<int> Dfs::parents() const {
   return parent;
-}
-
-int Dfs::covered_vertices() const {
-  return covered;
 }
