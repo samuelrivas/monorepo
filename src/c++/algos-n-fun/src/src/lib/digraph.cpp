@@ -10,10 +10,10 @@
 using std::vector;
 using std::forward_list;
 
-Digraph::Digraph(size_t n_vertices) : vertices(n_vertices) {
+Digraph::Digraph(int n_vertices) : vertices(n_vertices) {
 }
 
-void Digraph::connect(size_t from, size_t to) {
+void Digraph::connect(int from, int to) {
   vertices[from].push_front(to);
 }
 
@@ -21,7 +21,7 @@ int Digraph::n_vertices() const {
   return vertices.size();
 }
 
-forward_list<size_t> Digraph::connected(size_t vertex) const {
+forward_list<int> Digraph::connected(int vertex) const {
   return vertices[vertex];
 }
 
@@ -29,7 +29,7 @@ string Digraph::to_s() const {
   ostringstream out;
 
   for (size_t from = 0; from < vertices.size(); from++ ) {
-    for (size_t to : connected(from)) {
+    for (int to : connected(from)) {
       out << from << " -> " << to << endl;
     }
   }
@@ -39,13 +39,13 @@ string Digraph::to_s() const {
 Dfs::Dfs(const Digraph& _digraph) :
   visited(_digraph.n_vertices(), false),
   processed(_digraph.n_vertices(), false),
-  parent(_digraph.n_vertices()),
+  parent(_digraph.n_vertices(), -1),
   digraph { _digraph } {
 }
 
 #include <iostream>
 
-void Dfs::dfs(size_t vertex) {
+void Dfs::dfs(int vertex) {
   if (visited[vertex]) {
     std::cout << "This should not happen: " << vertex << std::endl;
     return;
@@ -53,13 +53,13 @@ void Dfs::dfs(size_t vertex) {
   visited[vertex] = true;
   // std::cout << "visited " << vertex << std::endl;
 
-  for (size_t v : digraph.connected(vertex)) {
+  for (int v : digraph.connected(vertex)) {
     if (visited[v]) {
       // std::cout << "found already visited: " << v << std::endl;
       if (!processed[v]) {
         std::cout << "and this is a cycle!" << std::endl;
         std::cout << v << " <- ";
-        for (size_t offender = vertex; offender != v; offender = parent[offender]) {
+        for (int offender = vertex; offender != v; offender = parent[offender]) {
           std::cout << offender << " <- ";
         }
         std::cout << v << std::endl;
@@ -74,7 +74,7 @@ void Dfs::dfs(size_t vertex) {
   covered++;
 }
 
-const vector<size_t> Dfs::parents() const {
+const vector<int> Dfs::parents() const {
   return parent;
 }
 

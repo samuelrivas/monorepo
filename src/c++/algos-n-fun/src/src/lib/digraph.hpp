@@ -18,10 +18,10 @@ using std::string;
 using std::endl;
 
 class Digraph {
-  vector<forward_list<size_t>> vertices;
+  vector<forward_list<int>> vertices;
 
   public:
-  explicit Digraph(size_t n_vertices);
+  explicit Digraph(int n_vertices);
 
   // TODO
   Digraph(const Digraph& that) = delete;
@@ -29,16 +29,16 @@ class Digraph {
   Digraph& operator=(const Digraph& that) = delete;
   Digraph& operator=(const Digraph&& that) = delete;
 
-  void connect(size_t from, size_t to);
+  void connect(int from, int to);
   int n_vertices() const;
-  forward_list<size_t> connected(size_t vertex) const;
+  forward_list<int> connected(int vertex) const;
   string to_s() const;
 };
 
 class Dfs {
   vector<bool> visited;
   vector<bool> processed;
-  vector<size_t> parent;
+  vector<int> parent;
   int covered = 0;
   const Digraph& digraph;
 
@@ -49,8 +49,8 @@ class Dfs {
   Dfs(const Dfs& that) = delete;
   Dfs& operator=(const Dfs& that) = delete;
 
-  void dfs(size_t vertex);
-  const vector<size_t> parents() const;
+  void dfs(int vertex);
+  const vector<int> parents() const;
   int covered_vertices() const;
 };
 
