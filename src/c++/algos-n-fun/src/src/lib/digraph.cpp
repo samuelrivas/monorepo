@@ -37,18 +37,29 @@ string Digraph::to_s() const {
   return out.str();
 }
 
-void DfsCallbacks::on_processed(int vertex, const vector<int>& parent,
-                                const vector<bool>& processed) const {
+void DfsCallbacks::on_entry(int vertex,
+                            const vector<int>& parent,
+                            const vector<State>& state) const {
   (void) vertex;
   (void) parent;
-  (void) processed;
+  (void) state;
 }
 
-void DfsCallbacks::on_seen(int vertex, const vector<int>& parent,
-                           const vector<bool>& processed) const {
+void DfsCallbacks::on_exit(int vertex,
+                           const vector<int>& parent,
+                           const vector<State>& state) const {
   (void) vertex;
   (void) parent;
-  (void) processed;
+  (void) state;
+}
+
+void DfsCallbacks::on_edge(int from, int to,
+                           const vector<int>& parent,
+                           const vector<State>& state) const {
+  (void) from;
+  (void) to;
+  (void) parent;
+  (void) state;
 }
 
 Dfs::Dfs(const Digraph& _digraph,
@@ -64,22 +75,18 @@ Dfs::Dfs(const Digraph& _digraph,
 #include <iostream>
 
 void Dfs::dfs(int vertex) {
-  State v_state = state[vertex];
-
-  assert(v_state != State::Processing);
-  assert(!visited[vertex]);
-
-  if (v_state == State::Processed) {
+  if (state[vertex] == State::Processed) {
     return;
   }
+  assert(state[vertex] == State::Unprocessed);
 
-  assert(v_state == State::Unprocessed);
-
-  visited[vertex] = true;
   state[vertex] = State::Processing;
-  // std::cout << "visited " << vertex << std::endl;
+  // Vertex entry callback
 
   for (int v : digraph.connected(vertex)) {
+
+    // Edge processing callback ?
+
     if (state[v] == State::Processing) {
       std::cout << "and this is a cycle!" << std::endl;
       std::cout << v << " <- ";
@@ -99,8 +106,8 @@ void Dfs::dfs(int vertex) {
     dfs(v);
   }
   std::cout << "covered: " << vertex << std::endl;
-  processed[vertex] = true;
   state[vertex] = State::Processed;
+  // vertex exit callback
 }
 
 const vector<int> Dfs::parents() const {

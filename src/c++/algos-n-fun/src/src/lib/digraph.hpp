@@ -41,12 +41,26 @@ enum class State {
   Processed
 };
 
-struct DfsCallbacks {
-  virtual void on_processed(int vertex, const vector<int>& parent,
-                            const vector<bool>& processed) const;
+/* on_entry is called when we reach a vertex, before any of its descendants are
+   processed.
 
-  virtual void on_seen(int vertex, const vector<int>& parent,
-                       const vector<bool>& processed) const;
+   on_exit is called when all the descendants have been processed.
+
+   on_edge is called once per edge, when processing a node.
+
+   Note that "descendant" means unprocessed, connected node, which depends on
+   the traversal order */
+struct DfsCallbacks {
+  virtual void on_entry(int vertex,
+                        const vector<int>& parent,
+                        const vector<State>& processed) const;
+
+  virtual void on_exit(int vertex,
+                       const vector<int>& parent,
+                       const vector<State>& state) const;
+  virtual void on_edge(int from, int to,
+                       const vector<int>& parent,
+                       const vector<State>& state) const;
 };
 
 class Dfs {

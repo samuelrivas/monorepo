@@ -6,21 +6,6 @@ using std::cout;
 using std::endl;
 
 struct Callbacks : public DfsCallbacks {
-  virtual void on_processed(int vertex, const vector<int>& parent,
-                            const vector<bool>& processed) const {
-    (void) parent;
-    (void) processed;
-
-    cout << "PROCESSED: " << vertex << endl;
-  }
-  virtual void on_seen(int vertex, const vector<int>& parent,
-                       const vector<bool>& processed) const {
-    (void) vertex;
-    (void) parent;
-    (void) processed;
-
-    cout << "SEEN: " << vertex << endl;
-  }
 } callbacks;
 
 
