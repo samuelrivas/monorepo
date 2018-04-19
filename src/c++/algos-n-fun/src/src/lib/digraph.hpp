@@ -53,7 +53,7 @@ enum class State {
 struct DfsCallbacks {
   virtual void on_entry(int vertex,
                         const vector<int>& parent,
-                        const vector<State>& processed) const;
+                        const vector<State>& state) const;
 
   virtual void on_exit(int vertex,
                        const vector<int>& parent,

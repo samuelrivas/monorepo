@@ -72,42 +72,28 @@ Dfs::Dfs(const Digraph& _digraph,
   digraph { _digraph } {
 }
 
-#include <iostream>
-
+// This is dfs for digraphs, for undirected graphs we need to add some logic to
+// avoid traversing the same link backwards
 void Dfs::dfs(int vertex) {
   if (state[vertex] == State::Processed) {
     return;
   }
   assert(state[vertex] == State::Unprocessed);
 
+  callbacks -> on_entry(vertex, parent, state);
   state[vertex] = State::Processing;
-  // Vertex entry callback
 
   for (int v : digraph.connected(vertex)) {
 
-    // Edge processing callback ?
+    callbacks -> on_edge(vertex, v, parent, state);
 
-    if (state[v] == State::Processing) {
-      std::cout << "and this is a cycle!" << std::endl;
-      std::cout << v << " <- ";
-      for (int offender = vertex; offender != v; offender = parent[offender]) {
-        std::cout << offender << " <- ";
-      }
-      std::cout << v << std::endl;
-      continue;
-    } else if (state[v] == State::Processed) {
-      std::cout << "There was a cross link from " << vertex
-                << " to " << v << std::endl;
-      continue;
+    if (state[v] == State::Unprocessed) {
+      parent[v] = vertex;
+      dfs(v);
     }
-
-    assert(state[v] == State::Unprocessed);
-    parent[v] = vertex;
-    dfs(v);
   }
-  std::cout << "covered: " << vertex << std::endl;
   state[vertex] = State::Processed;
-  // vertex exit callback
+  callbacks -> on_exit(vertex, parent, state);
 }
 
 const vector<int> Dfs::parents() const {

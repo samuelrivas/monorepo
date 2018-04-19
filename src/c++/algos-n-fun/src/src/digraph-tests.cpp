@@ -6,6 +6,32 @@ using std::cout;
 using std::endl;
 
 struct Callbacks : public DfsCallbacks {
+
+  virtual void on_edge(int from, int to,
+                       const vector<int>& parent,
+                       const vector<State>& state) const {
+    (void) parent;
+
+    if (state[to] == State::Processing) {
+      std::cout << "and this is a cycle!" << std::endl;
+      std::cout << to << " <- ";
+      for (int offender = from; offender != to; offender = parent[offender]) {
+        std::cout << offender << " <- ";
+      }
+      std::cout << to << std::endl;
+    } else if (state[to] == State::Processed) {
+      std::cout << "There was a cross link from " << from
+                << " to " << to << std::endl;
+    }
+  }
+  virtual void on_exit(int vertex,
+                       const vector<int>& parent,
+                       const vector<State>& state) const {
+    (void) parent;
+    (void) state;
+
+    std::cout << "covered: " << vertex << std::endl;
+  }
 } callbacks;
 
 
