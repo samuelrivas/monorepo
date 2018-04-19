@@ -72,8 +72,9 @@ Dfs::Dfs(const Digraph& _digraph,
   digraph { _digraph } {
 }
 
-// This is dfs for digraphs, for undirected graphs we need to add some logic to
-// avoid traversing the same link backwards
+/* This is dfs for digraphs, for undirected graphs we need to add some logic to
+   avoid traversing the same link backwards.
+*/
 void Dfs::dfs(int vertex) {
   if (state[vertex] == State::Processed) {
     return;

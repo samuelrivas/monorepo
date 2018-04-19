@@ -49,7 +49,12 @@ enum class State {
    on_edge is called once per edge, when processing a node.
 
    Note that "descendant" means unprocessed, connected node, which depends on
-   the traversal order */
+   the traversal order
+
+   We do not offer any form of early termination as this will either complicate
+   the code significantly, or make the semantics of the state array and the
+   callbacks unclear
+*/
 struct DfsCallbacks {
   virtual void on_entry(int vertex,
                         const vector<int>& parent,
