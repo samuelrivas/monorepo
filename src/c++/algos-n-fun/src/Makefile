@@ -62,3 +62,4 @@ $(work-dir)/binary-tree-from-heap-tests.o: src/lib/binary-tree.hpp
 $(work-dir)/binary-tree-from-order.o: src/lib/binary-tree.hpp
 $(work-dir)/digraph-tests.o: src/lib/digraph.hpp
 $(bin-dir)/digraph-tests: $(work-dir)/digraph.o
+$(bin-dir)/as-easy-as-abc: $(work-dir)/digraph.o
