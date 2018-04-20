@@ -26,6 +26,7 @@ class Digraph {
   void connect(int from, int to);
   int n_vertices() const;
   forward_list<int> connected(int vertex) const;
+  bool connected(int from, int to) const;
   string to_s() const;
 };
 
@@ -79,6 +80,7 @@ class Dfs {
 
   void dfs(int vertex);
   const vector<int> parents() const;
+  const vector<State> states() const;
 };
 
 #endif

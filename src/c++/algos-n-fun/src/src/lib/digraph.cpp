@@ -37,6 +37,15 @@ string Digraph::to_s() const {
   return out.str();
 }
 
+bool Digraph::connected(int from, int to) const {
+  for (int x: connected(from)) {
+    if (to == x) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void DfsCallbacks::on_entry(int vertex,
                             const vector<int>& parent,
                             const vector<State>& state) {
@@ -99,4 +108,8 @@ void Dfs::dfs(int vertex) {
 
 const vector<int> Dfs::parents() const {
   return parent;
+}
+
+const vector<State> Dfs::states() const {
+  return state;
 }
