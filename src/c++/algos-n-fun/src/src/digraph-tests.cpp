@@ -9,7 +9,7 @@ struct Callbacks : public DfsCallbacks {
 
   virtual void on_edge(int from, int to,
                        const vector<int>& parent,
-                       const vector<State>& state) const {
+                       const vector<State>& state) override {
     (void) parent;
 
     if (state[to] == State::Processing) {
@@ -26,7 +26,7 @@ struct Callbacks : public DfsCallbacks {
   }
   virtual void on_exit(int vertex,
                        const vector<int>& parent,
-                       const vector<State>& state) const {
+                       const vector<State>& state) override {
     (void) parent;
     (void) state;
 

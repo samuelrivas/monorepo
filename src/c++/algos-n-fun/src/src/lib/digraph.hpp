@@ -23,12 +23,6 @@ class Digraph {
   public:
   explicit Digraph(int n_vertices);
 
-  // TODO
-  Digraph(const Digraph& that) = delete;
-  Digraph(const Digraph&& that) = delete;
-  Digraph& operator=(const Digraph& that) = delete;
-  Digraph& operator=(const Digraph&& that) = delete;
-
   void connect(int from, int to);
   int n_vertices() const;
   forward_list<int> connected(int vertex) const;
@@ -58,14 +52,14 @@ enum class State {
 struct DfsCallbacks {
   virtual void on_entry(int vertex,
                         const vector<int>& parent,
-                        const vector<State>& state) const;
+                        const vector<State>& state);
 
   virtual void on_exit(int vertex,
                        const vector<int>& parent,
-                       const vector<State>& state) const;
+                       const vector<State>& state);
   virtual void on_edge(int from, int to,
                        const vector<int>& parent,
-                       const vector<State>& state) const;
+                       const vector<State>& state);
 };
 
 class Dfs {
@@ -73,11 +67,11 @@ class Dfs {
   vector<bool> processed;
   vector<State> state;
   vector<int> parent;
-  const DfsCallbacks* callbacks;
+  DfsCallbacks* callbacks;
   const Digraph& digraph;
 
   public:
-  Dfs(const Digraph& _digraph, const DfsCallbacks* _callbacks);
+  Dfs(const Digraph& _digraph, DfsCallbacks* _callbacks);
 
   // TODO
   Dfs(const Dfs& that) = delete;

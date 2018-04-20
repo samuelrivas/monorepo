@@ -39,7 +39,7 @@ string Digraph::to_s() const {
 
 void DfsCallbacks::on_entry(int vertex,
                             const vector<int>& parent,
-                            const vector<State>& state) const {
+                            const vector<State>& state) {
   (void) vertex;
   (void) parent;
   (void) state;
@@ -47,7 +47,7 @@ void DfsCallbacks::on_entry(int vertex,
 
 void DfsCallbacks::on_exit(int vertex,
                            const vector<int>& parent,
-                           const vector<State>& state) const {
+                           const vector<State>& state) {
   (void) vertex;
   (void) parent;
   (void) state;
@@ -55,7 +55,7 @@ void DfsCallbacks::on_exit(int vertex,
 
 void DfsCallbacks::on_edge(int from, int to,
                            const vector<int>& parent,
-                           const vector<State>& state) const {
+                           const vector<State>& state) {
   (void) from;
   (void) to;
   (void) parent;
@@ -63,7 +63,7 @@ void DfsCallbacks::on_edge(int from, int to,
 }
 
 Dfs::Dfs(const Digraph& _digraph,
-         const DfsCallbacks* _callbacks) :
+         DfsCallbacks* _callbacks) :
   visited(_digraph.n_vertices(), false),
   processed(_digraph.n_vertices(), false),
   state(_digraph.n_vertices(), State::Unprocessed),
