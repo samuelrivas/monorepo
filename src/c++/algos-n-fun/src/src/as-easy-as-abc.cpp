@@ -11,6 +11,7 @@
 using std::vector;
 using std::min;
 using std::cout;
+using std::cin;
 using std::endl;
 using std::unordered_set;
 using std::stack;
@@ -22,16 +23,6 @@ int node_number(char x) {
 
 char node_to_char(int x) {
   return x - 1 + 'a';
-}
-
-int get_radix(vector<string> dict) {
-  unordered_set<char> chars;
-  for (string s : dict) {
-    for (char c : s) {
-      chars.insert(c);
-    }
-  }
-  return chars.size();
 }
 
 Digraph get_order(const vector<string>& samples, int radix) {
@@ -48,7 +39,7 @@ Digraph get_order(const vector<string>& samples, int radix) {
     for (j = 0; j < min_length && low[j] == high[j]; j++) { }
 
     if (j < min_length) {
-      // We can add duplicate edges here
+      // We can add duplicate edges here, but should be fine unless we are dealing with a large amount of samples
       graph.connect(node_number(low[j]), node_number(high[j]));
     }
   }
@@ -76,51 +67,56 @@ class AbcCallbacks : public DfsCallbacks {
   }
 };
 
+void load_params(int* radix, vector<string>* samples) {
+  char highchar;
+  cin >> highchar;
+  *radix = highchar - 'a' + 1;
+
+  int n;
+  cin >> n;
+  for (int i = 0; i < n; i++) {
+    string sample;
+    cin >> sample;
+    samples -> push_back(sample);
+  }
+}
+
 int main(void) {
-  vector<vector<string>> tests {
-    { "aab", "aac", "ab", "cabc" },
-    { "cab", "cda", "ccc", "badca" },
-    { "abc", "bca", "cab", "aca" },
-    { "dea", "cfb" },
-    { "ebbce", "dbe", "adcd", "bc", "cd" }
-  };
+  int radix;
+  vector<string> samples;
 
-  for (vector<string> test : tests) {
-    for (string s : test) {
-      cout << s << endl;
-    }
-    Digraph graph = get_order(test, get_radix(test));
-    AbcCallbacks callbacks;
-    cout << graph.to_s() << endl;
-    cout << endl;
+  load_params(&radix, &samples);
 
-    Dfs dfs(graph, &callbacks);
-    dfs.dfs(0);
+  Digraph graph = get_order(samples, radix);
+  AbcCallbacks callbacks;
 
-    if (callbacks.cycle) {
-      cout << "IMPOSSIBLE" << endl;
-      continue;
-    }
+  Dfs dfs(graph, &callbacks);
+  dfs.dfs(0);
 
-    ostringstream order;
-    assert(callbacks.topological.top() == 0);
+  if (callbacks.cycle) {
+    cout << "IMPOSSIBLE" << endl;
+    return 0;
+  }
+
+  ostringstream order;
+  assert(callbacks.topological.top() == 0);
+  callbacks.topological.pop();
+
+  int previous = 0;
+  while(! callbacks.topological.empty()) {
+    int vertex = callbacks.topological.top();
     callbacks.topological.pop();
 
-    int previous = 0;
-    while(! callbacks.topological.empty()) {
-      int vertex = callbacks.topological.top();
-      callbacks.topological.pop();
-
-      if (!graph.connected(previous, vertex)) {
-        // This is not a hamiltonian path, thus we don't have a total order
-        cout << "AMBIGUOUS" << endl;
-        break; // TODO FIX
-      }
-      order << node_to_char(vertex);
-      previous = vertex;
+    if (!graph.connected(previous, vertex)) {
+      // This is not a hamiltonian path, thus we don't have a total order
+      cout << "AMBIGUOUS" << endl;
+      return 0;
     }
-    cout << endl;
-    cout << "order: " << order.str() << endl << endl;
+
+    order << node_to_char(vertex);
+    previous = vertex;
   }
+   cout << order.str() << endl;
+
   return 0;
 }
