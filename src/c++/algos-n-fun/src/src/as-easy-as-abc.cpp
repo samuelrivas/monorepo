@@ -1,3 +1,7 @@
+/* Copyright (C) 2018 by samuelrivas@gmail.com
+ *
+ * Solution for https://open.kattis.com/problems/easyascab
+ */
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -5,6 +9,7 @@
 #include <stack>
 #include <sstream>
 #include <cassert>
+#include <string>
 
 #include "lib/digraph.hpp"
 
@@ -39,7 +44,13 @@ Digraph get_order(const vector<string>& samples, int radix) {
     for (j = 0; j < min_length && low[j] == high[j]; j++) { }
 
     if (j < min_length) {
-      // We can add duplicate edges here, but should be fine unless we are dealing with a large amount of samples
+      /* We can add duplicate edges here, but should be fine unless we are
+         dealing with a large amount of samples.
+
+         If that were a problem, we should either keep a hash set of added edges
+         here, or reimplement the graph to store sets instead of lists of
+         connections
+      */
       graph.connect(node_number(low[j]), node_number(high[j]));
     }
   }
@@ -47,11 +58,13 @@ Digraph get_order(const vector<string>& samples, int radix) {
 }
 
 class AbcCallbacks : public DfsCallbacks {
-  public:
+ public:
   stack<int> topological;
   bool cycle = false;
 
-  virtual void on_edge(int from, int to, const vector<int>& parent, const vector<State>& state) override {
+  void on_edge(int from, int to,
+               const vector<int>& parent,
+               const vector<State>& state) override {
     if (state[to] == State::Processing) {
       cycle = true;
     }
@@ -59,7 +72,9 @@ class AbcCallbacks : public DfsCallbacks {
     (void) parent;
   }
 
-  virtual void on_exit(int vertex, const vector<int>& parent, const vector<State>& state) override {
+  void on_exit(int vertex,
+               const vector<int>& parent,
+               const vector<State>& state) override {
     topological.push(vertex);
 
     (void) parent;
@@ -103,7 +118,7 @@ int main(void) {
   callbacks.topological.pop();
 
   int previous = 0;
-  while(! callbacks.topological.empty()) {
+  while (!callbacks.topological.empty()) {
     int vertex = callbacks.topological.top();
     callbacks.topological.pop();
 
@@ -116,7 +131,7 @@ int main(void) {
     order << node_to_char(vertex);
     previous = vertex;
   }
-   cout << order.str() << endl;
+  cout << order.str() << endl;
 
   return 0;
 }

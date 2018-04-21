@@ -1,4 +1,6 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
 #include <iostream>
+#include <vector>
 
 #include "lib/digraph.hpp"
 
@@ -6,10 +8,9 @@ using std::cout;
 using std::endl;
 
 struct Callbacks : public DfsCallbacks {
-
-  virtual void on_edge(int from, int to,
-                       const vector<int>& parent,
-                       const vector<State>& state) override {
+  void on_edge(int from, int to,
+               const vector<int>& parent,
+               const vector<State>& state) override {
     (void) parent;
 
     if (state[to] == State::Processing) {
@@ -24,9 +25,9 @@ struct Callbacks : public DfsCallbacks {
                 << " to " << to << std::endl;
     }
   }
-  virtual void on_exit(int vertex,
-                       const vector<int>& parent,
-                       const vector<State>& state) override {
+  void on_exit(int vertex,
+               const vector<int>& parent,
+               const vector<State>& state) override {
     (void) parent;
     (void) state;
 
@@ -36,7 +37,6 @@ struct Callbacks : public DfsCallbacks {
 
 
 int main(void) {
-
   Digraph g(5);
 
   g.connect(0, 1);
