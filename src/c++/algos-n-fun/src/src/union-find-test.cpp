@@ -5,6 +5,7 @@
 
 using std::vector;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::setw;
 using std::string;
@@ -20,7 +21,7 @@ class UnionFind {
     } else {
       int new_root = root(parent[element]);
       if (new_root != parent[element]) {
-        cout << "flattening " << element << " to " << new_root << endl;
+        cerr << "flattening " << element << " to " << new_root << endl;
         size[parent[element]] -= size[element];
         parent[element] = new_root;
       }
@@ -29,21 +30,21 @@ class UnionFind {
   }
 
   void print_state() {
-    cout << "     "; 
+    cerr << "     ";
     for (size_t i= 0; i < size.size(); i++) {
-      cout << setw(3) << i;
+      cerr << setw(3) << i;
     }
-    cout << endl;
-    cout << "root:";
+    cerr << endl;
+    cerr << "root:";
     for (int x : parent) {
-      cout << setw(3) << x;
+      cerr << setw(3) << x;
     }
-    cout << endl;
-    cout << "size:";
+    cerr << endl;
+    cerr << "size:";
     for (int x : size) {
-      cout << setw(3) << x;
+      cerr << setw(3) << x;
     }
-    cout << endl;
+    cerr << endl;
   }
 
  public:
@@ -54,7 +55,7 @@ class UnionFind {
   }
 
   void join(int x, int y) {
-    cout << "join(" << x << "," << y << ")" << endl;
+    cerr << "join(" << x << "," << y << ")" << endl;
     print_state();
     int root_x = root(x);
     int root_y = root(y);
@@ -72,7 +73,7 @@ class UnionFind {
       parent[root_x] = root_y;
       size[root_y] += size_root_x;
     }
-    cout << "after join" << endl;
+    cerr << "after join" << endl;
     print_state();
   }
 
