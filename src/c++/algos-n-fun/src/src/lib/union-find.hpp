@@ -15,7 +15,6 @@ class UnionFind {
   vector<int> size;
 
   int find(int element);
-  void print_state() const;
  public:
   explicit UnionFind(int elements);
 
@@ -23,6 +22,7 @@ class UnionFind {
   void join(int x, int y);
 
   bool joint(int x, int y);
+  void print_state() const;
 };
 
 #endif
