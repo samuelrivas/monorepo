@@ -15,11 +15,11 @@ class UnionFind {
   vector<int> size;
 
   // TODO: flatten
-  int root(int element) {
+  int find(int element) {
     if (parent[element] == element) {
       return element;
     } else {
-      int new_root = root(parent[element]);
+      int new_root = find(parent[element]);
       if (new_root != parent[element]) {
         cerr << "flattening " << element << " to " << new_root << endl;
         size[parent[element]] -= size[element];
@@ -54,11 +54,12 @@ class UnionFind {
     }
   }
 
+  // C++ won't let us call this "union"
   void join(int x, int y) {
     cerr << "join(" << x << "," << y << ")" << endl;
     print_state();
-    int root_x = root(x);
-    int root_y = root(y);
+    int root_x = find(x);
+    int root_y = find(y);
 
     if (root_x == root_y) {
       return;
@@ -77,8 +78,8 @@ class UnionFind {
     print_state();
   }
 
-  bool find(int x, int y) {
-    return root(x) == root(y);
+  bool joint(int x, int y) {
+    return find(x) == find(y);
   }
 };
 
@@ -95,7 +96,7 @@ int main(void) {
   for (int x = 9; x >= 0; x--) {
     cout << x;
     for (int y = 0; y < 10; y++) {
-      string mark = uf.find(x, y) ? " X" : "  ";
+      string mark = uf.joint(x, y) ? " X" : "  ";
       cout << mark;
     }
     cout << endl;
