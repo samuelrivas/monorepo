@@ -15,9 +15,17 @@ class UnionFind {
 
   // TODO: flatten
   int root(int element) {
-    int root;
-    for (root = parent[element]; parent[root] != root; root = parent[root]) { }
-    return root;
+    if (parent[element] == element) {
+      return element;
+    } else {
+      int new_root = root(parent[element]);
+      if (new_root != parent[element]) {
+        cout << "flattening " << element << " to " << new_root << endl;
+        size[parent[element]] -= size[element];
+        parent[element] = new_root;
+      }
+      return new_root;
+    }
   }
 
   void print_state() {
@@ -97,5 +105,6 @@ int main(void) {
   }
   cout << endl;
 
+  uf.join(1, 6);
   return 0;
 }
