@@ -64,3 +64,4 @@ $(bin-dir)/digraph-tests: $(work-dir)/digraph.o
 $(bin-dir)/as-easy-as-abc: $(work-dir)/digraph.o
 $(bin-dir)/union-find-test: $(work-dir)/union-find.o
 $(bin-dir)/10-types-of-people: $(work-dir)/union-find.o
+$(bin-dir)/rabin-karp-test: src/lib/rabin-karp.hpp
