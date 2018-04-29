@@ -61,6 +61,5 @@ int main(void) {
     start--;
     cout << total_subsequences(text, start, width) << endl;
   }
-
   return 0;
 }

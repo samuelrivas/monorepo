@@ -43,11 +43,11 @@ class RKHasher {
     return hash;
   }
 
-  int get_hash() {
+  int get_hash() const {
     return hash;
   }
 
-  int get_modulus() {
+  constexpr int get_modulus() const {
     return modulus;
   }
 };
