@@ -39,10 +39,21 @@ int subsequences(const string& text, int start, int max_width, int width) {
 
 int total_subsequences(const string& text, int start, int max_width) {
   int total = 0;
+  bool sum_maxes = false;
 
   for (int seq_length = 1; seq_length <= max_width; seq_length++) {
-    int subseq = subsequences(text, start, max_width, seq_length);
-    total += subseq;
+    int max_seqs = max_width - seq_length + 1;
+    if (!sum_maxes) {
+      int subseq = subsequences(text, start, max_width, seq_length);
+      total += subseq;
+      assert(subseq <= max_seqs);
+      if (subseq == max_seqs) {
+        // cerr << "Cutting ropes at " << seq_length << "!" << endl;
+        sum_maxes = true;
+      }
+    } else {
+      total += max_seqs;
+    }
   }
   return total;
 }
