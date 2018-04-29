@@ -46,6 +46,10 @@ class RKHasher {
   int get_hash() {
     return hash;
   }
+
+  int get_modulus() {
+    return modulus;
+  }
 };
 
 #endif
