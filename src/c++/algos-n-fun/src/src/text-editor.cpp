@@ -14,9 +14,6 @@ using std::string;
 
 // Play wild and ignore false positives for maximal speed
 int subsequences(const string& text, int start, int max_width, int width) {
-  cerr << endl << "counting for '" << text.substr(start, max_width) << "'"
-       << " width " << width << endl;
-
   if (max_width == width) {
     return 1;
   }
@@ -27,8 +24,6 @@ int subsequences(const string& text, int start, int max_width, int width) {
   int total = 0;
 
   for (int i = 0; i < width - 1; i++) {
-    // cerr << "feeding " << text[start + i] << "(" << text[start + i] - 'a'
-    //      << ")" << endl;
     hasher.push(text[start + i] - 'a');
   }
 
@@ -37,9 +32,6 @@ int subsequences(const string& text, int start, int max_width, int width) {
     if (!seen[hash]) {
       seen[hash] = true;
       total++;
-      cerr << "new: " << text.substr(start + i - width + 1, width) << endl;
-    } else {
-      cerr << "DUP: " << text.substr(start + i - width + 1, width) << endl;
     }
   }
   return total;
@@ -50,8 +42,6 @@ int total_subsequences(const string& text, int start, int max_width) {
 
   for (int seq_length = 1; seq_length <= max_width; seq_length++) {
     int subseq = subsequences(text, start, max_width, seq_length);
-    cout << text.substr(start, max_width) << "(" << seq_length
-         << ") -> " << subseq << endl;
     total += subseq;
   }
   return total;
