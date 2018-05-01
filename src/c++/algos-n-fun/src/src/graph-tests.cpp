@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <queue>
+#include <cassert>
 
 #include "lib/digraph.hpp"
 
@@ -11,6 +13,7 @@ using std::ostringstream;
 using std::string;
 using std::endl;
 using std::cout;
+using std::queue;
 
 class Graph {
   Digraph digraph;
@@ -54,6 +57,93 @@ class Graph {
   }
 };
 
+typedef DfsCallbacks BfsCallbacks;
+
+class Bfs {
+  vector<bool> visited;
+  vector<bool> processed;
+  vector<State> state;
+  vector<int> parent;
+  BfsCallbacks *callbacks;
+  const Graph& graph;
+  queue<int> to_process;
+
+ public:
+  Bfs(const Graph& _graph, BfsCallbacks* _callbacks) :
+    visited(_graph.n_vertices(), false),
+    processed(_graph.n_vertices(), false),
+    state(_graph.n_vertices(), State::Unprocessed),
+    parent(_graph.n_vertices(), -1),
+    callbacks { _callbacks },
+    graph { _graph } { }
+
+  void bfs(int vertex) {
+    if (state[vertex] == State::Processed) {
+      return;
+    }
+
+    assert(state[vertex] == State::Unprocessed);
+
+    to_process.push(vertex);
+
+    while (!to_process.empty()) {
+      int v = to_process.front();
+      to_process.pop();
+
+      callbacks -> on_entry(v, parent, state);
+      state[v] = State::Processing;
+
+      for (int child : graph.connected(v)) {
+        callbacks -> on_edge(v, child, parent, state);
+
+        if (state[child] == State::Unprocessed) {
+          to_process.push(child);
+          state[child] = State::Processing;
+          parent[child] = v;
+        }
+      }
+      callbacks -> on_exit(v, parent, state);
+      state[v] = State::Processed;
+    }
+  }
+};
+
+class TestCallbacks : public BfsCallbacks {
+  void on_edge(int vertex, int to, const vector<int>& parent, const vector<State>& state) {
+    if (parent[vertex] == to) {
+      // Traversing the link to parent (thus second time)
+      return;
+    }
+
+    if (state[to] == State::Processed) {
+      // Traversing a cycle link for the second time
+      return;
+    }
+
+    if (state[to] == State::Processing) {
+      cout << vertex << " -- " << to << " creates a cycle (b)" << endl;
+    }
+  }
+
+  void on_entry(int vertex, const vector<int>& parent, const vector<State>& state) override {
+    (void) state;
+    (void) parent;
+
+    cout << "Starting: " << vertex << endl;
+  }
+
+  void on_exit(int vertex, const vector<int>& parent, const vector<State>& state) override {
+    (void) state;
+
+    cout << "Finished: " << vertex;
+
+    for (int v = parent[vertex]; v != -1; v = parent[v]) {
+      cout << " -- " << v;
+    }
+    cout << endl;
+  }
+} callbacks;
+
 int main(void) {
   Graph graph(8);
 
@@ -65,8 +155,13 @@ int main(void) {
   graph.connect(3, 2);
   graph.connect(3, 4);
   graph.connect(6, 0);
+  graph.connect(3, 7);
 
   cout << graph.to_s();
+
+  cout << "BFS:" << endl;
+  Bfs bfs(graph, &callbacks);
+  bfs.bfs(2);
 
   return 0;
 }
