@@ -1,3 +1,5 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
+
 #include <forward_list>
 #include <sstream>
 #include <string>
@@ -94,7 +96,9 @@ class Bfs {
       state[v] = State::Processing;
 
       for (int child : graph.connected(v)) {
-        callbacks -> on_edge(v, child, parent, state);
+        if (parent[v] != child && state[child] != State::Processed) {
+          callbacks -> on_edge(v, child, parent, state);
+        }
 
         if (state[child] == State::Unprocessed) {
           to_process.push(child);
@@ -109,30 +113,27 @@ class Bfs {
 };
 
 class TestCallbacks : public BfsCallbacks {
-  void on_edge(int vertex, int to, const vector<int>& parent, const vector<State>& state) {
-    if (parent[vertex] == to) {
-      // Traversing the link to parent (thus second time)
-      return;
-    }
-
-    if (state[to] == State::Processed) {
-      // Traversing a cycle link for the second time
-      return;
-    }
+  void on_edge(int vertex, int to, const vector<int>& parent,
+               const vector<State>& state) override {
+    (void) parent;
 
     if (state[to] == State::Processing) {
-      cout << vertex << " -- " << to << " creates a cycle (b)" << endl;
+      cout << vertex << " -- " << to << " creates a cycle" << endl;
+    } else {
+      cout << vertex << " -- " << to << endl;
     }
   }
 
-  void on_entry(int vertex, const vector<int>& parent, const vector<State>& state) override {
+  void on_entry(int vertex, const vector<int>& parent,
+                const vector<State>& state) override {
     (void) state;
     (void) parent;
 
     cout << "Starting: " << vertex << endl;
   }
 
-  void on_exit(int vertex, const vector<int>& parent, const vector<State>& state) override {
+  void on_exit(int vertex, const vector<int>& parent,
+               const vector<State>& state) override {
     (void) state;
 
     cout << "Finished: " << vertex;
