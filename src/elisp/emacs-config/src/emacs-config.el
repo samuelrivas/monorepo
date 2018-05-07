@@ -92,10 +92,10 @@
   (auto-fill-mode)
   (setq indent-tabs-mode nil)
   (setq comment-start "//")
-  (setq comment-end "")
-  (local-set-key "\C-c\C-u" 'uncomment-region))
+  (setq comment-end ""))
 
 (add-hook 'c-mode-hook 'my-c-mode-hook)
+(add-hook 'c++-mode-hook 'my-c-mode-hook)
 
 ;; Javascript mode
 (defun my-javascript-mode-hook ()
