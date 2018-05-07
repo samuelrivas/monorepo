@@ -32,6 +32,7 @@
   terraform-mode,
   tuareg,
   utop,
+  yaml-mode,
 }:
 let
   deps = {
@@ -53,6 +54,7 @@ let
     groovy-mode
     nix-mode
     terraform-mode
+    yaml-mode
   ];
 
   dep-packages = stdenv.lib.concatMap mode-deps [
