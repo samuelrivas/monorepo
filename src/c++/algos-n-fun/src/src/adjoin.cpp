@@ -1,26 +1,30 @@
 #include <iostream>
-#include <tuple>
 #include <utility>
+#include <set>
+#include <cmath>
 
 #include "lib/graph.hpp"
 
 using std::cout;
+using std::cerr;
 using std::endl;
-using std::tuple;
+using std::pair;
 using std::get;
 using std::move;
 using std::get;
+using std::set;
+using std::max;
 
 class FurthestCb : public BfsCallbacks {
   vector<int> hops;
   int max_hops = -1;
   int furthest = 0;
-  vector<bool> visited;  // Todo this duplicates data from CB
+  set<int>* pending;
 
  public:
-  FurthestCb(const Graph& _graph) :
+  FurthestCb(const Graph& _graph, set<int>* _pending) :
     hops(_graph.n_vertices(), -1),
-    visited(_graph.n_vertices(), false)
+    pending { _pending }
   { }
 
   void on_exit(int vertex, const vector<int>& parent, const vector<State>& state) {
@@ -36,7 +40,7 @@ class FurthestCb : public BfsCallbacks {
       max_hops = hops[vertex];
       furthest = vertex;
     }
-    visited[vertex] = true;
+    pending -> erase(vertex);
   }
 
   int get_furthest() const {
@@ -45,22 +49,20 @@ class FurthestCb : public BfsCallbacks {
   int get_distance() const {
     return max_hops;
   }
-  vector<bool> get_visited() {
-    return visited;
-  }
 };
 
-// {furthest, distance, visited}
-tuple<int, int, vector<bool>> furthest_from(const Graph& graph, int vertex) {
-  FurthestCb cb(graph);
+// {furthest, distance}
+pair<int, int> furthest_from(const Graph& graph, int vertex,
+                             set<int> *pending) {
+  FurthestCb cb(graph, pending);
   Bfs bfs(graph, &cb);
   bfs.bfs(vertex);
 
-  return {cb.get_furthest(), cb.get_distance(), cb.get_visited()};
+  return {cb.get_furthest(), cb.get_distance()};
 }
 
 int main(void) {
-  Graph graph(8);
+  Graph graph(11);
 
   graph.connect(0, 2);
   graph.connect(5, 1);
@@ -69,12 +71,62 @@ int main(void) {
   graph.connect(3, 4);
   graph.connect(6, 0);
   graph.connect(3, 7);
+  graph.connect(8, 9);
 
+  set<int> pending_vertices;
 
-  tuple<int, int, vector<bool>> extreme_a = furthest_from(graph, 0);
-  tuple<int, int, vector<bool>> extreme_b = furthest_from(graph, get<0>(extreme_a));
+  for (int i = 0; i < graph.n_vertices(); i++) {
+    pending_vertices.insert(i);
+  }
 
-  int diameter = get<1>(extreme_b);
+  int largest = 0;
+  int second_largest = 0;
+  int third_largest = 0;
 
-  cout << "Diameter: " << diameter << ". From " << get<0>(extreme_a) << " to " << get<0>(extreme_b) << endl;
+  while (pending_vertices.size() > 0) {
+    int vertex = *(pending_vertices.begin());
+    pair<int, int> extreme_a = furthest_from(graph, vertex, &pending_vertices);
+    pair<int, int> extreme_b = furthest_from(graph, extreme_a.first,
+                                             &pending_vertices);
+
+    int diameter = extreme_b.second;
+
+    cerr << "Diameter: " << diameter << ". From " << get<0>(extreme_a) << " to " << get<0>(extreme_b) << endl;
+
+    if (diameter > largest) {
+      third_largest = second_largest;
+      second_largest = largest;
+      largest = diameter;
+    } else if (diameter > second_largest) {
+      third_largest = second_largest;
+      second_largest = diameter;
+    } else if (diameter > third_largest) {
+      third_largest = diameter;
+    }
+  }
+
+  // cerr << "1: " << largest << endl;
+  // cerr << "2: " << second_largest << endl;
+
+  /* We will connect all connected components in a star pattern, placing the
+     one with the largest diameter in the center.
+
+     There are three cases:
+     1 - the largest diameter dominates any other distance
+     2 - the largest and second largest diameters, plus the hop between then
+         dominate any other distance
+     3 - the second an third largest diameters, plus the two links between them
+         dominate any other distance
+  */
+  int sol = max(largest,
+                static_cast<int>(max(
+                                     ceil(largest/2.0)
+                                     + ceil(second_largest/2.0)
+                                     + 1,
+
+                                     ceil(second_largest/2.0)
+                                     + ceil(third_largest/2.0)
+                                     +2)));
+  cout << sol << endl;;
+  return 0;
 }
