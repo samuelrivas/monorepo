@@ -57,7 +57,7 @@ class FurthestCb : public BfsCallbacks {
   }
 };
 
-// {furthest, distance}
+// {furthest vertex, distance to it}
 pair<int, int> furthest_from(const Graph& graph, int vertex,
                              set<int> *pending) {
   FurthestCb cb(graph, pending);
@@ -116,11 +116,13 @@ int main(void) {
     }
   }
 
-  // cerr << "1: " << largest << endl;
-  // cerr << "2: " << second_largest << endl;
+  cerr << "1: " << largest << endl;
+  cerr << "2: " << second_largest << endl;
+  cerr << "3: " << third_largest << endl;
 
   /* We will connect all connected components in a star pattern, placing the
-     one with the largest diameter in the center.
+     one with the largest diameter in the center. The connections link a node in
+     the center of the diameter.
 
      There are three cases:
      1 - the largest diameter dominates any other distance
@@ -128,6 +130,17 @@ int main(void) {
          dominate any other distance
      3 - the second an third largest diameters, plus the two links between them
          dominate any other distance
+
+     3 covers the case when we have at least 3 connected components with the
+     same diameter. The best possible way to link them is to put one in the
+     center and connect the other two to it. The longest path is them to travel
+     from one extreme of one of the components that is not the central one, to
+     the extreme of the other component that isn't the central either.
+
+     As long as we add components that have the same or less diameter, the
+     response will not change (connecting them to the central component doesn't
+     change the maximum distance. If we add a component with larger diameter, we
+     move to either case 2 or 1.
   */
   int sol = max(largest,
                 static_cast<int>(max(
