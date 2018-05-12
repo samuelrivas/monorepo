@@ -1,3 +1,5 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
+
 #include <iostream>
 #include <string>
 #include <vector>

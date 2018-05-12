@@ -1,6 +1,9 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
+
 #include <iostream>
 #include <string>
 #include <array>
+#include <vector>
 #include <cassert>
 
 #include "lib/union-find.hpp"
@@ -16,7 +19,8 @@ int translate(int x, int y, int size_x) {
   return y * size_x + x;
 }
 
-void print_reachability(UnionFind* uf_binary, UnionFind* uf_decimal, int source, int dest, const vector<bool>& binary_positions) {
+void print_reachability(UnionFind* uf_binary, UnionFind* uf_decimal, int source,
+                        int dest, const vector<bool>& binary_positions) {
   if (source == dest) {
     // Cannot use our union finds here
     if (binary_positions[source]) {
@@ -69,12 +73,14 @@ int main(void) {
       }
       if (y > 0) {
         if (row[x] == previous_row[x]) {
-          uf[row[x] - '0'].join(translate(x, y, size_x), translate(x , y - 1, size_x));
+          uf[row[x] - '0'].join(translate(x, y, size_x),
+                                translate(x , y - 1, size_x));
         }
       }
       if (x > 0) {
         if (row[x] == row[x - 1]) {
-          uf[row[x] - '0'].join(translate(x, y, size_x), translate (x - 1, y, size_x));
+          uf[row[x] - '0'].join(translate(x, y, size_x),
+                                translate(x - 1, y, size_x));
         }
       }
     }

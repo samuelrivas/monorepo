@@ -1,3 +1,5 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
+
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -11,7 +13,6 @@ using std::setw;
 using std::string;
 
 int main(void) {
-
   UnionFind uf(10);
 
   uf.join(1, 2);

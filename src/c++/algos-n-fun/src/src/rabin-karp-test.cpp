@@ -1,3 +1,5 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
+
 #include <queue>
 #include <utility>
 #include <iostream>
@@ -19,7 +21,7 @@ int main(void) {
     { "abracadabra", "ra" },
     { "foofo", "foo" },
     { "aaaaaaaaaaa", "aaaaa" },
-    { "~~~~~~~~~~~", "~~~~~" } // checking overflow
+    { "~~~~~~~~~~~", "~~~~~" }  // checking overflow
   };
 
   for (pair<string, string> test : tests) {

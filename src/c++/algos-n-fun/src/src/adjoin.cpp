@@ -1,7 +1,11 @@
+// Copyright (C) 2018 by samuelrivas@gmail.com
+
 #include <iostream>
 #include <utility>
 #include <set>
 #include <cmath>
+#include <algorithm>
+#include <vector>
 
 #include "lib/graph.hpp"
 
@@ -28,7 +32,8 @@ class FurthestCb : public BfsCallbacks {
     pending { _pending }
   { }
 
-  void on_exit(int vertex, const vector<int>& parent, const vector<State>& state) {
+  void on_exit(int vertex, const vector<int>& parent,
+               const vector<State>& state) {
     (void) state;
 
     if (parent[vertex] == -1) {
@@ -63,7 +68,6 @@ pair<int, int> furthest_from(const Graph& graph, int vertex,
 }
 
 int main(void) {
-
   int n_computers, n_cables;
   cin >> n_computers;
   cin >> n_cables;
