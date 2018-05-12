@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <utility>
-#include <set>
+#include <unordered_set>
 #include <cmath>
 #include <algorithm>
 #include <vector>
@@ -17,17 +17,17 @@ using std::pair;
 using std::get;
 using std::move;
 using std::get;
-using std::set;
+using std::unordered_set;
 using std::max;
 
 class FurthestCb : public BfsCallbacks {
   vector<int> hops;
   int max_hops = -1;
   int furthest = 0;
-  set<int>* pending;
+  unordered_set<int>* pending;
 
  public:
-  FurthestCb(const Graph& _graph, set<int>* _pending) :
+  FurthestCb(const Graph& _graph, unordered_set<int>* _pending) :
     hops(_graph.n_vertices(), -1),
     pending { _pending }
   { }
@@ -59,7 +59,7 @@ class FurthestCb : public BfsCallbacks {
 
 // {furthest vertex, distance to it}
 pair<int, int> furthest_from(const Graph& graph, int vertex,
-                             set<int> *pending) {
+                             unordered_set<int> *pending) {
   FurthestCb cb(graph, pending);
   Bfs bfs(graph, &cb);
   bfs.bfs(vertex);
@@ -69,6 +69,10 @@ pair<int, int> furthest_from(const Graph& graph, int vertex,
 
 int main(void) {
   int n_computers, n_cables;
+
+  cin.sync_with_stdio(false);
+  cout.sync_with_stdio(false);
+
   cin >> n_computers;
   cin >> n_cables;
 
@@ -83,7 +87,7 @@ int main(void) {
 
   cerr << graph.to_s();
 
-  set<int> pending_vertices;
+  unordered_set<int> pending_vertices;
 
   for (int i = 0; i < graph.n_vertices(); i++) {
     pending_vertices.insert(i);
