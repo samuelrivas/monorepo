@@ -5,6 +5,7 @@
 
 #include "lib/graph.hpp"
 
+using std::cin;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -62,16 +63,21 @@ pair<int, int> furthest_from(const Graph& graph, int vertex,
 }
 
 int main(void) {
-  Graph graph(11);
 
-  graph.connect(0, 2);
-  graph.connect(5, 1);
-  graph.connect(3, 1);
-  graph.connect(3, 2);
-  graph.connect(3, 4);
-  graph.connect(6, 0);
-  graph.connect(3, 7);
-  graph.connect(8, 9);
+  int n_computers, n_cables;
+  cin >> n_computers;
+  cin >> n_cables;
+
+  Graph graph(n_computers);
+
+  for (int i = 0; i < n_cables; i++) {
+    int from, to;
+    cin >> from;
+    cin >> to;
+    graph.connect(from, to);
+  }
+
+  cerr << graph.to_s();
 
   set<int> pending_vertices;
 
@@ -91,7 +97,8 @@ int main(void) {
 
     int diameter = extreme_b.second;
 
-    cerr << "Diameter: " << diameter << ". From " << get<0>(extreme_a) << " to " << get<0>(extreme_b) << endl;
+    cerr << "Diameter: " << diameter << ". From " << extreme_a.first
+         << " to " << extreme_b.first << endl;
 
     if (diameter > largest) {
       third_largest = second_largest;
