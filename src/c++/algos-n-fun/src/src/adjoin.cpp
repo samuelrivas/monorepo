@@ -1,24 +1,24 @@
 // Copyright (C) 2018 by samuelrivas@gmail.com
 
 #include <iostream>
-#include <utility>
 #include <unordered_set>
 #include <cmath>
 #include <algorithm>
 #include <vector>
+#include <tuple>
 
 #include "lib/graph.hpp"
 
+using std::cerr;
 using std::cin;
 using std::cout;
-using std::cerr;
 using std::endl;
-using std::pair;
 using std::get;
-using std::move;
-using std::get;
-using std::unordered_set;
+using std::make_tuple;
 using std::max;
+using std::move;
+using std::tuple;
+using std::unordered_set;
 
 class FurthestCb : public BfsCallbacks {
   vector<int> hops;
@@ -55,16 +55,66 @@ class FurthestCb : public BfsCallbacks {
   int get_distance() const {
     return max_hops;
   }
+
+  void reset() {
+    max_hops = -1;
+    furthest = 0;
+  }
 };
 
-// {furthest vertex, distance to it}
-pair<int, int> furthest_from(const Graph& graph, int vertex,
-                             unordered_set<int> *pending) {
-  FurthestCb cb(graph, pending);
-  Bfs bfs(graph, &cb);
-  bfs.bfs(vertex);
+/* Run a first search to find the first end of each diameter */
+vector<int> first_pass(const Graph& graph) {
+  unordered_set<int> pending_vertices;
 
-  return {cb.get_furthest(), cb.get_distance()};
+  for (int i = 0; i < graph.n_vertices(); i++) {
+    pending_vertices.insert(i);
+  }
+
+  FurthestCb cb(graph, &pending_vertices);
+  Bfs bfs(graph, &cb);
+  vector<int> extreme_a;
+
+  while (pending_vertices.size() > 0) {
+    cb.reset();
+    int vertex = *(pending_vertices.begin());
+    bfs.bfs(vertex);
+    int furthest = cb.get_furthest();
+    extreme_a.push_back(furthest);
+    cerr << "extreme a: " << furthest << endl;
+  }
+  return extreme_a;
+}
+
+tuple<int, int, int> second_pass(const Graph& graph,
+                                 const vector<int>& extremes) {
+  unordered_set<int> pending_vertices;
+  FurthestCb cb(graph, &pending_vertices);
+  Bfs bfs(graph, &cb);
+
+  int largest = 0;
+  int second_largest = 0;
+  int third_largest = 0;
+
+  for (int extreme : extremes) {
+    cb.reset();
+    bfs.bfs(extreme);
+    int other_extreme = cb.get_furthest();
+    int diameter = cb.get_distance();
+    cerr << "diameter " << diameter << " from " << extreme
+         << " to " << other_extreme << endl;
+
+    if (diameter > largest) {
+      third_largest = second_largest;
+      second_largest = largest;
+      largest = diameter;
+    } else if (diameter > second_largest) {
+      third_largest = second_largest;
+      second_largest = diameter;
+    } else if (diameter > third_largest) {
+      third_largest = diameter;
+    }
+  }
+  return std::make_tuple(largest, second_largest, third_largest);
 }
 
 int main(void) {
@@ -87,38 +137,14 @@ int main(void) {
 
   cerr << graph.to_s();
 
-  unordered_set<int> pending_vertices;
+  // Get one extreme of the diameter for each connected component
+  vector<int> extremes = first_pass(graph);
 
-  for (int i = 0; i < graph.n_vertices(); i++) {
-    pending_vertices.insert(i);
-  }
-
-  int largest = 0;
-  int second_largest = 0;
-  int third_largest = 0;
-
-  while (pending_vertices.size() > 0) {
-    int vertex = *(pending_vertices.begin());
-    pair<int, int> extreme_a = furthest_from(graph, vertex, &pending_vertices);
-    pair<int, int> extreme_b = furthest_from(graph, extreme_a.first,
-                                             &pending_vertices);
-
-    int diameter = extreme_b.second;
-
-    cerr << "Diameter: " << diameter << ". From " << extreme_a.first
-         << " to " << extreme_b.first << endl;
-
-    if (diameter > largest) {
-      third_largest = second_largest;
-      second_largest = largest;
-      largest = diameter;
-    } else if (diameter > second_largest) {
-      third_largest = second_largest;
-      second_largest = diameter;
-    } else if (diameter > third_largest) {
-      third_largest = diameter;
-    }
-  }
+  // Get the three largest diameters
+  tuple<int, int, int> diameters = second_pass(graph, extremes);
+  int largest = get<0>(diameters);
+  int second_largest = get<1>(diameters);
+  int third_largest = get<2>(diameters);
 
   cerr << "1: " << largest << endl;
   cerr << "2: " << second_largest << endl;
