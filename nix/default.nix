@@ -130,6 +130,12 @@ let
     reservoir-sandbox = callPackage ./../src/c++/reservoir/nix {
       sandbox = true;
     };
+    monte-carlo = callPackage ./../src/c++/monte-carlo/nix {
+      sandbox = false;
+    };
+    monte-carlo-sandbox = callPackage ./../src/c++/monte-carlo/nix {
+      sandbox = true;
+    };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix { };
 
     # Python stuff
