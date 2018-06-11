@@ -1,8 +1,10 @@
 {
   cpplint,
   empty-builder,
-  gdb,
   gcc,
+  gdb,
+  kcachegrind, # Needs the enviornment in PATH to work ATM
+  less,
   sandbox,
   stdenv,
   strace,
@@ -15,6 +17,8 @@ stdenv.mkDerivation {
     cpplint
     gcc
     gdb
+    kcachegrind
+    less
     strace
     valgrind
   ];
