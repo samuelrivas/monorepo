@@ -12,6 +12,7 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using boost::format;
 
 std::lognormal_distribution<float> lognormal(float mean, float sd) {
   float log_mean = log(mean) - 1/2.0 * log (pow(sd/mean, 2) + 1);
@@ -52,7 +53,7 @@ class Appliance_simulator {
       }
 
       if (count > MAX_ATTEMPTS) {
-        cerr << boost::format("Coudln't generate an age larger than %f\n")
+        cerr << format("Coudln't generate an age larger than %f\n")
           % current_age;
         exit(EXIT_FAILURE);
       }
@@ -72,39 +73,110 @@ bool get_seed(int *seed) {
   return true;
 }
 
+float fv(float pv, float periods, float rate) {
+  return pv * pow(1 + rate, periods);
+}
+
+float pv(float fv, float periods, float rate) {
+  return fv * pow(1 + rate, -periods);
+}
+
+// Future params
+
+constexpr float appliance_life_mean = 10;
+constexpr float appliance_life_sd = 1;
+constexpr float appliance_current_life = 10;
+constexpr float technician_assessment_cost = 1300;
+constexpr float appliance_cost = 6000;
+constexpr float inflation = 0.03;
+constexpr float accounted_years = 30;
+constexpr float reparation_cost = 1000;
+constexpr int cycles = 100000;
+constexpr float considered_failure = 1;
+
+
 int main() {
+
   int seed;
   if (!get_seed(&seed)) {
     cerr << "Cannot acquire random seed" << endl;
     exit(EXIT_FAILURE);
   }
+  Appliance_simulator simulator(seed, appliance_life_mean,
+                                appliance_life_sd);
 
-  std::default_random_engine random_engine {
-    static_cast<std::default_random_engine::result_type>(seed)
-      };
 
-  constexpr float mean = 10;
-  constexpr float sd = 4;
+  // We repair
+  float total_cost = 0;
+  for (int i = 0; i < cycles; i++) {
+    float final_cost = 0;
 
-  Appliance_simulator simulator(seed, mean, sd);
+    float ttl = simulator.get_conditional_lifetime(appliance_current_life)
+      - appliance_current_life;
 
-  float se = 0;
-  float acc = 0;
-  float count = 0;
+    format payment_fmt("Payment at %0.2f: %d\n");
+    if (i < 3) {
+      cout << format("We get %0.2f years to live\n") % ttl;
+      cout << payment_fmt % 0 % technician_assessment_cost;
+      if (ttl > considered_failure) {
+        cout << payment_fmt % 0 % reparation_cost;
+      }
+    }
 
-  for (int i = 0; i < 25; i++, count++) {
-    float life =  simulator.get_lifetime();
-    acc += life;
-    se += pow(life - mean, 2);
-    cout << boost::format("Life: %.2f\n") % life;
+    final_cost = technician_assessment_cost;
+
+    float year = 0;
+    if (ttl > considered_failure) {
+      final_cost += reparation_cost;
+      year = ttl;
+    }
+
+    do {
+      float cost = pv(appliance_cost, year, inflation);
+      final_cost += cost;
+
+      if (i < 3) {
+        cout << payment_fmt % year % cost;
+      }
+
+      float lifetime = simulator.get_lifetime();
+      year += lifetime;
+    } while (year < accounted_years);
+
+    if (i < 3) {
+      cout << format("final_cost: %.2f\n") % final_cost;
+    }
+    total_cost += final_cost;
   }
 
-  cerr << boost::format("mean    : %.4f\n") % (acc / count);
-  cerr << boost::format("variance: %.4f\n") % (se / count);
-  cerr << boost::format("SD      : %.4f\n") % sqrt(se/ count);
+  cout << format("Average cost with repair: %.2f\n") % (total_cost/cycles);
 
-  cerr << boost::format("Ha! %.4f\n") % simulator.get_conditional_lifetime(15);
-  cerr << boost::format("Ha! %.4f\n") % simulator.get_conditional_lifetime(15);
-  cerr << boost::format("Ha! %.4f\n") % simulator.get_conditional_lifetime(15);
+  // We skip
+  total_cost = 0;
+  for (int i = 0; i < cycles; i++) {
+    format payment_fmt("Payment at %0.2f: %d\n");
+    float final_cost = 0;
+    float year = 0;
+
+    do {
+      float cost = pv(appliance_cost, year, inflation);
+      final_cost += cost;
+
+      if (i < 3) {
+        cout << payment_fmt % year % cost;
+      }
+
+      float lifetime = simulator.get_lifetime();
+      year += lifetime;
+    } while (year < accounted_years);
+
+    if (i < 3) {
+      cout << format("final_cost: %.2f\n") % final_cost;
+    }
+    total_cost += final_cost;
+  }
+
+  cout << format("Average cost without repair: %.2f\n") % (total_cost/cycles);
+
   return 0;
 }
