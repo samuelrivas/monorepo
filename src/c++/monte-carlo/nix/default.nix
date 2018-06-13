@@ -1,4 +1,5 @@
 {
+  boost,
   cpplint,
   empty-builder,
   gdb,
@@ -22,6 +23,7 @@ stdenv.mkDerivation (sandbox-extras // {
   src = ./../src;
   name = "monte-carlo";
   buildInputs = [
+    boost
     cpplint
     gcc
   ] ++ (if sandbox then extra-sandbox else []);
