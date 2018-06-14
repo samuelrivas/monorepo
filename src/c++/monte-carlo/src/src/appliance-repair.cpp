@@ -84,16 +84,65 @@ float pv(float fv, float periods, float rate) {
 // Future params
 
 constexpr float appliance_life_mean = 10;
-constexpr float appliance_life_sd = 1;
+constexpr float appliance_life_sd = 2;
 constexpr float appliance_current_life = 10;
 constexpr float technician_assessment_cost = 1300;
 constexpr float appliance_cost = 6000;
-constexpr float inflation = 0.03;
+constexpr float inflation = 0.04;
 constexpr float accounted_years = 30;
 constexpr float reparation_cost = 1000;
-constexpr int cycles = 100000;
+constexpr int mc_runs = 100000;
 constexpr float considered_failure = 1;
 
+float calculate_cost(Appliance_simulator* simulator, bool repair,
+                     int runs_to_show) {
+  float mc_acc_cost = 0;
+
+  for (int i = 0; i < mc_runs; i++) {
+    float year = 0;
+    float final_cost = 0;
+    format payment_fmt("Payment at %0.2f: %d\n");
+
+    if (repair) {
+
+      float ttl = simulator -> get_conditional_lifetime(appliance_current_life)
+        - appliance_current_life;
+
+      if (i < runs_to_show) {
+        cout << format("We get %0.2f years to live\n") % ttl;
+        cout << payment_fmt % 0 % technician_assessment_cost;
+      }
+
+      final_cost = technician_assessment_cost;
+
+      if (ttl > considered_failure) {
+        if (i < runs_to_show) {
+          cout << payment_fmt % 0 % reparation_cost;
+        }
+        final_cost += reparation_cost;
+        year = ttl;
+      }
+    }
+
+    do {
+      float cost = pv(appliance_cost, year, inflation);
+      final_cost += cost;
+
+      if (i < 3) {
+        cout << payment_fmt % year % cost;
+      }
+
+      float lifetime = simulator -> get_lifetime();
+      year += lifetime;
+    } while (year < accounted_years);
+
+    if (i < 3) {
+      cout << format("final_cost: %.2f\n") % final_cost;
+    }
+    mc_acc_cost += final_cost;
+  }
+  return mc_acc_cost / mc_runs;
+}
 
 int main() {
 
@@ -106,77 +155,14 @@ int main() {
                                 appliance_life_sd);
 
 
-  // We repair
-  float total_cost = 0;
-  for (int i = 0; i < cycles; i++) {
-    float final_cost = 0;
 
-    float ttl = simulator.get_conditional_lifetime(appliance_current_life)
-      - appliance_current_life;
+  float repair_cost = calculate_cost(&simulator, true, 3);
+  cout << format("Average cost with repair: %.2f\n") % repair_cost;
 
-    format payment_fmt("Payment at %0.2f: %d\n");
-    if (i < 3) {
-      cout << format("We get %0.2f years to live\n") % ttl;
-      cout << payment_fmt % 0 % technician_assessment_cost;
-      if (ttl > considered_failure) {
-        cout << payment_fmt % 0 % reparation_cost;
-      }
-    }
+  float trash_cost = calculate_cost(&simulator, false, 3);
+  cout << format("Average cost without repair: %.2f\n") % (trash_cost);
 
-    final_cost = technician_assessment_cost;
-
-    float year = 0;
-    if (ttl > considered_failure) {
-      final_cost += reparation_cost;
-      year = ttl;
-    }
-
-    do {
-      float cost = pv(appliance_cost, year, inflation);
-      final_cost += cost;
-
-      if (i < 3) {
-        cout << payment_fmt % year % cost;
-      }
-
-      float lifetime = simulator.get_lifetime();
-      year += lifetime;
-    } while (year < accounted_years);
-
-    if (i < 3) {
-      cout << format("final_cost: %.2f\n") % final_cost;
-    }
-    total_cost += final_cost;
-  }
-
-  cout << format("Average cost with repair: %.2f\n") % (total_cost/cycles);
-
-  // We skip
-  total_cost = 0;
-  for (int i = 0; i < cycles; i++) {
-    format payment_fmt("Payment at %0.2f: %d\n");
-    float final_cost = 0;
-    float year = 0;
-
-    do {
-      float cost = pv(appliance_cost, year, inflation);
-      final_cost += cost;
-
-      if (i < 3) {
-        cout << payment_fmt % year % cost;
-      }
-
-      float lifetime = simulator.get_lifetime();
-      year += lifetime;
-    } while (year < accounted_years);
-
-    if (i < 3) {
-      cout << format("final_cost: %.2f\n") % final_cost;
-    }
-    total_cost += final_cost;
-  }
-
-  cout << format("Average cost without repair: %.2f\n") % (total_cost/cycles);
+  cout << format("Repair - trash: %.2f\n") % (repair_cost - trash_cost);
 
   return 0;
 }
