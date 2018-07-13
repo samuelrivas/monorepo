@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS movements (
+       id STRING UNIQUE,
+       date STRING,
+       asset STRING,
+       account STRING,
+       amount INTEGER,
+       decimals INTEGER);

@@ -139,6 +139,12 @@ let
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
       inherit (self.upstream-pkgs) rapidcheck;
     };
+    finndb = callPackage ./../src/c++/finndb/nix {
+      sandbox = false;
+    };
+    finndb-sandbox = callPackage ./../src/c++/finndb/nix {
+      sandbox = true;
+    };
 
     # Python stuff
     # ============
