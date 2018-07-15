@@ -1,7 +1,14 @@
-CREATE TABLE IF NOT EXISTS movements (
-       id STRING UNIQUE,
+CREATE TABLE movements (
+       id STRING UNIQUE PRIMARY KEY,
        date STRING,
        asset STRING,
        account STRING,
        amount INTEGER,
-       decimals INTEGER);
+       decimals INTEGER,
+       trans_id STRING,
+       FOREIGN KEY(trans_id) REFERENCES transactions(id));
+
+CREATE TABLE transactions (
+       id STRING UNIQUE PRIMARY KEY,
+       date STRING,
+       raw STRING);
