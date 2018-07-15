@@ -13,10 +13,11 @@
 #include <string>
 #include <vector>
 #include <cassert>
-#include <utility>
 #include <boost/format.hpp>
 
 #include "lib/sha1.hpp"
+
+constexpr int FIX_POINT_PRECISION = 10;
 
 using std::cout;
 using std::cerr;
@@ -24,7 +25,6 @@ using std::cin;
 using std::string;
 using std::vector;
 using std::ostringstream;
-using std::pair;
 using boost::format;
 
 vector<string> split(const string& in, char sep) {
@@ -41,19 +41,29 @@ vector<string> split(const string& in, char sep) {
   return out;
 }
 
-pair<string, string> convert_amount(const string& amount) {
-  vector<string> tokens = split(amount, ',');
-  if (tokens.size() == 1) {
-    return pair<string, string> { amount, "0" };
-  } else {
-    string decimals = str (format("%d") % tokens[1].size());
-    return pair<string, string> { tokens[0] + tokens[1], decimals };
+// We use 10 decimals fixed point for amounts
+string to_fixed_point(const string& amount) {
+  ostringstream out;
+  bool after_comma = false;
+  int trailing_zeroes = FIX_POINT_PRECISION;
+
+  for (char c : amount) {
+    if (c == ',') {
+      after_comma = true;
+    } else {
+      out << c;
+      if (after_comma) {
+        trailing_zeroes--;
+      }
+    }
   }
 
-  cerr << format("'%s' violates the expected amount format\n")
-    % amount;
-  std::flush(cerr);
-  assert(false);
+  assert(trailing_zeroes >= 0);
+
+  while (trailing_zeroes-- > 0) {
+    out << '0';
+  }
+  return out.str();
 }
 
 string transaction_line(const string& transaction_id,
@@ -77,7 +87,6 @@ string movement_line(const string& date,
   format id_format("%s;%s;%s;%s;%s");
   string movement_id = sha1(str(id_format % date % asset % account % amount
                                 % transaction_id));
-  pair<string, string> fp_amount = convert_amount(amount);
   ostringstream out;
   out << "INSERT INTO movements "
     "(id, date, asset, account, amount, decimals, trans_id) VALUES "
@@ -87,8 +96,8 @@ string movement_line(const string& date,
     % date
     % asset
     % account
-    % fp_amount.first
-    % fp_amount.second
+    % to_fixed_point(amount)
+    % FIX_POINT_PRECISION
     % transaction_id;
 
   return out.str();
