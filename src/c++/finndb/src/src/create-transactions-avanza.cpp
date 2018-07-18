@@ -103,6 +103,47 @@ string movement_line(const string& date,
   return out.str();
 }
 
+enum class TransactionType {
+  BUY,
+  SELL,
+  ASSET_TRANSFER,
+  CASH_TRANSFER,
+  TAX,
+  INTEREST,
+  DIVIDEND,
+  MISC
+};
+
+// This is quite fragile, so always fail in case of unknown types
+TransactionType parse_type(const string& type_text) {
+  if (type_text ==  "Köp") {
+    return TransactionType::BUY;
+  } else if (type_text == "Sälj") {
+    return TransactionType::SELL;
+  } else if (type_text == "Preliminärskatt"
+             || type_text.find("Utländsk källskatt") == 0) {
+    return TransactionType::TAX;
+  } else if (type_text == "Räntor") {
+    return TransactionType::INTEREST;
+  } else if (type_text == "Utdelning") {
+    return TransactionType::DIVIDEND;
+  } else if (type_text == "Insättning"
+             || type_text == "Uttag") {
+    return TransactionType::CASH_TRANSFER;
+  } else if (type_text.find("Övf från ") == 0
+             || type_text.find("Byte till ") == 0
+             || type_text.find("Byte från ") == 0) {
+    return TransactionType::ASSET_TRANSFER;
+  } else if (type_text == "Övrigt") {
+    return TransactionType::MISC;
+  } else {
+    cerr << format("Cannot parse transaction type '%s'\n")
+      % type_text;
+    std::flush(cerr);
+    assert(false);
+  }
+}
+
 int main() {
 
   cin.sync_with_stdio(false);
@@ -126,7 +167,10 @@ int main() {
     cout << movement_line(tokens[0], tokens[8], tokens[1],
                           tokens[6], transaction_id);
 
-    if (tokens[2] == "Köp" || tokens[2] == "Sälj") {
+    TransactionType type = parse_type(tokens[2]);
+    if (type == TransactionType::BUY
+        || type == TransactionType::SELL
+        || type == TransactionType::ASSET_TRANSFER) {
       // Asset movement
       cout << movement_line(tokens[0], tokens[3], tokens[1], tokens[4],
                             transaction_id);
