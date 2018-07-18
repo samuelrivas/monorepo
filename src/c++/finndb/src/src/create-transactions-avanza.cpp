@@ -174,6 +174,20 @@ int main() {
       // Asset movement
       cout << movement_line(tokens[0], tokens[3], tokens[1], tokens[4],
                             transaction_id);
+    } else {
+
+      // Just some safety verifications
+      if (type != TransactionType::DIVIDEND
+          && type != TransactionType::TAX) {
+        // Dividend and tax have an asset amount set, but they don't involve
+        // changing any asset holding (they just affect cash). Anything here
+        // should relate to no assets and thus "Antal" should be "-"
+        if (tokens[4] != "-") {
+          cerr << "Found a potential asset movement that we don't expect:\n"
+               << line;
+          assert(false);
+        }
+      }
     }
   }
   return 0;
