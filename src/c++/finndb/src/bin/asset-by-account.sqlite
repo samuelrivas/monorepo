@@ -1,6 +1,5 @@
-SELECT account, asset, sum(amount)/10000000000.0 as SUM
+SELECT account, bank, asset, sum(amount)/10000000000.0 as SUM
 FROM movements
 GROUP BY asset, account
 HAVING SUM != 0
 ORDER BY account, asset;
-

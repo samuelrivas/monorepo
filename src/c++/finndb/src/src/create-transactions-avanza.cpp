@@ -89,9 +89,9 @@ string movement_line(const string& date,
                                 % transaction_id));
   ostringstream out;
   out << "INSERT INTO movements "
-    "(id, date, asset, account, amount, decimals, trans_id) VALUES "
+    "(id, date, asset, account, bank, amount, decimals, trans_id) VALUES "
 
-      << format("(\"%s\",\"%s\",\"%s\",\"%s\",%s,%s,\"%s\");\n")
+      << format("(\"%s\",\"%s\",\"%s\",\"%s\",\"avanza\",%s,%s,\"%s\");\n")
     % movement_id
     % date
     % asset

@@ -3,6 +3,7 @@ CREATE TABLE movements (
        date STRING,
        asset STRING,
        account STRING,
+       bank STRING,
        amount INTEGER,
        decimals INTEGER,
        trans_id STRING,
