@@ -57,7 +57,6 @@ $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 
 ## Although we also support some rudimentary way of sharing objects
 ## by listing explicit dependencies here
-$(work-dir)/sha1.o: src/lib/sha1.hpp
 $(bin-dir)/shafy: $(work-dir)/sha1.o
-$(bin-dir)/create-transactions-avanza: $(work-dir)/sha1.o
-$(bin-dir)/add-account-state: $(work-dir)/sha1.o
+$(bin-dir)/create-transactions-avanza: $(work-dir)/sha1.o $(work-dir)/sql-lines.o
+$(bin-dir)/add-account-state: $(work-dir)/sha1.o $(work-dir)/sql-lines.o
