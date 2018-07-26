@@ -152,12 +152,19 @@
 
    ("m" "Meeting" entry
     (file+datetree+prompt ,(plist-get sams-org-config :meeting-file))
-    (file ,(sams-template "meeting-capturing.org")))
+    (file ,(sams-template "meeting-capturing.org"))
+    :jump-to-captured t)
 
    ("i" "Interview" entry
     (file+datetree+prompt ,(plist-get sams-org-config :interview-file))
     (file ,(sams-template "interview-capturing.org"))
-    :jump-to-captured t)))
+    :jump-to-captured t)
+
+   ("r" "Reflection" entry
+    (file+datetree+prompt ,(plist-get sams-org-config :reflection-file))
+    (file ,(sams-template "reflection-capturing.org"))
+    :jump-to-captured t))
+)
 
 
 ;; Erlang mode

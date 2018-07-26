@@ -45,6 +45,11 @@ in
         description = "File to capture tasks";
         example = /tmp/todo.org;
       };
+      org-reflection-file = lib.mkOption {
+        type = lib.types.path;
+        description = "File to capture reflections";
+        example = /tmp/reflection.org;
+      };
       extra-config = lib.mkOption {
         type = lib.types.string;
         default = "";
