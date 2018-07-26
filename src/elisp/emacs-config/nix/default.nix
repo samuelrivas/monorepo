@@ -6,6 +6,7 @@
   org-agenda-file,
   org-interview-file,
   org-meeting-file,
+  org-reflection-file,
   org-template-dir,
   org-todo-file,
   stdenv,
@@ -31,6 +32,7 @@ stdenv.mkDerivation rec {
         :template-dir "${builtins.toString org-template-dir}"
         :todo-file "${builtins.toString org-todo-file}"
         :meeting-file "${builtins.toString org-meeting-file}"
+        :reflection-file "${builtins.toString org-reflection-file}"
         :interview-file "${builtins.toString org-interview-file}"))
     '';
   };
