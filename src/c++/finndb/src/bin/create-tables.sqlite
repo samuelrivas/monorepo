@@ -13,3 +13,15 @@ CREATE TABLE transactions (
        id STRING UNIQUE PRIMARY KEY,
        date STRING,
        raw STRING);
+
+CREATE TABLE valuations (
+       date STRING,
+       asset STRING,
+       amount INTEGER,
+       decimals INTEGER,
+       PRIMARY KEY(date, asset)
+       FOREIGN KEY(asset) REFERENCES asset_to_currency(asset));
+
+CREATE TABLE asset_to_currency (
+       asset STRING UNIQUE PRIMARY KEY,
+       currency STRING);

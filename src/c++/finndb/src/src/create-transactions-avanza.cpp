@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <cassert>
+#include <unordered_map>
 #include <boost/format.hpp>
 
 #include "lib/sha1.hpp"
@@ -103,6 +104,8 @@ int main() {
                           tokens[6], transaction_id);
 
     TransactionType type = parse_type(tokens[2]);
+
+    // Movements and transactions
     if (type == TransactionType::BUY
         || type == TransactionType::SELL
         || type == TransactionType::ASSET_TRANSFER) {
@@ -123,6 +126,12 @@ int main() {
           assert(false);
         }
       }
+    }
+
+    // Valuations
+    if (type == TransactionType::BUY
+        || type == TransactionType::SELL) {
+      cout << valuation_line(tokens[0], tokens[3], tokens[5]);
     }
   }
   return 0;

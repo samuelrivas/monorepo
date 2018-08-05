@@ -18,5 +18,7 @@ string movement_line(const string& date,
                      const string& bank,
                      const string& amount,
                      const string& transaction_id);
-
+string valuation_line(const string& date,
+                      const string& asset,
+                      const string& amount);
 #endif

@@ -64,7 +64,6 @@ string movement_line(const string& date,
   ostringstream out;
   out << "INSERT INTO movements "
     "(id, date, asset, account, bank, amount, decimals, trans_id) VALUES "
-
       << format("(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,%s,\"%s\");\n")
     % movement_id
     % date
@@ -74,6 +73,20 @@ string movement_line(const string& date,
     % to_fixed_point(amount)
     % FIX_POINT_PRECISION
     % transaction_id;
+
+  return out.str();
+}
+
+string valuation_line(const string& date,
+                      const string& asset,
+                      const string& amount) {
+  ostringstream out;
+  out << "INSERT INTO valuations (date, asset, amount, decimals) VALUES "
+      << format("(\"%s\",\"%s\",%s,%s);\n")
+    % date
+    % asset
+    % to_fixed_point(amount)
+    % FIX_POINT_PRECISION;
 
   return out.str();
 }
