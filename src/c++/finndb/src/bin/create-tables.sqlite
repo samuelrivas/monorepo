@@ -25,3 +25,34 @@ CREATE TABLE valuations (
 CREATE TABLE asset_to_currency (
        asset STRING UNIQUE PRIMARY KEY,
        currency STRING);
+
+/* Views */
+CREATE VIEW assets_by_account (account, bank, asset, amount, decimals) AS
+  SELECT account, bank, asset, sum(amount) as SUM, 10
+  FROM movements
+  GROUP BY asset, account
+  HAVING SUM != 0;
+
+CREATE VIEW latest_valuations (date, asset, currency, amount, decimals) AS
+  SELECT max_dates.date, info.asset, info.currency, val.amount, val.decimals FROM
+
+  (
+    SELECT MAX(date) AS date, asset FROM valuations
+    GROUP BY asset
+  ) AS max_dates
+
+  INNER JOIN valuations AS val
+  ON val.date = max_dates.date AND val.asset = max_dates.asset
+
+  INNER JOIN asset_to_currency as info
+  ON max_dates.asset = info.asset;
+
+/* Standard values */
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "SEK", 10000000000, 10);
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "NOK", 10000000000, 10);
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "USD", 10000000000, 10);
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "EUR", 10000000000, 10);
