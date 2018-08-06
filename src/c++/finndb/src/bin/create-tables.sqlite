@@ -47,6 +47,20 @@ CREATE VIEW latest_valuations (date, asset, currency, amount, decimals) AS
   INNER JOIN asset_to_currency as info
   ON max_dates.asset = info.asset;
 
+CREATE VIEW current_value
+  (value_date, account, bank, asset, amount, rate, currency, value, decimals) AS
+  SELECT v.date as value_date, a.account, a.bank, a.asset,
+    a.amount/10000000000.0 as amount,
+    v.amount/1000000000.0 as rate,
+    v.currency,
+    CAST((a.amount * v.amount) / 10000000000 AS int) AS value,
+    10 as decimals
+
+  FROM assets_by_account AS a
+
+  LEFT JOIN latest_valuations AS v
+  ON a.asset = v.asset;
+
 /* Standard values */
 INSERT into valuations (date, asset, amount, decimals) VALUES
 ("2000-01-01", "SEK", 10000000000, 10);
