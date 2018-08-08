@@ -60,3 +60,4 @@ $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 $(bin-dir)/shafy: $(work-dir)/sha1.o
 $(bin-dir)/create-transactions-avanza: $(work-dir)/sha1.o $(work-dir)/sql-lines.o
 $(bin-dir)/add-account-state: $(work-dir)/sha1.o $(work-dir)/sql-lines.o
+$(bin-dir)/load-valuations: $(work-dir)/sha1.o $(work-dir)/sql-lines.o
