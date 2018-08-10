@@ -36,6 +36,6 @@ stdenv.mkDerivation rec {
 
     mkdir $out/bin -p
     makeWrapper $aspell/bin/aspell $out/bin/aspell \
-      --suffix "ASPELL_CONF" ";" "'per-conf $conf_file'"
+      --suffix "ASPELL_CONF" ";" 'per-conf ${conf_file}'
    '';
 }
