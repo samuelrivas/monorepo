@@ -2,6 +2,7 @@
   boost,
   bc,
   cpplint,
+  csvkit,
   empty-builder,
   gdb,
   gcc,
@@ -27,6 +28,7 @@ stdenv.mkDerivation (sandbox-extras // {
   buildInputs = [
     boost
     cpplint
+    csvkit
     gcc
     sqlite
   ] ++ (if sandbox then extra-sandbox else []);

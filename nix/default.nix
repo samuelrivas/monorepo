@@ -140,9 +140,11 @@ let
       inherit (self.upstream-pkgs) rapidcheck;
     };
     finndb = callPackage ./../src/c++/finndb/nix {
+      inherit (pkgs.python3Packages) csvkit;
       sandbox = false;
     };
     finndb-sandbox = callPackage ./../src/c++/finndb/nix {
+      inherit (pkgs.python3Packages) csvkit;
       sandbox = true;
     };
 
