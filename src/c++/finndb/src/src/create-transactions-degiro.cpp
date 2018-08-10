@@ -120,6 +120,7 @@ int main() {
                           transaction_id);
     cout << movement_line(date, "EUR", "degiro-es", "degiro", tokens[16],
                           transaction_id);
+    cout << valuation_line(date, tokens[2], tokens[7]);
   }
   return 0;
 }
