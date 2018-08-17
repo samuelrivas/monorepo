@@ -61,6 +61,22 @@ CREATE VIEW current_value
   LEFT JOIN latest_valuations AS v
   ON a.asset = v.asset;
 
+/* We need to sort on id after date to cover the cases with more than one
+   movement per asset in the same day */
+CREATE VIEW asset_rollup
+  (date, account, bank, asset, amount, accumulated, decimals) AS
+  SELECT m.date, m.bank, m.account, m.asset, m.amount,
+   (SELECT SUM(aux.amount)
+    FROM movements AS aux
+    WHERE printf("%s%s", aux.date, aux.id) <= printf("%s%s", m.date, m.id)
+         AND aux.asset = m.asset
+         AND aux.account = m.account
+         AND aux.bank = m.bank) AS accumulated,
+   10 AS decimals
+
+  FROM movements AS m
+  ORDER BY m.date, m.id;
+
 /* Standard values */
 INSERT into valuations (date, asset, amount, decimals) VALUES
 ("2000-01-01", "SEK", 10000000000, 10);
