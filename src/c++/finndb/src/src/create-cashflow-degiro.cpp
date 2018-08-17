@@ -13,7 +13,7 @@
  * using semicolons to separate them. Check the code below for more details
  * (look for sha1 calls)
  *
- * For now, we use the transactions csv (turned into a tsv, and . translated
+ * For now, we use the account csv (turned into a tsv, and . translated
  * into , afterwards)
  */
 
@@ -50,12 +50,25 @@ vector<string> split(const string& in, char sep) {
   return out;
 }
 
+string unquote(const string& in) {
+  assert(in.size() > 2);
+  return in.substr(1, in.size() - 2);
+}
+
 string rearrange_date(const string& in) {
   vector<string> tokens = split(in, '-');
   ostringstream out;
   assert(tokens.size() == 3);
   out << format("%s-%s-%s") % tokens[2] % tokens[1] % tokens[0];
   return out.str();
+}
+
+bool register_line(const string& description_text) {
+  return description_text.find("Compra") == string::npos
+    && description_text.find("Venta") == string::npos
+    && description_text.find("Conversón Cash Fund") == string::npos
+    && description_text.find("Cash Fund cambio de precio") == string::npos
+    && description_text != "Comisión de compra/venta";
 }
 
 int main() {
@@ -65,21 +78,21 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, '\t');
 
-    if (tokens.size() != 17) {
-      cerr << format("Line '%s' produces %d tokens, we want 17\n")
+    if (tokens.size() != 11) {
+      cerr << format("Line '%s' produces %d tokens, we want 11\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
     }
 
-    string transaction_id = sha1(line);
-    string date = rearrange_date(tokens[0]);
-    cout << transaction_line(transaction_id, date, line);
-    cout << movement_line(date, tokens[2], "degiro-es", "degiro", tokens[5],
-                          transaction_id);
-    cout << movement_line(date, tokens[15], "degiro-es", "degiro", tokens[16],
-                          transaction_id);
-    cout << valuation_line(date, tokens[2], tokens[7]);
+    if (register_line(tokens[5])) {
+      string transaction_id = sha1(line);
+      string date = rearrange_date(tokens[0]);
+      cout << transaction_line(transaction_id, date, line);
+      cout << movement_line(date, tokens[7], "degiro-es", "degiro", tokens[8],
+                            transaction_id);
+
+    }
   }
   return 0;
 }

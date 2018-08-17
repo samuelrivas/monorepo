@@ -6,6 +6,7 @@
 
 #include "sql-lines.hpp"
 #include "sha1.hpp"
+#include "assert_msg.hpp"
 
 using std::string;
 using std::ostringstream;
@@ -15,17 +16,26 @@ namespace internal {
   string to_fixed_point(const string& amount) {
     ostringstream out;
     bool after_comma = false;
+    bool valid_minus = true;
     int trailing_zeroes = FIX_POINT_PRECISION;
 
     for (char c : amount) {
-      if (c == ',') {
+      if (c == '-' && !valid_minus) {
+        assert_msg(format("Found a - in the middle of an alleged number: 's'")
+                   % amount,
+                   false);
+      } else if (c == ',') {
+        assert(!after_comma);
         after_comma = true;
       } else {
+        assert_msg(format("'%c' is a digit (from '%s')") % c % amount,
+                   c == '-' || (c >= '0' && c <= '9'));
         out << c;
         if (after_comma) {
           trailing_zeroes--;
         }
       }
+      valid_minus = false;
     }
 
     assert(trailing_zeroes >= 0);
