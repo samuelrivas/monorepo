@@ -68,6 +68,7 @@ bool register_line(const string& description_text) {
     && description_text.find("Venta") == string::npos
     && description_text.find("Conversón Cash Fund") == string::npos
     && description_text.find("Cash Fund cambio de precio") == string::npos
+    && description_text.find("Compensación Cash Fund") == string::npos
     && description_text != "Comisión de compra/venta";
 }
 
