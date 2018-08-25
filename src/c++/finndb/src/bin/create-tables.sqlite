@@ -78,6 +78,13 @@ CREATE VIEW asset_rollup
   FROM movements AS m
   ORDER BY m.date, m.id;
 
+CREATE VIEW assets_without_info (asset, amount, decimals) AS
+  SELECT asset, SUM(amount) as SUM, 10
+  FROM movements
+  WHERE asset NOT IN (SELECT asset FROM asset_info)
+  GROUP BY asset
+  HAVING SUM != 0;
+
 /* Standard values */
 INSERT into valuations (date, asset, amount, decimals) VALUES
 ("2000-01-01", "SEK", 10000000000, 10);
