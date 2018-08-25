@@ -20,11 +20,12 @@ CREATE TABLE valuations (
        amount INTEGER,
        decimals INTEGER,
        PRIMARY KEY(date, asset)
-       FOREIGN KEY(asset) REFERENCES asset_to_currency(asset));
+       FOREIGN KEY(asset) REFERENCES asset_info(asset));
 
-CREATE TABLE asset_to_currency (
+CREATE TABLE asset_info (
        asset STRING UNIQUE PRIMARY KEY,
-       currency STRING);
+       currency STRING,
+       type STRING);
 
 /* Views */
 CREATE VIEW assets_by_account (account, bank, asset, amount, decimals) AS
@@ -44,7 +45,7 @@ CREATE VIEW latest_valuations (date, asset, currency, amount, decimals) AS
   INNER JOIN valuations AS val
   ON val.date = max_dates.date AND val.asset = max_dates.asset
 
-  INNER JOIN asset_to_currency as info
+  INNER JOIN asset_info as info
   ON max_dates.asset = info.asset;
 
 CREATE VIEW current_value
