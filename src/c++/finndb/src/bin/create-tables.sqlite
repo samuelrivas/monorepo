@@ -34,8 +34,12 @@ CREATE VIEW assets_by_account (account, bank, asset, amount, decimals) AS
   GROUP BY asset, account
   HAVING SUM != 0;
 
-CREATE VIEW latest_valuations (date, asset, currency, amount, decimals) AS
-  SELECT max_dates.date, info.asset, info.currency, val.amount, val.decimals FROM
+CREATE VIEW latest_valuations
+  (date, age_in_days, asset, currency, amount, decimals) AS
+
+  SELECT max_dates.date, julianday() - julianday(max_dates.date), info.asset,
+         info.currency, val.amount, val.decimals
+  FROM
 
   (
     SELECT MAX(date) AS date, asset FROM valuations
@@ -84,6 +88,12 @@ CREATE VIEW assets_without_info (asset, amount, decimals) AS
   WHERE asset NOT IN (SELECT asset FROM asset_info)
   GROUP BY asset
   HAVING SUM != 0;
+
+CREATE VIEW assets_with_old_valuations (date, asset, age_in_days) AS
+  SELECT date, asset, age_in_days
+  FROM latest_valuations
+  WHERE asset IN (SELECT asset FROM assets_by_account)
+        AND age_in_days > 7;
 
 /* Standard values */
 INSERT into valuations (date, asset, amount, decimals) VALUES
