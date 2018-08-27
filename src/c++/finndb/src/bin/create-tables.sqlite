@@ -53,8 +53,8 @@ CREATE VIEW latest_valuations
   ON max_dates.asset = info.asset;
 
 CREATE VIEW current_value
-  (value_date, account, bank, asset, amount, rate, currency, value, decimals) AS
-  SELECT v.date as value_date, a.account, a.bank, a.asset,
+  (value_date, age_in_days, account, bank, asset, amount, rate, currency, value, decimals) AS
+  SELECT v.date AS value_date, v.age_in_days AS value_age_in_days, a.account, a.bank, a.asset,
     a.amount/10000000000.0 as amount,
     v.amount/10000000000.0 as rate,
     v.currency,
@@ -94,6 +94,16 @@ CREATE VIEW assets_with_old_valuations (date, asset, age_in_days) AS
   FROM latest_valuations
   WHERE asset IN (SELECT asset FROM assets_by_account)
         AND age_in_days > 7;
+
+CREATE VIEW valuation_summary
+  (account, bank, asset, amount, currency, type,
+   value, value_decimals, valuation_age_in_days) AS
+  SELECT v.account, v.bank, v.asset, v.amount,
+         infos.currency, infos.type,
+         v.value, v.decimals, v.age_in_days
+  FROM current_value AS v
+  LEFT JOIN asset_info AS infos
+  ON v.asset = infos.asset;
 
 /* Standard values */
 INSERT into valuations (date, asset, amount, decimals) VALUES
