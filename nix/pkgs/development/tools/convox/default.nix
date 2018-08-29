@@ -1,24 +1,25 @@
 # Get the binary from convox and fix the interpreter path
 #
-# I expect the zip file to change often, but I haven't found a versioned link
-# ...
+# I expect the convox, but I haven't found a versioned link. Convox
+# documentation asserts that you should install whatever is in that url, on
+# every build ...
 {
-  fetchzip,
+  fetchurl,
   stdenv,
 }:
 
 stdenv.mkDerivation rec {
   name = "convox";
-  src = fetchzip {
-    url = "https://bin.equinox.io/c/jewmwFCp7w9/convox-stable-linux-amd64.tgz";
-    sha256 = "0hgd52m957agzb8ifn8b281nvdvs7i3fch5a6095hvmxqqykr0ds";
+  src = fetchurl {
+    url = "https://convox.com/cli/linux/convox";
+    sha256 = "1191jr796hykrvyg8wggl2ddxqlqnphjafh1a0nxsvqbaybiipl9";
   };
 
   phases = [ "installPhase" "fixupPhase" ];
 
   installPhase = ''
     mkdir -p "$out/bin"
-    install -v -m755 "$src/convox" "$out/bin/convox"
+    install -v -m755 "$src" "$out/bin/convox"
     patchelf --set-interpreter $(cat ${stdenv.cc}/nix-support/dynamic-linker) \
         $out/bin/convox
   '';
