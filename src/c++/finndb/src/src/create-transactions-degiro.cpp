@@ -27,6 +27,7 @@
 
 #include "lib/sha1.hpp"
 #include "lib/sql-lines.hpp"
+#include "lib/split.hpp"
 
 using std::cout;
 using std::cerr;
@@ -35,20 +36,6 @@ using std::string;
 using std::vector;
 using std::ostringstream;
 using boost::format;
-
-vector<string> split(const string& in, char sep) {
-  int start = 0;
-  vector<string> out;
-
-  for (size_t i = 0; i < in.size(); i++) {
-    if (in[i] == sep) {
-      out.push_back(in.substr(start, i - start));
-      start = i + 1;
-    }
-  }
-  out.push_back(in.substr(start, in.size() - start));
-  return out;
-}
 
 string rearrange_date(const string& in) {
   vector<string> tokens = split(in, '-');
