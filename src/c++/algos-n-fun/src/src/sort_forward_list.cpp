@@ -24,14 +24,15 @@ void sort_flist(forward_list<T>* l) {
     // find where we need to insert head to keep everything to the left of the
     // current head position sorted
     auto element = l -> begin();
+    auto before_element = l -> before_begin();
     while (*element <= *head && element != head) {
       element++;
+      before_element++;
     }
 
     if (*element > *head) {
-      // Insert a node after us, put this element there and take head to here
-      l -> insert_after(element, *element);
-      *element = *head;
+      // Insert a node before element, with head value;
+      l -> insert_after(before_element, *head);
 
       // Remove the old head, we don't need to advance here
       head = l -> erase_after(before_head);
@@ -49,7 +50,8 @@ int main(void) {
     { 1, 1, 1 },
     { 3, 2, 1 },
     { 1 },
-    { 8, 5, 1, 1, 5, 9, 0 }
+    { 8, 5, 1, 1, 5, 9, 0 },
+    { 8, 5 }
   };
 
   for (auto test : tests) {
