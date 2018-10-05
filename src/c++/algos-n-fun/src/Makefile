@@ -68,3 +68,4 @@ $(bin-dir)/union-find-test: $(work-dir)/union-find.o
 $(bin-dir)/10-types-of-people: $(work-dir)/union-find.o
 $(bin-dir)/rabin-karp-test: src/lib/rabin-karp.hpp
 $(bin-dir)/text-editor: src/lib/rabin-karp.hpp
+$(bin-dir)/dutch-flag-sort: src/lib/sort.hpp
