@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <utility>
 
+#include <cassert>
+
 using std::vector;
 using std::swap;
 using std::pair;
@@ -78,4 +80,44 @@ void quicksort(vector<T>* values) {
   quicksort(values, 0, values -> size());
 }
 
+/* Find the `rank`th element in the collection. The smallest element is in
+ * `rank` 1.
+ *
+ * Note that this does not discard duplicates, in a collection like 1, 1, 1, 2,
+ * the rank 2 element is 1.
+ *
+ * The input vector will be modified, leaving the elements partially sorted. All
+ * copies of the returned value will be in the positions they would occupy if
+ * the array was sorted. Any elements before the copies of the result are
+ * guaranteed to be smaller than them, and all elements after those copies are
+ * guaranteed to be bigger than them. There is likely even more structure than
+ * that, but it cannot be guaranteed.
+ *
+ * The input array is not shuffled by this function, if the order is not random
+ * in average, you risk getting poor performance (i.e. shuffle it yourself
+ * before calling this function in that case.
+ */
+template <typename T>
+T selection(vector<T>* values, int rank) {
+  assert(rank > 0 && rank <= static_cast<int>(values -> size()));
+
+  int lo = 0;
+  int elements_left = values -> size();
+
+  while (true) {
+    T pivot = (*values)[lo];
+    pair<int, int> segment = dutch_flag(values, pivot, lo, elements_left);
+
+    if (segment.first > rank - 1) {
+      // The element we want is before the segment
+      elements_left = segment.first - lo;
+    } else if (segment.first + segment.second < rank) {
+      // The element we want is after the segment
+      elements_left -= segment.first - lo + segment.second;
+      lo = segment.first + segment.second;
+    } else {
+      return pivot;
+    }
+  }
+}
 #endif
