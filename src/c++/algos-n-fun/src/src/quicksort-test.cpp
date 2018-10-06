@@ -27,7 +27,12 @@ int main(void) {
     { 2, 2, 2, 3, 3, 1, 2 },
     { 3, 2, 3, 2 },
     { 2, 3, 2, 3 },
-    { 3, 3, 3, 1, 3, 1 }
+    { 3, 3, 3, 1, 3, 1 },
+    { 9, 7, 10, 3, 6, 4, 0, 1, 8, 2, 5 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+    { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 1, 1, 4, 0, 3, 4, 0, 2, 5, 5, 5, 1, 3, 5, 1, 5, 2, 0, 1, 0 }
+
   };
 
   for (auto test : tests) {
@@ -37,14 +42,12 @@ int main(void) {
     }
     cout << endl;
 
-    pair<int, int> range = dutch_flag<int>(&test, 2);
+    quicksort<int>(&test);
     cout << "Result: ";
     for (int i : test) {
       cout << setw(3) << i;
     }
-    cout << endl;
-    cout << "Range: (" << range.first << "," << range.second << ")"
-         << endl << endl;
+    cout << endl << endl;
   }
   return 0;
 }
