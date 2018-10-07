@@ -29,28 +29,41 @@ bool sort_comp(const pair<int, int>& a, const pair<int, int>& b) {
 }
 
 // pass by copy/move since we need to sort this
-bool conflict(vector<pair<int, int>> events) {
+int conflict(vector<pair<int, int>> events) {
   sort(events.begin(), events.end(), sort_comp);
 
+  bool in_conflict = false;
+  int conflict_sets = 0;
   for (size_t i = 1; i < events.size(); i++) {
     if (events[i].first <= events[i - 1].second) {
       cerr << print_pair(events[i - 1])
            << " clashes with "
            << print_pair(events[i])
            << endl;
-      return true;
+
+      if (in_conflict) {
+        cerr << "adding to previous conflict" << endl;
+      } else {
+        conflict_sets++;
+        in_conflict = true;
+        cerr << "opening conflict" << endl;
+      }
+    } else {
+      in_conflict = false;
     }
   }
-  return false;
+  return conflict_sets;
 }
 
 int main(void) {
   // start time and end time, both included
   vector<vector<pair<int, int>>> tests {
     {{11, 14}, {17, 17}, {0, 3}, {9, 11}, {5, 5}},
-    {{12, 14}, {17, 17}, {0, 3}, {9, 11}, {5, 5}}
+    {{12, 14}, {17, 17}, {0, 3}, {9, 11}, {5, 5}},
+    {{1, 2}, {3, 5}, {4, 6}, {7, 10}, {8, 11}, {10, 12}, {13, 14}, {13, 14}}
   };
 
   cout << "This should be 1: " << conflict(tests[0]) << endl;
   cout << "This should be 0: " << conflict(tests[1]) << endl;
+  cout << "This should be 3: " << conflict(tests[2]) << endl;
 }
