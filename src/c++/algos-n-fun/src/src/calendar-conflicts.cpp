@@ -17,6 +17,7 @@ using std::pair;
 using std::sort;
 using std::string;
 using std::ostringstream;
+using std::max;
 
 string print_pair(pair<int, int> p) {
   ostringstream oss;
@@ -38,25 +39,20 @@ vector<vector<pair<int, int>>> find_conflicts(vector<pair<int, int>> events) {
 
   vector<vector<pair<int, int>>> conflicts;
   vector<pair<int, int>> temp_conflicts { events[0] };
+  int latest_end = events[0].second;
 
   for (size_t i = 1; i < events.size(); i++) {
-    if (events[i].first <= events[i - 1].second) {
-      cerr << print_pair(events[i - 1])
-           << " clashes with "
-           << print_pair(events[i])
-           << endl;
-
-      cerr << "adding to conflict" << endl;
-      temp_conflicts.push_back(events[i]);
-    } else {
+    if (events[i].first > latest_end) {
+      // No conflict
       if (temp_conflicts.size() > 1) {
         conflicts.push_back(temp_conflicts);
         cerr << "closing a conflict of size " << temp_conflicts.size() << endl;
       }
 
       temp_conflicts.clear();
-      temp_conflicts.push_back(events[i]);
     }
+    temp_conflicts.push_back(events[i]);
+    latest_end = max(latest_end, events[i].second);
   }
 
   if (temp_conflicts.size() > 1) {
@@ -72,7 +68,7 @@ int main(void) {
   vector<vector<pair<int, int>>> tests {
     {{11, 14}, {17, 17}, {0, 3}, {9, 11}, {5, 5}},
     {{12, 14}, {17, 17}, {0, 3}, {9, 11}, {5, 5}},
-    {{1, 2}, {3, 5}, {4, 6}, {7, 10}, {8, 11}, {10, 12}, {13, 14}, {13, 14}}
+    {{1, 2}, {3, 5}, {4, 6}, {7, 12}, {8, 9}, {10, 12}, {13, 14}, {13, 14}}
   };
 
   for (auto test : tests) {
