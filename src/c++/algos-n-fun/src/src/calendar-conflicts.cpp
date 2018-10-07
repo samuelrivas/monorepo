@@ -29,11 +29,16 @@ bool sort_comp(const pair<int, int>& a, const pair<int, int>& b) {
 }
 
 // pass by copy/move since we need to sort this
-int conflict(vector<pair<int, int>> events) {
+vector<vector<pair<int, int>>> find_conflicts(vector<pair<int, int>> events) {
+  if (events.size() == 0) {
+    return {};
+  }
+
   sort(events.begin(), events.end(), sort_comp);
 
-  bool in_conflict = false;
-  int conflict_sets = 0;
+  vector<vector<pair<int, int>>> conflicts;
+  vector<pair<int, int>> temp_conflicts { events[0] };
+
   for (size_t i = 1; i < events.size(); i++) {
     if (events[i].first <= events[i - 1].second) {
       cerr << print_pair(events[i - 1])
@@ -41,18 +46,25 @@ int conflict(vector<pair<int, int>> events) {
            << print_pair(events[i])
            << endl;
 
-      if (in_conflict) {
-        cerr << "adding to previous conflict" << endl;
-      } else {
-        conflict_sets++;
-        in_conflict = true;
-        cerr << "opening conflict" << endl;
-      }
+      cerr << "adding to conflict" << endl;
+      temp_conflicts.push_back(events[i]);
     } else {
-      in_conflict = false;
+      if (temp_conflicts.size() > 1) {
+        conflicts.push_back(temp_conflicts);
+        cerr << "closing a conflict of size " << temp_conflicts.size() << endl;
+      }
+
+      temp_conflicts.clear();
+      temp_conflicts.push_back(events[i]);
     }
   }
-  return conflict_sets;
+
+  if (temp_conflicts.size() > 1) {
+    cerr << "closing a conflict of size " << temp_conflicts.size() << endl;
+    conflicts.push_back(temp_conflicts);
+  }
+
+  return conflicts;
 }
 
 int main(void) {
@@ -63,7 +75,16 @@ int main(void) {
     {{1, 2}, {3, 5}, {4, 6}, {7, 10}, {8, 11}, {10, 12}, {13, 14}, {13, 14}}
   };
 
-  cout << "This should be 1: " << conflict(tests[0]) << endl;
-  cout << "This should be 0: " << conflict(tests[1]) << endl;
-  cout << "This should be 3: " << conflict(tests[2]) << endl;
+  for (auto test : tests) {
+    cout << "Test ::" << endl;
+    for (auto conflict : find_conflicts(test)) {
+      for (auto event : conflict) {
+        cout << print_pair(event) << " ";
+      }
+      cout << endl;
+    }
+  }
+  // cout << "This should be 1: " << find_conflicts(tests[0]).size() << endl;
+  // cout << "This should be 0: " << find_conflicts(tests[1]).size() << endl;
+  // cout << "This should be 3: " << find_conflicts(tests[2]).size() << endl;
 }
