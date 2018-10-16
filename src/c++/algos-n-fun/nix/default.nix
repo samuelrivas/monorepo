@@ -5,6 +5,7 @@
   gdb,
   kcachegrind, # Needs the enviornment in PATH to work ATM
   less,
+  rapidcheck,
   sandbox,
   stdenv,
   strace,
@@ -19,6 +20,7 @@ stdenv.mkDerivation {
     gdb
     kcachegrind
     less
+    rapidcheck
     strace
     valgrind
   ];

@@ -14,7 +14,8 @@ valgrind-targets := $(addprefix valgrind-,$(target-files))
 run-targets := $(addprefix run-,$(target-files))
 strace-targets := $(addprefix strace-,$(target-files))
 
-CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -fno-exceptions -O0
+CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -O0 -fpermissive
+LDFLAGS := -lrapidcheck
 
 .PHONY: check clean cpplint valgrind-targets run-targets strace-targets cpplint-targets
 
@@ -53,7 +54,7 @@ $(work-dir)/%.o: src/lib/%.cpp src/lib/%.hpp | $(work-dir)
 
 ## We assume each little test is a single source file
 $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
-	g++ $(CPPARGS) -o $@ $^
+	g++ $(CPPARGS) -o $@ $^ $(LDFLAGS)
 
 ## Although we also support some rudimentary way of sharing objects
 ## by listing explicit dependencies here
