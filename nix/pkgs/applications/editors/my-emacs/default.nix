@@ -24,7 +24,7 @@
   hlint,
   merlin,
   nix-mode,
-  ocpIndent,
+  ocp-indent,
   sbt,
   scalaMode2,
   stdenv,
@@ -37,7 +37,7 @@
 let
   deps = {
     "haskell" = [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
-    "ocaml"   = [ merlin ocpIndent tuareg utop ];
+    "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];
   };
 
