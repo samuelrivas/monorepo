@@ -28,7 +28,7 @@ class Graph {
 
 typedef DfsCallbacks BfsCallbacks;
 
-// TODO Make Dfs and Gfs work for both graphs and digraphs
+// TODO Make Dfs and Bfs work for both graphs and digraphs
 class Bfs {
   vector<bool> visited;
   vector<bool> processed;
