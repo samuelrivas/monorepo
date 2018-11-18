@@ -32,6 +32,9 @@ stdenv.mkDerivation (sandbox-extras // {
   SH_LIB = "${sh-lib}/lib";
 
   doCheck = true;
+  prePatch = ''
+    patchShebangs .
+  '';
   installPhase = ''
     mkdir -p "$out/bin"
     cp ../build/install/bin/reservoir $out/bin

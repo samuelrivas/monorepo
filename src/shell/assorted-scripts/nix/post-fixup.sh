@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#
 # The scripts that use templates expect the templates to be in the templates
 # directory at the same directory the scripts live. This is not very elegant for
 # packetising, so we install the templates in the share directory. This step
