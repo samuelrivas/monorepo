@@ -15,7 +15,7 @@ stdenv.mkDerivation rec {
     # reliable url to download this thing, so we go ahead and get this unhashed,
     # unversioned binary and hope for the best
     url = https://convox.com/cli/linux/convox;
-    sha256 = "1s16hgrnzmjgwxla43ys0cjzqal745hyizm634phjd9s8xrdq1bd";
+    sha256 = "0zpqrq4ka4v2qkj5vs9jp8i5933babr21wbkmxbf04ynlmqlswrz";
   };
 
   phases = [ "installPhase" "fixupPhase" ];
