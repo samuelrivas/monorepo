@@ -14,7 +14,7 @@ valgrind-targets := $(addprefix valgrind-,$(target-files))
 run-targets := $(addprefix run-,$(target-files))
 strace-targets := $(addprefix strace-,$(target-files))
 
-CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -O0 -fpermissive
+CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -O3 -fpermissive
 LDFLAGS := -lrapidcheck
 
 .PHONY: check clean cpplint valgrind-targets run-targets strace-targets cpplint-targets
