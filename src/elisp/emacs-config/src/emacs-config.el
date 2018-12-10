@@ -68,6 +68,9 @@
 (setq require-final-newline 'ask)
 (setq mode-require-final-newline t)
 
+;; Assorted modes
+(add-to-list 'auto-mode-alist '("Makefile\\..*\\'" . makefile-mode))
+
 ;; Whitespace mode
 (global-whitespace-mode t)
 (defvar whitespace-line-column)
