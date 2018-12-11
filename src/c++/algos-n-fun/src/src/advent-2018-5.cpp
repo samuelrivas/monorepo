@@ -43,25 +43,12 @@ void react_polymer(forward_list<char>* polymer) {
     after++;
     changed = false;
 
-    while (after != polymer -> end()) {
+    while (!changed && after != polymer -> end()) {
       if (abs(*pos - *after) == 'a' - 'A') {
         // cerr << "Annihilation!: " << *pos << *after << endl;
 
         polymer -> erase_after(pos);
         polymer -> erase_after(before);
-
-        // There must be a way to write this in a less horrendous way...
-        // Note, however that continuing like this shaves a few seconds,
-        // compared to starting from the beginning of the list
-        pos = before;
-        if (before != polymer -> end()) {
-          pos++;
-        }
-
-        after = pos;
-        if (after != polymer -> end()) {
-          after++;
-        }
 
         changed = true;
         // cerr << format_polymer(polymer) << endl;
