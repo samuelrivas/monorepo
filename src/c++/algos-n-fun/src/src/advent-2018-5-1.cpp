@@ -21,38 +21,50 @@ string format_polymer(const forward_list<char>& polymer) {
   return out.str();
 }
 
-int main(void) {
-  string input;
+forward_list<char> filter_element(string input, char to_filter) {
   forward_list<char> polymer;
-  // Assuming no spaces, but that is fine for this exercise
-  cin >> input;
-  for (size_t i = input.size() - 1; i < input.size(); i --) {
-    polymer.push_front(input[i]);
-  }
 
+  for (size_t i = input.size() - 1; i < input.size(); i --) {
+    if (input[i] != to_filter && input[i] != to_filter + ('a' - 'A')) {
+      polymer.push_front(input[i]);
+    }
+  }
+  return polymer;
+}
+
+void react_polymer(forward_list<char>* polymer) {
   bool changed = true;
 
-  // This can be faster by keeping a lower bound of what part of the ploymer can
-  // react (e.g. if we find a reaction in position 10, we only need to start
-  // over from position 9. This finishes in my computer though so I wouldn't
-  // bother 
-  while (!polymer.empty() && changed) {
+  while (!(polymer -> empty()) && changed) {
 
-    forward_list<char>::iterator before = polymer.before_begin();
-    forward_list<char>::iterator pos = polymer.begin();
-    forward_list<char>::iterator after = polymer.begin();
+    forward_list<char>::iterator before = polymer -> before_begin();
+    forward_list<char>::iterator pos = polymer -> begin();
+    forward_list<char>::iterator after = polymer -> begin();
     after++;
     changed = false;
 
-    while (!changed && after != polymer.end()) {
+    while (after != polymer -> end()) {
       if (abs(*pos - *after) == 'a' - 'A') {
-        cerr << "Annihilation!: " << *pos << *after << endl;
+        // cerr << "Annihilation!: " << *pos << *after << endl;
 
-        polymer.erase_after(pos);
-        polymer.erase_after(before);
+        polymer -> erase_after(pos);
+        polymer -> erase_after(before);
+
+        // There must be a way to write this in a less horrendous way...
+        // Note, however that continuing like this shaves a few seconds,
+        // compared to starting from the beginning of the list
+        pos = before;
+        if (before != polymer -> end()) {
+          pos++;
+        }
+
+        after = pos;
+        if (after != polymer -> end()) {
+          after++;
+        }
 
         changed = true;
-        cerr << format_polymer(polymer) << endl;
+        // cerr << format_polymer(polymer) << endl;
       } else {
         before++;
         pos++;
@@ -60,7 +72,38 @@ int main(void) {
       }
     }
   }
+}
 
-  cout << format_polymer(polymer) << endl;
+int main(void) {
+  cin.sync_with_stdio(false);
+  string input;
+  // Assuming no spaces, but that is fine for this exercise
+  cin >> input;
+
+  forward_list<char> polymer;
+  for (size_t i = input.size() - 1; i < input.size(); i --) {
+    polymer.push_front(input[i]);
+  }
+
+  react_polymer(&polymer);
+
+  string final_polymer = format_polymer(polymer);
+  cout << final_polymer << endl;
+  cout << "That had " << final_polymer.size() << " characters" << endl;
+
+  size_t min_length = final_polymer.size() + 1;
+  for (char element = 'A'; element <= 'Z'; element++) {
+
+    forward_list<char> filtered_polymer = filter_element(input, element);
+    react_polymer(&filtered_polymer);
+    string filtered_result = format_polymer(filtered_polymer);
+
+    if (filtered_result.size() < min_length) {
+      min_length = filtered_result.size();
+      cerr << "Filtering " << element << " we get a nice result of " << min_length << endl;
+    }
+  }
+
+  cout << "Second part: " << min_length << endl;
   return 0;
 }
