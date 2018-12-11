@@ -3,7 +3,6 @@
 #include <regex>
 #include <vector>
 #include <unordered_map>
-#include <cassert>
 #include <exception>
 #include <sstream>
 #include <cassert>
