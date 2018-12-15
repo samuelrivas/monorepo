@@ -73,3 +73,4 @@ $(bin-dir)/dutch-flag-sort: src/lib/sort.hpp
 $(bin-dir)/quicksort-test: src/lib/sort.hpp
 $(bin-dir)/selection-test: src/lib/sort.hpp
 $(bin-dir)/merge-contacts: $(work-dir)/graph.o $(work-dir)/digraph.o
+$(bin-dir)/advent-2018-7: $(work-dir)/digraph.o
