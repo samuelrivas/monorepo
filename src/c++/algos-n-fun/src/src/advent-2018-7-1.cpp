@@ -90,10 +90,8 @@ int main(void) {
     cerr << nodes.size() << " to go!" << endl;
   }
 
-  cout << "Solution: ";
-  for (size_t i = output.size() - 1; i < output.size(); i--) {
-    cout << output[i];
-  }
-  cout << endl;
+  cout << "Solution: "
+       << string(output.cbegin(), output.cend())
+       << endl;
   return 0;
 }
