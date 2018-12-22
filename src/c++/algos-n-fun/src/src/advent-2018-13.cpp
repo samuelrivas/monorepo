@@ -3,14 +3,10 @@
 #include <cassert>
 #include <vector>
 #include <utility>
-#include <list>
 #include <sstream>
-#include <iomanip>
 #include <algorithm>
-#include <regex>
 #include <exception>
 #include <set>
-#include <queue>
 
 #include "lib/circular-array.hpp"
 #include "lib/coord.hpp"
@@ -19,19 +15,14 @@ using std::cin;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::list;
 using std::vector;
 using std::pair;
 using std::ostringstream;
 using std::istringstream;
 using std::string;
-using std::setw;
 using std::max;
 using std::min;
 using std::getline;
-using std::regex;
-using std::smatch;
-using std::regex_match;
 using std::terminate;
 using std::numeric_limits;
 using std::hex;
