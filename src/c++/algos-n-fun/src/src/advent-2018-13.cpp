@@ -210,31 +210,39 @@ int main(void) {
 
   cerr << format_map(map, carts);
 
-  while (true) {
+  bool first_collision = true;
+  while (carts.size() > 1) {
     Carts new_carts;
-    while (carts.begin() != carts.end()) {
+
+    while (carts.size() > 0) {
       Cart cart = *(carts.begin());
+
       carts.erase(carts.begin());
-
-      cerr << "Advancing cart " << cart.shape()
-           << " in " << format_coord(cart.pos);
-
       cart.advance(map);
-
-      cerr << " to " << format_coord(cart.pos)
-           << " as " << cart.shape() << endl;
 
       if (carts.find(cart) != carts.end()
           || new_carts.find(cart) != new_carts.end()) {
         // Collision!
-        cout << "Solution: " << format_coord(cart.pos) << endl;
-        return 0;
-      }
+        carts.erase(cart);
+        new_carts.erase(cart);
 
-      new_carts.insert(cart);
+        cerr << "Collision at " << format_coord(cart.pos) << endl;
+        if (first_collision) {
+          first_collision = false;
+          cout << "Solution 1: " << format_coord(cart.pos) << endl;
+        }
+      } else {
+        new_carts.insert(cart);
+      }
     }
     carts = new_carts;
     cerr << format_map(map, carts);
+  }
+
+  if (carts.size() == 0) {
+    cout << "No cart has survived!" << endl;
+  } else {
+    cout << "Solution 2: " << format_coord((*carts.begin()).pos) << endl;
   }
   return 0;
 }
