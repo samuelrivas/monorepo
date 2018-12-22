@@ -75,3 +75,4 @@ $(bin-dir)/selection-test: src/lib/sort.hpp
 $(bin-dir)/merge-contacts: $(work-dir)/graph.o $(work-dir)/digraph.o
 $(bin-dir)/advent-2018-7-1: $(work-dir)/digraph.o
 $(bin-dir)/advent-2018-7-2: $(work-dir)/digraph.o
+$(bin-dir)/advent-2018-13: src/lib/circular-array.hpp src/lib/coord.hpp
