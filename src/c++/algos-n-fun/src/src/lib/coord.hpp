@@ -12,6 +12,12 @@ template<typename T = int>
 struct Coord {
   T x;
   T y;
+  bool operator==(const Coord<T>& other) const {
+    return other.x == x && other.y == y;
+  }
+  bool operator!=(const Coord<T>& other) const {
+    return !operator==(other);
+  }
 };
 
 template<typename T = int>
