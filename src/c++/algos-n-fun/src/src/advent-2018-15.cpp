@@ -12,7 +12,6 @@
 #include <unordered_map>
 #include <queue>
 
-#include "lib/circular-array.hpp"
 #include "lib/coord.hpp"
 
 using std::cin;
