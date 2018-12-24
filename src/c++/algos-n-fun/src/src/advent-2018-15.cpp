@@ -62,7 +62,7 @@ char read_map(const Map& map, const Coord<>& coord) {
 class Creature {
 public:
   Coord<> pos;
-  int hit_points = 300;
+  int hit_points = 200;
   char type;
 
   Creature(char _type, Coord<> _pos) :
@@ -198,18 +198,40 @@ string format_map(const Map& map, const Creatures& creatures) {
   return out.str();
 }
 
-bool has_attack(const Creature& creature, const Creatures& creatures,
-                Creature* attacked_creature) {
-
+// 0 no attack, 1 in  creatures, 2 in new_creatures
+// ... ugly, yes
+int has_attack(const Creature& creature,
+               const Creatures& creatures,
+               const Creatures& new_creatures,
+               Coord<>* out) {
+  int result = 0;
+  int hp = numeric_limits<int>::max();
   for (Coord<> d : deltas) {
     Coord<> target_pos = sum_coord(creature.pos, d);
-    if (has_creature(creatures, target_pos, opposite(creature.type))) {
-      *attacked_creature = creatures.at(target_pos);
-      return true;
+
+    if (has_creature(creatures, target_pos, opposite(creature.type))
+        && creatures.at(target_pos).hit_points < hp) {
+      hp = creatures.at(target_pos).hit_points;
+      cerr << "Found feasible creature in creatures: "
+           << format_creature(creatures.at(target_pos)) << endl;
+      *out = target_pos;
+      result = 1;
+    }
+    if (has_creature(new_creatures, target_pos, opposite(creature.type))
+        && new_creatures.at(target_pos).hit_points < hp) {
+      hp = new_creatures.at(target_pos).hit_points;
+      cerr << "Found feasible creature in new_creatures: "
+           << format_creature(new_creatures.at(target_pos)) << endl;
+      *out = target_pos;
+      result = 2;
     }
   }
-  return false;
+  if (result) {
+    cerr << "Attack: " << result << " " << format_coord(*out) << endl;
+  }
+  return result;
 }
+
 
 int main(void) {
   cin.sync_with_stdio(false);
@@ -226,7 +248,19 @@ int main(void) {
     creatures = parsed.second;
   }
 
-  while (true) {
+  int elves = 0;
+  int goblins = 0;
+  for (auto creature : creatures) {
+    if (creature.second.type == 'E') {
+      elves++;
+    } else {
+      goblins++;
+    }
+  }
+
+  int rounds = 0;
+  int continue_combat = true;
+  while (continue_combat) {
     Creatures new_creatures;
     while (creatures.size() > 0) {
       Creature creature = creatures.begin() -> second;
@@ -234,6 +268,12 @@ int main(void) {
 
       cerr << "Processing " << creature.type
            << " in " << format_coord(creature.pos) << endl;;
+
+      if ((creature.type == 'E' && goblins == 0)
+          || (creature.type == 'G' && elves == 0)) {
+        cerr << "No more enemies, finishing combat after this round" << endl;
+        continue_combat = false;
+      }
 
       Coord<> move = next_move(map, creatures, new_creatures, creature);
 
@@ -245,31 +285,61 @@ int main(void) {
       }
       new_creatures.emplace(creature.pos, creature);
 
-      Creature attacked('x', { -1, -1 });
+      Coord<> attack_coord;
+      int attack = has_attack(creature, creatures, new_creatures, &attack_coord);
+      if (attack != 0) {
+        Creature attacked('x', {-1, -1});
+        if (attack == 1) {
+          attacked = creatures.at(attack_coord);
+          creatures.erase(attack_coord);
+        } else if (attack == 2) {
+          attacked = new_creatures.at(attack_coord);
+          new_creatures.erase(attack_coord);
+        }
 
-      // My eyes hurt, but without changing to map, this is going to be ugly no
-      // matter what
-      for (Creatures* set : { &creatures, &new_creatures }) {
-        if (has_attack(creature, *set, &attacked)) {
+        attacked.hit();
+        cerr << "Attacked " << attacked.type
+             << "(" << attacked.hit_points << ") in "
+             << format_coord(attacked.pos) << endl;
 
-          set -> erase(attacked.pos);
-
-          attacked.hit();
-          cerr << "Attacked " << attacked.type
-               << "(" << attacked.hit_points << ") in "
-               << format_coord(attacked.pos) << endl;
-
-          if (!attacked.alive()) {
-            cerr << "And is dead!" << endl;
+        if (!attacked.alive()) {
+          cerr << "And is dead!" << endl;
+          if (attacked.type == 'E') {
+            elves--;
           } else {
-            set -> emplace(attacked.pos, attacked);;
+            goblins--;
+          }
+        } else {
+          if (attack == 1) {
+            creatures.emplace(attacked.pos, attacked);
+          } else {
+            assert(attack == 2);
+            new_creatures.emplace(attacked.pos, attacked);
           }
         }
       }
     }
     creatures = new_creatures;
+    cerr << "end of round " << rounds + 1 << endl;
+    for (pair<Coord<>,Creature> creature: creatures) {
+      cerr << format_creature(creature.second) << endl;
+    }
     cerr << format_map(map, creatures);
+    if (continue_combat) {
+      rounds++;
+    }
   }
 
+  cout << "Full rounds " << rounds << endl;
+
+  int accumulated_hit_points = 0;
+  cerr << "HP: ";
+  for (pair<Coord<>,Creature> creature : creatures) {
+    cerr << creature.second.hit_points << " ";
+    accumulated_hit_points += creature.second.hit_points;
+  }
+  cerr << endl;
+  cout << "Hit points " << accumulated_hit_points << endl;
+  cout << "Solution: " << accumulated_hit_points * rounds << endl;
   return 0;
 }
