@@ -1,3 +1,5 @@
+/* This aborts if one elf dies. And then I just run a sloppy binary search on
+   the input to find the minimum power necessary to save all elves */
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -33,7 +35,7 @@ using std::find;
 using std::set;
 using std::unordered_set;
 using std::unordered_map;
-using std::queue;
+using std::priority_queue;
 using std::map;
 
 struct CoordHasher {
@@ -62,15 +64,17 @@ class Creature {
 public:
   Coord<> pos;
   int hit_points = 200;
+  int power;
   char type;
 
-  Creature(char _type, Coord<> _pos) :
+  Creature(char _type, int _power, Coord<> _pos) :
     pos { _pos },
+    power { _power },
     type { _type } { }
 
   // Hit this creature
-  void hit() {
-    hit_points -= 3;
+  void hit(int hit_power) {
+    hit_points -= hit_power;
   }
 
   bool alive() const {
@@ -87,7 +91,29 @@ struct CoordComp {
 
 typedef map<Coord<>,Creature,CoordComp> Creatures;
 
-pair<Map,Creatures> parse_map(const vector<string>& input) {
+struct BfsNode {
+  Coord<> parent;
+  int distance;
+  Coord<> pos;
+};
+
+struct BfsPriority {
+  // Confusingly, this returns whether a has less priority than b (i.e. it comes
+  // after out of the queue)
+  bool operator()(const BfsNode& a, const BfsNode&b) const {
+    if (a.distance != b.distance) {
+      return a.distance > b.distance;
+    }
+
+    CoordComp comp;
+    if (a.pos == b.pos) {
+      return comp(b.parent, a.parent);
+    }
+    return comp(b.pos, a.pos);
+  }
+};
+
+pair<Map,Creatures> parse_map(const vector<string>& input, int elf_power) {
   Map map;
   Creatures creatures;
 
@@ -97,7 +123,8 @@ pair<Map,Creatures> parse_map(const vector<string>& input) {
     for (int x = 0; x < static_cast<int>(input[y].size()); x++) {
       char c = input[y][x];
       if (c == 'G' || c == 'E') {
-        creatures.emplace(Coord<>({ x, y }), Creature(c, { x, y }));
+        int power = (c == 'E') ? elf_power : 3;
+        creatures.emplace(Coord<>({ x, y }), Creature(c, power, { x, y }));
         c = '.';
       }
       map_line.push_back(c);
@@ -131,44 +158,56 @@ char opposite(char type) {
 Coord<> next_move(const Map& map, const Creatures& creatures,
                   const Creatures& new_creatures,
                   const Creature& creature) {
-  queue<Coord<>> q;
+  priority_queue<BfsNode, vector<BfsNode>, BfsPriority> q;
 
-  q.push(creature.pos);
+  q.push({{-1, -1}, 0, creature.pos});
   bool found = false;
   CoordMap parents;
-  char target_type = opposite(creature.type);
-  Coord<> expanding { -1 , -1 };
+  BfsNode expanding;
 
   // cerr << "Starting search in " << format_coord(creature.pos)
   //      << " for a " << creature.type << endl;
-  while (q.size() > 0) {
-    expanding = q.front();
-    // cerr << "Expanding " << format_coord(expanding) << endl;
+  while (!found && q.size() > 0) {
+    expanding = q.top();
     q.pop();
 
-    if (has_creature(creatures, expanding, target_type)
-        || has_creature(new_creatures, expanding, target_type)) {
-      // cerr << "Found a valid target in " << format_coord(expanding) << endl;
-      found = true;
-      break;
+    // cerr << "Expanding " << format_coord(expanding.pos)
+    //      << " from " << format_coord(expanding.parent)
+    //      << " distance " << expanding.distance
+    //      << endl;
+    if (parents.find(expanding.pos) != parents.end()) {
+      // cerr << "Already expanded" << endl;
+      continue;
     }
 
+    parents[expanding.pos] = expanding.parent;
 
     for (Coord<> delta : deltas) {
-      Coord<> to_expand = sum_coord(expanding, delta);
-      if (read_map(map, to_expand) == '.'
-          && !has_creature(creatures, to_expand, creature.type)
-          && !has_creature(new_creatures, to_expand, creature.type)
-          && parents.find(to_expand) == parents.end()) {
-        // cerr << "Adding to queue " << format_coord(to_expand) << endl;
+      BfsNode to_expand = { expanding.pos,
+                            expanding.distance + 1,
+                            sum_coord(expanding.pos, delta)
+      };
+      if (read_map(map, to_expand.pos) == '.'
+          && !has_creature(creatures, to_expand.pos, creature.type)
+          && !has_creature(new_creatures, to_expand.pos, creature.type)) {
+        // cerr << "Adding to queue " << format_coord(to_expand.pos)
+        //      << " distance " << to_expand.distance
+        //      << " parent " << format_coord(to_expand.parent) << endl;
         q.push(to_expand);
-        parents[to_expand] = expanding;
+      }
+
+      if (has_creature(creatures, to_expand.pos, opposite(creature.type))
+          || has_creature(new_creatures, to_expand.pos, opposite(creature.type))) {
+        // cerr << "Found a valid target in " << format_coord(to_expand.pos)
+        //      << " while expanding " << format_coord(expanding.pos) << endl;
+        found = true;
+        break;
       }
     }
   }
 
   if (found) {
-    Coord<> parent = parents[expanding];
+    Coord<> parent = expanding.pos;
     Coord<> move = parent;
     // cerr << "parent: " << format_coord(parent) << endl;
     while (!(parent == creature.pos)) {
@@ -232,7 +271,18 @@ int has_attack(const Creature& creature,
 }
 
 
-int main(void) {
+int main(int argc, char *argv[]) {
+
+  int elf_power;
+  if (argc == 2) {
+    istringstream input(argv[1]);
+    input >> elf_power;
+  } else {
+    elf_power = 3;
+  }
+
+  cerr << "Elf Power: " << elf_power <<  endl;
+
   cin.sync_with_stdio(false);
 
   vector<string> input_lines;
@@ -242,7 +292,7 @@ int main(void) {
   Map map;
   Creatures creatures;
   {
-    pair<Map,Creatures> parsed = parse_map(input_lines);
+    pair<Map,Creatures> parsed = parse_map(input_lines, elf_power);
     map = parsed.first;
     creatures = parsed.second;
   }
@@ -287,7 +337,7 @@ int main(void) {
       Coord<> attack_coord;
       int attack = has_attack(creature, creatures, new_creatures, &attack_coord);
       if (attack != 0) {
-        Creature attacked('x', {-1, -1});
+        Creature attacked('x', 0, {-1, -1});
         if (attack == 1) {
           attacked = creatures.at(attack_coord);
           creatures.erase(attack_coord);
@@ -296,7 +346,7 @@ int main(void) {
           new_creatures.erase(attack_coord);
         }
 
-        attacked.hit();
+        attacked.hit(creature.power);
         cerr << "Attacked " << attacked.type
              << "(" << attacked.hit_points << ") in "
              << format_coord(attacked.pos) << endl;
@@ -304,7 +354,8 @@ int main(void) {
         if (!attacked.alive()) {
           cerr << "And is dead!" << endl;
           if (attacked.type == 'E') {
-            elves--;
+            elves --;
+            abort();
           } else {
             goblins--;
           }
