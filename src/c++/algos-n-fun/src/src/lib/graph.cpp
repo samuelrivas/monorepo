@@ -7,6 +7,7 @@
 #include <cassert>
 
 #include "graph.hpp"
+#include "digraph.hpp"
 
 using std::forward_list;
 using std::ostringstream;

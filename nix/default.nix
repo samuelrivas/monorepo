@@ -136,7 +136,9 @@ let
     monte-carlo-sandbox = callPackage ./../src/c++/monte-carlo/nix {
       sandbox = true;
     };
-    algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix { };
+    algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
+      inherit (self.upstream-pkgs) rapidcheck;
+    };
 
     # Python stuff
     # ============

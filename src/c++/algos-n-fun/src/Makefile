@@ -14,7 +14,8 @@ valgrind-targets := $(addprefix valgrind-,$(target-files))
 run-targets := $(addprefix run-,$(target-files))
 strace-targets := $(addprefix strace-,$(target-files))
 
-CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -fno-exceptions -O0
+CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -O3 -fpermissive
+LDFLAGS := -lrapidcheck
 
 .PHONY: check clean cpplint valgrind-targets run-targets strace-targets cpplint-targets
 
@@ -53,7 +54,7 @@ $(work-dir)/%.o: src/lib/%.cpp src/lib/%.hpp | $(work-dir)
 
 ## We assume each little test is a single source file
 $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
-	g++ $(CPPARGS) -o $@ $^
+	g++ $(CPPARGS) -o $@ $^ $(LDFLAGS)
 
 ## Although we also support some rudimentary way of sharing objects
 ## by listing explicit dependencies here
@@ -68,3 +69,10 @@ $(bin-dir)/union-find-test: $(work-dir)/union-find.o
 $(bin-dir)/10-types-of-people: $(work-dir)/union-find.o
 $(bin-dir)/rabin-karp-test: src/lib/rabin-karp.hpp
 $(bin-dir)/text-editor: src/lib/rabin-karp.hpp
+$(bin-dir)/dutch-flag-sort: src/lib/sort.hpp
+$(bin-dir)/quicksort-test: src/lib/sort.hpp
+$(bin-dir)/selection-test: src/lib/sort.hpp
+$(bin-dir)/merge-contacts: $(work-dir)/graph.o $(work-dir)/digraph.o
+$(bin-dir)/advent-2018-7-1: $(work-dir)/digraph.o
+$(bin-dir)/advent-2018-7-2: $(work-dir)/digraph.o
+$(bin-dir)/advent-2018-13: src/lib/circular-array.hpp src/lib/coord.hpp
