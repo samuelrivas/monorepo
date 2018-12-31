@@ -12,6 +12,7 @@ CREATE TABLE movements (
 CREATE TABLE transactions (
        id STRING UNIQUE PRIMARY KEY,
        date STRING,
+       type STRING,
        raw STRING);
 
 CREATE TABLE valuations (
@@ -104,6 +105,18 @@ CREATE VIEW valuation_summary
   FROM current_value AS v
   LEFT JOIN asset_info AS infos
   ON v.asset = infos.asset;
+
+CREATE VIEW cash_flow
+  (date, currency_account, asset_account, currency_bank, asset_bank,
+   currency, asset, currency_amount, asset_amount,
+   decimals, trans_id) AS
+  SELECT m1.date, m1.account, m2.account, m1.bank, m2.bank,
+         m1.asset, m2.asset, m1.amount, m2.amount,
+         m1.decimals, m1.trans_id
+  FROM movements AS m1
+  LEFT JOIN movements AS m2
+  ON m1.trans_id = m2.trans_id AND m1.id != m2.id
+  WHERE m1.asset in ("EUR", "SEK", "NOK", "USD");
 
 /* Standard values */
 INSERT into valuations (date, asset, amount, decimals) VALUES
