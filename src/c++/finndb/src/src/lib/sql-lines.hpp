@@ -11,6 +11,7 @@ constexpr int FIX_POINT_PRECISION = 10;
 
 string transaction_line(const string& transaction_id,
                         const string& date,
+                        const string& type,
                         const string& raw_line);
 string movement_line(const string& date,
                      const string& asset,

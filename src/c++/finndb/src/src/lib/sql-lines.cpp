@@ -51,12 +51,14 @@ using internal::to_fixed_point;
 
 string transaction_line(const string& transaction_id,
                         const string& date,
+                        const string& type,
                         const string& raw_line) {
   ostringstream out;
-  out << "INSERT INTO transactions (id, date, raw) VALUES "
-      << format("(\"%s\",\"%s\",\"%s\");\n")
+  out << "INSERT INTO transactions (id, date, type, raw) VALUES "
+      << format("(\"%s\",\"%s\",\"%s\",\"%s\");\n")
     % transaction_id
     % date
+    % type
     % raw_line;
 
   return out.str();

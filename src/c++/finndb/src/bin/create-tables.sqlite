@@ -107,15 +107,17 @@ CREATE VIEW valuation_summary
   ON v.asset = infos.asset;
 
 CREATE VIEW cash_flow
-  (date, currency_account, asset_account, currency_bank, asset_bank,
-   currency, asset, currency_amount, asset_amount,
+  (date, type, cash_account, asset_account, cash_bank, asset_bank,
+   currency, asset, cash_amount, asset_amount,
    decimals, trans_id) AS
-  SELECT m1.date, m1.account, m2.account, m1.bank, m2.bank,
+  SELECT t.date, t.type, m1.account, m2.account, m1.bank, m2.bank,
          m1.asset, m2.asset, m1.amount, m2.amount,
          m1.decimals, m1.trans_id
   FROM movements AS m1
   LEFT JOIN movements AS m2
   ON m1.trans_id = m2.trans_id AND m1.id != m2.id
+  LEFT JOIN transactions AS t
+  ON m1.trans_id = t.id
   WHERE m1.asset in ("EUR", "SEK", "NOK", "USD");
 
 /* Standard values */

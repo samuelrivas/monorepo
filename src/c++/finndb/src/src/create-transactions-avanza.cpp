@@ -67,6 +67,27 @@ TransactionType parse_type(const string& type_text) {
   }
 }
 
+string type_to_string(const TransactionType& type) {
+  switch (type) {
+  case TransactionType::BUY:
+    return "buy";
+  case TransactionType::SELL:
+    return "sell";
+  case TransactionType::CASH_TRANSFER:
+    return "cash_transfer";
+  case TransactionType::TAX:
+    return "tax";
+  case TransactionType::INTEREST:
+    return "interest";
+  case TransactionType::DIVIDEND:
+    return "dividend";
+  case TransactionType::ASSET_TRANSFER:
+  case TransactionType::MISC:
+  default:
+    return "misc";
+  }
+}
+
 int main() {
 
   cin.sync_with_stdio(false);
@@ -82,15 +103,15 @@ int main() {
     }
 
     string transaction_id = sha1(line);
+    TransactionType type = parse_type(tokens[2]);
 
     // Transaction
-    cout << transaction_line(transaction_id, tokens[0], line);
+    cout << transaction_line(transaction_id, tokens[0],
+                             type_to_string(type), line);
 
     // Cash movement
     cout << movement_line(tokens[0], tokens[8], tokens[1], "Avanza",
                           tokens[6], transaction_id);
-
-    TransactionType type = parse_type(tokens[2]);
 
     // Movements and transactions
     if (type == TransactionType::BUY

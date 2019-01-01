@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
                      % amount).str();
 
   string transaction_id = sha1(raw_line);
-  cout << transaction_line(transaction_id, date, raw_line);
+  cout << transaction_line(transaction_id, date, "cash_transfer", raw_line);
   cout << movement_line(date, asset, account, bank, amount, transaction_id);
   return 0;
 }
