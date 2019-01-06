@@ -64,7 +64,7 @@ bool register_line(const string& description_text, TransactionType* type) {
     return true;
   }
   if (description_text == "Ingreso Cambio de Divisa") {
-    *type = TransactionType::CASH_TRANSFER;
+    *type = TransactionType::MISC;
     return true;
   }
   if (description_text == "Interés") {
@@ -84,7 +84,7 @@ bool register_line(const string& description_text, TransactionType* type) {
     return true;
   }
   if (description_text == "Retirada Cambio de Divisa") {
-    *type = TransactionType::CASH_TRANSFER;
+    *type = TransactionType::MISC;
     return true;
   }
   return false;
