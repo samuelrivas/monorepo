@@ -49,16 +49,39 @@ namespace internal {
 
 using internal::to_fixed_point;
 
+string type_to_string(const TransactionType& type) {
+  switch (type) {
+  case TransactionType::BUY:
+    return "buy";
+  case TransactionType::SELL:
+    return "sell";
+  case TransactionType::CASH_TRANSFER:
+    return "cash_transfer";
+  case TransactionType::TAX:
+    return "tax";
+  case TransactionType::INTEREST:
+    return "interest";
+  case TransactionType::DIVIDEND:
+    return "dividend";
+  case TransactionType::FEE:
+    return "fee";
+  case TransactionType::ASSET_TRANSFER:
+  case TransactionType::MISC:
+  default:
+    return "misc";
+  }
+}
+
 string transaction_line(const string& transaction_id,
                         const string& date,
-                        const string& type,
+                        const TransactionType& type,
                         const string& raw_line) {
   ostringstream out;
   out << "INSERT INTO transactions (id, date, type, raw) VALUES "
       << format("(\"%s\",\"%s\",\"%s\",\"%s\");\n")
     % transaction_id
     % date
-    % type
+    % type_to_string(type)
     % raw_line;
 
   return out.str();

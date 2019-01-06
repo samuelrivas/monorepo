@@ -45,6 +45,14 @@ string rearrange_date(const string& in) {
   return out.str();
 }
 
+TransactionType get_type(const string& asset_amount) {
+  if (asset_amount[0] == '-') {
+    return TransactionType::SELL;
+  } else {
+    return TransactionType::BUY;
+  }
+}
+
 int main() {
 
   cin.sync_with_stdio(false);
@@ -61,9 +69,13 @@ int main() {
 
     string transaction_id = sha1(line);
     string date = rearrange_date(tokens[0]);
-    cout << transaction_line(transaction_id, date, line);
+    cout << transaction_line(transaction_id, date, get_type(tokens[5]), line);
+
+    // Asset movement
     cout << movement_line(date, tokens[2], "degiro-es", "degiro", tokens[5],
                           transaction_id);
+
+    // Cash movement
     cout << movement_line(date, tokens[15], "degiro-es", "degiro", tokens[16],
                           transaction_id);
     cout << valuation_line(date, tokens[2], tokens[7]);

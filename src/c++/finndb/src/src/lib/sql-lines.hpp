@@ -9,9 +9,23 @@ using std::string;
 
 constexpr int FIX_POINT_PRECISION = 10;
 
+enum class TransactionType {
+  BUY,
+  SELL,
+  ASSET_TRANSFER,
+  CASH_TRANSFER,
+  TAX,
+  INTEREST,
+  DIVIDEND,
+  FEE,
+  MISC
+};
+
+string type_to_string(const TransactionType& type);
+
 string transaction_line(const string& transaction_id,
                         const string& date,
-                        const string& type,
+                        const TransactionType& type,
                         const string& raw_line);
 string movement_line(const string& date,
                      const string& asset,

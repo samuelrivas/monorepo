@@ -50,13 +50,44 @@ string rearrange_date(const string& in) {
   return out.str();
 }
 
-bool register_line(const string& description_text) {
-  return description_text.find("Compra") == string::npos
-    && description_text.find("Venta") == string::npos
-    && description_text.find("Conversón Cash Fund") == string::npos
-    && description_text.find("Cash Fund cambio de precio") == string::npos
-    && description_text.find("Compensación Cash Fund") == string::npos
-    && description_text != "Comisión de compra/venta";
+bool register_line(const string& description_text, TransactionType* type) {
+  if (description_text.find("Comisión de conectividad") != string::npos) {
+      *type = TransactionType::FEE;
+      return true;
+  }
+  if (description_text == "Dividendo") {
+    *type = TransactionType::DIVIDEND;
+    return true;
+  }
+  if (description_text == "Ingreso") {
+    *type = TransactionType::CASH_TRANSFER;
+    return true;
+  }
+  if (description_text == "Ingreso Cambio de Divisa") {
+    *type = TransactionType::CASH_TRANSFER;
+    return true;
+  }
+  if (description_text == "Interés") {
+    *type = TransactionType::INTEREST;
+    return true;
+  }
+  if (description_text == "Rendimiento de capital") {
+    *type = TransactionType::INTEREST;
+    return true;
+  }
+  if (description_text == "Retención del dividendo") {
+    *type = TransactionType::TAX;
+    return true;
+  }
+  if (description_text == "Retirada") {
+    *type = TransactionType::CASH_TRANSFER;
+    return true;
+  }
+  if (description_text == "Retirada Cambio de Divisa") {
+    *type = TransactionType::CASH_TRANSFER;
+    return true;
+  }
+  return false;
 }
 
 int main() {
@@ -73,13 +104,17 @@ int main() {
       assert(false);
     }
 
-    if (register_line(tokens[5])) {
+    TransactionType type;
+
+    if (register_line(tokens[5], &type)) {
       string transaction_id = sha1(line);
       string date = rearrange_date(tokens[0]);
-      cout << transaction_line(transaction_id, date, line);
+      cout << transaction_line(transaction_id, date, type, line);
       cout << movement_line(date, tokens[7], "degiro-es", "degiro", tokens[8],
                             transaction_id);
 
+    } else {
+      cerr << "Not registering: " << tokens[5] << std::endl;
     }
   }
   return 0;
