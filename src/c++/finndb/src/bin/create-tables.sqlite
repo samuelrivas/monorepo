@@ -1,0 +1,131 @@
+CREATE TABLE movements (
+       id STRING UNIQUE PRIMARY KEY,
+       date STRING,
+       asset STRING,
+       account STRING,
+       bank STRING,
+       amount INTEGER,
+       decimals INTEGER,
+       trans_id STRING,
+       FOREIGN KEY(trans_id) REFERENCES transactions(id));
+
+CREATE TABLE transactions (
+       id STRING UNIQUE PRIMARY KEY,
+       date STRING,
+       type STRING,
+       raw STRING);
+
+CREATE TABLE valuations (
+       date STRING,
+       asset STRING,
+       amount INTEGER,
+       decimals INTEGER,
+       PRIMARY KEY(date, asset)
+       FOREIGN KEY(asset) REFERENCES asset_info(asset));
+
+CREATE TABLE asset_info (
+       asset STRING UNIQUE PRIMARY KEY,
+       currency STRING,
+       type STRING);
+
+/* Views */
+CREATE VIEW assets_by_account (account, bank, asset, amount, decimals) AS
+  SELECT account, bank, asset, sum(amount) as SUM, 10
+  FROM movements
+  GROUP BY asset, account
+  HAVING SUM != 0;
+
+CREATE VIEW latest_valuations
+  (date, age_in_days, asset, currency, amount, decimals) AS
+
+  SELECT max_dates.date, julianday() - julianday(max_dates.date), info.asset,
+         info.currency, val.amount, val.decimals
+  FROM
+
+  (
+    SELECT MAX(date) AS date, asset FROM valuations
+    GROUP BY asset
+  ) AS max_dates
+
+  INNER JOIN valuations AS val
+  ON val.date = max_dates.date AND val.asset = max_dates.asset
+
+  INNER JOIN asset_info as info
+  ON max_dates.asset = info.asset;
+
+CREATE VIEW current_value
+  (value_date, age_in_days, account, bank, asset, amount, rate, currency, value, decimals) AS
+  SELECT v.date AS value_date, v.age_in_days AS value_age_in_days, a.account, a.bank, a.asset,
+    a.amount/10000000000.0 as amount,
+    v.amount/10000000000.0 as rate,
+    v.currency,
+    CAST((a.amount * v.amount) / 10000000000 AS int) AS value,
+    10 as decimals
+
+  FROM assets_by_account AS a
+
+  LEFT JOIN latest_valuations AS v
+  ON a.asset = v.asset;
+
+/* We need to sort on id after date to cover the cases with more than one
+   movement per asset in the same day */
+CREATE VIEW asset_rollup
+  (date, account, bank, asset, amount, accumulated, decimals) AS
+  SELECT m.date, m.bank, m.account, m.asset, m.amount,
+   (SELECT SUM(aux.amount)
+    FROM movements AS aux
+    WHERE printf("%s%s", aux.date, aux.id) <= printf("%s%s", m.date, m.id)
+         AND aux.asset = m.asset
+         AND aux.account = m.account
+         AND aux.bank = m.bank) AS accumulated,
+   10 AS decimals
+
+  FROM movements AS m
+  ORDER BY m.date, m.id;
+
+CREATE VIEW assets_without_info (asset, amount, decimals) AS
+  SELECT asset, SUM(amount) as SUM, 10
+  FROM movements
+  WHERE asset NOT IN (SELECT asset FROM asset_info)
+  GROUP BY asset
+  HAVING SUM != 0;
+
+CREATE VIEW assets_with_old_valuations (date, asset, age_in_days) AS
+  SELECT date, asset, age_in_days
+  FROM latest_valuations
+  WHERE asset IN (SELECT asset FROM assets_by_account)
+        AND age_in_days > 7;
+
+CREATE VIEW valuation_summary
+  (account, bank, asset, amount, currency, type,
+   value, value_decimals, valuation_age_in_days) AS
+  SELECT v.account, v.bank, v.asset, v.amount,
+         infos.currency, infos.type,
+         v.value, v.decimals, v.age_in_days
+  FROM current_value AS v
+  LEFT JOIN asset_info AS infos
+  ON v.asset = infos.asset;
+
+CREATE VIEW cash_flow
+  (date, type, cash_account, asset_account, cash_bank, asset_bank,
+   currency, asset, cash_amount, asset_amount,
+   decimals, trans_id) AS
+  SELECT t.date, t.type, m1.account, m2.account, m1.bank, m2.bank,
+         m1.asset, m2.asset, m1.amount, m2.amount,
+         m1.decimals, m1.trans_id
+  FROM movements AS m1
+  LEFT JOIN movements AS m2
+  ON m1.trans_id = m2.trans_id AND m1.id != m2.id
+  LEFT JOIN transactions AS t
+  ON m1.trans_id = t.id
+  WHERE m1.asset in ("EUR", "SEK", "NOK", "USD");
+
+/* Standard values */
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "SEK", 10000000000, 10);
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "NOK", 10000000000, 10);
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "USD", 10000000000, 10);
+INSERT into valuations (date, asset, amount, decimals) VALUES
+("2000-01-01", "EUR", 10000000000, 10);
