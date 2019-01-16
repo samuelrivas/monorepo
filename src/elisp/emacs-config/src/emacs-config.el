@@ -120,34 +120,27 @@
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
+
 ;; ORG
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cc" 'org-capture)
 
-(defvar org-log-into-drawer)
-(defvar org-catch-invisible-edits)
 (defvar sams-org-config)
-(defvar org-capture-templates)
-(defvar org-agenda-files)
-(defvar org-log-reschedule)
-(defvar org-log-done)
-(defvar org-refile-targets)
-(defvar org-refile-use-outline-path)
-(defvar org-refile-allow-creating-parent-nodes)
 
-(setq org-log-into-drawer t)
-(setq org-catch-invisible-edits 'error)
-(setq org-agenda-files (plist-get sams-org-config :agenda-file))
-(setq org-log-reschedule 'note)
-(setq org-log-done 'time)
-(setq org-refile-targets '((org-agenda-files :maxlevel . 9)))
-(setq org-refile-use-outline-path 'file)
-(setq org-refile-allow-creating-parent-nodes 'confirm)
+(setq-default org-log-into-drawer t)
+(setq-default org-catch-invisible-edits 'error)
+(setq-default org-agenda-files (plist-get sams-org-config :agenda-file))
+(setq-default org-log-reschedule 'note)
+(setq-default org-log-done 'time)
+(setq-default org-refile-targets '((org-agenda-files :maxlevel . 9)))
+(setq-default org-refile-use-outline-path 'file)
+(setq-default org-refile-allow-creating-parent-nodes 'confirm)
+(setq-default org-clock-display-default-range 'untilnow)
 
 (defun sams-template (file)
   (format "%s/%s" (plist-get sams-org-config :template-dir) file))
 
-(setq
+(setq-default
  org-capture-templates
  `(("t" "Todo" entry
     (file+headline ,(plist-get sams-org-config :todo-file) "Inkorg")
