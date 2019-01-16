@@ -3,6 +3,7 @@
   empty-builder,
   gcc,
   gdb,
+  graphlib,
   kcachegrind, # Needs the enviornment in PATH to work ATM
   less,
   rapidcheck,
@@ -18,6 +19,7 @@ stdenv.mkDerivation {
     cpplint
     gcc
     gdb
+    graphlib
     kcachegrind
     less
     rapidcheck

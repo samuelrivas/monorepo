@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#include "lib/graph.hpp"
+#include <graph.hpp>
 
 using std::endl;
 using std::cout;

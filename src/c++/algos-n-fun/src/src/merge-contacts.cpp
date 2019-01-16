@@ -6,7 +6,7 @@
 #include <utility>
 #include <string>
 
-#include "lib/graph.hpp"
+#include <graph.hpp>
 
 using std::cout;
 using std::cerr;

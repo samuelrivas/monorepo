@@ -6,7 +6,7 @@
 #include <forward_list>
 #include <cassert>
 
-#include "digraph.hpp"
+#include "../include/digraph.hpp"
 
 using std::vector;
 using std::forward_list;

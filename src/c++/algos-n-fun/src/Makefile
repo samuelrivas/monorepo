@@ -15,7 +15,7 @@ run-targets := $(addprefix run-,$(target-files))
 strace-targets := $(addprefix strace-,$(target-files))
 
 CPPARGS := -Wall -Werror -Wextra -std=c++11 -ggdb3 -O3 -fpermissive
-LDFLAGS := -lrapidcheck
+LDFLAGS :=
 
 .PHONY: check clean cpplint valgrind-targets run-targets strace-targets cpplint-targets
 
@@ -58,13 +58,15 @@ $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 
 ## Although we also support some rudimentary way of sharing objects
 ## by listing explicit dependencies here
+##
+## This is also used for any non-common linking ineeds
 $(work-dir)/binary-tree-from-array-tests.o: src/lib/binary-tree.hpp
 $(work-dir)/binary-tree-from-heap-tests.o: src/lib/binary-tree.hpp
 $(work-dir)/binary-tree-from-order.o: src/lib/binary-tree.hpp
-$(bin-dir)/digraph-tests: $(work-dir)/digraph.o
-$(bin-dir)/graph-tests: $(work-dir)/digraph.o $(work-dir)/graph.o
-$(bin-dir)/adjoin: $(work-dir)/digraph.o $(work-dir)/graph.o
-$(bin-dir)/as-easy-as-abc: $(work-dir)/digraph.o
+$(bin-dir)/digraph-tests: LDFLAGS := $(LDFLAGS) -lgraph
+$(bin-dir)/graph-tests: LDFLAGS := $(LDFLAGS) -lgraph
+$(bin-dir)/adjoin: LDFLAGS := $(LDFLAGS) -lgraph
+$(bin-dir)/as-easy-as-abc: LDFLAGS := $(LDFLAGS) -lgraph
 $(bin-dir)/union-find-test: $(work-dir)/union-find.o
 $(bin-dir)/10-types-of-people: $(work-dir)/union-find.o
 $(bin-dir)/rabin-karp-test: src/lib/rabin-karp.hpp
@@ -72,7 +74,8 @@ $(bin-dir)/text-editor: src/lib/rabin-karp.hpp
 $(bin-dir)/dutch-flag-sort: src/lib/sort.hpp
 $(bin-dir)/quicksort-test: src/lib/sort.hpp
 $(bin-dir)/selection-test: src/lib/sort.hpp
-$(bin-dir)/merge-contacts: $(work-dir)/graph.o $(work-dir)/digraph.o
-$(bin-dir)/advent-2018-7-1: $(work-dir)/digraph.o
-$(bin-dir)/advent-2018-7-2: $(work-dir)/digraph.o
+$(bin-dir)/merge-contacts: LDFLAGS := $(LDFLAGS) -lgraph
+$(bin-dir)/advent-2018-7-1: LDFLAGS := $(LDFLAGS) -lgraph
+$(bin-dir)/advent-2018-7-2: LDFLAGS := $(LDFLAGS) -lgraph
 $(bin-dir)/advent-2018-13: src/lib/circular-array.hpp src/lib/coord.hpp
+$(bin-dir)/rapidcheck-test: LDFLAGS := $(LDFLAGS) -lrapidcheck

@@ -147,6 +147,7 @@ let
       inherit (pkgs.python3Packages) csvkit;
       sandbox = true;
     };
+    graphlib = callPackage ./../src/c++/graphlib/nix { };
 
     # Python stuff
     # ============

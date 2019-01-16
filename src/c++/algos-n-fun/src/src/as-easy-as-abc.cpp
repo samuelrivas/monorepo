@@ -11,7 +11,7 @@
 #include <cassert>
 #include <string>
 
-#include "lib/digraph.hpp"
+#include <digraph.hpp>
 
 using std::vector;
 using std::min;

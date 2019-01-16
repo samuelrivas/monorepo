@@ -8,7 +8,7 @@
 #include <regex>
 #include <queue>
 
-#include "lib/digraph.hpp"
+#include <digraph.hpp>
 
 using std::cin;
 using std::cout;
