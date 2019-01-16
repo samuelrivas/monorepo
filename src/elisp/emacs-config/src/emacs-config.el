@@ -89,7 +89,7 @@
 
 (add-hook 'LaTeX-mode-hook 'my-latex-mode-hook)
 
-;; C mode
+;; C/C++ mode
 (defun my-c-mode-hook ()
   (flyspell-prog-mode)
   (auto-fill-mode)
@@ -244,10 +244,3 @@
   (flyspell-prog-mode))
 
 (add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
-
-;; C/C++ mode
-(defun my-c-mode-hook ()
-  (auto-fill-mode)
-  (flyspell-prog-mode))
-(add-hook 'c-mode-hook 'my-c-mode-hook)
-(add-hook 'c++-mode-hook 'my-c-mode-hook)
