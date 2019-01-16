@@ -134,6 +134,8 @@
 (defvar org-refile-targets)
 (defvar org-refile-use-outline-path)
 (defvar org-refile-allow-creating-parent-nodes)
+(defvar org-clock-display-default-range)
+(defvar untilnow)
 
 (setq org-log-into-drawer t)
 (setq org-catch-invisible-edits 'error)
@@ -143,6 +145,7 @@
 (setq org-refile-targets '((org-agenda-files :maxlevel . 9)))
 (setq org-refile-use-outline-path 'file)
 (setq org-refile-allow-creating-parent-nodes 'confirm)
+(setq org-clock-display-default-range untilnow)
 
 (defun sams-template (file)
   (format "%s/%s" (plist-get sams-org-config :template-dir) file))
