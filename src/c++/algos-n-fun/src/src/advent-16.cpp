@@ -309,15 +309,7 @@ Sample parse_sample() {
   return Sample(parse_registers(before), parse_op(op), parse_registers(after));
 }
 
-int main(void) {
-  cin.sync_with_stdio(false);
-
-  vector<Sample> samples;
-
-  while (cin.peek() != '\n') {
-    samples.push_back(parse_sample());
-  }
-
+int first_part(const vector<Sample> samples) {
   int count = 0;
   for (Sample sample : samples) {
     vector<string> matches;
@@ -331,19 +323,30 @@ int main(void) {
       if (matches.size() >= 3) {
         count++;
 
-        cerr << "Before: " << sample.before.to_s() << endl;
-        cerr << "After : " << sample.after.to_s() << endl;
-        cerr << "Op: " << sample.op.to_s() << endl;
-        cerr << "Matches: ";
-        for (string match : matches) {
-          cerr << match << " ";
-        }
-        cerr << endl << endl;
+        // cerr << "Before: " << sample.before.to_s() << endl;
+        // cerr << "After : " << sample.after.to_s() << endl;
+        // cerr << "Op: " << sample.op.to_s() << endl;
+        // cerr << "Matches: ";
+        // for (string match : matches) {
+        //   cerr << match << " ";
+        // }
+        // cerr << endl << endl;
         break;
       }
     }
   }
+  return count;
+}
 
-  cout << "Solution: " << count << endl;
+int main(void) {
+  cin.sync_with_stdio(false);
+
+  vector<Sample> samples;
+
+  while (cin.peek() != '\n') {
+    samples.push_back(parse_sample());
+  }
+
+  cout << "Solution 1st part: " << first_part(samples) << endl;
   return 0;
 }
