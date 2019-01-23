@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <queue>
 #include <regex>
+#include <iomanip>
 
 using std::cin;
 using std::cout;
@@ -37,6 +38,7 @@ using std::map;
 using std::regex;
 using std::regex_match;
 using std::smatch;
+using std::setw;
 
 class FourInts {
 private:
@@ -56,6 +58,10 @@ public:
 
   bool operator==(const FourInts& b) const {
     return values == b.as_v();
+  }
+
+  bool operator!=(const FourInts& b) const {
+    return values != b.as_v();
   }
 
   vector<int> as_v() const {
@@ -309,7 +315,7 @@ Sample parse_sample() {
   return Sample(parse_registers(before), parse_op(op), parse_registers(after));
 }
 
-int first_part(const vector<Sample> samples) {
+int first_part(const vector<Sample>& samples) {
   int count = 0;
   for (Sample sample : samples) {
     vector<string> matches;
@@ -338,15 +344,76 @@ int first_part(const vector<Sample> samples) {
   return count;
 }
 
+vector<OpHandler*> guess_opcodes(const vector<Sample>& samples) {
+  // first index is the op code, second is the handler, true means possible
+  // match, only one match per row/column means true match
+  vector<vector<bool>> table(16, vector<bool>(16, true));
+  vector<OpHandler*> fixed_handlers(16, nullptr);
+  int found = 0;
+
+  for (Sample sample : samples) {
+    int op_code = sample.op[0];
+    int matches = 0;
+    int last_handler_code = 0;
+
+    cerr << "Possibilities for " << op_code << ": ";
+
+    for (int handler_code = 0; handler_code < 16; handler_code++) {
+      if (table[op_code][handler_code]) {
+        OpHandler* handler = op_handlers[handler_code];
+        Registers after = (*handler)(sample.before, sample.op);
+
+        if (after != sample.after) {
+          table[op_code][handler_code] = false;
+        } else {
+          cerr << handler -> name() << " ";
+          last_handler_code = handler_code;
+          matches++;
+        }
+      }
+    }
+    cerr << endl;
+
+    if (matches == 1) {
+      found++;
+      fixed_handlers[op_code] = op_handlers[last_handler_code];
+
+      cerr << op_code << " is "
+           << (fixed_handlers[op_code] -> name())
+           << endl;
+
+      if (found == 16) {
+        break;
+      }
+
+      // Remove this handler for the table
+      for (int other_op_code = 0; other_op_code < 16; other_op_code++) {
+        table[other_op_code][last_handler_code] = false;
+      }
+    }
+  }
+
+  // It is possible that we infer the last two opcodes when reading the last
+  // example, then this will explode. Doesn't happen for my input though :p
+  assert(found = 16);
+  return fixed_handlers;
+}
+
 int main(void) {
   cin.sync_with_stdio(false);
 
   vector<Sample> samples;
-
   while (cin.peek() != '\n') {
     samples.push_back(parse_sample());
   }
 
-  cout << "Solution 1st part: " << first_part(samples) << endl;
+  // cout << "Solution 1st part: " << first_part(samples) << endl;
+
+  vector<OpHandler*> opcode_handlers = guess_opcodes(samples);
+  for (int i = 0; i < 16; i++) {
+    cerr << setw(2) << i << " ";
+    cerr << opcode_handlers[i] -> name()
+         << endl;
+  }
   return 0;
 }
