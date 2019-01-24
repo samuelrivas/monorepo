@@ -399,6 +399,27 @@ vector<OpHandler*> guess_opcodes(const vector<Sample>& samples) {
   return fixed_handlers;
 }
 
+vector<Op> parse_program() {
+  vector<Op> result;
+
+  string line;
+  assert(getline(cin, line));
+  assert(getline(cin, line));
+
+  while (getline(cin, line)) {
+    int a, b, c, d;
+    istringstream input(line);
+    input >> a;
+    input >> b;
+    input >> c;
+    input >> d;
+
+    Op op(a, b, c, d);
+    result.push_back(op);
+  }
+  return result;
+}
+
 int main(void) {
   cin.sync_with_stdio(false);
 
@@ -409,11 +430,16 @@ int main(void) {
 
   // cout << "Solution 1st part: " << first_part(samples) << endl;
 
-  vector<OpHandler*> opcode_handlers = guess_opcodes(samples);
-  for (int i = 0; i < 16; i++) {
-    cerr << setw(2) << i << " ";
-    cerr << opcode_handlers[i] -> name()
-         << endl;
+  // vector<OpHandler*> opcode_handlers = guess_opcodes(samples);
+  // for (int i = 0; i < 16; i++) {
+  //   cerr << setw(2) << i << " ";
+  //   cerr << opcode_handlers[i] -> name()
+  //        << endl;
+  // }
+
+  vector<Op> program = parse_program();
+  for (Op op : program) {
+    cerr << op.to_s() << endl;
   }
   return 0;
 }
