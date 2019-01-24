@@ -420,6 +420,18 @@ vector<Op> parse_program() {
   return result;
 }
 
+Registers run_program(const Registers& initial, const vector<Op>& program,
+                      const vector<OpHandler*>& handlers) {
+
+  Registers registers = initial;
+
+  for (Op op : program) {
+    OpHandler* handler = handlers[op[0]];
+    registers = (*handler)(registers, op);
+  }
+  return registers;
+}
+
 int main(void) {
   cin.sync_with_stdio(false);
 
@@ -428,18 +440,19 @@ int main(void) {
     samples.push_back(parse_sample());
   }
 
-  // cout << "Solution 1st part: " << first_part(samples) << endl;
+  cout << "Solution 1st part: " << first_part(samples) << endl;
 
-  // vector<OpHandler*> opcode_handlers = guess_opcodes(samples);
-  // for (int i = 0; i < 16; i++) {
-  //   cerr << setw(2) << i << " ";
-  //   cerr << opcode_handlers[i] -> name()
-  //        << endl;
-  // }
+  vector<OpHandler*> opcode_handlers = guess_opcodes(samples);
+  for (int i = 0; i < 16; i++) {
+    cerr << setw(2) << i << " ";
+    cerr << opcode_handlers[i] -> name()
+         << endl;
+  }
 
   vector<Op> program = parse_program();
-  for (Op op : program) {
-    cerr << op.to_s() << endl;
-  }
+  Registers result = run_program(Registers(0, 0, 0, 0), program,
+                                 opcode_handlers);
+
+  cout << "Solution 2nd part: " << result[0] << endl;
   return 0;
 }
