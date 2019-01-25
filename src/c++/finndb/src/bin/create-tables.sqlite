@@ -71,7 +71,7 @@ CREATE VIEW current_value
    movement per asset in the same day */
 CREATE VIEW asset_rollup
   (date, account, bank, asset, amount, accumulated, decimals) AS
-  SELECT m.date, m.bank, m.account, m.asset, m.amount,
+  SELECT m.date, m.account, m.bank, m.asset, m.amount,
    (SELECT SUM(aux.amount)
     FROM movements AS aux
     WHERE printf("%s%s", aux.date, aux.id) <= printf("%s%s", m.date, m.id)
