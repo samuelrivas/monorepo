@@ -5,11 +5,13 @@
 #include <vector>
 #include <forward_list>
 #include <cassert>
+#include <string>
 
-#include "digraph.hpp"
+#include "../include/digraph.hpp"
 
 using std::vector;
 using std::forward_list;
+using std::string;
 
 Digraph::Digraph(int n_vertices) : vertices(n_vertices) {
 }
@@ -29,7 +31,7 @@ forward_list<int> Digraph::connected(int vertex) const {
 string Digraph::to_s() const {
   ostringstream out;
 
-  for (size_t from = 0; from < vertices.size(); from++ ) {
+  for (size_t from = 0; from < vertices.size(); from++) {
     for (int to : connected(from)) {
       out << from << " -> " << to << endl;
     }
@@ -38,7 +40,7 @@ string Digraph::to_s() const {
 }
 
 bool Digraph::connected(int from, int to) const {
-  for (int x: connected(from)) {
+  for (int x : connected(from)) {
     if (to == x) {
       return true;
     }
@@ -94,7 +96,6 @@ void Dfs::dfs(int vertex) {
   state[vertex] = State::Processing;
 
   for (int v : digraph.connected(vertex)) {
-
     callbacks -> on_edge(vertex, v, parent, state);
 
     if (state[v] == State::Unprocessed) {

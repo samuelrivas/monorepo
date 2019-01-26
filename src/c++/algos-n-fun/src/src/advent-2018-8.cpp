@@ -6,8 +6,6 @@
 #include <utility>
 #include <iterator>
 
-#include "lib/digraph.hpp"
-
 using std::cin;
 using std::cout;
 using std::cerr;

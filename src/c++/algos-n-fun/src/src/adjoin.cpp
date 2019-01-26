@@ -7,7 +7,7 @@
 #include <vector>
 #include <tuple>
 
-#include "lib/graph.hpp"
+#include <graph.hpp>
 
 using std::cerr;
 using std::cin;

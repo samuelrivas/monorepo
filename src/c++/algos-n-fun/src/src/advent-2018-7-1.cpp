@@ -6,7 +6,7 @@
 #include <set>
 #include <regex>
 
-#include "lib/digraph.hpp"
+#include <digraph.hpp>
 
 using std::cin;
 using std::cout;

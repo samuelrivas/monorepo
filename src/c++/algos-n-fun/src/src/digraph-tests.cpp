@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include "lib/digraph.hpp"
+#include <digraph.hpp>
 
 using std::cout;
 using std::endl;

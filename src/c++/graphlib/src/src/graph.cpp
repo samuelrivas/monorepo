@@ -6,8 +6,8 @@
 #include <iostream>
 #include <cassert>
 
-#include "graph.hpp"
-#include "digraph.hpp"
+#include "../include/graph.hpp"
+#include "../include/digraph.hpp"
 
 using std::forward_list;
 using std::ostringstream;
@@ -50,7 +50,7 @@ string Graph::to_s() const {
   return out.str();
 }
 
-// TODO Make Dfs and Gfs work for both graphs and digraphs
+// TODO(samuel) Make Dfs and Gfs work for both graphs and digraphs
 Bfs::Bfs(const Graph& _graph, BfsCallbacks* _callbacks) :
   visited(_graph.n_vertices(), false),
   processed(_graph.n_vertices(), false),
