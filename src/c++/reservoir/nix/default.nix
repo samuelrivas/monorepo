@@ -4,6 +4,7 @@
   empty-builder,
   gdb,
   gcc,
+  rndlib,
   sandbox,
   sh-lib,
   stdenv,
@@ -25,6 +26,7 @@ stdenv.mkDerivation (sandbox-extras // {
   buildInputs = [
     cpplint
     gcc
+    rndlib
     valgrind
     bc
   ] ++ (if sandbox then extra-sandbox else []);

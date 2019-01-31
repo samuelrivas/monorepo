@@ -148,6 +148,7 @@ let
       sandbox = true;
     };
     graphlib = callPackage ./../src/c++/graphlib/nix { };
+    rndlib = callPackage ./../src/c++/rndlib/nix { };
 
     # Python stuff
     # ============

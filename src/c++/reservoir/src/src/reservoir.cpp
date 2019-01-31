@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include <rnd.hpp>
+
 template <typename T>
 class Reservoir {
   std::vector<T> samples;
@@ -97,18 +99,6 @@ bool parse_command(int argc, char* argv[], size_t *size) {
   return true;
 }
 
-bool get_seed(int *seed) {
-  std::ifstream dev_random("/dev/random", std::ios::binary);
-  dev_random.read(reinterpret_cast<char *>(seed), sizeof(int));
-
-  if (dev_random.fail()) {
-    std::cerr << "Failed to get random seed: " << strerror(errno) << "\n";
-    return false;
-  }
-
-  return true;
-}
-
 int main(int argc, char* argv[]) {
   std::size_t size;
 
@@ -117,7 +107,7 @@ int main(int argc, char* argv[]) {
   }
 
   int seed;
-  if (!get_seed(&seed)) {
+  if (!sam::get_seed(&seed)) {
     return EXIT_FAILURE;
   }
 
