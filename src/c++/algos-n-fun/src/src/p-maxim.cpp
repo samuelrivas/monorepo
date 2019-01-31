@@ -41,12 +41,41 @@ struct Result {
   int value;
 };
 
+template <typename T>
+class AsyncQueue {
+  queue<T> q;
+  mutex m;
+  condition_variable cond;
+
+public:
+  explicit AsyncQueue() { };
+
+  void push(T x) {
+    {
+      lock_guard<mutex> lg(m);
+      q.push(x);
+    }
+    cond.notify_one();
+  }
+
+  T pop() {
+    T result;
+    {
+      unique_lock<mutex> ul(m);
+      while (q.size() == 0) {
+        cond.wait(ul);
+      }
+      result = q.front();
+      q.pop();
+    }
+    return result;
+  }
+};
+
 void task(int task_id,
           default_random_engine random_engine,
-          mutex* mq, // queue mutex
           mutex *mprint, // io mutex
-          condition_variable* cond,
-          queue<Result>* q) {
+          AsyncQueue<Result>* q) {
 
   bernoulli_distribution distribution;
   int count = 0;
@@ -55,12 +84,8 @@ void task(int task_id,
     sleep_for(seconds(1));
     count++;
   }
+  q -> push({ task_id, count });
 
-  {
-    lock_guard<mutex> lg(*mq);
-    q -> push({ task_id, count });
-  }
-  cond -> notify_one();
   {
     lock_guard<mutex> lg(*mprint);
     cerr << "Task " << task_id << " finished" << endl;
@@ -68,10 +93,8 @@ void task(int task_id,
 }
 
 int main() {
-  queue<Result> results;
-  mutex mq;
+  AsyncQueue<Result> results;
   mutex mprint;
-  condition_variable cond;
 
   for (int i = 0; i < THREADS; i++) {
     int seed;
@@ -80,7 +103,7 @@ int main() {
 
     default_random_engine random_engine { seed };
 
-    thread(task, i, random_engine, &mq, &mprint, &cond, &results).detach();
+    thread(task, i, random_engine, &mprint, &results).detach();
 
     {
       lock_guard<mutex> lg(mprint);
@@ -88,27 +111,15 @@ int main() {
     }
   }
 
-  int gotten = 0;
   int maxim = numeric_limits<int>::min();
-  while (true) {
-    unique_lock<mutex> lk(mq);
-    while (results.size() > 0) {
-      Result result;
-      result = results.front();
-      results.pop();
+  for (int i = 0; i < THREADS; i++) {
+    Result result = results.pop();
+    maxim = max(maxim, result.value);
 
-      gotten++;
-      maxim = max(maxim, result.value);
-      {
-        lock_guard<mutex> lg(mprint);
-        cerr << "Result from " << result.task_id << ": "
-             << result.value << endl;
-      }
-    }
-    if (gotten < THREADS) {
-      cond.wait(lk);
-    } else {
-      break;
+    {
+      lock_guard<mutex> lg(mprint);
+      cerr << "Result from " << result.task_id << ": "
+           << result.value << endl;
     }
   }
   {
