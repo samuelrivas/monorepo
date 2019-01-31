@@ -5,6 +5,7 @@ bin-dir := $(install-dir)/bin
 default-args := 10 < ./test/test-input
 
 CPPARGS := -Wall -Wextra -Werror -std=c++11 -ggdb3 -fno-exceptions -O3
+LDFLAGS := -lrnd
 
 .PHONY: check clean build-dirs valgrind run cpplint strace test
 
@@ -18,7 +19,7 @@ $(work-dir)/reservoir.o: src/reservoir.cpp
 	g++ $(CPPARGS) -c -o $@ $^
 
 $(bin-dir)/reservoir: $(work-dir)/reservoir.o
-	g++ -o $@ $^
+	g++ -o $@ $^ $(LDFLAGS)
 
 valgrind: $(bin-dir)/reservoir
 	valgrind --leak-check=full --error-exitcode=1 $^ $(default-args)

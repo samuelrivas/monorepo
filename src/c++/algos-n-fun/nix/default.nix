@@ -1,4 +1,5 @@
 {
+  asyncq,
   cpplint,
   empty-builder,
   gcc,
@@ -7,6 +8,7 @@
   kcachegrind, # Needs the enviornment in PATH to work ATM
   less,
   rapidcheck,
+  rndlib,
   sandbox,
   stdenv,
   strace,
@@ -16,6 +18,7 @@ stdenv.mkDerivation {
   src = ./../src;
   name = "algos-n-fun";
   buildInputs = [
+    asyncq
     cpplint
     gcc
     gdb
@@ -23,6 +26,7 @@ stdenv.mkDerivation {
     kcachegrind
     less
     rapidcheck
+    rndlib
     strace
     valgrind
   ];
