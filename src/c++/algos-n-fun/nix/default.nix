@@ -7,6 +7,7 @@
   kcachegrind, # Needs the enviornment in PATH to work ATM
   less,
   rapidcheck,
+  rndlib,
   sandbox,
   stdenv,
   strace,
@@ -23,6 +24,7 @@ stdenv.mkDerivation {
     kcachegrind
     less
     rapidcheck
+    rndlib
     strace
     valgrind
   ];

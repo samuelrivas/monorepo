@@ -79,3 +79,4 @@ $(bin-dir)/advent-2018-7-1: LDFLAGS := $(LDFLAGS) -lgraph
 $(bin-dir)/advent-2018-7-2: LDFLAGS := $(LDFLAGS) -lgraph
 $(bin-dir)/advent-2018-13: src/lib/circular-array.hpp src/lib/coord.hpp
 $(bin-dir)/rapidcheck-test: LDFLAGS := $(LDFLAGS) -lrapidcheck
+$(bin-dir)/p-maxim: LDFLAGS := $(LDFLAGS) -lrnd -lpthread

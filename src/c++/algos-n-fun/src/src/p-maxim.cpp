@@ -5,10 +5,13 @@
 #include <thread>
 #include <future>
 #include <vector>
+#include <mutex>
+#include <queue>
+#include <condition_variable>
+#include <limits>
+#include <algorithm>
 
 #include <rnd.hpp>
-
-const int THREADS = 4;
 
 using std::default_random_engine;
 using sam::get_seed;
@@ -23,21 +26,52 @@ using std::future;
 using std::vector;
 using std::thread;
 using std::move;
+using std::queue;
+using std::mutex;
+using std::condition_variable;
+using std::lock_guard;
+using std::unique_lock;
+using std::numeric_limits;
+using std::max;
 
-void task(int task_id, default_random_engine random_engine, promise<int> result) {
+const int THREADS = 10;
+
+struct Result {
+  int task_id;
+  int value;
+};
+
+void task(int task_id,
+          default_random_engine random_engine,
+          mutex* mq, // queue mutex
+          mutex *mprint, // io mutex
+          condition_variable* cond,
+          queue<Result>* q) {
+
   bernoulli_distribution distribution;
   int count = 0;
 
   while (distribution(random_engine)) {
-    sleep_for(seconds(3));
+    sleep_for(seconds(1));
     count++;
   }
-  result.set_value(count);
-  cerr << "task " << task_id << " finished" << endl;
+
+  {
+    lock_guard<mutex> lg(*mq);
+    q -> push({ task_id, count });
+  }
+  cond -> notify_one();
+  {
+    lock_guard<mutex> lg(*mprint);
+    cerr << "Task " << task_id << " finished" << endl;
+  }
 }
 
 int main() {
-  vector<future<int>> results;
+  queue<Result> results;
+  mutex mq;
+  mutex mprint;
+  condition_variable cond;
 
   for (int i = 0; i < THREADS; i++) {
     int seed;
@@ -46,17 +80,40 @@ int main() {
 
     default_random_engine random_engine { seed };
 
-    promise<int> prom;
-    results.push_back(prom.get_future());
+    thread(task, i, random_engine, &mq, &mprint, &cond, &results).detach();
 
-    thread(task, i, random_engine, move(prom)).detach();
-
-    cerr << "Task " << i << " launched" << endl;
+    {
+      lock_guard<mutex> lg(mprint);
+      cerr << "Task " << i << " launched" << endl;
+    }
   }
 
-  for (int i = 0; i < THREADS; i++) {
-    cout << "Output: " << results[i].get() << endl;
-  }
+  int gotten = 0;
+  int maxim = numeric_limits<int>::min();
+  while (true) {
+    unique_lock<mutex> lk(mq);
+    while (results.size() > 0) {
+      Result result;
+      result = results.front();
+      results.pop();
 
+      gotten++;
+      maxim = max(maxim, result.value);
+      {
+        lock_guard<mutex> lg(mprint);
+        cerr << "Result from " << result.task_id << ": "
+             << result.value << endl;
+      }
+    }
+    if (gotten < THREADS) {
+      cond.wait(lk);
+    } else {
+      break;
+    }
+  }
+  {
+    lock_guard<mutex> lg(mprint);
+    cout << "Result: " << maxim << endl;
+  }
   return 0;
 }
