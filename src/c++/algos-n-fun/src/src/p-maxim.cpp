@@ -12,6 +12,7 @@
 #include <algorithm>
 
 #include <rnd.hpp>
+#include <asyncq.hpp>
 
 using std::default_random_engine;
 using sam::get_seed;
@@ -33,43 +34,13 @@ using std::lock_guard;
 using std::unique_lock;
 using std::numeric_limits;
 using std::max;
+using sam::AsyncQueue;
 
 const int THREADS = 10;
 
 struct Result {
   int task_id;
   int value;
-};
-
-template <typename T>
-class AsyncQueue {
-  queue<T> q;
-  mutex m;
-  condition_variable cond;
-
-public:
-  explicit AsyncQueue() { };
-
-  void push(T x) {
-    {
-      lock_guard<mutex> lg(m);
-      q.push(x);
-    }
-    cond.notify_one();
-  }
-
-  T pop() {
-    T result;
-    {
-      unique_lock<mutex> ul(m);
-      while (q.size() == 0) {
-        cond.wait(ul);
-      }
-      result = q.front();
-      q.pop();
-    }
-    return result;
-  }
 };
 
 void task(int task_id,

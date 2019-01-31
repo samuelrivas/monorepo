@@ -1,4 +1,5 @@
 {
+  asyncq,
   cpplint,
   empty-builder,
   gcc,
@@ -17,6 +18,7 @@ stdenv.mkDerivation {
   src = ./../src;
   name = "algos-n-fun";
   buildInputs = [
+    asyncq
     cpplint
     gcc
     gdb
