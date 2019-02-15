@@ -104,6 +104,7 @@ let
     # Haskell stuff
     # =============
     name-generator = callPackage ./../src/haskell/name-generator/nix {
+      haskellPackages = pkgs.haskell.packages.ghc802;
       sandbox = false;
     };
     ds-processing = callPackage ./../src/haskell/ds-processing/nix {
