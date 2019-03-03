@@ -6,7 +6,6 @@
 
 set -e
 set -u
-
 source $SH_LIB/prelude.sh
 
 ## Constants
@@ -50,6 +49,7 @@ sandbox() {
     nix-shell                                                   \
         --pure                                                  \
         --indirect --add-root "$roots_dir/$derivation"          \
+        --keep XAUTHORITY                                       \
         --command "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK; return" \
         -A "$derivation"                                        \
         "$expression"
