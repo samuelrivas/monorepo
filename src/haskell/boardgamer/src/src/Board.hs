@@ -54,7 +54,7 @@ empty_board =
 
 show_cell :: Cell -> String
 show_cell (Cell (Just x)) = show x
-show_cell (Cell Nothing) = " "
+show_cell (Cell Nothing)  = " "
 
 show_row :: Board -> Row -> String
 show_row board (Row row) =
