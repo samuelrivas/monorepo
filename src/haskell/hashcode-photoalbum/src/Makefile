@@ -11,7 +11,7 @@ GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
 GHC-LD-FLAGS := -Wall
 GHC := ghc $(GHC-FLAGS)
 
-GHC-PACKAGES :=
+GHC-PACKAGES := text containers
 GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
 
 PROGRAM := $(BIN-DIR)/main
