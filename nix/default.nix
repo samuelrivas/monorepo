@@ -110,6 +110,9 @@ let
     ds-processing = callPackage ./../src/haskell/ds-processing/nix {
       sandbox = false;
     };
+    boardgamer = callPackage ./../src/haskell/boardgamer/nix {
+      sandbox = false;
+    };
 
     # Shell-scripts
     # =============
@@ -156,12 +159,6 @@ let
     # ============
     python36Packages = callPackage ./python-packages.nix {
       pythonPackages = pkgs.python36Packages;
-    };
-
-    # Experiments
-    # ===========
-    experiments-haskell = callPackage ./../src/experiments/haskell/nix {
-      sandbox = false;
     };
   };
 in
