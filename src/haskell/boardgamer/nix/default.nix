@@ -19,7 +19,7 @@ let
 in
 stdenv.mkDerivation rec {
 
-  name = "experiments-haskell-0.0.0";
+  name = "boardgamer";
   src = ./../src;
 
   buildInputs = [
