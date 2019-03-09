@@ -1,6 +1,3 @@
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE StandaloneDeriving #-}
-
 import qualified Data.Set       as Set
 import qualified Data.Text.Lazy as T
 
@@ -11,43 +8,57 @@ data Picture_info = Picture_info {
   tags :: Set.Set T.Text
   } deriving (Eq, Ord, Show)
 
-data V = V deriving (Eq, Ord, Show)
-data H = H deriving (Eq, Ord, Show)
+newtype Picture_v = Picture_v Picture_info deriving (Eq, Ord, Show)
+newtype Picture_h = Picture_h Picture_info deriving (Eq, Ord, Show)
 
-data Picture a where
-  Picture_v :: Picture_info -> Picture V
-  Picture_h :: Picture_info -> Picture H
-deriving instance Show a => Show (Picture a)
-deriving instance Ord a => Ord (Picture a)
-deriving instance Eq a => Eq (Picture a)
+data Picture = V Picture_v | H Picture_h deriving (Eq, Ord, Show)
 
-data Slide a where
-  Slide_v :: Picture V -> Picture V -> Slide V
-  Slide_h :: Picture H -> Slide H
-deriving instance Show a => Show (Slide a)
-deriving instance Ord a => Ord (Slide a)
-deriving instance Eq a => Eq (Slide a)
+data Slide = Slide_v Picture_v Picture_v
+  | Slide_h Picture_h
+  deriving (Eq, Ord, Show)
+
+mk_v_picture :: Picture_info -> Picture
+mk_v_picture = V . Picture_v
+
+mk_h_picture :: Picture_info -> Picture
+mk_h_picture = H . Picture_h
 
 mk_tags :: [String] -> Set.Set T.Text
 mk_tags = Set.fromList . map T.pack
 
-example :: Set.Set (Either (Picture H) (Picture V))
+example :: Set.Set Picture
 example = Set.fromList [
-  Left $ Picture_h Picture_info {
+   mk_h_picture Picture_info {
       Main.id = 1,
       tags = mk_tags ["cat", "beach", "sun"]
       },
-  Right $ Picture_v Picture_info {
+  mk_v_picture Picture_info {
       Main.id = 2,
       tags = mk_tags ["selfie", "smile"]
       },
-  Right $ Picture_v Picture_info {
+  mk_v_picture Picture_info {
       Main.id = 3,
       tags = mk_tags ["garden", "selfie"]
       },
-  Left $ Picture_h Picture_info {
+  mk_v_picture Picture_info {
+      Main.id = 4,
+      tags = mk_tags ["nature", "vacation"]
+      },
+  mk_v_picture Picture_info {
+      Main.id = 4,
+      tags = mk_tags ["moutain", "bird"]
+      },
+  mk_h_picture Picture_info {
       Main.id = 4,
       tags = mk_tags ["garden", "cat"]
+      },
+  mk_h_picture Picture_info {
+      Main.id = 4,
+      tags = mk_tags ["mountain", "nature"]
+      },
+  mk_h_picture Picture_info {
+      Main.id = 4,
+      tags = mk_tags ["mountain", "nature", "bird"]
       }
   ]
 
