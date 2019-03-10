@@ -71,19 +71,6 @@ interest_factor t1 t2 =
         <$> [Set.intersection, Set.difference, flip Set.difference]
   in minimum $ Set.size <$> subsets
 
--- find_best :: Foldable t => Slide -> t Picture_h -> Picture
--- find_best s ps =
---   let f acc@(best_score, _) p =
---         let candidate_slide = Slide_h p
---             score = interest_factor s candidate_slide
---         in
---         if score > best_score
---         then (score, candidate_slide)
---         else acc
---       best_slide = snd $ foldl f (0, s) ps
---   in
---     H $ get_picture best_slide
-
 find_next :: Foldable t => Slide -> t Picture -> Picture
 find_next slide = let
   origin_tags = get_tags slide
