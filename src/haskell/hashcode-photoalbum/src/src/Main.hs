@@ -66,9 +66,9 @@ get_tags = foldl (flip $ Set.union . tags) Set.empty
 
 interest_factor :: Tags -> Tags -> Int
 interest_factor t1 t2 =
-  let subsets = ($ t2) . ($ t1) <$> [Set.intersection,
-                                     Set.difference,
-                                     flip Set.difference]
+  let subsets =
+        ($ t2) . ($ t1)
+        <$> [Set.intersection, Set.difference, flip Set.difference]
   in minimum $ Set.size <$> subsets
 
 -- find_best :: Foldable t => Slide -> t Picture_h -> Picture
