@@ -88,6 +88,13 @@ interest_factor t1 t2 =
         <$> [Set.intersection, Set.difference, flip Set.difference]
   in minimum $ Set.size <$> subsets
 
+total_interest :: [Slide] -> Int
+total_interest deck =
+  let
+    tags = get_tags <$> deck
+  in
+  sum $ uncurry interest_factor <$> zip tags (tail tags)
+
 find_next :: Foldable t => Tags -> t Picture -> Maybe Picture
 find_next origin_tags = let
   f acc@(best_interest, _) candidate_picture =
@@ -108,31 +115,40 @@ find_next_v origin_tags v_picture =
         in if candidate_interest > best_interest
            then (candidate_interest, Just candidate_picture)
            else acc
-      is_v = (V==) . orientation
+      is_v = (V ==) . orientation
   in snd . foldl f (-1, Nothing) . Set.filter is_v
 
-get_next :: Tags -> Set.Set Picture -> (Maybe Picture, Set.Set Picture)
-get_next tags pictures =
-  let
-    next_picture = find_next tags pictures
-    new_pictures = maybe pictures (`Set.delete` pictures) next_picture
-  in
-    (next_picture, new_pictures)
+get_next_picture :: Tags -> Set.Set Picture -> Maybe (Picture, Set.Set Picture)
+get_next_picture tags pictures =
+  do
+    next_picture <- find_next tags pictures
+    return (next_picture, (`Set.delete` pictures) next_picture)
+
+get_next_slide :: Tags -> Set.Set Picture -> Maybe (Slide, Set.Set Picture)
+get_next_slide tags pictures =
+  do
+    (next_picture, new_pictures) <- get_next_picture tags pictures
+    if V == orientation next_picture
+      then do
+      next_v <- find_next_v tags next_picture new_pictures
+      return ([next_picture, next_v], Set.delete next_v new_pictures)
+      else return ([next_picture], new_pictures)
 
 make_slideshow :: Set.Set Picture -> [Slide]
 make_slideshow pictures =
   make_slideshow_rec (mk_tags []) pictures []
 
-make_slideshow_rec :: Tags -> Set.Set Picture -> [[Picture]] -> [[Picture]]
+-- FIXME Remove that fromJust!
+make_slideshow_rec :: Tags -> Set.Set Picture -> [Slide] -> [Slide]
 make_slideshow_rec latest_tags pictures slideshow =
   if Set.null pictures
   then reverse slideshow
   else
-    let (maybe_next_picture, next_pictures) = get_next latest_tags pictures
-        next_picture = Maybe.fromJust maybe_next_picture
-        next_tags = tag_list next_picture
+    let (next_slide, next_pictures) =
+          Maybe.fromJust $ get_next_slide latest_tags pictures
+        next_tags = get_tags next_slide
     in
-      make_slideshow_rec next_tags next_pictures ([next_picture]:slideshow)
+      make_slideshow_rec next_tags next_pictures (next_slide:slideshow)
 
 show_slideshow :: [Slide] -> T.Text
 show_slideshow slideshow =
@@ -146,4 +162,9 @@ show_slideshow slideshow =
     T.concat $ show_slide (head slideshow) : (with_interest <$> zipped)
 
 main :: IO ()
-main =  putStrLn "Hello World"
+main =
+  let
+    slideshow = make_slideshow example
+  in do
+    putStrLn . T.unpack . show_slideshow $ slideshow
+    putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
