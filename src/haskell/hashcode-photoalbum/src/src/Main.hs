@@ -76,7 +76,10 @@ show_tags = T.unwords . Set.toAscList . get_tags
 show_slide :: Slide -> T.Text
 show_slide slide =
   let ids = T.pack . show . Main.id <$> slide
-  in T.concat [T.pack "(", T.unwords ids, T.pack ") ", show_tags slide]
+      format = T.pack . show . orientation <$> slide
+      show_part (i, p) = T.concat [i, p]
+  in T.concat [ T.unwords $ show_part <$> zip ids format,
+                T.pack " | ", show_tags slide]
 
 interest_factor :: Tags -> Tags -> Int
 interest_factor t1 t2 =
