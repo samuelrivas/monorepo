@@ -64,6 +64,11 @@ example = Set.fromList [
       Main.id = 9,
       tag_list = mk_tags ["mountain", "nature", "river", "moon"],
       orientation = H
+      },
+  Picture {
+      Main.id = 10,
+      tag_list = mk_tags ["moon", "selfie", "smile"],
+      orientation = V
       }
   ]
 
@@ -138,17 +143,12 @@ make_slideshow :: Set.Set Picture -> [Slide]
 make_slideshow pictures =
   make_slideshow_rec (mk_tags []) pictures []
 
--- FIXME Remove that fromJust!
 make_slideshow_rec :: Tags -> Set.Set Picture -> [Slide] -> [Slide]
 make_slideshow_rec latest_tags pictures slideshow =
-  if Set.null pictures
-  then reverse slideshow
-  else
-    let (next_slide, next_pictures) =
-          Maybe.fromJust $ get_next_slide latest_tags pictures
-        next_tags = get_tags next_slide
-    in
-      make_slideshow_rec next_tags next_pictures (next_slide:slideshow)
+  case get_next_slide latest_tags pictures of
+    Nothing -> reverse slideshow
+    Just (next_slide, next_pictures) ->
+      make_slideshow_rec (get_tags next_slide) next_pictures (next_slide:slideshow)
 
 show_slideshow :: [Slide] -> T.Text
 show_slideshow slideshow =
