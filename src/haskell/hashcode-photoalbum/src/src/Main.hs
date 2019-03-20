@@ -42,7 +42,7 @@ example = Set.fromList [
       },
   Picture {
       Main.id = 5,
-      tag_list = mk_tags ["moutain", "bird", "nature"],
+      tag_list = mk_tags ["mountain", "bird", "nature"],
       orientation = V
       },
   Picture {
