@@ -59,11 +59,24 @@ example = Set.fromList [
       Main.id = 8,
       tag_list = mk_tags ["mountain", "nature", "bird", "sun"],
       orientation = H
+      },
+  Picture {
+      Main.id = 9,
+      tag_list = mk_tags ["mountain", "nature", "river", "moon"],
+      orientation = H
       }
   ]
 
 get_tags :: Slide -> Set.Set T.Text
 get_tags = foldl (flip $ Set.union . tag_list) Set.empty
+
+show_tags :: Slide -> T.Text
+show_tags = T.unwords . Set.toAscList . get_tags
+
+show_slide :: Slide -> T.Text
+show_slide slide =
+  let ids = T.pack . show . Main.id <$> slide
+  in T.concat [T.pack "(", T.unwords ids, T.pack ") ", show_tags slide]
 
 interest_factor :: Tags -> Tags -> Int
 interest_factor t1 t2 =
@@ -91,7 +104,7 @@ get_next tags pictures =
   in
     (next_picture, new_pictures)
 
-make_slideshow :: Set.Set Picture -> [[Picture]]
+make_slideshow :: Set.Set Picture -> [Slide]
 make_slideshow pictures =
   make_slideshow_rec (mk_tags []) pictures []
 
@@ -105,6 +118,17 @@ make_slideshow_rec latest_tags pictures slideshow =
         next_tags = tag_list next_picture
     in
       make_slideshow_rec next_tags next_pictures ([next_picture]:slideshow)
+
+show_slideshow :: [Slide] -> T.Text
+show_slideshow slideshow =
+  let zipped = zip slideshow $ tail slideshow
+      with_interest (s1, s2) = T.concat [T.pack "\n",
+                                         T.pack . show $
+                                         interest_factor (get_tags s1) (get_tags s2),
+                                         T.pack "\n",
+                                         show_slide s2]
+  in
+    T.concat $ show_slide (head slideshow) : (with_interest <$> zipped)
 
 main :: IO ()
 main =  putStrLn "Hello World"
