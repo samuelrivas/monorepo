@@ -6,16 +6,17 @@ import qualified Data.Text.Lazy as T
 
 data Orientation = H | V deriving (Eq, Ord, Show)
 
+type Tags = Set.Set T.Text
+
 data Picture = Picture {
   id          :: Int,
-  tag_list    :: Set.Set T.Text,
+  tag_list    :: Tags,
   orientation :: Orientation
   } deriving (Eq, Ord, Show)
 
 type Slide = [Picture]
-type Tags = Set.Set T.Text
 
-mk_tags :: [String] -> Set.Set T.Text
+mk_tags :: [String] -> Tags
 mk_tags = Set.fromList . map T.pack
 
 example :: Set.Set Picture
@@ -72,7 +73,7 @@ example = Set.fromList [
       }
   ]
 
-get_tags :: Slide -> Set.Set T.Text
+get_tags :: Slide -> Tags
 get_tags = foldl (flip $ Set.union . tag_list) Set.empty
 
 show_tags :: Slide -> T.Text
