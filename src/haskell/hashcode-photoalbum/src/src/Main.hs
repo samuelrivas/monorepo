@@ -78,8 +78,8 @@ show_slide slide =
   let ids = T.pack . show . Main.id <$> slide
       format = T.pack . show . orientation <$> slide
       show_part (i, p) = T.concat [i, p]
-  in T.concat [ T.unwords $ show_part <$> zip ids format,
-                T.pack " | ", show_tags slide]
+  in T.concat [T.unwords $ show_part <$> zip ids format,
+               T.pack " | ", show_tags slide]
 
 interest_factor :: Tags -> Tags -> Int
 interest_factor t1 t2 =
@@ -98,6 +98,18 @@ find_next origin_tags = let
        then (candidate_interest, Just candidate_picture)
        else acc
   in snd . foldl f (-1, Nothing)
+
+find_next_v :: Tags -> Picture -> Set.Set Picture -> Maybe Picture
+find_next_v origin_tags v_picture =
+  let f acc@(best_interest, _) candidate_picture =
+        let candidate_interest =
+              interest_factor origin_tags (get_tags [v_picture,
+                                                     candidate_picture])
+        in if candidate_interest > best_interest
+           then (candidate_interest, Just candidate_picture)
+           else acc
+      is_v = (V==) . orientation
+  in snd . foldl f (-1, Nothing) . Set.filter is_v
 
 get_next :: Tags -> Set.Set Picture -> (Maybe Picture, Set.Set Picture)
 get_next tags pictures =
