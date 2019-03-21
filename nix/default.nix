@@ -74,6 +74,12 @@ let
     scala = self.upstream-pkgs.scala;
     scala-2_10 = self.upstream-pkgs.scala_2_10;
 
+    # Trivial sandboxes
+    # =================
+    bazel-sandbox = callPackage ./pkgs/development/tools/bazel-sandbox {
+      inherit (self.upstream-pkgs) bazel;
+    };
+
     # Emacs stuff
     # ===========
     emacs-config = callPackage ./../src/elisp/emacs-config/nix
