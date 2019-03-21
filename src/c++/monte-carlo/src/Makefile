@@ -35,7 +35,6 @@ $(work-dir)/cpplint-report: src/appliance-repair.cpp
 	cpplint $^ 2>&1 | tee $(work-dir)/cpplint-report
 
 test: $(bin-dir)/appliance-repair
-	test/test.sh $^
 
 check: cpplint valgrind test
 

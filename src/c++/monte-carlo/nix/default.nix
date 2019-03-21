@@ -13,7 +13,6 @@ let
   extra-sandbox = [
     gdb
     strace
-    valgrind
   ];
   sandbox-extras = if sandbox then {
     builder = empty-builder;
@@ -26,6 +25,7 @@ stdenv.mkDerivation (sandbox-extras // {
     boost
     cpplint
     gcc
+    valgrind
   ] ++ (if sandbox then extra-sandbox else []);
 
   doCheck = true;
