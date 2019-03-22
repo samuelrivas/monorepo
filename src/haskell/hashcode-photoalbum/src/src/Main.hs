@@ -1,91 +1,72 @@
-import qualified Data.Maybe     as Maybe
-import qualified Data.Set       as Set
-import qualified Data.Text.Lazy as T
+import qualified Data.Set          as Set
+import qualified Data.Text.Lazy    as T
+import qualified Data.Text.Lazy.IO as TIO
+import           Parser
+import           Picture
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
-
-data Orientation = H | V deriving (Eq, Ord, Show)
-
-type Tags = Set.Set T.Text
-
-data Picture = Picture {
-  id          :: Int,
-  tag_list    :: Tags,
-  orientation :: Orientation
-  } deriving (Eq, Ord, Show)
-
-type Slide = [Picture]
-
-mk_tags :: [String] -> Tags
-mk_tags = Set.fromList . map T.pack
 
 example :: Set.Set Picture
 example = Set.fromList [
    Picture {
-      Main.id = 1,
+      ident = 1,
       tag_list = mk_tags ["cat", "beach", "sun"],
       orientation = H
       },
    Picture {
-      Main.id = 2,
+      ident = 2,
       tag_list = mk_tags ["selfie", "smile"],
       orientation = V
       },
   Picture {
-      Main.id = 3,
+      ident = 3,
       tag_list = mk_tags ["garden", "selfie"],
       orientation = V
       },
   Picture {
-      Main.id = 4,
+      ident = 4,
       tag_list = mk_tags ["nature", "vacation"],
       orientation = V
       },
   Picture {
-      Main.id = 5,
+      ident = 5,
       tag_list = mk_tags ["mountain", "bird", "nature"],
       orientation = V
       },
   Picture {
-      Main.id = 6,
+      ident = 6,
       tag_list = mk_tags ["garden", "cat", "vacation", "sun"],
       orientation = H
       },
   Picture {
-      Main.id = 7,
+      ident = 7,
       tag_list = mk_tags ["mountain", "nature", "sun", "selfie"],
       orientation = H
       },
   Picture {
-      Main.id = 8,
+      ident = 8,
       tag_list = mk_tags ["mountain", "nature", "bird", "sun"],
       orientation = H
       },
   Picture {
-      Main.id = 9,
+      ident = 9,
       tag_list = mk_tags ["mountain", "nature", "river", "moon"],
       orientation = H
       },
   Picture {
-      Main.id = 10,
+      ident = 10,
       tag_list = mk_tags ["moon", "selfie", "smile"],
       orientation = V
       }
   ]
 
-get_tags :: Slide -> Tags
-get_tags = foldl (flip $ Set.union . tag_list) Set.empty
-
-show_tags :: Slide -> T.Text
-show_tags = T.unwords . Set.toAscList . get_tags
-
-show_slide :: Slide -> T.Text
-show_slide slide =
-  let ids = T.pack . show . Main.id <$> slide
-      format = T.pack . show . orientation <$> slide
-      show_part (i, p) = T.concat [i, p]
-  in T.concat [T.unwords $ show_part <$> zip ids format,
-               T.pack " | ", show_tags slide]
+example_text :: T.Text
+example_text = T.pack
+               "4\n\
+               \H 3 cat beach sun\n\
+               \V 2 selfie smile\n\
+               \V 2 garden selfie\n\
+               \H 2 garden cat"
 
 interest_factor :: Tags -> Tags -> Int
 interest_factor t1 t2 =
@@ -162,10 +143,30 @@ show_slideshow slideshow =
   in
     T.concat $ show_slide (head slideshow) : (with_interest <$> zipped)
 
+read_lines :: IO [T.Text]
+read_lines = T.lines <$> TIO.getContents
+
+parse_lines :: [T.Text] -> Set.Set Picture
+parse_lines =
+  let
+    ids = iterate (+ 1) 0
+  in
+    Set.fromList . fmap (uncurry parse_picture) . zip ids . tail
+
 main :: IO ()
 main =
-  let
-    slideshow = make_slideshow example
-  in do
-    putStrLn . T.unpack . show_slideshow $ slideshow
-    putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+  do
+    input <- read_lines
+    putStrLn "Input parsed"
+    let slideshow = make_slideshow $ parse_lines input
+      in do
+      putStrLn . T.unpack . show_slideshow $ slideshow
+      putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+
+-- main :: IO ()
+-- main =
+--   let
+--     slideshow = make_slideshow example
+--   in do
+--     putStrLn . T.unpack . show_slideshow $ slideshow
+--     putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
