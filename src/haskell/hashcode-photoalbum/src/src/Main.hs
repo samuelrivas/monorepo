@@ -60,6 +60,25 @@ example = Set.fromList [
       }
   ]
 
+example_2 :: Set.Set Picture
+example_2 = Set.fromList [
+   Picture {
+      ident = 1,
+      tag_list = mk_tags ["cat", "beach", "sun", "ocean"],
+      orientation = H
+      },
+   Picture {
+      ident = 2,
+      tag_list = mk_tags ["selfie", "smile", "ship"],
+      orientation = V
+      },
+  Picture {
+      ident = 3,
+      tag_list = mk_tags ["foo", "bar", "baz"],
+      orientation = H
+      }
+  ]
+
 example_text :: T.Text
 example_text = T.pack
                "4\n\
@@ -115,10 +134,13 @@ get_next_slide :: Tags -> Set.Set Picture -> Maybe (Slide, Set.Set Picture)
 get_next_slide tags pictures =
   do
     (next_picture, new_pictures) <- get_next_picture tags pictures
-    if V == orientation next_picture
-      then do
-      next_v <- find_next_v tags next_picture new_pictures
-      return ([next_picture, next_v], Set.delete next_v new_pictures)
+
+    if V == orientation next_picture then
+      case find_next_v tags next_picture new_pictures of
+        Just next_v ->
+          return ([next_picture, next_v], Set.delete next_v new_pictures)
+        Nothing -> get_next_slide tags new_pictures
+
       else return ([next_picture], new_pictures)
 
 make_slideshow :: Set.Set Picture -> [Slide]
@@ -153,20 +175,20 @@ parse_lines =
   in
     Set.fromList . fmap (uncurry parse_picture) . zip ids . tail
 
-main :: IO ()
-main =
-  do
-    input <- read_lines
-    putStrLn "Input parsed"
-    let slideshow = make_slideshow $ parse_lines input
-      in do
-      putStrLn . T.unpack . show_slideshow $ slideshow
-      putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
-
 -- main :: IO ()
 -- main =
---   let
---     slideshow = make_slideshow example
---   in do
---     putStrLn . T.unpack . show_slideshow $ slideshow
---     putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+--   do
+--     input <- read_lines
+--     putStrLn "Input parsed"
+--     let slideshow = make_slideshow $ parse_lines input
+--       in do
+--       putStrLn . T.unpack . show_slideshow $ slideshow
+--       putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+
+main :: IO ()
+main =
+  let
+    slideshow = make_slideshow example_2
+  in do
+    putStrLn . T.unpack . show_slideshow $ slideshow
+    putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
