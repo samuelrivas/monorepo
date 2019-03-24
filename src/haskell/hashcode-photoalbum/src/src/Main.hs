@@ -101,7 +101,11 @@ total_interest deck =
   in
   sum $ uncurry interest_factor <$> zip tags (tail tags)
 
-find_next :: Foldable t => Tags -> t Picture -> Maybe Picture
+-- Limit recursion to avoid quadratic times
+max_depth :: Int
+max_depth = 1000
+
+find_next :: Tags -> Set.Set Picture -> Maybe Picture
 find_next origin_tags = let
   f acc@(best_interest, _) candidate_picture =
     let candidate_interest =
@@ -110,7 +114,7 @@ find_next origin_tags = let
     in if candidate_interest > best_interest
        then (candidate_interest, Just candidate_picture)
        else acc
-  in snd . foldl f (-1, Nothing)
+  in snd . foldl f (-1, Nothing) . Set.take max_depth
 
 find_next_v :: Tags -> Picture -> Set.Set Picture -> Maybe Picture
 find_next_v origin_tags v_picture =
@@ -175,20 +179,20 @@ parse_lines =
   in
     Set.fromList . fmap (uncurry parse_picture) . zip ids . tail
 
--- main :: IO ()
--- main =
---   do
---     input <- read_lines
---     putStrLn "Input parsed"
---     let slideshow = make_slideshow $ parse_lines input
---       in do
---       putStrLn . T.unpack . show_slideshow $ slideshow
---       putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
-
 main :: IO ()
 main =
-  let
-    slideshow = make_slideshow example_2
-  in do
-    putStrLn . T.unpack . show_slideshow $ slideshow
-    putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+  do
+    input <- read_lines
+    putStrLn "Input parsed"
+    let slideshow = make_slideshow $ parse_lines input
+      in do
+      putStrLn . T.unpack . show_slideshow $ slideshow
+      putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+
+-- main :: IO ()
+-- main =
+--   let
+--     slideshow = make_slideshow example
+--   in do
+--     putStrLn . T.unpack . show_slideshow $ slideshow
+--     putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
