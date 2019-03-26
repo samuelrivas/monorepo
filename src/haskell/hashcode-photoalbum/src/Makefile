@@ -7,8 +7,8 @@ HS-FILES := $(wildcard src/*.hs)
 OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
 DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
-GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
-GHC-LD-FLAGS := -Wall
+GHC-FLAGS := -Wall -prof -fprof-auto -rtsopts -fexternal-interpreter -outputdir $(LIB-DIR)
+GHC-LD-FLAGS := -Wall -prof
 GHC := ghc $(GHC-FLAGS)
 
 GHC-PACKAGES := text containers
