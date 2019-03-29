@@ -89,10 +89,8 @@ example_text = T.pack
 
 interest_factor :: Tags -> Tags -> Int
 interest_factor t1 t2 =
-  let subsets =
-        ($ t2) . ($ t1)
-        <$> [Set.intersection, Set.difference, flip Set.difference]
-  in minimum $ Set.size <$> subsets
+  let common = Set.size $ Set.intersection t1 t2
+  in minimum [common, Set.size t1 - common, Set.size t2 - common]
 
 total_interest :: [Slide] -> Int
 total_interest deck =
@@ -183,7 +181,6 @@ main :: IO ()
 main =
   do
     input <- read_lines
-    putStrLn "Input parsed"
     let slideshow = make_slideshow $ parse_lines input
       in do
       putStrLn . T.unpack . show_slideshow $ slideshow
