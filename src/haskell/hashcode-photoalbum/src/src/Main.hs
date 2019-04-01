@@ -1,6 +1,7 @@
-import qualified Data.Set          as Set
-import qualified Data.Text.Lazy    as T
-import qualified Data.Text.Lazy.IO as TIO
+import qualified Control.Monad.Writer as Writer
+import qualified Data.Set             as Set
+import qualified Data.Text.Lazy       as T
+import qualified Data.Text.Lazy.IO    as TIO
 import           Parser
 import           Picture
 
@@ -101,7 +102,7 @@ total_interest deck =
 
 -- Limit recursion to avoid quadratic times
 max_depth :: Int
-max_depth = 1000
+max_depth = 200
 
 find_next :: Tags -> Set.Set Picture -> Maybe Picture
 find_next origin_tags = let
@@ -176,6 +177,12 @@ parse_lines =
     ids = iterate (+ 1) 0
   in
     Set.fromList . fmap (uncurry parse_picture) . zip ids . tail
+
+try_log :: Int -> Writer.Writer [String] Int
+try_log x =
+  do
+    Writer.tell ["trying this stuff"]
+    return x
 
 main :: IO ()
 main =
