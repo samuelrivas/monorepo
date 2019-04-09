@@ -1,7 +1,11 @@
-import qualified Control.Monad.Writer as Writer
+{-# OPTIONS -Wno-unused-top-binds #-}
+{-# LANGUAGE FlexibleContexts #-}
+
+import           Control.Monad.Writer
 import qualified Data.Set             as Set
 import qualified Data.Text.Lazy       as T
 import qualified Data.Text.Lazy.IO    as TIO
+import           Metrics
 import           Parser
 import           Picture
 
@@ -146,9 +150,11 @@ get_next_slide tags pictures =
 
       else return ([next_picture], new_pictures)
 
-make_slideshow :: Set.Set Picture -> [Slide]
+make_slideshow :: (MonadWriter Metrics m) => Set.Set Picture -> m [Slide]
 make_slideshow pictures =
-  make_slideshow_rec (mk_tags []) pictures []
+  do
+    increment_counter "foo"
+    return $ make_slideshow_rec (mk_tags []) pictures []
 
 make_slideshow_rec :: Tags -> Set.Set Picture -> [Slide] -> [Slide]
 make_slideshow_rec latest_tags pictures slideshow =
@@ -178,20 +184,27 @@ parse_lines =
   in
     Set.fromList . fmap (uncurry parse_picture) . zip ids . tail
 
-try_log :: Int -> Writer.Writer [String] Int
-try_log x =
-  do
-    Writer.tell ["trying this stuff"]
-    return x
+main_with_metrics :: WriterT Metrics IO ()
+main_with_metrics = do
+  input <- liftIO read_lines
+  slideshow <- make_slideshow $ parse_lines input
+  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
+  liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
 
 main :: IO ()
 main =
   do
-    input <- read_lines
-    let slideshow = make_slideshow $ parse_lines input
-      in do
-      putStrLn . T.unpack . show_slideshow $ slideshow
-      putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+    metrics <- execWriterT main_with_metrics
+    putStrLn $ "Metrics: " ++ show metrics
+
+-- main :: IO ()
+-- main =
+--   do
+--     input <- read_lines
+--     let slideshow = make_slideshow $ parse_lines input
+--       in do
+--       putStrLn . T.unpack . show_slideshow $ slideshow
+--       putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
 
 -- main :: IO ()
 -- main =

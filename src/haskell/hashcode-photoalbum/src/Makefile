@@ -11,7 +11,7 @@ GHC-FLAGS := -Wall -prof -fprof-auto -rtsopts -fexternal-interpreter -outputdir 
 GHC-LD-FLAGS := -Wall -prof -rtsopts
 GHC := ghc $(GHC-FLAGS)
 
-GHC-PACKAGES := text containers
+GHC-PACKAGES := text containers multiset mtl
 GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
 
 PROGRAM := $(BIN-DIR)/main
