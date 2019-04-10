@@ -129,7 +129,7 @@ find_next_v origin_tags v_picture =
            then (candidate_interest, Just candidate_picture)
            else acc
       is_v = (V ==) . orientation
-  in snd . foldl f (-1, Nothing) . Set.filter is_v
+  in snd . foldl f (-1, Nothing) . Set.take max_depth . Set.filter is_v
 
 get_next_picture :: Tags -> Set.Set Picture -> Maybe (Picture, Set.Set Picture)
 get_next_picture tags pictures =
