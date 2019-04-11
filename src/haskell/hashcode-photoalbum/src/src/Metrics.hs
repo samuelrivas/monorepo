@@ -4,8 +4,9 @@
 module Metrics
   ( Metrics (..)
   , merge
-  , increment_histogram
+  , add_to_histogram
   , increment_counter
+  , increment_counter_n
   ) where
 
 import           Control.Monad.Writer
@@ -36,8 +37,11 @@ merge x y =
   }
 
 count_step :: String -> Metrics
-count_step name = mempty {
-  counters = Map.singleton name 1
+count_step name = count_steps name 1
+
+count_steps :: String -> Natural -> Metrics
+count_steps name steps = mempty {
+  counters = Map.singleton name (Sum steps)
   }
 
 histogram_point :: String -> Int -> Metrics
@@ -45,8 +49,11 @@ histogram_point name value = mempty {
   histograms = Map.singleton name (IntMultiSet.singleton value)
   }
 
-increment_histogram :: (MonadWriter Metrics m) => String -> Int -> m ()
-increment_histogram name  = tell . histogram_point name
+add_to_histogram :: (MonadWriter Metrics m) => String -> Int -> m ()
+add_to_histogram name  = tell . histogram_point name
 
 increment_counter :: MonadWriter Metrics m => String -> m ()
 increment_counter = tell . count_step
+
+increment_counter_n :: (MonadWriter Metrics m) => String -> Natural -> m ()
+increment_counter_n name = tell . count_steps name . fromIntegral
