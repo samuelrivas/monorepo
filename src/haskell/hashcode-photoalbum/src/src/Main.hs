@@ -132,37 +132,54 @@ find_next_v origin_tags v_picture =
       is_v = (V ==) . orientation
   in snd . foldl f (-1, Nothing) . Set.take max_depth . Set.filter is_v
 
-get_next_picture :: Tags -> Set.Set Picture -> Maybe (Picture, Set.Set Picture)
+get_next_picture :: Tags -> Set Picture -> Maybe (Picture, Set Picture)
 get_next_picture tags pictures =
   do
     next_picture <- find_next tags pictures
     return (next_picture, (`Set.delete` pictures) next_picture)
 
-get_next_slide :: Tags -> Set.Set Picture -> Maybe (Slide, Set.Set Picture)
+get_next_slide :: Tags -> Set Picture ->
+  WriterT Metrics Maybe (Slide, Set Picture)
 get_next_slide tags pictures =
   do
-    (next_picture, new_pictures) <- get_next_picture tags pictures
+    (next_picture, new_pictures) <- lift $ get_next_picture tags pictures
+    if V == orientation next_picture
+      then
+      do
+        increment_counter "partial V slide"
 
-    if V == orientation next_picture then
-      case find_next_v tags next_picture new_pictures of
-        Just next_v ->
-          return ([next_picture, next_v], Set.delete next_v new_pictures)
-        Nothing -> get_next_slide tags new_pictures
+        case find_next_v tags next_picture new_pictures of
+          Just next_v ->
+            do
+              increment_counter "completed V slide"
+              return ([next_picture, next_v], Set.delete next_v new_pictures)
 
-      else return ([next_picture], new_pictures)
+          Nothing ->
+            do
+              increment_counter "failed V slide"
+              get_next_slide tags new_pictures
+      else
+      do
+        increment_counter "H slide"
+        return ([next_picture], new_pictures)
 
-make_slideshow :: (MonadWriter Metrics m) => Set.Set Picture -> m [Slide]
-make_slideshow pictures =
-  do
-    increment_counter "foo"
-    return $ make_slideshow_rec (mk_tags []) pictures []
+make_slideshow :: (MonadWriter Metrics m) => Set Picture -> m [Slide]
+make_slideshow pictures = make_slideshow_rec (mk_tags []) pictures []
 
-make_slideshow_rec :: Tags -> Set.Set Picture -> [Slide] -> [Slide]
+make_slideshow_rec :: (MonadWriter Metrics m) =>
+  Tags -> Set Picture -> [Slide] -> m [Slide]
 make_slideshow_rec latest_tags pictures slideshow =
-  case get_next_slide latest_tags pictures of
-    Nothing -> reverse slideshow
-    Just (next_slide, next_pictures) ->
-      make_slideshow_rec (get_tags next_slide) next_pictures (next_slide:slideshow)
+  let
+    maybe_next_slide = runWriterT $ get_next_slide latest_tags pictures
+  in
+    case maybe_next_slide of
+      Nothing -> return $ reverse slideshow
+      Just something ->
+        do
+          (next_slide, next_pictures) <- writer something
+          increment_counter "rec step"
+          make_slideshow_rec
+            (get_tags next_slide) next_pictures (next_slide:slideshow)
 
 show_slideshow :: [Slide] -> T.Text
 show_slideshow slideshow =
@@ -178,17 +195,20 @@ show_slideshow slideshow =
 read_lines :: IO [T.Text]
 read_lines = T.lines <$> TIO.getContents
 
-parse_lines :: [T.Text] -> Set.Set Picture
-parse_lines =
+parse_lines :: (MonadWriter Metrics m) => [T.Text] -> m (Set Picture)
+parse_lines input_lines =
   let
     ids = iterate (+ 1) 0
-  in
-    Set.fromList . fmap (uncurry parse_picture) . zip ids . tail
+    pictures = Set.fromList . fmap (uncurry parse_picture) . zip ids . tail $ input_lines
+  in do
+    increment_counter_n "parsed pictures" (fromIntegral $ Set.size pictures)
+    return pictures
 
 main_with_metrics :: WriterT Metrics IO ()
 main_with_metrics = do
   input <- liftIO read_lines
-  slideshow <- make_slideshow $ parse_lines input
+  pictures <- parse_lines input
+  slideshow <- make_slideshow pictures
   liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
   liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
 
