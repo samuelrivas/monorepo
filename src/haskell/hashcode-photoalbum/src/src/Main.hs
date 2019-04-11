@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 import           Control.Monad.Writer
+import           Data.Set             (Set)
 import qualified Data.Set             as Set
 import qualified Data.Text.Lazy       as T
 import qualified Data.Text.Lazy.IO    as TIO
@@ -11,7 +12,7 @@ import           Picture
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
-example :: Set.Set Picture
+example :: Set Picture
 example = Set.fromList [
    Picture {
       ident = 1,
@@ -65,7 +66,7 @@ example = Set.fromList [
       }
   ]
 
-example_2 :: Set.Set Picture
+example_2 :: Set Picture
 example_2 = Set.fromList [
    Picture {
       ident = 1,
@@ -108,7 +109,7 @@ total_interest deck =
 max_depth :: Int
 max_depth = 200
 
-find_next :: Tags -> Set.Set Picture -> Maybe Picture
+find_next :: Tags -> Set Picture -> Maybe Picture
 find_next origin_tags = let
   f acc@(best_interest, _) candidate_picture =
     let candidate_interest =
@@ -119,7 +120,7 @@ find_next origin_tags = let
        else acc
   in snd . foldl f (-1, Nothing) . Set.take max_depth
 
-find_next_v :: Tags -> Picture -> Set.Set Picture -> Maybe Picture
+find_next_v :: Tags -> Picture -> Set Picture -> Maybe Picture
 find_next_v origin_tags v_picture =
   let f acc@(best_interest, _) candidate_picture =
         let candidate_interest =
