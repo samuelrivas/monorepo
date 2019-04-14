@@ -122,7 +122,7 @@ total_interest deck =
 
 -- Limit recursion to avoid quadratic times
 max_depth :: Int
-max_depth = 200
+max_depth = 400
 
 find_next :: Tags -> Set Picture -> Maybe Picture
 find_next origin_tags = let
@@ -210,6 +210,7 @@ show_slideshow slideshow =
 read_lines :: IO [T.Text]
 read_lines = T.lines <$> TIO.getContents
 
+-- Just generate on the whole Int range
 sort_gen :: RVar Int
 sort_gen = Random.uniform minBound maxBound
 
