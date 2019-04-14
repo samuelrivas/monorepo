@@ -2,6 +2,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 import           Control.Monad.Writer
+import           Data.Random          (RVar)
+import qualified Data.Random          as Random
 import           Data.Set             (Set)
 import qualified Data.Set             as Set
 import qualified Data.Text.Lazy       as T
@@ -15,52 +17,62 @@ import           Picture
 example :: Set Picture
 example = Set.fromList [
    Picture {
-      ident = 1,
+      pos = 1,
+      sort_key = 1,
       tag_list = mk_tags ["cat", "beach", "sun"],
       orientation = H
       },
    Picture {
-      ident = 2,
+      pos = 2,
+      sort_key = 2,
       tag_list = mk_tags ["selfie", "smile"],
       orientation = V
       },
   Picture {
-      ident = 3,
+      pos = 3,
+      sort_key = 3,
       tag_list = mk_tags ["garden", "selfie"],
       orientation = V
       },
   Picture {
-      ident = 4,
+      pos = 4,
+      sort_key = 4,
       tag_list = mk_tags ["nature", "vacation"],
       orientation = V
       },
   Picture {
-      ident = 5,
+      pos = 5,
+      sort_key = 5,
       tag_list = mk_tags ["mountain", "bird", "nature"],
       orientation = V
       },
   Picture {
-      ident = 6,
+      pos = 6,
+      sort_key = 6,
       tag_list = mk_tags ["garden", "cat", "vacation", "sun"],
       orientation = H
       },
   Picture {
-      ident = 7,
+      pos = 7,
+      sort_key = 7,
       tag_list = mk_tags ["mountain", "nature", "sun", "selfie"],
       orientation = H
       },
   Picture {
-      ident = 8,
+      pos = 8,
+      sort_key = 8,
       tag_list = mk_tags ["mountain", "nature", "bird", "sun"],
       orientation = H
       },
   Picture {
-      ident = 9,
+      pos = 9,
+      sort_key = 9,
       tag_list = mk_tags ["mountain", "nature", "river", "moon"],
       orientation = H
       },
   Picture {
-      ident = 10,
+      pos = 10,
+      sort_key = 10,
       tag_list = mk_tags ["moon", "selfie", "smile"],
       orientation = V
       }
@@ -69,17 +81,20 @@ example = Set.fromList [
 example_2 :: Set Picture
 example_2 = Set.fromList [
    Picture {
-      ident = 1,
+      pos = 1,
+      sort_key = 1,
       tag_list = mk_tags ["cat", "beach", "sun", "ocean"],
       orientation = H
       },
    Picture {
-      ident = 2,
+      pos = 2,
+      sort_key = 2,
       tag_list = mk_tags ["selfie", "smile", "ship"],
       orientation = V
       },
   Picture {
-      ident = 3,
+      pos = 3,
+      sort_key = 3,
       tag_list = mk_tags ["foo", "bar", "baz"],
       orientation = H
       }
@@ -195,14 +210,23 @@ show_slideshow slideshow =
 read_lines :: IO [T.Text]
 read_lines = T.lines <$> TIO.getContents
 
-parse_lines :: (MonadWriter Metrics m) => [T.Text] -> m (Set Picture)
+sort_gen :: RVar Int
+sort_gen = Random.uniform minBound maxBound
+
+line_to_picture :: Int -> T.Text -> IO Picture
+line_to_picture pos' text =
+  do
+    sort_key' <- Random.sample sort_gen
+    return $ parse_picture pos' sort_key' text
+
+parse_lines :: [T.Text] -> WriterT Metrics IO (Set Picture)
 parse_lines input_lines =
   let
     ids = iterate (+ 1) 0
-    pictures = Set.fromList . fmap (uncurry parse_picture) . zip ids . tail $ input_lines
   in do
-    increment_counter_n "parsed pictures" (fromIntegral $ Set.size pictures)
-    return pictures
+    rpictures <- liftIO . traverse (uncurry line_to_picture) . zip ids . tail $ input_lines
+    increment_counter_n "parsed pictures" (fromIntegral $ length rpictures)
+    return $ Set.fromList rpictures
 
 main_with_metrics :: WriterT Metrics IO ()
 main_with_metrics = do
@@ -220,17 +244,9 @@ main =
 
 -- main :: IO ()
 -- main =
---   do
---     input <- read_lines
---     let slideshow = make_slideshow $ parse_lines input
---       in do
---       putStrLn . T.unpack . show_slideshow $ slideshow
---       putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
-
--- main :: IO ()
--- main =
 --   let
---     slideshow = make_slideshow example
+--     (slideshow, metrics) = runWriter $ make_slideshow example_2
 --   in do
 --     putStrLn . T.unpack . show_slideshow $ slideshow
 --     putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+--     putStrLn $ "Metrics: " ++ show metrics

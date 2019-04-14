@@ -20,10 +20,14 @@ data Orientation = H | V deriving (Eq, Ord, Show)
 type Tags = Set.Set T.Text
 
 data Picture = Picture {
-  ident       :: Int,
+  pos         :: Int, -- ^ Position in the original file, 0 indexed
+  sort_key    :: Int, -- ^ Random key for shuffling in the set
   tag_list    :: Tags,
   orientation :: Orientation
-  } deriving (Eq, Ord, Show)
+  } deriving (Eq, Show)
+
+instance Ord Picture where
+  compare x y = compare (sort_key x) (sort_key y)
 
 type Slide = [Picture]
 
@@ -48,10 +52,9 @@ show_tags = T.unwords . Set.toAscList . get_tags
 show_slide :: Slide -> T.Text
 show_slide slide =
   let
-    ids = T.pack . show . ident <$> slide
+    poss = T.pack . show . pos <$> slide
     format = T.pack . show . orientation <$> slide
     show_part (i, p) = T.concat [i, p]
   in
-    T.concat [T.unwords $ show_part <$> zip ids format,
+    T.concat [T.unwords $ show_part <$> zip poss format,
                T.pack " | ", show_tags slide]
-

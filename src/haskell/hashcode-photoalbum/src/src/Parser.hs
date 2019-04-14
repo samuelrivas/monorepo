@@ -8,13 +8,14 @@ import           Picture
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
-parse_picture :: Int -> T.Text -> Picture
-parse_picture picture_id t =
+parse_picture :: Int -> Int -> T.Text -> Picture
+parse_picture pos' sort_key' t =
   let
     (orient_str:_:tags) = T.words t
   in
     Picture {
-    ident = picture_id,
+    pos = pos',
+    sort_key = sort_key',
     orientation = mk_orientation orient_str,
     tag_list = Set.fromList tags
     }

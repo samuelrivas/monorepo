@@ -8,6 +8,7 @@
 let
   wanted-packages = with haskellPackages; [
     multiset
+    random-fu
   ];
   haskell-packages-selector = pkgs: wanted-packages;
   ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
