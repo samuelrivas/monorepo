@@ -1,13 +1,14 @@
 {-# OPTIONS -Wno-unused-top-binds #-}
 {-# LANGUAGE FlexibleContexts #-}
 
+import           Control.Monad.Trans.Maybe
 import           Control.Monad.Writer
-import           Data.Random          (RVar)
-import qualified Data.Random          as Random
-import           Data.Set             (Set)
-import qualified Data.Set             as Set
-import qualified Data.Text.Lazy       as T
-import qualified Data.Text.Lazy.IO    as TIO
+import           Data.Random               (RVar)
+import qualified Data.Random               as Random
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import qualified Data.Text.Lazy            as T
+import qualified Data.Text.Lazy.IO         as TIO
 import           Metrics
 import           Parser
 import           Picture
@@ -153,11 +154,11 @@ get_next_picture tags pictures =
     next_picture <- find_next tags pictures
     return (next_picture, (`Set.delete` pictures) next_picture)
 
-get_next_slide :: Tags -> Set Picture ->
-  WriterT Metrics Maybe (Slide, Set Picture)
+get_next_slide :: (MonadWriter Metrics m) => Tags -> Set Picture ->
+                  MaybeT m (Slide, Set Picture)
 get_next_slide tags pictures =
   do
-    (next_picture, new_pictures) <- lift $ get_next_picture tags pictures
+    (next_picture, new_pictures) <- MaybeT . return $ get_next_picture tags pictures
     if V == orientation next_picture
       then
       do
@@ -184,14 +185,12 @@ make_slideshow pictures = make_slideshow_rec (mk_tags []) pictures []
 make_slideshow_rec :: (MonadWriter Metrics m) =>
   Tags -> Set Picture -> [Slide] -> m [Slide]
 make_slideshow_rec latest_tags pictures slideshow =
-  let
-    maybe_next_slide = runWriterT $ get_next_slide latest_tags pictures
-  in
+  do
+    maybe_next_slide <- runMaybeT $ get_next_slide latest_tags pictures
     case maybe_next_slide of
       Nothing -> return $ reverse slideshow
-      Just something ->
+      Just (next_slide, next_pictures) ->
         do
-          (next_slide, next_pictures) <- writer something
           increment_counter "rec step"
           make_slideshow_rec
             (get_tags next_slide) next_pictures (next_slide:slideshow)
