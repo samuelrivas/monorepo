@@ -9,6 +9,8 @@ import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
 import qualified Data.Text.Lazy            as T
 import qualified Data.Text.Lazy.IO         as TIO
+import           Data.Vector               (Vector)
+import qualified Data.Vector               as V
 import           Metrics
 import           Parser
 import           Picture
@@ -114,12 +116,12 @@ interest_factor t1 t2 =
   let common = Set.size $ Set.intersection t1 t2
   in minimum [common, Set.size t1 - common, Set.size t2 - common]
 
-total_interest :: [Slide] -> Int
+total_interest :: Vector Slide -> Int
 total_interest deck =
   let
     tags = get_tags <$> deck
   in
-  sum $ uncurry interest_factor <$> zip tags (tail tags)
+  sum $ uncurry interest_factor <$> V.zip tags (V.tail tags)
 
 -- Limit recursion to avoid quadratic times
 max_depth :: Int
@@ -179,32 +181,35 @@ get_next_slide tags pictures =
         increment_counter "H slide"
         return ([next_picture], new_pictures)
 
-make_slideshow :: (MonadWriter Metrics m) => Set Picture -> m [Slide]
-make_slideshow pictures = make_slideshow_rec (mk_tags []) pictures []
+make_slideshow :: (MonadWriter Metrics m) => Set Picture -> m (Vector Slide)
+make_slideshow pictures = make_slideshow_rec (mk_tags []) pictures V.empty
 
 make_slideshow_rec :: (MonadWriter Metrics m) =>
-  Tags -> Set Picture -> [Slide] -> m [Slide]
+  Tags -> Set Picture -> Vector Slide -> m (Vector Slide)
 make_slideshow_rec latest_tags pictures slideshow =
   do
     maybe_next_slide <- runMaybeT $ get_next_slide latest_tags pictures
     case maybe_next_slide of
-      Nothing -> return $ reverse slideshow
+      Nothing -> return $ V.reverse slideshow
       Just (next_slide, next_pictures) ->
         do
           increment_counter "rec step"
           make_slideshow_rec
-            (get_tags next_slide) next_pictures (next_slide:slideshow)
+            (get_tags next_slide) next_pictures (V.cons next_slide slideshow)
 
-show_slideshow :: [Slide] -> T.Text
+show_slideshow :: Vector Slide -> T.Text
 show_slideshow slideshow =
-  let zipped = zip slideshow $ tail slideshow
+  let zipped = V.zip slideshow $ V.tail slideshow
       with_interest (s1, s2) = T.concat [T.pack "\n",
                                          T.pack . show $
                                          interest_factor (get_tags s1) (get_tags s2),
                                          T.pack "\n",
                                          show_slide s2]
+      first_frame = show_slide $ V.head slideshow
+      frames_with_interest = with_interest <$> zipped
+      v_to_text = T.concat . V.toList
   in
-    T.concat $ show_slide (head slideshow) : (with_interest <$> zipped)
+    v_to_text $ V.cons first_frame frames_with_interest
 
 read_lines :: IO [T.Text]
 read_lines = T.lines <$> TIO.getContents
