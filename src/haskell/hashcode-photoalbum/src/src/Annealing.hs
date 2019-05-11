@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 -- {-# OPTIONS -Wno-unused-imports -Wno-unused-top-binds #-}
 module Annealing
   (
@@ -7,77 +9,124 @@ module Annealing
   ) where
 
 import           Control.Monad.Loops
-import           Control.Monad.State
-import           Data.Random         (RVar, RVarT)
-import qualified Data.Random         as Random
+import           Control.Monad.RWS
+import           Data.Functor.Identity (Identity)
+import           Data.Random           (RVar)
+import qualified Data.Random           as Random
+import           Metrics
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
-type Temp = Double
+-- Ideas to improve:
+--
+--   Add metrics
+--
+--   Add statistics in the writer about:
+--     - The range of delta, as this is useful to tune the temp parameters
+--     - Acceptance rate of negatives per temperature
+--     - Rate of downhill moves per temperature
+--
+--   Consider normalizing delta, as in delta/current_cost, althought that
+--   doesn't seem to make a lot of sense in general.
 
-newtype CandidateGen solution = MkGen {
-  runCandidateGen :: (Double, solution) -> RVar (Double, solution)
+type Temp = Double
+type AnnealRWS sol = (AnnealRWST sol) Identity
+type AnnealRWST sol = RWST (AnnealConfig sol) Metrics (AnnealState sol)
+
+class MonadRWS (AnnealConfig sol) Metrics (AnnealState sol) m =>
+  MonadAnneal sol m
+
+instance MonadAnneal sol (AnnealRWS sol)
+instance Monad m => MonadAnneal sol (AnnealRWST sol m)
+
+-- Wrapping just to make this an instance of show
+newtype CandidateGen sol = MkGen {
+  runCandidateGen :: (Double, sol) -> RVar (Double, sol)
   }
 
 instance Show (CandidateGen s) where
   show _ = "CandidateGen"
 
-data AnnealState solution = AnnealState {
+data AnnealConfig solution = AnnealConfig {
+  initial_temp   :: Temp,
+  steps_per_temp :: Integer,
+  cooldown_ratio :: Double,
+  candidate_gen  :: CandidateGen solution
+  }
+
+data AnnealState sol = AnnealState {
   temp              :: Temp,
   current_iteration :: Integer,
-  steps_per_temp    :: Integer,
-  cooldown_ratio    :: Double,
   min_cost          :: Double,
-  best_solution     :: solution,
+  best_sol          :: sol,
   current_cost      :: Double,
-  current_solution  :: solution,
-  candidate_gen     :: CandidateGen solution
+  current_solution  :: sol
   } deriving Show
 
-initial_state :: (Double, solution) -> AnnealState solution
-initial_state (cost, solution) =
-  AnnealState {
-  temp = 1000,
-  current_iteration = 1,
+-- initial_state :: (Double, sol) -> AnnealState sol
+-- initial_state (cost, sol) =
+--   AnnealState {
+--   temp = 1000,
+--   current_iteration = 1,
+--   min_cost = cost,
+--   best_sol = sol,
+--   current_cost = cost,
+--   current_solution = sol
+--   }
+
+initial_state :: MonadReader (AnnealConfig sol) m =>
+  (Double, sol) -> m (AnnealState sol)
+initial_state (cost, sol) =
+  do
+    t <- asks initial_temp
+    return $ AnnealState {
+      temp = t,
+      current_iteration = 1,
+      min_cost = cost,
+      best_sol = sol,
+      current_cost = cost,
+      current_solution = sol
+      }
+
+default_config :: AnnealConfig sol
+default_config =
+  AnnealConfig {
+  initial_temp = 1000,
   steps_per_temp = 1000,
   cooldown_ratio = 0.97,
-  min_cost = cost,
-  best_solution = solution,
-  current_cost = cost,
-  current_solution = solution,
   candidate_gen = MkGen return
   }
 
 -- | Reduce the temperature if needed
-cooldown :: MonadState (AnnealState solution) m => m ()
+-- cooldown :: MonadRWS r w (AnnealState solution) m => m ()
+cooldown :: MonadAnneal solution m => m ()
 cooldown =
   do
-    steps <- gets steps_per_temp
+    steps <- asks steps_per_temp
     iteration <- gets current_iteration
     t <- gets temp
-    ratio <- gets cooldown_ratio
+    ratio <- asks cooldown_ratio
 
     let new_t = t * ratio
     when (iteration `mod` steps == 0) $ modify (\s -> s { temp = new_t })
     modify $ \s -> s { current_iteration = iteration + 1 }
 
-accept_solution :: Double -> StateT (AnnealState state) RVar Bool
+accept_solution :: Double -> (AnnealRWST solution) RVar Bool
 accept_solution new_cost =
   do old_cost <- gets current_cost
      t <- gets temp
      let delta = new_cost - old_cost
-     let k = 1 / 100
-     let e = exp 1 :: Double
+     let p = exp ((-delta)/t)
      if delta < 0
        then return True
        else
        do coin_flip <- lift . Random.sample $ Random.uniform 0 1
-          return $ e ** ((-delta/old_cost)/(k * t)) > coin_flip
+          return $ p > coin_flip
 
-anneal_step :: StateT (AnnealState solution) RVar ()
+anneal_step :: (AnnealRWST solution) RVar ()
 anneal_step = do
   sol <- gets current_solution
   cost <- gets current_cost
-  gen  <- gets candidate_gen
+  gen  <- asks candidate_gen
   (cost', sol') <- lift . Random.sample $ runCandidateGen gen (cost, sol)
   accept <- accept_solution cost'
 
@@ -86,7 +135,7 @@ anneal_step = do
   when accept $
     modify $ \s -> s { current_solution = sol', current_cost = cost' }
 
-anneal_to_temp :: Temp -> StateT (AnnealState state) RVar ()
+anneal_to_temp :: Temp -> (AnnealRWST solution) RVar ()
 anneal_to_temp cool_temp =
   let hot = (> cool_temp) <$> gets temp
   in whileM_ hot anneal_step
@@ -100,10 +149,11 @@ mutate_solution :: Double -> RVar Double
 mutate_solution x =
   min 15 . max (-15) <$> Random.normal x 0.5
 
-test_state :: AnnealState Double
-test_state =
-  let gen (_, s) = do
-        candidate <- mutate_solution s
-        return (-f candidate, candidate)
-  in
-    (initial_state (-f 0, 0)) { candidate_gen = MkGen gen }
+test_gen :: CandidateGen Double
+test_gen = MkGen $ \(_, s) ->
+                     do
+                       candidate <- mutate_solution s
+                       return (-f candidate, candidate)
+
+test_state :: MonadReader (AnnealConfig Double) m => m (AnnealState Double)
+test_state = initial_state (-f 0, 0)
