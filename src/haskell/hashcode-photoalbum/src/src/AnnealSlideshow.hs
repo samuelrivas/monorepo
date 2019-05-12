@@ -44,14 +44,17 @@ edge_interest slideshow pos_1 pos_2 =
   in
     fromMaybe 0 $ interest_factor <$> tags_1 <*> tags_2
 
--- What would the interest score difference if we swapped two positions?
-interest_diff :: Vector Slide -> Int -> Int -> Int
-interest_diff slideshow pos_1 pos_2 =
-  0
 
 mutate_slideshow :: Vector Slide -> Int -> Int -> (Int, Vector Slide)
-mutate_slideshow slideshow position_1 position_2 =
-    (0, swap_pictures slideshow position_1 position_2)
+mutate_slideshow slideshow pos_1 pos_2 =
+  let
+    interest_out = sum
+      $ neighbourhood_interest slideshow <$> [pos_1, pos_2]
+    mutant = swap_pictures slideshow pos_1 pos_2
+    interest_in = sum
+      $ neighbourhood_interest mutant <$> [pos_1, pos_2]
+  in
+    (interest_in - interest_out, mutant)
 
 slideshow_gen :: (Double, Vector Slide) -> RVar (Double, Vector Slide)
 slideshow_gen (cost, slideshow) =
@@ -61,7 +64,7 @@ slideshow_gen (cost, slideshow) =
     position_1 <- Random.sample position_gen
     position_2 <- Random.sample position_gen
     let (diff, mutant) = mutate_slideshow slideshow position_1 position_2
-    return (cost + fromIntegral diff, mutant)
+    return (cost - fromIntegral diff, mutant)
 
 anneal_slideshow :: Vector Slide -> RVar ((Int, Vector Slide), Metrics)
 anneal_slideshow slideshow =
