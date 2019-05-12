@@ -6,6 +6,7 @@ module Annealing
   (
     CandidateGen (..),
     AnnealConfig (..),
+    AnnealState (..), --FIXME Don't expose the state!
     anneal_to_temp,
     exec_anneal_t,
     default_config
@@ -88,13 +89,13 @@ initial_state (cost, sol) =
       current_solution = sol
       }
 
-default_config :: AnnealConfig sol
-default_config =
+default_config :: CandidateGen sol -> AnnealConfig sol
+default_config gen =
   AnnealConfig {
   initial_temp = 1000,
   steps_per_temp = 1000,
   cooldown_ratio = 0.97,
-  candidate_gen = MkGen return
+  candidate_gen = gen
   }
 
 -- | Reduce the temperature if needed
@@ -146,6 +147,6 @@ anneal_to_temp cool_temp =
 exec_anneal_t :: Monad m =>
   (AnnealRWST sol) m a -> AnnealConfig sol -> (Double, sol)
   -> m (AnnealState sol, Metrics)
-exec_anneal_t comp config starting_point =
+exec_anneal_t computation config starting_point =
   let s = runReader (initial_state  starting_point) config
-  in execRWST comp config s
+  in execRWST computation config s
