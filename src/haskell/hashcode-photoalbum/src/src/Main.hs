@@ -1,6 +1,7 @@
 --{-# OPTIONS -Wno-unused-top-binds #-}
 {-# LANGUAGE FlexibleContexts #-}
 
+import           AnnealSlideshow
 import           Control.Monad.Writer
 import           Data.Random          (RVar)
 import qualified Data.Random          as Random
@@ -15,7 +16,6 @@ import           Metrics
 import           Parser
 import           Picture
 import           Slideshow
-
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 example :: Set Picture
