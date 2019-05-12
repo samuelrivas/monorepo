@@ -4,6 +4,7 @@
 -- {-# OPTIONS -Wno-unused-imports -Wno-unused-top-binds #-}
 module Annealing
   (
+    CandidateGen (..),
     anneal_to_temp,
     exec_anneal_t,
     default_config
@@ -137,18 +138,3 @@ exec_anneal_t :: Monad m =>
 exec_anneal_t comp config starting_point =
   let s = runReader (initial_state  starting_point) config
   in execRWST comp config s
-
--- Just for testing
-
-f :: Double -> Double
-f x = ( x * x + x) * cos (2 * x) + 20
-
-mutate_solution :: Double -> RVar Double
-mutate_solution x =
-  min 15 . max (-15) <$> Random.normal x 0.5
-
-test_gen :: CandidateGen Double
-test_gen = MkGen $ \(_, s) ->
-                     do
-                       candidate <- mutate_solution s
-                       return (-f candidate, candidate)
