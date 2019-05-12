@@ -125,6 +125,8 @@ anneal_step = do
 
   cooldown
 
+  when (cost' < cost) $
+    modify $ \s -> s { best_sol = sol', min_cost = cost' }
   when accept $
     modify $ \s -> s { current_solution = sol', current_cost = cost' }
 
