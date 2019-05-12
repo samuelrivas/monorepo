@@ -24,13 +24,17 @@ import           Metrics
 --
 --   Add metrics
 --
+--   Make cost a type on its own instead of Double, as it is quite easy to
+--   confuse costs and solutions if the problem we were trying to minimise were,
+--   for example, a function on real numbers
+--
 --   Add statistics in the writer about:
 --     - The range of delta, as this is useful to tune the temp parameters
 --     - Acceptance rate of negatives per temperature
 --     - Rate of downhill moves per temperature
 --
---   Consider normalizing delta, as in delta/current_cost, althought that
---   doesn't seem to make a lot of sense in general.
+--   Add anneal_to_steps, and utilities to output metrics and best solution
+--   periodically while running in IO
 
 type Temp = Double
 type AnnealRWS sol = (AnnealRWST sol) Identity
@@ -42,7 +46,11 @@ class MonadRWS (AnnealConfig sol) Metrics (AnnealState sol) m =>
 instance MonadAnneal sol (AnnealRWS sol)
 instance Monad m => MonadAnneal sol (AnnealRWST sol m)
 
--- Wrapping just to make this an instance of show
+-- | A Generate a new candidate solution given the current one. It gets also the
+-- current cost, and should return the cost of the new solution. It is problem
+-- specific wether to prefer to calculate the cost from scratch for every
+-- solution or to return a cost delta, so we support both operations by giving
+-- enough context
 newtype CandidateGen sol = MkGen {
   runCandidateGen :: (Double, sol) -> RVar (Double, sol)
   }
