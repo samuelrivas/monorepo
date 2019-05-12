@@ -5,6 +5,7 @@
 module Annealing
   (
     CandidateGen (..),
+    AnnealConfig (..),
     anneal_to_temp,
     exec_anneal_t,
     default_config
