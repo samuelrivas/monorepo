@@ -128,13 +128,14 @@ anneal_step :: (AnnealRWST solution) RVar ()
 anneal_step = do
   sol <- gets current_solution
   cost <- gets current_cost
+  best_cost <- gets min_cost
   gen  <- asks candidate_gen
   (cost', sol') <- lift . Random.sample $ runCandidateGen gen (cost, sol)
   accept <- accept_solution cost'
 
   cooldown
 
-  when (cost' < cost) $
+  when (cost' < best_cost) $
     modify $ \s -> s { best_sol = sol', min_cost = cost' }
   when accept $
     modify $ \s -> s { current_solution = sol', current_cost = cost' }
@@ -148,5 +149,5 @@ exec_anneal_t :: Monad m =>
   (AnnealRWST sol) m a -> AnnealConfig sol -> (Double, sol)
   -> m (AnnealState sol, Metrics)
 exec_anneal_t computation config starting_point =
-  let s = runReader (initial_state  starting_point) config
+  let s = runReader (initial_state starting_point) config
   in execRWST computation config s

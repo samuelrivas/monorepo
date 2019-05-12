@@ -7,8 +7,10 @@ HS-FILES := $(wildcard src/*.hs)
 OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
 DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
-GHC-FLAGS := -Wall -prof -fprof-auto -rtsopts -fexternal-interpreter -outputdir $(LIB-DIR)
-GHC-LD-FLAGS := -Wall -prof -rtsopts
+# Profiler
+#GHC-FLAGS := -Wall -prof -fprof-auto -rtsopts -fexternal-interpreter -outputdir $(LIB-DIR)
+GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
+GHC-LD-FLAGS := -Wall
 GHC := ghc $(GHC-FLAGS)
 
 GHC-PACKAGES := text containers multiset mtl random-fu

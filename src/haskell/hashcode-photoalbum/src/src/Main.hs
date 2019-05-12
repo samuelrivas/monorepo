@@ -11,7 +11,7 @@ import qualified Data.Text.Lazy       as T
 import qualified Data.Text.Lazy.IO    as TIO
 import           Data.Vector          (Vector)
 import qualified Data.Vector          as V
-import           EagerSlideshow
+import           GreedySlideshow
 import           Metrics
 import           Parser
 import           Picture
@@ -149,13 +149,19 @@ parse_lines input_lines =
     increment_counter_n "parsed pictures" (fromIntegral $ length rpictures)
     return $ Set.fromList rpictures
 
+-- TODO anneal in the same writer monad
 main_with_metrics :: WriterT Metrics IO ()
 main_with_metrics = do
   input <- liftIO read_lines
   pictures <- parse_lines input
   slideshow <- make_slideshow pictures
-  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
+--  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
   liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
+  liftIO . putStrLn $ "Beginning annealing process"
+  optimised <- liftIO . Random.sample $ anneal_slideshow slideshow
+--  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
+  liftIO . putStrLn $ "Alleged improvement " ++ (show . fst . fst $optimised)
+  liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ snd . fst $ optimised)
 
 main :: IO ()
 main =

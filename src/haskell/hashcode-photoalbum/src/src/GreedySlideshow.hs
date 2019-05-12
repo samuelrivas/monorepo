@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module EagerSlideshow
+module GreedySlideshow
   (
     make_slideshow
   ) where
@@ -18,7 +18,7 @@ import           Slideshow
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 max_depth :: Int
-max_depth = 400
+max_depth = 10
 
 find_next :: Tags -> Set Picture -> Maybe Picture
 find_next origin_tags = let
