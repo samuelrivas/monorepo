@@ -5,10 +5,12 @@
 module Annealing
   (
     anneal_to_temp,
-    initial_state
+    exec_anneal_t,
+    default_config
   ) where
 
 import           Control.Monad.Loops
+import           Control.Monad.Reader  (runReader)
 import           Control.Monad.RWS
 import           Data.Functor.Identity (Identity)
 import           Data.Random           (RVar)
@@ -51,7 +53,7 @@ data AnnealConfig solution = AnnealConfig {
   steps_per_temp :: Integer,
   cooldown_ratio :: Double,
   candidate_gen  :: CandidateGen solution
-  }
+  } deriving Show
 
 data AnnealState sol = AnnealState {
   temp              :: Temp,
@@ -61,17 +63,6 @@ data AnnealState sol = AnnealState {
   current_cost      :: Double,
   current_solution  :: sol
   } deriving Show
-
--- initial_state :: (Double, sol) -> AnnealState sol
--- initial_state (cost, sol) =
---   AnnealState {
---   temp = 1000,
---   current_iteration = 1,
---   min_cost = cost,
---   best_sol = sol,
---   current_cost = cost,
---   current_solution = sol
---   }
 
 initial_state :: MonadReader (AnnealConfig sol) m =>
   (Double, sol) -> m (AnnealState sol)
@@ -140,6 +131,13 @@ anneal_to_temp cool_temp =
   let hot = (> cool_temp) <$> gets temp
   in whileM_ hot anneal_step
 
+exec_anneal_t :: Monad m =>
+  (AnnealRWST sol) m a -> AnnealConfig sol -> (Double, sol)
+  -> m (AnnealState sol, Metrics)
+exec_anneal_t comp config starting_point =
+  let s = runReader (initial_state  starting_point) config
+  in execRWST comp config s
+
 -- Just for testing
 
 f :: Double -> Double
@@ -154,6 +152,3 @@ test_gen = MkGen $ \(_, s) ->
                      do
                        candidate <- mutate_solution s
                        return (-f candidate, candidate)
-
-test_state :: MonadReader (AnnealConfig Double) m => m (AnnealState Double)
-test_state = initial_state (-f 0, 0)
