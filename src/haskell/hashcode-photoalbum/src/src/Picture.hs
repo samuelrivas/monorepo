@@ -6,6 +6,7 @@ module Picture
   , mk_tags
   , mk_orientation
   , get_tags
+  , get_orientation
   , show_tags
   , show_slide
   ) where
@@ -45,6 +46,17 @@ mk_orientation t
 
 get_tags :: Slide -> Tags
 get_tags = foldl (flip $ Set.union . tag_list) Set.empty
+
+get_orientation :: Slide -> Orientation
+get_orientation [s] =
+  if orientation s == V
+  then undefined
+  else H
+get_orientation [s1, s2] =
+  if orientation s1 == H || orientation s2 == H
+  then undefined
+  else V
+get_orientation _ = undefined
 
 show_tags :: Slide -> T.Text
 show_tags = T.unwords . Set.toAscList . get_tags
