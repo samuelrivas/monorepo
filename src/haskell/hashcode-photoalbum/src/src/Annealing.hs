@@ -8,6 +8,7 @@ module Annealing
     AnnealConfig (..),
     AnnealState (..), --FIXME Don't expose the state!
     anneal_to_temp,
+    anneal_to_iteration,
     exec_anneal_t,
     default_config
   ) where
@@ -144,6 +145,11 @@ anneal_to_temp :: Temp -> (AnnealRWST solution) RVar ()
 anneal_to_temp cool_temp =
   let hot = (> cool_temp) <$> gets temp
   in whileM_ hot anneal_step
+
+anneal_to_iteration :: Integer -> (AnnealRWST solution) RVar ()
+anneal_to_iteration iteration =
+  let not_passed = (< iteration) <$> gets current_iteration
+  in whileM_ not_passed anneal_step
 
 exec_anneal_t :: Monad m =>
   (AnnealRWST sol) m a -> AnnealConfig sol -> (Double, sol)
