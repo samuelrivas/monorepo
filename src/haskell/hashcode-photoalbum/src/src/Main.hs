@@ -158,10 +158,11 @@ main_with_metrics = do
 --  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
   liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
   liftIO . putStrLn $ "Beginning annealing process"
-  optimised <- liftIO . Random.sample $ anneal_slideshow slideshow
+  (optimised, metrics) <- liftIO $ Random.sample $ runWriterT $ anneal_slideshow slideshow
+  tell metrics
 --  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
-  liftIO . putStrLn $ "Alleged improvement " ++ (show . fst . fst $optimised)
-  liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ snd . fst $ optimised)
+  liftIO . putStrLn $ "Alleged improvement " ++ (show . fst $ optimised)
+  liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ snd optimised)
 
 main :: IO ()
 main =

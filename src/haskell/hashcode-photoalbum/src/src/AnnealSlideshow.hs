@@ -1,4 +1,5 @@
 {-# OPTIONS -Wno-unused-top-binds #-}
+{-# LANGUAGE FlexibleContexts #-}
 module AnnealSlideshow
   (
     anneal_slideshow
@@ -6,12 +7,13 @@ module AnnealSlideshow
 where
 
 import qualified Annealing
+import           Control.Monad.Writer
 import           Data.Maybe
-import           Data.Random (RVar)
-import qualified Data.Random as Random
-import qualified Data.Set    as Set
-import           Data.Vector (Vector, (!), (!?), (//))
-import qualified Data.Vector as V
+import           Data.Random          (RVar)
+import qualified Data.Random          as Random
+import qualified Data.Set             as Set
+import           Data.Vector          (Vector, (!), (!?), (//))
+import qualified Data.Vector          as V
 import           Metrics
 import           Picture
 import           Slideshow
@@ -84,7 +86,8 @@ slideshow_gen (cost, slideshow) =
       (diff, mutant) <- mutate_slideshow slideshow position_1 position_2
       return (cost - fromIntegral diff, mutant)
 
-anneal_slideshow :: Vector Slide -> RVar ((Int, Vector Slide), Metrics)
+anneal_slideshow ::
+  Vector Slide -> WriterT Metrics RVar (Int, Vector Slide)
 anneal_slideshow slideshow =
   let score = total_interest slideshow
       config = (Annealing.default_config $ Annealing.MkGen slideshow_gen) {
@@ -92,11 +95,7 @@ anneal_slideshow slideshow =
         Annealing.steps_per_temp = 1000,
         Annealing.cooldown_ratio = 0.97
         }
-  in do
-      (anneal_state, metrics) <- Annealing.exec_anneal_t
-                                 (Annealing.anneal_to_temp 0.0001)
-                                 config
-                                 (fromIntegral (-score), slideshow)
-      return ((-(round . Annealing.min_cost $ anneal_state),
-               Annealing.best_sol anneal_state),
-              metrics)
+      starting_point = (-fromIntegral score, slideshow)
+      from_cost (a, x) = (round (-a), x)
+      anneal_m = Annealing.run_anneal (Annealing.anneal_to_iteration 100)
+  in from_cost <$> anneal_m config starting_point

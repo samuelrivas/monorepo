@@ -9,13 +9,14 @@ module Annealing
     AnnealState (..), --FIXME Don't expose the state!
     anneal_to_temp,
     anneal_to_iteration,
-    exec_anneal_t,
+    run_anneal,
     default_config
   ) where
 
 import           Control.Monad.Loops
 import           Control.Monad.Reader  (runReader)
 import           Control.Monad.RWS
+import           Control.Monad.Writer
 import           Data.Functor.Identity (Identity)
 import           Data.Random           (RVar)
 import qualified Data.Random           as Random
@@ -110,7 +111,10 @@ cooldown =
     ratio <- asks cooldown_ratio
 
     let new_t = t * ratio
-    when (iteration `mod` steps == 0) $ modify (\s -> s { temp = new_t })
+    when (iteration `mod` steps == 0) $ do
+      modify (\s -> s { temp = new_t })
+      increment_counter "cooldown"
+
     modify $ \s -> s { current_iteration = iteration + 1 }
 
 accept_solution :: Double -> (AnnealRWST solution) RVar Bool
@@ -136,9 +140,12 @@ anneal_step = do
 
   cooldown
 
-  when (cost' < best_cost) $
+  when (cost' < best_cost) $ do
     modify $ \s -> s { best_sol = sol', min_cost = cost' }
-  when accept $
+    increment_counter "improved_solution"
+
+  when accept $ do
+    increment_counter "accepted_solution"
     modify $ \s -> s { current_solution = sol', current_cost = cost' }
 
 anneal_to_temp :: Temp -> (AnnealRWST solution) RVar ()
@@ -151,9 +158,12 @@ anneal_to_iteration iteration =
   let not_passed = (< iteration) <$> gets current_iteration
   in whileM_ not_passed anneal_step
 
-exec_anneal_t :: Monad m =>
-  (AnnealRWST sol) m a -> AnnealConfig sol -> (Double, sol)
-  -> m (AnnealState sol, Metrics)
-exec_anneal_t computation config starting_point =
+run_anneal :: (AnnealRWST solution) RVar ()
+  -> AnnealConfig solution
+  -> (Double, solution)
+  -> WriterT Metrics RVar (Double, solution)
+run_anneal computation config starting_point =
   let s = runReader (initial_state starting_point) config
-  in execRWST computation config s
+  in WriterT $ do
+    ((), end_state, w) <- runRWST computation config s
+    return ((min_cost end_state, best_sol end_state), w)
