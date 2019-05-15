@@ -91,7 +91,7 @@ anneal_slideshow ::
 anneal_slideshow slideshow =
   let score = total_interest slideshow
       config = (Annealing.default_config $ Annealing.MkGen slideshow_gen) {
-        Annealing.initial_temp = 15,
+        Annealing.initial_temp = 5,
         Annealing.steps_per_temp = 1000,
         Annealing.cooldown_ratio = 0.97
         }
