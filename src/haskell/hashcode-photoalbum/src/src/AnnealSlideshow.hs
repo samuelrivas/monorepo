@@ -86,6 +86,12 @@ slideshow_gen (cost, slideshow) =
       (diff, mutant) <- mutate_slideshow slideshow position_1 position_2
       return (cost - fromIntegral diff, mutant)
 
+-- Annealing with this transition generator doesn't seem to be capable of
+-- improving the greedy result unless lookahead is extremely limited. Greedy
+-- actually outperforms annealing from scratch by a few hundred points in the
+-- smallest dataset. Temperature seems to be correct as we get about 80%
+-- acceptance rate in the highest temperatures, so a better mutation seems to be
+-- needed
 anneal_slideshow ::
   Vector Slide -> WriterT Metrics RVar (Int, Vector Slide)
 anneal_slideshow slideshow =
@@ -97,5 +103,5 @@ anneal_slideshow slideshow =
         }
       starting_point = (-fromIntegral score, slideshow)
       from_cost (a, x) = (round (-a), x)
-      anneal_m = Annealing.run_anneal (Annealing.anneal_to_iteration 100)
+      anneal_m = Annealing.run_anneal (Annealing.anneal_to_iteration 10)
   in from_cost <$> anneal_m config starting_point

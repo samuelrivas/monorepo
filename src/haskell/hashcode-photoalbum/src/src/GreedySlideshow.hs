@@ -17,6 +17,8 @@ import           Slideshow
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
+-- Lookahead paremeter. Increase it for better results, decrease it for shorter
+-- times
 max_depth :: Int
 max_depth = 400
 
