@@ -162,7 +162,7 @@ anneal_to_temp cool_temp =
 
 anneal_to_iteration :: Integer -> (AnnealRWST solution) RVar ()
 anneal_to_iteration iteration =
-  let not_passed = (< iteration) <$> gets current_iteration
+  let not_passed = (<= iteration) <$> gets current_iteration
   in whileM_ not_passed anneal_step
 
 run_anneal :: (AnnealRWST solution) RVar ()
