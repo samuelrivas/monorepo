@@ -113,7 +113,7 @@ cooldown =
     let new_t = t * ratio
     when (iteration `mod` steps == 0) $ do
       modify (\s -> s { temp = new_t })
-      increment_counter "cooldown"
+      increment_counter "annealing.cooldown"
 
     modify $ \s -> s { current_iteration = iteration + 1 }
 
@@ -124,10 +124,16 @@ accept_solution new_cost =
      let delta = new_cost - old_cost
      let p = exp ((-delta)/t)
      if delta < 0
-       then return True
+       then
+       do
+         increment_counter "annealing.energy_lowered"
+         return True
        else
        do coin_flip <- lift . Random.sample $ Random.uniform 0 1
-          return $ p > coin_flip
+          increment_counter "annealing.energy_increased"
+          let accept = p > coin_flip
+          when accept $ increment_counter "annealing.random_accept"
+          return accept
 
 anneal_step :: (AnnealRWST solution) RVar ()
 anneal_step = do
@@ -140,12 +146,13 @@ anneal_step = do
 
   cooldown
 
+  increment_counter "annealing.solution_proposed"
   when (cost' < best_cost) $ do
     modify $ \s -> s { best_sol = sol', min_cost = cost' }
-    increment_counter "improved_solution"
+    increment_counter "annealing.solution_improved"
 
   when accept $ do
-    increment_counter "accepted_solution"
+    increment_counter "annealing.solution_accepted"
     modify $ \s -> s { current_solution = sol', current_cost = cost' }
 
 anneal_to_temp :: Temp -> (AnnealRWST solution) RVar ()
