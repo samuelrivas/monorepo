@@ -109,6 +109,14 @@ let
 
     # Haskell stuff
     # =============
+    profiledHaskellPackages = pkgs.haskellPackages.override {
+      overrides = self: super: {
+        mkDerivation = args: super.mkDerivation (args // {
+          enableLibraryProfiling = true;
+        });
+      };
+    };
+
     name-generator = callPackage ./../src/haskell/name-generator/nix {
       haskellPackages = pkgs.haskell.packages.ghc802;
       sandbox = false;
@@ -117,6 +125,13 @@ let
       sandbox = false;
     };
     boardgamer = callPackage ./../src/haskell/boardgamer/nix {
+      sandbox = false;
+    };
+    hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
+      haskellPackages = self.profiledHaskellPackages;
+      sandbox = true;
+    };
+    hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
       sandbox = false;
     };
 
