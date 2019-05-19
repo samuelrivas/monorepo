@@ -139,6 +139,13 @@ let
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
       sandbox = false;
     };
+    concurrent-haskell-sandbox = callPackage ./../src/haskell/concurrent-haskell/nix {
+      haskellPackages = self.profiledHaskellPackages;
+      sandbox = true;
+    };
+    concurrent-haskell = callPackage ./../src/haskell/concurrent-haskell/nix {
+      sandbox = false;
+    };
 
     # Shell-scripts
     # =============
