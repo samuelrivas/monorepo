@@ -28,8 +28,10 @@ blend_verticals slideshow pos_1 pos_2 =
   let
     slide_1 = slideshow ! pos_1
     slide_2 = slideshow ! pos_2
+    always_4 (a:b:c:d:_) = (a, b, c, d) -- I know, I know, ...
+    always_4 _           = undefined
   in do
-    [s1, s2, s3, s4] <- Random.shuffle (slide_1 ++ slide_2)
+    (s1, s2, s3, s4) <- always_4 <$> Random.shuffle (slide_1 ++ slide_2)
     return $ slideshow // [(pos_1, [s1, s2]), (pos_2, [s3, s4])]
 
 swap_pictures :: Vector Slide ->  Int -> Int -> RVar (Vector Slide)
