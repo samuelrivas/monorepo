@@ -95,7 +95,7 @@ let
                                   terraform-mode yaml-mode;
         inherit (emacsPackages) scalaMode2 erlangMode colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
-        inherit (ocamlPackages_4_02) merlin ocp-indent utop;
+        inherit (ocamlPackages_4_03) merlin ocp-indent utop;
         emacs-config-options = self.local-config.emacs-config;
       });
 
