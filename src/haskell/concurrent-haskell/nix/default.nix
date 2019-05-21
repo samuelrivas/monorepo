@@ -18,6 +18,7 @@ let
     repa
     utf8-string
     xml
+    threadscope
   ];
   haskell-packages-selector = pkgs: wanted-packages;
   ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
