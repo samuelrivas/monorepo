@@ -24,7 +24,7 @@ let
 in
 stdenv.mkDerivation (sandbox-extras // {
   src = ./../src;
-  name = "reservoir";
+  name = "finndb";
   buildInputs = [
     boost
     cpplint
