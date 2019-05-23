@@ -147,6 +147,8 @@ let
       nix-root = self.local-config.sams-pkgs.dir + "/default.nix";
     };
 
+    commit-hook-ticket-prefix = callPackage ./../src/shell/commit-hook-ticket-prefix/nix { };
+
     # C++ stuff
     # =========
     reservoir = callPackage ./../src/c++/reservoir/nix {
