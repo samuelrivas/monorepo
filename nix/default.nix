@@ -118,8 +118,10 @@ let
     };
 
     name-generator = callPackage ./../src/haskell/name-generator/nix {
-      haskellPackages = pkgs.haskell.packages.ghc802;
       sandbox = false;
+    };
+    name-generator-sandbox = callPackage ./../src/haskell/name-generator/nix {
+      sandbox = true;
     };
     ds-processing = callPackage ./../src/haskell/ds-processing/nix {
       sandbox = false;

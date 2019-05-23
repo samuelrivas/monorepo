@@ -7,7 +7,6 @@
 let
   wanted-packages = with haskellPackages; [
     random-fu
-    encoding-io
   ];
   haskell-packages-selector = pkgs: wanted-packages;
   ghc = haskellPackages.ghcWithPackages haskell-packages-selector;

@@ -1,6 +1,5 @@
 {
   emacs,
-  empty-builder,
   haskellPackages,
   sandbox,
   stdenv,

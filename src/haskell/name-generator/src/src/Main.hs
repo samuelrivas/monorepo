@@ -5,7 +5,6 @@ import qualified Data.Random                      as Random
 import qualified Data.Random.Distribution.Poisson as Poisson
 import qualified Data.Set                         as Set
 import qualified System.IO                        as SIO
-import qualified System.IO.Encoding               as Encoding
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -253,6 +252,6 @@ main =
 
   in do
     word <- Random.sample $ word_gen syllable syllable_length
-    SIO.hSetEncoding SIO.stdout Encoding.utf8
+    SIO.hSetEncoding SIO.stdout SIO.utf8
     putStrLn $ format_word word
     putStrLn $ print_word consonant_orthography vowel_orthography word
