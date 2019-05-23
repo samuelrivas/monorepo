@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+#
+# This script requires next environmet variables to be set
+#  * SH_LIB: the lib directory to load utils from
+
+set -euo pipefail
+
+source $SH_LIB/prelude.sh
+
+## Constants
+##====================================================================
+
+## Functions
+##====================================================================
+usage() {
+    echo
+    echo "$PROGNAME"
+    echo
+    echo This will just install a commit-msg in the git repo you are
+    echo
+}
+
+get_git_hooks_dir() {
+    local toplevel
+
+    toplevel="$(git rev-parse --show-toplevel)"
+    echo "$toplevel/.git/hooks"
+}
+
+assert_doesnt_exist() {
+    local target="$1"
+
+    if [[ -e "$target" ]]; then
+        fail "$target already exists"
+    fi
+}
+
+main() {
+    if (($NARGS != 0)); then
+        usage
+        exit 1
+    fi
+
+    local hooks_dir="$(get_git_hooks_dir)"
+    local target="$hooks_dir/commit-msg"
+
+    assert_doesnt_exist "$target"
+    cp "$PROGDIR/../lib/commit-hook-ticket-prefix" "$target"
+    echo "Installed, enjoy :)"
+}
+
+## Functions
+##====================================================================
+main
+

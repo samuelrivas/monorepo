@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -euo pipefail
+
+readonly MSG_FILE="$1"
+readonly BRANCH="$(git symbolic-ref HEAD)"
+readonly TICKET_PREFIX="$(echo $BRANCH | sed -ne 's|.*/\([a-zA-Z]*-[0-9]*\)-.*$|\1|p')"
+readonly CURRENT_PREFIX="$(sed "$MSG_FILE" -ne '1s|^\([a-zA-Z]*-[0-9]*: \).*|\1|p')"
+
+if [[ -n "$TICKET_PREFIX" ]]; then
+    sed -ie "1s/^$CURRENT_PREFIX/$TICKET_PREFIX: /" "$MSG_FILE"
+fi
