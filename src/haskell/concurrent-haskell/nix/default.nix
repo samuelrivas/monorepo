@@ -13,6 +13,7 @@ let
     distributed-process
     distributed-process-simplelocalnet
     http-conduit
+    hoogle
     monad-par
     normaldistribution
     repa
