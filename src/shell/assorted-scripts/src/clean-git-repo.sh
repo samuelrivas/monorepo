@@ -5,6 +5,11 @@
 
 set -e
 
+if [ $# -ne 0 ]; then
+    echo "You probably don't know what you are doing. Aborting!"
+    exit 1
+fi
+
 SAVE_FILES_FILE="$HOME/.clean-git-repo.save-files"
 
 if [ -f $SAVE_FILES_FILE ]; then
