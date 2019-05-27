@@ -1,8 +1,3 @@
-/* This derivation is currently only meant to be used for sandboxing (see make
- * nix-shell)
- * It configures ghc with the desired packages (wanted-packages), and adds an
- * emacs with access to that ghc
- */
 {
   emacs,
   empty-builder,
