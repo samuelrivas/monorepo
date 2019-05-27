@@ -1,10 +1,5 @@
-/* This derivation is currently only meant to be used for sandboxing (see make
- * nix-shell)
- * It configures ghc with the desired packages (wanted-packages), and adds an
- * emacs with access to that ghc
- */
 {
-  emacs,
+  emacs-for-haskell,
   empty-builder,
   haskellPackages,
   sandbox,
@@ -25,7 +20,7 @@ stdenv.mkDerivation rec {
   buildInputs = [
     ghc
     haskellPackages.hlint
-  ] ++ (if sandbox then [(emacs.override { inherit ghc; })] else []);
+  ] ++ (if sandbox then [(emacs-for-haskell ghc)] else []);
 
   installPhase = ''
     mkdir -p $out/bin

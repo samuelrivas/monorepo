@@ -99,6 +99,9 @@ let
         emacs-config-options = self.local-config.emacs-config;
       });
 
+    # A utility to instantiate a capable emacs in a haskell sandbox
+    emacs-for-haskell = haskell-env: self.emacs.override { ghc = haskell-env; };
+
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
 

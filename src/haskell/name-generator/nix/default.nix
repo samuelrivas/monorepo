@@ -1,5 +1,5 @@
 {
-  emacs,
+  emacs-for-haskell,
   haskellPackages,
   sandbox,
   stdenv,
@@ -19,7 +19,7 @@ stdenv.mkDerivation rec {
   buildInputs = [
     ghc
     haskellPackages.hlint
-  ] ++ (if sandbox then [(emacs.override { inherit ghc; })] else []);
+  ] ++ (if sandbox then [(emacs-for-haskell ghc)] else []);
 
   installPhase = ''
     mkdir -p $out/bin
