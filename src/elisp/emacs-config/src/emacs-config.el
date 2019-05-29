@@ -194,6 +194,7 @@
 (defun my-haskell-mode-hook ()
   (turn-on-haskell-indentation)
   (flycheck-mode)
+  (flyspell-prog-mode)
   (define-key haskell-mode-map (kbd "C-c C-c") 'comment-region))
 
 ;; Ocaml mode
