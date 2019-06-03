@@ -1,5 +1,6 @@
 {-# OPTIONS -Wno-unused-top-binds #-}
 {-# LANGUAGE FlexibleContexts #-}
+
 module AnnealSlideshow
   (
     anneal_slideshow
@@ -12,7 +13,7 @@ import           Data.Maybe
 import           Data.Random          (RVar)
 import qualified Data.Random          as Random
 import qualified Data.Set             as Set
-import           Data.Vector          (Vector, (!), (!?), (//))
+import           Data.Vector          (Vector, force, (!), (!?), (//))
 import qualified Data.Vector          as V
 import           Metrics
 import           Picture
@@ -32,7 +33,7 @@ blend_verticals slideshow pos_1 pos_2 =
     always_4 _           = undefined
   in do
     (s1, s2, s3, s4) <- always_4 <$> Random.shuffle (slide_1 ++ slide_2)
-    return $ slideshow // [(pos_1, [s1, s2]), (pos_2, [s3, s4])]
+    return $! force $ slideshow // [(pos_1, [s1, s2]), (pos_2, [s3, s4])]
 
 swap_pictures :: Vector Slide ->  Int -> Int -> RVar (Vector Slide)
 swap_pictures slideshow pos_1 pos_2 =
@@ -42,7 +43,7 @@ swap_pictures slideshow pos_1 pos_2 =
   in
     if get_orientation slide_1 == V && get_orientation slide_2 == V
     then blend_verticals slideshow pos_1 pos_2
-    else return $ slideshow // [(pos_1, slide_2), (pos_2, slide_1)]
+    else return $! slideshow // [(pos_1, slide_2), (pos_2, slide_1)]
 
 -- There is a special condition when two vertical slides are next to each other,
 -- we cannot just count the interest between them twice as it could yield
@@ -73,7 +74,7 @@ mutate_slideshow slideshow pos_1 pos_2 =
   in do
     mutant <- swap_pictures slideshow pos_1 pos_2
     let interest_in = neighbourhood_interest mutant pos_1 pos_2
-    return (interest_in - interest_out, mutant)
+    return (interest_in - interest_out, force mutant)
 
 slideshow_gen :: (Double, Vector Slide) -> RVar (Double, Vector Slide)
 slideshow_gen (cost, slideshow) =
@@ -105,5 +106,5 @@ anneal_slideshow slideshow =
         }
       starting_point = (-fromIntegral score, slideshow)
       from_cost (a, x) = (round (-a), x)
-      anneal_m = Annealing.run_anneal (Annealing.anneal_to_iteration 10)
+      anneal_m = Annealing.run_anneal (Annealing.anneal_to_iteration 100000)
   in from_cost <$> anneal_m config starting_point

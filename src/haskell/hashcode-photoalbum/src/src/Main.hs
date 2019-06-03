@@ -146,7 +146,7 @@ parse_lines input_lines =
   in do
     rpictures <- liftIO . traverse (uncurry line_to_picture) . zip ids . tail $
                  input_lines
-    increment_counter_n "parsed pictures" (fromIntegral $ length rpictures)
+    -- increment_counter_n "parsed pictures" (fromIntegral $ length rpictures)
     return $ Set.fromList rpictures
 
 -- TODO anneal in the same writer monad

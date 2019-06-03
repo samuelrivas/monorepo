@@ -7,13 +7,19 @@ HS-FILES := $(wildcard src/*.hs)
 OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
 DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
-# Profiler
-#GHC-FLAGS := -Wall -prof -fprof-auto -rtsopts -fexternal-interpreter -outputdir $(LIB-DIR)
-GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
-GHC-LD-FLAGS := -Wall
+# With Profiler (slow)
+# ====================
+GHC-FLAGS := -Wall -O2 -prof -fprof-auto -rtsopts -fexternal-interpreter -outputdir $(LIB-DIR)
+GHC-LD-FLAGS := -Wall -O2 -prof -fprof-auto -rtsopts
+
+# Without Profiler
+# ================
+#GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
+# GHC-LD-FLAGS := -Wall
+
 GHC := ghc $(GHC-FLAGS)
 
-GHC-PACKAGES := text containers multiset mtl random-fu
+GHC-PACKAGES := text containers multiset mtl random-fu unordered-containers strict-writer
 GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
 
 PROGRAM := $(BIN-DIR)/main

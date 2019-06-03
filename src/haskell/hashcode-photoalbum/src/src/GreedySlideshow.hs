@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-
+{-# OPTIONS -w #-}
 module GreedySlideshow
   (
     make_slideshow
@@ -59,21 +59,21 @@ get_next_slide tags pictures =
     if V == orientation next_picture
       then
       do
-        increment_counter "partial V slide"
+        -- increment_counter "partial V slide"
 
         case find_next_v tags next_picture new_pictures of
           Just next_v ->
             do
-              increment_counter "completed V slide"
+              -- increment_counter "completed V slide"
               return ([next_picture, next_v], Set.delete next_v new_pictures)
 
           Nothing ->
             do
-              increment_counter "failed V slide"
+              -- increment_counter "failed V slide"
               get_next_slide tags new_pictures
       else
       do
-        increment_counter "H slide"
+        -- increment_counter "H slide"
         return ([next_picture], new_pictures)
 
 -- | Given a set of picture, create a slideshow using an eager algorithm with
@@ -94,6 +94,6 @@ make_slideshow_rec latest_tags pictures slideshow =
       Nothing -> return $ V.reverse slideshow
       Just (next_slide, next_pictures) ->
         do
-          increment_counter "rec step"
+          -- increment_counter "rec step"
           make_slideshow_rec
             (get_tags next_slide) next_pictures (V.cons next_slide slideshow)

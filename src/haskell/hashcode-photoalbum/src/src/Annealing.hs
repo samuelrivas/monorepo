@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# OPTIONS -w #-}
 -- {-# OPTIONS -Wno-unused-imports -Wno-unused-top-binds #-}
 module Annealing
   (
@@ -14,12 +15,12 @@ module Annealing
   ) where
 
 import           Control.Monad.Loops
-import           Control.Monad.Reader  (runReader)
-import           Control.Monad.RWS
+import           Control.Monad.Reader     (runReader)
+import           Control.Monad.RWS.Strict
 import           Control.Monad.Writer
-import           Data.Functor.Identity (Identity)
-import           Data.Random           (RVar)
-import qualified Data.Random           as Random
+import           Data.Functor.Identity    (Identity)
+import           Data.Random              (RVar)
+import qualified Data.Random              as Random
 import           Metrics
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -113,7 +114,7 @@ cooldown =
     let new_t = t * ratio
     when (iteration `mod` steps == 0) $ do
       modify (\s -> s { temp = new_t })
-      increment_counter "annealing.cooldown"
+      -- increment_counter "annealing.cooldown"
 
     modify $ \s -> s { current_iteration = iteration + 1 }
 
@@ -125,14 +126,14 @@ accept_solution new_cost =
      let p = exp ((-delta)/t)
      if delta < 0
        then
-       do
-         increment_counter "annealing.energy_lowered"
+       -- do
+         -- increment_counter "annealing.energy_lowered"
          return True
        else
        do coin_flip <- lift . Random.sample $ Random.uniform 0 1
-          increment_counter "annealing.energy_increased"
+          -- increment_counter "annealing.energy_increased"
           let accept = p > coin_flip
-          when accept $ increment_counter "annealing.random_accept"
+          -- when accept $ increment_counter "annealing.random_accept"
           return accept
 
 anneal_step :: (AnnealRWST solution) RVar ()
@@ -146,13 +147,13 @@ anneal_step = do
 
   cooldown
 
-  increment_counter "annealing.solution_proposed"
+  -- increment_counter "annealing.solution_proposed"
   when (cost' < best_cost) $ do
     modify $ \s -> s { best_sol = sol', min_cost = cost' }
-    increment_counter "annealing.solution_improved"
+    -- increment_counter "annealing.solution_improved"
 
   when accept $ do
-    increment_counter "annealing.solution_accepted"
+    -- increment_counter "annealing.solution_accepted"
     modify $ \s -> s { current_solution = sol', current_cost = cost' }
 
 anneal_to_temp :: Temp -> (AnnealRWST solution) RVar ()
