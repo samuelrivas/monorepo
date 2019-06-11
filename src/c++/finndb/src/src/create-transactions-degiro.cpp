@@ -60,8 +60,8 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, '\t');
 
-    if (tokens.size() != 17) {
-      cerr << format("Line '%s' produces %d tokens, we want 17\n")
+    if (tokens.size() != 18) {
+      cerr << format("Line '%s' produces %d tokens, we want 18\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
