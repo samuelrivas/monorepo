@@ -87,6 +87,10 @@ bool register_line(const string& description_text, TransactionType* type) {
     *type = TransactionType::MISC;
     return true;
   }
+  if (description_text.find("Acciones corporativas") != string::npos) {
+    *type = TransactionType::MISC;
+    return true;
+  }
   return false;
 }
 
@@ -97,8 +101,8 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, '\t');
 
-    if (tokens.size() != 11) {
-      cerr << format("Line '%s' produces %d tokens, we want 11\n")
+    if (tokens.size() != 12) {
+      cerr << format("Line '%s' produces %d tokens, we want 12\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
