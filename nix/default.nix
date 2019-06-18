@@ -183,6 +183,10 @@ let
     rndlib = callPackage ./../src/c++/rndlib/nix { };
     asyncq = callPackage ./../src/c++/asyncq/nix { };
 
+    # C stuff
+    # =======
+    udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
+
     # Python stuff
     # ============
     python36Packages = callPackage ./python-packages.nix {
