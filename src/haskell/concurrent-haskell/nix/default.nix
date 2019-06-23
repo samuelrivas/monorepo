@@ -1,18 +1,28 @@
 {
   emacs,
   empty-builder,
+  haskell,
   haskellPackages,
   sandbox,
   stdenv,
 }:
 let
-  wanted-packages = with haskellPackages; [
+  # Try to unbreak broken stuff
+  hackedHaskellPackages = haskellPackages.override {
+    overrides = haskellPackagesNew: haskellPackagesOld: rec {
+      threadscope = haskell.lib.doJailbreak haskellPackagesOld.threadscope;
+    };
+  };
+  wanted-packages = with hackedHaskellPackages; [
     parallel
     abstract-par
     accelerate
-    distributed-process
-    distributed-process-simplelocalnet
-    http-conduit
+
+    ## These are broken right now, and I don't need them, so just wait for a while...
+    ## ---
+    # distributed-process
+    # distributed-process-simplelocalnet
+    # http-conduit
     hoogle
     monad-par
     normaldistribution
@@ -22,7 +32,7 @@ let
     threadscope
   ];
   haskell-packages-selector = pkgs: wanted-packages;
-  ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
+  ghc = hackedHaskellPackages.ghcWithPackages haskell-packages-selector;
 in
 stdenv.mkDerivation rec {
 
@@ -31,7 +41,8 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     ghc
-    haskellPackages.hlint
+    hackedHaskellPackages.hoogle
+    hackedHaskellPackages.hlint
   ] ++ (if sandbox then [(emacs.override { inherit ghc; })] else []);
 
   installPhase = ''
