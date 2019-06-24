@@ -16,10 +16,20 @@
 let
   home-dir = builtins.getEnv "HOME";
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
-  stackage-overlay = import /home/samuel/src/nix/nixpkgs-stackage;
+
+  # We need a non overlayed version of pkgs to download the overlay from GitHub,
+  # otherwise we enter in infinite recursion
+  bootstrap-pkgs = import <nixpkgs> { inherit system; };
+  stackage-overlay = bootstrap-pkgs.fetchFromGitHub {
+    owner = "typeable";
+    repo = "nixpkgs-stackage";
+    rev = "6042df5e646d65b826add0a85d16304bee8e1dd5";
+    sha256 = "sha256:09x9985f2dram7hqj9v23bc5y8nr136d69l7wchsa1kcvql0pa1b";
+  };
+
   pkgs = import <nixpkgs> {
     inherit system;
-    overlays = [ stackage-overlay ];
+    overlays = [ (import "${stackage-overlay}") ];
   };
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
   callPackage = pkgs.lib.callPackageWith (pkgs
@@ -140,7 +150,7 @@ let
       sandbox = false;
     };
     hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      haskellPackages = self.profiledHaskellPackages;
+      haskellPackages = pkgs.haskell.packages.stackage.lts-1319;
       sandbox = true;
     };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
