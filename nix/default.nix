@@ -16,7 +16,11 @@
 let
   home-dir = builtins.getEnv "HOME";
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
-  pkgs = import <nixpkgs> { inherit system; };
+  stackage-overlay = import /home/samuel/src/nix/nixpkgs-stackage;
+  pkgs = import <nixpkgs> {
+    inherit system;
+    overlays = [ stackage-overlay ];
+  };
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
   callPackage = pkgs.lib.callPackageWith (pkgs
                                        // builders
@@ -51,7 +55,10 @@ let
                 ];
     };
 
-    upstream-pkgs = import (self.local-config.upstream-pkgs.dir)  { inherit system; };
+    upstream-pkgs = import (self.local-config.upstream-pkgs.dir)  {
+      inherit system;
+      overlays = [ stackage-overlay ];
+    };
 
     # Own packages, not general enough
     # ================================
