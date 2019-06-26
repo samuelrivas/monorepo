@@ -11,6 +11,9 @@ let
   hackedHaskellPackages = haskellPackages.override {
     overrides = haskellPackagesNew: haskellPackagesOld: rec {
       threadscope = haskell.lib.doJailbreak haskellPackagesOld.threadscope;
+      # rank1dynamic = haskell.lib.dontCheck haskellPackagesOld.rank1dynamic;
+      # distributed-static = haskell.lib.doJailbreak haskellPackagesOld.distributed-static;
+      # distributed-process = haskell.lib.doJailbreak haskellPackagesOld.distributed-process;
     };
   };
   wanted-packages = with hackedHaskellPackages; [
