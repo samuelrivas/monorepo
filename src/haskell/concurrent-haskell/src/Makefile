@@ -6,7 +6,7 @@ GEN-DIR := $(BUILD-DIR)/generated
 MAIN-HS-FILES := $(wildcard src/*.hs)
 
 ## outputdir doesn't fully work with --make, fix this
-GHC-FLAGS := -j -threaded -rtsopts -eventlog -O2 -Wall -outputdir $(GEN-DIR)
+GHC-FLAGS := -j -threaded -rtsopts -eventlog -O2 -Wall -outputdir $(GEN-DIR) -isrc
 GHC := ghc $(GHC-FLAGS)
 
 GHC-PACKAGES := 
@@ -32,6 +32,8 @@ clean:
 	rm -rf $(BUILD-DIR)
 
 $(PROGRAMS): $(MAIN-HS-FILES) | $(GEN-DIR)
-	$(GHC) --make $^
+	for i in $^; do \
+		$(GHC) --make $$i; \
+	done
 
 include $(DEPENDENCIES-FILE)
