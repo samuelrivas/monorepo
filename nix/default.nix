@@ -176,7 +176,6 @@ let
       sandbox = false;
     };
     finndb-sandbox = callPackage ./../src/c++/finndb/nix {
-      inherit (pkgs.python3Packages) csvkit;
       sandbox = true;
     };
     graphlib = callPackage ./../src/c++/graphlib/nix { };
