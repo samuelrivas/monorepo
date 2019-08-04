@@ -132,6 +132,9 @@ let
     boardgamer = callPackage ./../src/haskell/boardgamer/nix {
       sandbox = false;
     };
+    boardgamer-sandbox = callPackage ./../src/haskell/boardgamer/nix {
+      sandbox = true;
+    };
     hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
       haskellPackages = self.profiledHaskellPackages;
       sandbox = true;
