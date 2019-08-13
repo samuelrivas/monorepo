@@ -20,6 +20,8 @@ import           Data.List                  hiding (head, uncons)
 import           Data.Map.Strict            hiding (null)
 import           Data.Random--                hiding (MonadRandom)
 import           Prelude                    hiding (fail, head)
+import Data.Random.Internal.Source (MonadRandom(..), getRandomPrimFrom)
+import Data.Random.Source.DevRandom
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -80,20 +82,22 @@ initial_onirim_state :: OnirimState
 initial_onirim_state =
   OnirimState
     empty
-    (replicate 10 $ Location Red Sun)
+    (replicate 10 (Location Red Sun) ++ replicate 4 (Location Red Moon))
     []
     []
     []
 
 next_onirim_state ::
-  Monad m
+     Monad m
   => OnirimTransition
   -> OnirimState
   -> MaybeT m (StateDistribution OnirimState)
 next_onirim_state _ state' =
   do
-    (_, cards) <- uncons . deck $ state'
-    return . Deterministic $ state' { deck = cards }
+    (top, cards) <- uncons . deck $ state'
+    return . Stochastic $ do
+      new_deck <- shuffle cards
+      return $ state' { deck = new_deck, discards = top : discards state' }
 
 onirim_transitions :: OnirimState -> [OnirimTransition]
 onirim_transitions st = deck st >>= return [Discard]
@@ -130,7 +134,12 @@ force_game = whileJust_ (runMaybeT force_move) return
 
 -- XXX Why is this instance not there? And, heck, why are there two MonadRandom
 -- implementations (there is an instance for Control.Monad.Random.Class)
-instance MonadRandom m => MonadRandom (StateT s m)
+-- instance MonadRandom m => MonadRandom (StateT s m) where
+--
+-- XXX Try to generalise this by unwrapping statet, using the inner monad and
+-- wrapping again
+instance MonadIO m => MonadRandom (StateT s m) where
+  getRandomPrim = liftIO . getRandomPrimFrom DevURandom
 
 main :: IO ()
 main =
