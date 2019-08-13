@@ -1,6 +1,7 @@
 -- These are for hacking around, remember not to commit them
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -10,13 +11,15 @@
 
 import           Control.Monad.Fail
 import           Control.Monad.Loops
+--import           Control.Monad.Random.Class
 import           Control.Monad.State.Class
+import           Control.Monad.State.Lazy   hiding (fail)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Maybe
-import           Data.List                 hiding (uncons, head)
-import           Data.Map.Strict           hiding (null)
-import           Data.Random
-import           Prelude                   hiding (fail, head)
+import           Data.List                  hiding (head, uncons)
+import           Data.Map.Strict            hiding (null)
+import           Data.Random--                hiding (MonadRandom)
+import           Prelude                    hiding (fail, head)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -42,9 +45,13 @@ class (Ord score, Bounded score)
   score :: state -> score
 
 data Colour = Red | Blue | Green | White
+  deriving Show
 data Type = Key | Sun | Moon
+  deriving Show
 data Dream = Door Colour | Nightmare
+  deriving Show
 data Card = Location Colour Type | Dream Dream
+  deriving Show
 
 data OnirimState = OnirimState
   { doors     :: Map Colour Int,
@@ -52,7 +59,7 @@ data OnirimState = OnirimState
     labirynth :: [Card],
     discards  :: [Card],
     hand      :: [Card]
-  }
+  } deriving Show
 
 data OnirimTransition = Discard
 
@@ -67,7 +74,16 @@ uncons []     = fail "cannot uncons []"
 
 head :: (MonadFail m) => [a] -> m a
 head (x:_) = return x
-head [] = fail "cannot head []"
+head []    = fail "cannot head []"
+
+initial_onirim_state :: OnirimState
+initial_onirim_state =
+  OnirimState
+    empty
+    (replicate 10 $ Location Red Sun)
+    []
+    []
+    []
 
 next_onirim_state ::
   Monad m
@@ -112,5 +128,12 @@ force_game ::
   => m ()
 force_game = whileJust_ (runMaybeT force_move) return
 
+-- XXX Why is this instance not there? And, heck, why are there two MonadRandom
+-- implementations (there is an instance for Control.Monad.Random.Class)
+instance MonadRandom m => MonadRandom (StateT s m)
+
 main :: IO ()
-main = putStrLn "hi!"
+main =
+  do
+    ((), final) <- runStateT force_game initial_onirim_state
+    print final
