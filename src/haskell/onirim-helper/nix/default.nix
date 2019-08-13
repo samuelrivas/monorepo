@@ -6,6 +6,7 @@
 }:
 let
   wanted-packages = with haskellPackages; [
+    random-fu
   ];
   haskell-packages-selector = pkgs: wanted-packages;
   ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
@@ -17,7 +18,9 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     ghc
-  ] ++ (if sandbox then [(emacs-for-haskell ghc)] else []);
+  ] ++ (if sandbox
+        then [(emacs-for-haskell ghc) haskellPackages.hoogle]
+        else []);
 
   installPhase = ''
     mkdir -p $out/bin

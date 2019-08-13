@@ -13,7 +13,7 @@ GHC-FLAGS := -Wall -outputdir $(LIB-DIR)
 GHC-LD-FLAGS := -Wall
 GHC := ghc $(GHC-FLAGS)
 
-GHC-PACKAGES := containers mtl
+GHC-PACKAGES := containers mtl random-fu
 GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
 
 PROGRAM := $(BIN-DIR)/main
