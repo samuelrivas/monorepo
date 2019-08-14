@@ -95,6 +95,7 @@ initial_onirim_state =
     []
     []
     []
+    True
 
 onirim_deck :: [Card]
 onirim_deck =
