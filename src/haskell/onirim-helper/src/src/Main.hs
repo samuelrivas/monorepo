@@ -22,6 +22,7 @@ import           Data.Random--                hiding (MonadRandom)
 import           Prelude                    hiding (fail, head)
 import Data.Random.Internal.Source (MonadRandom(..), getRandomPrimFrom)
 import Data.Random.Source.DevRandom
+import Data.Maybe
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -39,9 +40,10 @@ instance Distribution StateDistribution a where
 -- Note that you need to wrap a specific state for each game, since we need to
 -- make the transition type depend on the state in order to prevent ambiguity in
 -- the score function
+--
+-- A state is considered final if the list of transitions from it is empty
 class (Ord score, Bounded score)
   => GameState state trans score | state -> trans, state -> score where
-
   next_state :: (Monad m) => trans -> state -> MaybeT m (StateDistribution state)
   transitions :: state -> [trans]
   score :: state -> score
@@ -113,36 +115,38 @@ apply_transition transition =
   >>= lift . sample
   >>= put
 
--- XXX Create a better game monad so that we don't need to do transitions <$>
--- get all the time
+get_transitions ::
+     GameState state transition score
+  => MonadState state m
+  => m [transition]
+get_transitions = transitions <$> get
+
+is_final ::
+     GameState state transition score
+  => MonadState state m
+  => m Bool
+is_final = not . null <$> get_transitions
+
 force_move ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
   => MaybeT m ()
-force_move =
-  get
-  >>= head . transitions
-  >>= apply_transition
+force_move = get_transitions >>= head >>= apply_transition
 
 force_game ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
   => m ()
+--force_game = whileJust_ (runMaybeT force_move) return
 force_game = whileJust_ (runMaybeT force_move) return
 
 -- XXX Why is this instance not there? And, heck, why are there two MonadRandom
 -- implementations (there is an instance for Control.Monad.Random.Class)
 -- instance MonadRandom m => MonadRandom (StateT s m) where
---
--- XXX Try to generalise this by unwrapping statet, using the inner monad and
--- wrapping again
 instance MonadIO m => MonadRandom (StateT s m) where
   getRandomPrim = liftIO . getRandomPrimFrom DevURandom
 
 main :: IO ()
-main =
-  do
-    ((), final) <- runStateT force_game initial_onirim_state
-    print final
+main = execStateT force_game initial_onirim_state >>= print
