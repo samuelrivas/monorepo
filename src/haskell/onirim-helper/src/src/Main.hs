@@ -73,6 +73,7 @@ data OnirimState = OnirimState
 data OnirimTransition =
     InitialSetup
   | Discard
+  deriving Show
 
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
@@ -129,14 +130,33 @@ next_onirim_state Discard state' =
       new_deck <- shuffle cards
       return $ state' { deck = new_deck, discards = top : discards state' }
 
+type TransitionGen = OnirimState -> [OnirimTransition]
+
+initial_setup_transition :: TransitionGen
+initial_setup_transition st = [InitialSetup | unshuffled st]
+
+discard_transition :: TransitionGen
+discard_transition st =
+  let
+    is_shuffled = not . unshuffled $ st
+    more_cards = not . null . deck $ st
+  in
+    [Discard | is_shuffled && more_cards]
+
+all_transition_gen :: [TransitionGen]
+all_transition_gen =
+  [ initial_setup_transition,
+    discard_transition
+  ]
+
 onirim_transitions :: OnirimState -> [OnirimTransition]
-onirim_transitions st = deck st >>= return [Discard]
+onirim_transitions st = fold $ ($ st) <$> all_transition_gen
 
 shuffle_deck :: OnirimState -> RVar OnirimState
 shuffle_deck state' =
   do
     shuffled <- shuffle $ deck state'
-    return $ state' { deck = shuffled }
+    return $ state' { deck = shuffled, unshuffled = False }
 
 apply_transition ::
      GameState state transition score
@@ -176,6 +196,13 @@ force_game ::
 --force_game = whileJust_ (runMaybeT force_move) return
 force_game = whileJust_ (runMaybeT force_move) return
 
+force_n_steps ::
+     GameState state transition score
+  => MonadState state m
+  => MonadRandom m
+  => Int -> MaybeT m ()
+force_n_steps steps = replicateM_ steps force_move
+
 -- XXX Why is this instance not there? And, heck, why are there two MonadRandom
 -- implementations (there is an instance for Control.Monad.Random.Class)
 -- instance MonadRandom m => MonadRandom (StateT s m) where
@@ -183,4 +210,5 @@ instance MonadIO m => MonadRandom (StateT s m) where
   getRandomPrim = liftIO . getRandomPrimFrom DevURandom
 
 main :: IO ()
-main = execStateT force_game initial_onirim_state >>= print
+-- main = execStateT force_game initial_onirim_state >>= print
+main = (flip execStateT initial_onirim_state . runMaybeT $ force_n_steps 10) >>= print
