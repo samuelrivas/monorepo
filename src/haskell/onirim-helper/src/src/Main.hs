@@ -17,12 +17,13 @@ import           Control.Monad.State.Lazy   hiding (fail)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Maybe
 import           Data.List                  hiding (head, uncons)
-import           Data.Map.Strict            hiding (null)
+import           Data.Map.Strict            hiding (null, map)
 import           Data.Random--                hiding (MonadRandom)
 import           Prelude                    hiding (fail, head)
 import Data.Random.Internal.Source (MonadRandom(..), getRandomPrimFrom)
 import Data.Random.Source.DevRandom
 import Data.Maybe
+import Data.Foldable
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -84,10 +85,27 @@ initial_onirim_state :: OnirimState
 initial_onirim_state =
   OnirimState
     empty
-    (replicate 10 (Location Red Sun) ++ replicate 4 (Location Red Moon))
+    onirim_deck
     []
     []
     []
+
+onirim_deck :: [Card]
+onirim_deck =
+  let
+    colours = [Red, Blue, Green, White]
+    moon_of colour = Location colour Moon
+  in
+  fold
+  [ replicate 9 (Location Red Sun)
+  , replicate 8 (Location Blue Sun)
+  , replicate 7 (Location Green Sun)
+  , replicate 6 (Location White Sun)
+  , moon_of <$> colours
+  , Dream . Door <$> colours
+  , Dream . Door <$> colours
+  , replicate 10 $ Dream Nightmare
+  ]
 
 next_onirim_state ::
      Monad m
