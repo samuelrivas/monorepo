@@ -11,19 +11,19 @@
 
 import           Control.Monad.Fail
 import           Control.Monad.Loops
---import           Control.Monad.Random.Class
 import           Control.Monad.State.Class
-import           Control.Monad.State.Lazy   hiding (fail)
+import           Control.Monad.State.Lazy     hiding (fail)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Maybe
-import           Data.List                  hiding (head, uncons)
-import           Data.Map.Strict            hiding (null, map)
-import           Data.Random--                hiding (MonadRandom)
-import           Prelude                    hiding (fail, head)
-import Data.Random.Internal.Source (MonadRandom(..), getRandomPrimFrom)
-import Data.Random.Source.DevRandom
-import Data.Maybe
-import Data.Foldable
+import           Data.Foldable
+import           Data.List                    hiding (head, uncons)
+import           Data.Map.Strict              hiding (map, null)
+import           Data.Maybe
+import           Data.Random
+import           Data.Random.Internal.Source  (MonadRandom (..),
+                                               getRandomPrimFrom)
+import           Data.Random.Source.DevRandom
+import           Prelude                      hiding (fail, head)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -51,22 +51,28 @@ class (Ord score, Bounded score)
 
 data Colour = Red | Blue | Green | White
   deriving Show
+
 data Type = Key | Sun | Moon
   deriving Show
+
 data Dream = Door Colour | Nightmare
   deriving Show
+
 data Card = Location Colour Type | Dream Dream
   deriving Show
 
 data OnirimState = OnirimState
-  { doors     :: Map Colour Int,
-    deck      :: [Card],
-    labirynth :: [Card],
-    discards  :: [Card],
-    hand      :: [Card]
+  { doors      :: Map Colour Int,
+    deck       :: [Card],
+    labirynth  :: [Card],
+    discards   :: [Card],
+    hand       :: [Card],
+    unshuffled :: Bool
   } deriving Show
 
-data OnirimTransition = Discard
+data OnirimTransition =
+    InitialSetup
+  | Discard
 
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
@@ -97,14 +103,14 @@ onirim_deck =
     moon_of colour = Location colour Moon
   in
   fold
-  [ replicate 9 (Location Red Sun)
-  , replicate 8 (Location Blue Sun)
-  , replicate 7 (Location Green Sun)
-  , replicate 6 (Location White Sun)
-  , moon_of <$> colours
-  , Dream . Door <$> colours
-  , Dream . Door <$> colours
-  , replicate 10 $ Dream Nightmare
+  [ replicate 9 (Location Red Sun),
+    replicate 8 (Location Blue Sun),
+    replicate 7 (Location Green Sun),
+    replicate 6 (Location White Sun),
+    moon_of <$> colours,
+    Dream . Door <$> colours,
+    Dream . Door <$> colours,
+    replicate 10 $ Dream Nightmare
   ]
 
 next_onirim_state ::
@@ -112,7 +118,10 @@ next_onirim_state ::
   => OnirimTransition
   -> OnirimState
   -> MaybeT m (StateDistribution OnirimState)
-next_onirim_state _ state' =
+next_onirim_state InitialSetup state' =
+  return . Stochastic . shuffle_deck $ state'
+
+next_onirim_state Discard state' =
   do
     (top, cards) <- uncons . deck $ state'
     return . Stochastic $ do
@@ -121,6 +130,12 @@ next_onirim_state _ state' =
 
 onirim_transitions :: OnirimState -> [OnirimTransition]
 onirim_transitions st = deck st >>= return [Discard]
+
+shuffle_deck :: OnirimState -> RVar OnirimState
+shuffle_deck state' =
+  do
+    shuffled <- shuffle $ deck state'
+    return $ state' { deck = shuffled }
 
 apply_transition ::
      GameState state transition score
