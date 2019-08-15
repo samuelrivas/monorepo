@@ -27,7 +27,7 @@ data Type = Key | Sun | Moon
 data Dream = Door Colour | Nightmare
   deriving Show
 
-data Card = Location Colour Type | Dream Dream
+data Card = Location Type Colour | Dream Dream
   deriving Show
 
 data OnirimState = OnirimState
@@ -63,14 +63,19 @@ onirim_deck :: [Card]
 onirim_deck =
   let
     colours = [Red, Blue, Green, White]
-    moon_of colour = Location colour Moon
   in
   fold
-  [ replicate 9 (Location Red Sun),
-    replicate 8 (Location Blue Sun),
-    replicate 7 (Location Green Sun),
-    replicate 6 (Location White Sun),
-    moon_of <$> colours,
+  [ replicate 9 (Location Sun Red),
+    replicate 8 (Location Sun Blue),
+    replicate 7 (Location Sun Green),
+    replicate 6 (Location Sun White),
+    Location Moon <$> colours,
+    Location Moon <$> colours,
+    Location Moon <$> colours,
+    Location Moon <$> colours,
+    Location Key <$> colours,
+    Location Key <$> colours,
+    Location Key <$> colours,
     Dream . Door <$> colours,
     Dream . Door <$> colours,
     replicate 10 $ Dream Nightmare
