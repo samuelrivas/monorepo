@@ -30,6 +30,10 @@ data Dream = Door Colour | Nightmare
 data Card = Location Type Colour | Dream Dream
   deriving Show
 
+is_location :: Card -> Bool
+is_location (Location _ _) = True
+is_location (Dream _) = False
+
 data Status =
     Uninitialised
   | Placing
@@ -41,12 +45,12 @@ data Status =
   deriving (Show, Eq)
 
 data OnirimState = OnirimState
-  { osDoors      :: Map Colour Int,
-    osDeck       :: [Card],
-    osLabirynth  :: [Card],
-    osDiscards   :: [Card],
-    osHand       :: [Card],
-    status       :: Status
+  { osDoors     :: Map Colour Int,
+    osDeck      :: [Card],
+    osLabirynth :: [Card],
+    osDiscards  :: [Card],
+    osHand      :: [Card],
+    osStatus    :: Status
   } deriving Show
 
 data OnirimTransition =
@@ -57,66 +61,81 @@ data OnirimTransition =
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
   transitions = onirim_transitions
-  score state = status state == Won
+  score state = osStatus state == Won
 
 initial_onirim_state :: OnirimState
 initial_onirim_state =
   OnirimState
     empty
-    onirim_deck
+    []
     []
     []
     []
     Uninitialised
 
-onirim_deck :: [Card]
-onirim_deck =
-  let
-    colours = [Red, Blue, Green, White]
-  in
+all_colours = [Red, Blue, Green, White]
+
+dreams :: [Card]
+dreams =
+  fold
+  [ Dream . Door <$> all_colours,
+    Dream . Door <$> all_colours,
+    replicate 10 $ Dream Nightmare
+  ]
+
+locations :: [Card]
+locations =
   fold
   [ replicate 9 (Location Sun Red),
     replicate 8 (Location Sun Blue),
     replicate 7 (Location Sun Green),
     replicate 6 (Location Sun White),
-    Location Moon <$> colours,
-    Location Moon <$> colours,
-    Location Moon <$> colours,
-    Location Moon <$> colours,
-    Location Key <$> colours,
-    Location Key <$> colours,
-    Location Key <$> colours,
-    Dream . Door <$> colours,
-    Dream . Door <$> colours,
-    replicate 10 $ Dream Nightmare
+    Location Moon <$> all_colours,
+    Location Moon <$> all_colours,
+    Location Moon <$> all_colours,
+    Location Moon <$> all_colours,
+    Location Key <$> all_colours,
+    Location Key <$> all_colours,
+    Location Key <$> all_colours
   ]
 
 onirim_transitions :: OnirimState -> [OnirimTransition]
-onirim_transitions = const []
+onirim_transitions st =
+  case osStatus st of
+    Uninitialised -> [InitialSetup]
+    _             -> [Discard]
 
 next_onirim_state ::
      Monad m
   => OnirimTransition
   -> OnirimState
   -> MaybeT m (StateDistribution OnirimState)
-next_onirim_state InitialSetup state' =
-  return . Stochastic . shuffle_deck $ state'
-
-next_onirim_state Discard state' =
-  do
-    (top, cards) <- uncons . osDeck $ state'
-    return . Stochastic $ do
-      new_deck <- shuffle cards
-      return $ state'
-        { osDeck = new_deck,
-          osDiscards = top : osDiscards state'
+-- next_onirim_state InitialSetup state' =
+--    return . Stochastic . shuffle_deck $ state' { osStatus = Placing }
+next_onirim_state InitialSetup state =
+  return . Stochastic $ do
+    (hand, rest) <- splitAt 5 <$> shuffle locations
+    let
+      state_with_hand = state
+        { osHand = hand,
+          osDeck = rest ++ dreams,
+          osStatus = Placing
         }
+    shuffle_deck state_with_hand
+
+next_onirim_state Discard state =
+  do
+    (top, rest) <- uncons . osDeck $ state
+    return . Deterministic $ state
+      { osDeck = rest,
+        osDiscards = top : osDiscards state
+      }
 
 shuffle_deck :: OnirimState -> RVar OnirimState
-shuffle_deck state' =
+shuffle_deck state =
   do
-    shuffled <- shuffle $ osDeck state'
-    return $ state' { osDeck = shuffled }
+    shuffled <- shuffle $ osDeck state
+    return $ state { osDeck = shuffled }
 
 main :: IO ()
 -- main = execStateT force_game initial_onirim_state >>= print
