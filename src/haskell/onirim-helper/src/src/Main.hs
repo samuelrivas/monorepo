@@ -30,10 +30,6 @@ data Dream = Door Colour | Nightmare
 data Card = Location Type Colour | Dream Dream
   deriving Show
 
-is_location :: Card -> Bool
-is_location (Location _ _) = True
-is_location (Dream _) = False
-
 data Status =
     Uninitialised
   | Placing
@@ -55,7 +51,7 @@ data OnirimState = OnirimState
 
 data OnirimTransition =
     InitialSetup
-  | Discard
+  | Discard Card
   deriving Show
 
 instance GameState OnirimState OnirimTransition Bool where
@@ -73,6 +69,7 @@ initial_onirim_state =
     []
     Uninitialised
 
+all_colours :: [Colour]
 all_colours = [Red, Blue, Green, White]
 
 dreams :: [Card]
@@ -103,15 +100,13 @@ onirim_transitions :: OnirimState -> [OnirimTransition]
 onirim_transitions st =
   case osStatus st of
     Uninitialised -> [InitialSetup]
-    _             -> [Discard]
+    _             -> Discard <$> osHand st
 
 next_onirim_state ::
      Monad m
   => OnirimTransition
   -> OnirimState
   -> MaybeT m (StateDistribution OnirimState)
--- next_onirim_state InitialSetup state' =
---    return . Stochastic . shuffle_deck $ state' { osStatus = Placing }
 next_onirim_state InitialSetup state =
   return . Stochastic $ do
     (hand, rest) <- splitAt 5 <$> shuffle locations
@@ -123,7 +118,7 @@ next_onirim_state InitialSetup state =
         }
     shuffle_deck state_with_hand
 
-next_onirim_state Discard state =
+next_onirim_state (Discard _) state =
   do
     (top, rest) <- uncons . osDeck $ state
     return . Deterministic $ state
