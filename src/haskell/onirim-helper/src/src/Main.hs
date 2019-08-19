@@ -30,13 +30,23 @@ data Dream = Door Colour | Nightmare
 data Card = Location Type Colour | Dream Dream
   deriving Show
 
+data Status =
+    Uninitialised
+  | Placing
+  | Prophecy
+  | SolvingNightmare
+  | SolvingDoor
+  | Lost
+  | Won
+  deriving (Show, Eq)
+
 data OnirimState = OnirimState
-  { doors      :: Map Colour Int,
-    deck       :: [Card],
-    labirynth  :: [Card],
-    discards   :: [Card],
-    hand       :: [Card],
-    unshuffled :: Bool
+  { osDoors      :: Map Colour Int,
+    osDeck       :: [Card],
+    osLabirynth  :: [Card],
+    osDiscards   :: [Card],
+    osHand       :: [Card],
+    status       :: Status
   } deriving Show
 
 data OnirimTransition =
@@ -47,7 +57,7 @@ data OnirimTransition =
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
   transitions = onirim_transitions
-  score = null . deck
+  score state = status state == Won
 
 initial_onirim_state :: OnirimState
 initial_onirim_state =
@@ -57,7 +67,7 @@ initial_onirim_state =
     []
     []
     []
-    True
+    Uninitialised
 
 onirim_deck :: [Card]
 onirim_deck =
@@ -81,6 +91,9 @@ onirim_deck =
     replicate 10 $ Dream Nightmare
   ]
 
+onirim_transitions :: OnirimState -> [OnirimTransition]
+onirim_transitions = const []
+
 next_onirim_state ::
      Monad m
   => OnirimTransition
@@ -91,38 +104,19 @@ next_onirim_state InitialSetup state' =
 
 next_onirim_state Discard state' =
   do
-    (top, cards) <- uncons . deck $ state'
+    (top, cards) <- uncons . osDeck $ state'
     return . Stochastic $ do
       new_deck <- shuffle cards
-      return $ state' { deck = new_deck, discards = top : discards state' }
-
-type TransitionGen = OnirimState -> [OnirimTransition]
-
-initial_setup_transition :: TransitionGen
-initial_setup_transition st = [InitialSetup | unshuffled st]
-
-discard_transition :: TransitionGen
-discard_transition st =
-  let
-    is_shuffled = not . unshuffled $ st
-    more_cards = not . null . deck $ st
-  in
-    [Discard | is_shuffled && more_cards]
-
-all_transition_gen :: [TransitionGen]
-all_transition_gen =
-  [ initial_setup_transition,
-    discard_transition
-  ]
-
-onirim_transitions :: OnirimState -> [OnirimTransition]
-onirim_transitions st = fold $ ($ st) <$> all_transition_gen
+      return $ state'
+        { osDeck = new_deck,
+          osDiscards = top : osDiscards state'
+        }
 
 shuffle_deck :: OnirimState -> RVar OnirimState
 shuffle_deck state' =
   do
-    shuffled <- shuffle $ deck state'
-    return $ state' { deck = shuffled, unshuffled = False }
+    shuffled <- shuffle $ osDeck state'
+    return $ state' { osDeck = shuffled }
 
 main :: IO ()
 -- main = execStateT force_game initial_onirim_state >>= print
