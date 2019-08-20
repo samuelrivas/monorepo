@@ -183,17 +183,19 @@ draw ::
 draw = do
   top <- pick_top
   hand <- gets osHand
+  let new_hand = top : hand
   case top of
     Location _ _ -> do
       modify $ \s -> s
-        { osHand = top : hand,
+        { osHand = new_hand,
           osStatus = Placing
         }
 
-      when (length hand <= 4) draw
-
-      limbo <- gets osLimbo
-      unless (null limbo) shuffle_cards
+      if length new_hand < 5
+        then draw
+        else do
+          limbo <- gets osLimbo
+          unless (null limbo) shuffle_cards
 
     Dream Nightmare -> modify $ \s -> s { osStatus = SolvingNightmare }
 
