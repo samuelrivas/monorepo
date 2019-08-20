@@ -7,6 +7,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TupleSections         #-}
 
 import           Control.Monad             (unless, when)
 import           Control.Monad.Fail        (MonadFail)
@@ -14,7 +15,7 @@ import           Control.Monad.State.Class (MonadState, get, gets, modify, put)
 import           Control.Monad.State.Lazy  (execStateT)
 import           Control.Monad.Trans.Maybe (runMaybeT)
 import           Data.Foldable             (fold)
-import           Data.Map.Strict           (Map, empty)
+import           Data.MultiSet             hiding (fold, null)
 import           Data.Random               (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           Util                      (uncons)
@@ -22,7 +23,7 @@ import           Util                      (uncons)
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 data Colour = Red | Blue | Green | White
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 data Type = Key | Sun | Moon
   deriving (Show, Eq)
@@ -44,7 +45,7 @@ data Status =
   deriving (Show, Eq)
 
 data OnirimState = OnirimState
-  { osDoors     :: Map Colour Int,
+  { osDoors     :: MultiSet Colour,
     osDeck      :: [Card],
     osLabirynth :: [Card],
     osDiscards  :: [Card],
@@ -56,6 +57,8 @@ data OnirimState = OnirimState
 data OnirimTransition =
     InitialSetup
   | Discard Card
+  | OpenDoor Colour
+  | IgnoreDoor Colour
   deriving Show
 
 instance GameState OnirimState OnirimTransition Bool where
@@ -113,8 +116,9 @@ onirim_transitions = do
   hand <- gets osHand
   return $
     case status of
-      Uninitialised -> [InitialSetup]
-      _             -> Discard <$> hand
+      Uninitialised      -> [InitialSetup]
+      SolvingDoor colour -> [OpenDoor colour, IgnoreDoor colour]
+      _                  -> Discard <$> hand
 
 next_onirim_state ::
      MonadState OnirimState m
@@ -138,6 +142,19 @@ next_onirim_state (Discard card) = do
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       put $ state { osHand = hand, osDiscards = discards }
+      draw
+
+next_onirim_state (OpenDoor colour) = do
+  Just hand <- remove_card (Location Key colour) <$> gets osHand
+  doors <- insert colour <$> gets osDoors
+  state <- get
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state
+        { osDoors = doors,
+          osHand = hand,
+          osStatus = Placing
+        }
       draw
 
 remove_card :: Card -> [Card] -> Maybe [Card]
@@ -174,7 +191,7 @@ pick_top = do
   modify $ \s -> s { osDeck = rest }
   return top
 
--- Fill the hand up to 5, stopping when hitting dreams
+-- Fill the hand up to 5, stopping if hitting actionable dreams
 draw ::
      MonadState OnirimState m
   => MonadRandom m
