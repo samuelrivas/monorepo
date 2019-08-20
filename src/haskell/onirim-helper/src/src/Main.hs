@@ -8,10 +8,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Control.Exception         (assert)
+import           Control.Monad             (unless, when)
+import           Control.Monad.Fail        (MonadFail)
 import           Control.Monad.State.Class (MonadState, get, gets, modify, put)
 import           Control.Monad.State.Lazy  (execStateT)
-import           Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
+import           Control.Monad.Trans.Maybe (runMaybeT)
 import           Data.Foldable             (fold)
 import           Data.Map.Strict           (Map, empty)
 import           Data.Random               (MonadRandom, RVar, sample, shuffle)
@@ -21,23 +22,23 @@ import           Util                      (uncons)
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 data Colour = Red | Blue | Green | White
-  deriving Show
+  deriving (Show, Eq)
 
 data Type = Key | Sun | Moon
-  deriving Show
+  deriving (Show, Eq)
 
 data Dream = Door Colour | Nightmare
-  deriving Show
+  deriving (Show, Eq)
 
 data Card = Location Type Colour | Dream Dream
-  deriving Show
+  deriving (Show, Eq)
 
 data Status =
     Uninitialised
   | Placing
   | Prophecy
   | SolvingNightmare
-  | SolvingDoor
+  | SolvingDoor Colour
   | Lost
   | Won
   deriving (Show, Eq)
@@ -48,6 +49,7 @@ data OnirimState = OnirimState
     osLabirynth :: [Card],
     osDiscards  :: [Card],
     osHand      :: [Card],
+    osLimbo     :: [Card],
     osStatus    :: Status
   } deriving Show
 
@@ -59,7 +61,7 @@ data OnirimTransition =
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
   transitions = onirim_transitions
-  score =  (Won ==) <$>gets osStatus
+  score = (Won ==) <$> gets osStatus
 
 initial_onirim_state :: OnirimState
 initial_onirim_state =
@@ -69,23 +71,30 @@ initial_onirim_state =
     []
     []
     []
+    []
     Uninitialised
 
 all_colours :: [Colour]
 all_colours = [Red, Blue, Green, White]
 
+-- dreams :: [Card]
+-- dreams =
+--   fold
+--   [ Dream . Door <$> all_colours,
+--     Dream . Door <$> all_colours,
+--     replicate 10 $ Dream Nightmare
+--   ]
 dreams :: [Card]
 dreams =
   fold
   [ Dream . Door <$> all_colours,
-    Dream . Door <$> all_colours,
-    replicate 10 $ Dream Nightmare
+    replicate 2 $ Dream Nightmare
   ]
 
 locations :: [Card]
 locations =
   fold
-  [ replicate 9 (Location Sun Red),
+  [-- replicate 9 (Location Sun Red),
     replicate 8 (Location Sun Blue),
     replicate 7 (Location Sun Green),
     replicate 6 (Location Sun White),
@@ -93,8 +102,8 @@ locations =
     Location Moon <$> all_colours,
     Location Moon <$> all_colours,
     Location Moon <$> all_colours,
-    Location Key <$> all_colours,
-    Location Key <$> all_colours,
+    -- Location Key <$> all_colours,
+    -- Location Key <$> all_colours,
     Location Key <$> all_colours
   ]
 
@@ -109,49 +118,100 @@ onirim_transitions = do
 
 next_onirim_state ::
      MonadState OnirimState m
+  => MonadFail m
   => OnirimTransition
-  -> MaybeT m (StateDistribution OnirimState)
+  -> m (StateDistribution OnirimState)
 next_onirim_state InitialSetup = do
   state <- get
   return . Stochastic $ do
-    (hand, rest) <- splitAt 5 <$> shuffle locations
-    let
-      state_with_hand = state
-        { osHand = hand,
-          osDeck = rest ++ dreams,
-          osStatus = Placing
-        }
-    shuffle_deck state_with_hand
+    (hand, deck) <- initial_hand_and_deck
+    return $ state
+      { osHand = hand,
+        osDeck = deck,
+        osStatus = Placing
+      }
+
+next_onirim_state (Discard card) = do
+  Just hand <- remove_card card <$> gets osHand
+  discards <- (card :) <$> gets osDiscards
+  state <- get
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state { osHand = hand, osDiscards = discards }
+      draw
+
+remove_card :: Card -> [Card] -> Maybe [Card]
+remove_card card cards =
+  case break (card ==) cards of
+    (before, _ : after) -> Just $ before ++ after
+    _                   -> Nothing
 
 initial_hand_and_deck :: RVar ([Card], [Card])
 initial_hand_and_deck = do
   (hand, rest) <- splitAt 5 <$> shuffle locations
 
-  return $ assert (length hand == 5) ()
+  when (length hand /= 5) $ fail "Not enough location cards in deck"
 
   reshuffled <- shuffle $ rest ++ dreams
   return (hand, reshuffled)
 
--- next_onirim_state (Discard _) =
---   do
---     (top, rest) <- uncons . osDeck $ state
---     return . Deterministic $ state
---       { osDeck = rest,
---         osDiscards = top : osDiscards state
---       }
-
-shuffle_deck :: OnirimState -> RVar OnirimState
-shuffle_deck state = do
-  shuffled <- shuffle $ osDeck state
-  return $ state { osDeck = shuffled }
-
-shuffle_deck_s ::
+shuffle_cards ::
      MonadState OnirimState m
   => MonadRandom m
   => m ()
-shuffle_deck_s = do
-  deck <- gets osDeck >>= sample . shuffle
-  modify (\s -> s { osDeck = deck })
+shuffle_cards = do
+  deck <- gets osDeck
+  limbo <- gets osLimbo
+  shuffled <-  sample . shuffle $ deck ++ limbo
+  modify $ \s -> s { osDeck = shuffled, osLimbo = [] }
+
+pick_top ::
+     MonadState OnirimState m
+  => MonadFail m
+  => m Card
+pick_top = do
+  (top, rest) <- gets osDeck >>= uncons
+  modify $ \s -> s { osDeck = rest }
+  return top
+
+-- Fill the hand up to 5, stopping when hitting dreams
+draw ::
+     MonadState OnirimState m
+  => MonadRandom m
+  => MonadFail m
+  => m ()
+draw = do
+  top <- pick_top
+  hand <- gets osHand
+  case top of
+    Location _ _ -> do
+      modify $ \s -> s
+        { osHand = top : hand,
+          osStatus = Placing
+        }
+
+      when (length hand <= 4) draw
+
+      limbo <- gets osLimbo
+      unless (null limbo) shuffle_cards
+
+    Dream Nightmare -> modify $ \s -> s { osStatus = SolvingNightmare }
+
+    Dream (Door colour) -> solve_door colour
+
+solve_door ::
+     MonadState OnirimState m
+  => MonadRandom m
+  => MonadFail m
+  => Colour -> m ()
+solve_door colour = do
+  hand <- gets osHand
+  limbo <- gets osLimbo
+  if  Location Key colour `elem` hand
+    then modify $ \s -> s { osStatus = SolvingDoor colour }
+    else do
+      modify $ \s -> s { osLimbo = (Dream $ Door colour) : limbo }
+      draw
 
 main :: IO ()
 -- main = execStateT force_game initial_onirim_state >>= print

@@ -18,13 +18,14 @@ where
 import           Prelude                   hiding (head)
 
 import           Control.Monad             (replicateM_)
+import           Control.Monad.Fail        (MonadFail)
 import           Control.Monad.Loops       (whileJust_)
 import           Control.Monad.State.Class (MonadState, put)
-import           Control.Monad.Trans.Class (lift)
-import           Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
+import           Control.Monad.Trans.Maybe (runMaybeT)
 import           Data.Random               (Distribution (rvar), MonadRandom,
                                             RVar, sample)
 import           Util                      (head)
+
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 data StateDistribution a =
@@ -45,7 +46,7 @@ instance Distribution StateDistribution a where
 -- A state is considered final if the list of transitions from it is empty
 class (Ord score, Bounded score)
   => GameState state trans score | state -> trans, state -> score where
-  next_state :: (MonadState state m) => trans -> MaybeT m (StateDistribution state)
+  next_state :: (MonadState state m, MonadFail m) => trans -> m (StateDistribution state)
   transitions :: (MonadState state m) => m [trans]
   score :: (MonadState state m) => m score
 
@@ -53,8 +54,9 @@ apply_transition ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
-  => transition -> MaybeT m ()
-apply_transition transition = next_state transition >>= lift . sample >>= put
+  => MonadFail m
+  => transition -> m ()
+apply_transition transition = next_state transition >>= sample >>= put
 
 is_final ::
      GameState state transition score
@@ -66,7 +68,8 @@ force_move ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
-  => MaybeT m ()
+  => MonadFail m
+  => m ()
 force_move = transitions >>= head >>= apply_transition
 
 force_game ::
@@ -74,12 +77,12 @@ force_game ::
   => MonadState state m
   => MonadRandom m
   => m ()
---force_game = whileJust_ (runMaybeT force_move) return
 force_game = whileJust_ (runMaybeT force_move) return
 
 force_n_steps ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
-  => Int -> MaybeT m ()
+  => MonadFail m
+  => Int -> m ()
 force_n_steps steps = replicateM_ steps force_move
