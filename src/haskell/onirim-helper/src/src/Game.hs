@@ -8,7 +8,6 @@ module Game
   (GameState(..),
    StateDistribution(..),
    apply_transition,
-   get_transitions,
    force_move,
    force_game,
    is_final,
@@ -20,7 +19,7 @@ import           Prelude                   hiding (head)
 
 import           Control.Monad             (replicateM_)
 import           Control.Monad.Loops       (whileJust_)
-import           Control.Monad.State.Class (MonadState, get, put)
+import           Control.Monad.State.Class (MonadState, put)
 import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import           Data.Random               (Distribution (rvar), MonadRandom,
@@ -46,39 +45,29 @@ instance Distribution StateDistribution a where
 -- A state is considered final if the list of transitions from it is empty
 class (Ord score, Bounded score)
   => GameState state trans score | state -> trans, state -> score where
-  next_state :: (Monad m) => trans -> state -> MaybeT m (StateDistribution state)
-  transitions :: state -> [trans]
-  score :: state -> score
+  next_state :: (MonadState state m) => trans -> MaybeT m (StateDistribution state)
+  transitions :: (MonadState state m) => m [trans]
+  score :: (MonadState state m) => m score
 
 apply_transition ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
   => transition -> MaybeT m ()
-apply_transition transition =
-      get
-  >>= next_state transition
-  >>= lift . sample
-  >>= put
-
-get_transitions ::
-     GameState state transition score
-  => MonadState state m
-  => m [transition]
-get_transitions = transitions <$> get
+apply_transition transition = next_state transition >>= lift . sample >>= put
 
 is_final ::
      GameState state transition score
   => MonadState state m
   => m Bool
-is_final = not . null <$> get_transitions
+is_final = not . null <$> transitions
 
 force_move ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
   => MaybeT m ()
-force_move = get_transitions >>= head >>= apply_transition
+force_move = transitions >>= head >>= apply_transition
 
 force_game ::
      GameState state transition score
