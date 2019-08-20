@@ -157,6 +157,17 @@ next_onirim_state (OpenDoor colour) = do
         }
       draw
 
+next_onirim_state (IgnoreDoor colour) = do
+  limbo <- gets osLimbo
+  state <- get
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state
+        { osLimbo = Dream (Door colour) : limbo,
+          osStatus = Placing
+        }
+      draw
+
 remove_card :: Card -> [Card] -> Maybe [Card]
 remove_card card cards =
   case break (card ==) cards of
