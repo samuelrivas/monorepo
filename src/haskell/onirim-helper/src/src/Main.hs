@@ -8,11 +8,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
+import           Control.Exception         (assert)
+import           Control.Monad.State.Class (MonadState, get, gets, modify, put)
 import           Control.Monad.State.Lazy  (execStateT)
 import           Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import           Data.Foldable             (fold)
 import           Data.Map.Strict           (Map, empty)
-import           Data.Random               (RVar, shuffle)
+import           Data.Random               (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           Util                      (uncons)
 
@@ -57,7 +59,7 @@ data OnirimTransition =
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
   transitions = onirim_transitions
-  score state = osStatus state == Won
+  score =  (Won ==) <$>gets osStatus
 
 initial_onirim_state :: OnirimState
 initial_onirim_state =
@@ -96,18 +98,21 @@ locations =
     Location Key <$> all_colours
   ]
 
-onirim_transitions :: OnirimState -> [OnirimTransition]
-onirim_transitions st =
-  case osStatus st of
-    Uninitialised -> [InitialSetup]
-    _             -> Discard <$> osHand st
+onirim_transitions :: MonadState OnirimState m => m [OnirimTransition]
+onirim_transitions = do
+  status <- gets osStatus
+  hand <- gets osHand
+  return $
+    case status of
+      Uninitialised -> [InitialSetup]
+      _             -> Discard <$> hand
 
 next_onirim_state ::
-     Monad m
+     MonadState OnirimState m
   => OnirimTransition
-  -> OnirimState
   -> MaybeT m (StateDistribution OnirimState)
-next_onirim_state InitialSetup state =
+next_onirim_state InitialSetup = do
+  state <- get
   return . Stochastic $ do
     (hand, rest) <- splitAt 5 <$> shuffle locations
     let
@@ -118,19 +123,35 @@ next_onirim_state InitialSetup state =
         }
     shuffle_deck state_with_hand
 
-next_onirim_state (Discard _) state =
-  do
-    (top, rest) <- uncons . osDeck $ state
-    return . Deterministic $ state
-      { osDeck = rest,
-        osDiscards = top : osDiscards state
-      }
+initial_hand_and_deck :: RVar ([Card], [Card])
+initial_hand_and_deck = do
+  (hand, rest) <- splitAt 5 <$> shuffle locations
+
+  return $ assert (length hand == 5) ()
+
+  reshuffled <- shuffle $ rest ++ dreams
+  return (hand, reshuffled)
+
+-- next_onirim_state (Discard _) =
+--   do
+--     (top, rest) <- uncons . osDeck $ state
+--     return . Deterministic $ state
+--       { osDeck = rest,
+--         osDiscards = top : osDiscards state
+--       }
 
 shuffle_deck :: OnirimState -> RVar OnirimState
-shuffle_deck state =
-  do
-    shuffled <- shuffle $ osDeck state
-    return $ state { osDeck = shuffled }
+shuffle_deck state = do
+  shuffled <- shuffle $ osDeck state
+  return $ state { osDeck = shuffled }
+
+shuffle_deck_s ::
+     MonadState OnirimState m
+  => MonadRandom m
+  => m ()
+shuffle_deck_s = do
+  deck <- gets osDeck >>= sample . shuffle
+  modify (\s -> s { osDeck = deck })
 
 main :: IO ()
 -- main = execStateT force_game initial_onirim_state >>= print
