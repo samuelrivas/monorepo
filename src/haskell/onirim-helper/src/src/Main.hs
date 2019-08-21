@@ -9,13 +9,15 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TupleSections         #-}
 
+import Data.Maybe (catMaybes)
+import Data.List (nub)
 import           Control.Monad             (unless, when)
 import           Control.Monad.Fail        (MonadFail)
 import           Control.Monad.State.Class (MonadState, get, gets, modify, put)
 import           Control.Monad.State.Lazy  (execStateT)
 import           Control.Monad.Trans.Maybe (runMaybeT)
 import           Data.Foldable             (fold)
-import           Data.MultiSet             hiding (fold, null)
+import           Data.MultiSet             hiding (fold, null, filter)
 import           Data.Random               (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           Util                      (uncons)
@@ -25,13 +27,16 @@ import           Util                      (uncons)
 data Colour = Red | Blue | Green | White
   deriving (Show, Eq, Ord)
 
-data Type = Key | Sun | Moon
-  deriving (Show, Eq)
+-- data Type = Key | Sun | Moon
+--   deriving (Show, Eq)
 
 data Dream = Door Colour | Nightmare
   deriving (Show, Eq)
 
-data Card = Location Type Colour | Dream Dream
+data Location = Key Colour | Sun Colour | Moon Colour
+  deriving (Show, Eq)
+
+data Card = Location Location | Dream Dream
   deriving (Show, Eq)
 
 data Status =
@@ -59,6 +64,10 @@ data OnirimTransition =
   | Discard Card
   | OpenDoor Colour
   | IgnoreDoor Colour
+  | DiscardHand
+  | DiscardKey Colour
+  | CloseDoor Colour
+  | Discadrd5
   deriving Show
 
 instance GameState OnirimState OnirimTransition Bool where
@@ -97,28 +106,40 @@ dreams =
 locations :: [Card]
 locations =
   fold
-  [-- replicate 9 (Location Sun Red),
-    replicate 8 (Location Sun Blue),
-    replicate 7 (Location Sun Green),
-    replicate 6 (Location Sun White),
-    Location Moon <$> all_colours,
-    Location Moon <$> all_colours,
-    Location Moon <$> all_colours,
-    Location Moon <$> all_colours,
-    -- Location Key <$> all_colours,
-    -- Location Key <$> all_colours,
-    Location Key <$> all_colours
+  [-- replicate 9 (Location . Sun $ Red),
+    replicate 8 (Location . Sun $ Blue),
+    replicate 7 (Location . Sun $ Green),
+    replicate 6 (Location . Sun $ White),
+    Location . Moon <$> all_colours,
+    Location . Moon <$> all_colours,
+    Location . Moon <$> all_colours,
+    Location . Moon <$> all_colours,
+    -- Location . Key <$> all_colours,
+    -- Location . Key <$> all_colours,
+    Location . Key <$> all_colours
   ]
 
 onirim_transitions :: MonadState OnirimState m => m [OnirimTransition]
 onirim_transitions = do
   status <- gets osStatus
   hand <- gets osHand
+  doors <- gets osDoors
+  deck <- gets osDeck
   return $
     case status of
       Uninitialised      -> [InitialSetup]
       SolvingDoor colour -> [OpenDoor colour, IgnoreDoor colour]
+      -- SolvingNightmare   ->
+      --   concat
+      --   [ discard_key hand,
+      --     close_door doors,
+      --     discard_5 deck,
+      --     [DiscardHand]
+      --   ]
       _                  -> Discard <$> hand
+
+-- discard_key :: [Card] -> [OnirimTransition]
+-- discard_key = nub $ get_colour <$> filter is_key 
 
 next_onirim_state ::
      MonadState OnirimState m
@@ -145,7 +166,7 @@ next_onirim_state (Discard card) = do
       draw
 
 next_onirim_state (OpenDoor colour) = do
-  Just hand <- remove_card (Location Key colour) <$> gets osHand
+  Just hand <- remove_card (Location $ Key colour) <$> gets osHand
   doors <- insert colour <$> gets osDoors
   state <- get
   return . Stochastic $
@@ -213,7 +234,7 @@ draw = do
   hand <- gets osHand
   let new_hand = top : hand
   case top of
-    Location _ _ -> do
+    Location _ -> do
       modify $ \s -> s
         { osHand = new_hand,
           osStatus = Placing
@@ -237,7 +258,7 @@ solve_door ::
 solve_door colour = do
   hand <- gets osHand
   limbo <- gets osLimbo
-  if  Location Key colour `elem` hand
+  if  Location (Key colour) `elem` hand
     then modify $ \s -> s { osStatus = SolvingDoor colour }
     else do
       modify $ \s -> s { osLimbo = (Dream $ Door colour) : limbo }
