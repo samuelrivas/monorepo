@@ -27,9 +27,6 @@ import           Util                      (uncons)
 data Colour = Red | Blue | Green | White
   deriving (Show, Eq, Ord)
 
--- data Type = Key | Sun | Moon
---   deriving (Show, Eq)
-
 data Dream = Door Colour | Nightmare
   deriving (Show, Eq)
 
@@ -52,16 +49,16 @@ data Status =
 data OnirimState = OnirimState
   { osDoors     :: MultiSet Colour,
     osDeck      :: [Card],
-    osLabirynth :: [Card],
+    osLabirynth :: [Location],
     osDiscards  :: [Card],
-    osHand      :: [Card],
-    osLimbo     :: [Card],
+    osHand      :: [Location],
+    osLimbo     :: [Dream],
     osStatus    :: Status
   } deriving Show
 
 data OnirimTransition =
     InitialSetup
-  | Discard Card
+  | Discard Location
   | OpenDoor Colour
   | IgnoreDoor Colour
   | DiscardHand
@@ -96,27 +93,27 @@ all_colours = [Red, Blue, Green, White]
 --     Dream . Door <$> all_colours,
 --     replicate 10 $ Dream Nightmare
 --   ]
-dreams :: [Card]
+dreams :: [Dream]
 dreams =
   fold
-  [ Dream . Door <$> all_colours,
-    replicate 2 $ Dream Nightmare
+  [ Door <$> all_colours,
+    replicate 2 $ Nightmare
   ]
 
-locations :: [Card]
+locations :: [Location]
 locations =
   fold
   [-- replicate 9 (Location . Sun $ Red),
-    replicate 8 (Location . Sun $ Blue),
-    replicate 7 (Location . Sun $ Green),
-    replicate 6 (Location . Sun $ White),
-    Location . Moon <$> all_colours,
-    Location . Moon <$> all_colours,
-    Location . Moon <$> all_colours,
-    Location . Moon <$> all_colours,
-    -- Location . Key <$> all_colours,
-    -- Location . Key <$> all_colours,
-    Location . Key <$> all_colours
+    replicate 8 (Sun $ Blue),
+    replicate 7 (Sun $ Green),
+    replicate 6 (Sun $ White),
+    Moon <$> all_colours,
+    Moon <$> all_colours,
+    Moon <$> all_colours,
+    Moon <$> all_colours,
+    -- Key <$> all_colours,
+    -- Key <$> all_colours,
+    Key <$> all_colours
   ]
 
 onirim_transitions :: MonadState OnirimState m => m [OnirimTransition]
@@ -156,9 +153,9 @@ next_onirim_state InitialSetup = do
         osStatus = Placing
       }
 
-next_onirim_state (Discard card) = do
-  Just hand <- remove_card card <$> gets osHand
-  discards <- (card :) <$> gets osDiscards
+next_onirim_state (Discard location) = do
+  Just hand <- remove_location location <$> gets osHand
+  discards <- (Location location :) <$> gets osDiscards
   state <- get
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
@@ -166,7 +163,7 @@ next_onirim_state (Discard card) = do
       draw
 
 next_onirim_state (OpenDoor colour) = do
-  Just hand <- remove_card (Location $ Key colour) <$> gets osHand
+  Just hand <- remove_location (Key colour) <$> gets osHand
   doors <- insert colour <$> gets osDoors
   state <- get
   return . Stochastic $
@@ -184,24 +181,28 @@ next_onirim_state (IgnoreDoor colour) = do
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       put $ state
-        { osLimbo = Dream (Door colour) : limbo,
+        { osLimbo = Door colour : limbo,
           osStatus = Placing
         }
       draw
 
-remove_card :: Card -> [Card] -> Maybe [Card]
-remove_card card cards =
+remove_location :: Location -> [Location] -> Maybe [Location]
+remove_location card cards =
   case break (card ==) cards of
     (before, _ : after) -> Just $ before ++ after
     _                   -> Nothing
 
-initial_hand_and_deck :: RVar ([Card], [Card])
+initial_hand_and_deck :: RVar ([Location], [Card])
 initial_hand_and_deck = do
   (hand, rest) <- splitAt 5 <$> shuffle locations
 
   when (length hand /= 5) $ fail "Not enough location cards in deck"
 
-  reshuffled <- shuffle $ rest ++ dreams
+  let
+    location_cards = Location <$> rest
+    dream_cards = Dream <$> dreams
+
+  reshuffled <- shuffle $ location_cards ++ dream_cards
   return (hand, reshuffled)
 
 shuffle_cards ::
@@ -211,7 +212,7 @@ shuffle_cards ::
 shuffle_cards = do
   deck <- gets osDeck
   limbo <- gets osLimbo
-  shuffled <-  sample . shuffle $ deck ++ limbo
+  shuffled <-  sample . shuffle $ deck ++ (Dream <$> limbo)
   modify $ \s -> s { osDeck = shuffled, osLimbo = [] }
 
 pick_top ::
@@ -232,9 +233,11 @@ draw ::
 draw = do
   top <- pick_top
   hand <- gets osHand
-  let new_hand = top : hand
   case top of
-    Location _ -> do
+    Location location -> do
+      let
+        new_hand = location : hand
+
       modify $ \s -> s
         { osHand = new_hand,
           osStatus = Placing
@@ -258,10 +261,10 @@ solve_door ::
 solve_door colour = do
   hand <- gets osHand
   limbo <- gets osLimbo
-  if  Location (Key colour) `elem` hand
+  if  Key colour `elem` hand
     then modify $ \s -> s { osStatus = SolvingDoor colour }
     else do
-      modify $ \s -> s { osLimbo = (Dream $ Door colour) : limbo }
+      modify $ \s -> s { osLimbo = Door colour : limbo }
       draw
 
 main :: IO ()
