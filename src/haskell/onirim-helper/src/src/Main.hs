@@ -5,19 +5,18 @@
 
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TupleSections         #-}
 
-import Data.Maybe (catMaybes)
-import Data.List (nub)
-import           Control.Monad             (unless, when)
+import           Control.Monad             (guard, unless, when)
 import           Control.Monad.Fail        (MonadFail)
 import           Control.Monad.State.Class (MonadState, get, gets, modify, put)
 import           Control.Monad.State.Lazy  (execStateT)
 import           Control.Monad.Trans.Maybe (runMaybeT)
 import           Data.Foldable             (fold)
-import           Data.MultiSet             hiding (fold, null, filter)
+import           Data.List                 (nub)
+import           Data.MultiSet             hiding (filter, fold, null)
 import           Data.Random               (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           Util                      (uncons)
@@ -27,14 +26,24 @@ import           Util                      (uncons)
 data Colour = Red | Blue | Green | White
   deriving (Show, Eq, Ord)
 
-data Dream = Door Colour | Nightmare
+data Location = Key Colour | Sun Colour | Moon Colour
   deriving (Show, Eq)
 
-data Location = Key Colour | Sun Colour | Moon Colour
+data Dream = Door Colour | Nightmare
   deriving (Show, Eq)
 
 data Card = Location Location | Dream Dream
   deriving (Show, Eq)
+
+get_colour :: Location -> Colour
+get_colour = \case
+  Key c -> c
+  Sun c -> c
+  Moon c -> c
+
+is_key :: Location -> Bool
+is_key (Key _) = True
+is_key _       = False
 
 data Status =
     Uninitialised
@@ -64,7 +73,7 @@ data OnirimTransition =
   | DiscardHand
   | DiscardKey Colour
   | CloseDoor Colour
-  | Discadrd5
+  | Discard5
   deriving Show
 
 instance GameState OnirimState OnirimTransition Bool where
@@ -97,16 +106,16 @@ dreams :: [Dream]
 dreams =
   fold
   [ Door <$> all_colours,
-    replicate 2 $ Nightmare
+    replicate 2 Nightmare
   ]
 
 locations :: [Location]
 locations =
   fold
   [-- replicate 9 (Location . Sun $ Red),
-    replicate 8 (Sun $ Blue),
-    replicate 7 (Sun $ Green),
-    replicate 6 (Sun $ White),
+    replicate 8 (Sun Blue),
+    replicate 7 (Sun Green),
+    replicate 6 (Sun White),
     Moon <$> all_colours,
     Moon <$> all_colours,
     Moon <$> all_colours,
@@ -126,17 +135,23 @@ onirim_transitions = do
     case status of
       Uninitialised      -> [InitialSetup]
       SolvingDoor colour -> [OpenDoor colour, IgnoreDoor colour]
-      -- SolvingNightmare   ->
-      --   concat
-      --   [ discard_key hand,
-      --     close_door doors,
-      --     discard_5 deck,
-      --     [DiscardHand]
-      --   ]
+      SolvingNightmare   ->
+        concat
+        [ discard_key hand,
+          close_door doors,
+          discard_5 deck,
+          [DiscardHand]
+        ]
       _                  -> Discard <$> hand
 
--- discard_key :: [Card] -> [OnirimTransition]
--- discard_key = nub $ get_colour <$> filter is_key 
+discard_key :: [Location] -> [OnirimTransition]
+discard_key = fmap DiscardKey . nub . fmap get_colour . filter is_key
+
+discard_5 :: [Card] -> [OnirimTransition]
+discard_5 deck = guard (length deck >= 5) >> [Discard5]
+
+close_door :: MultiSet Colour -> [OnirimTransition]
+close_door = fmap CloseDoor . distinctElems
 
 next_onirim_state ::
      MonadState OnirimState m
