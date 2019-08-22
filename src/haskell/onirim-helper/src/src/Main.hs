@@ -201,6 +201,22 @@ next_onirim_state (IgnoreDoor colour) = do
         }
       draw
 
+next_onirim_state (CloseDoor colour) = do
+  doors <- gets osDoors
+  limbo <- gets osLimbo
+  discards <- gets osDiscards
+  state <- get
+  unless (colour `member` doors) $ fail "cannot close a door you didn't open"
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state
+        { osLimbo = Door colour : limbo,
+          osDoors = delete colour doors,
+          osStatus = Placing,
+          osDiscards = Dream Nightmare : discards
+        }
+      draw
+
 remove_location :: Location -> [Location] -> Maybe [Location]
 remove_location card cards =
   case break (card ==) cards of
