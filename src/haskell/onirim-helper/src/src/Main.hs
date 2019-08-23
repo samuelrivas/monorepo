@@ -9,17 +9,18 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Control.Monad             (guard, unless, when)
-import           Control.Monad.Fail        (MonadFail)
-import           Control.Monad.State.Class (MonadState, get, gets, modify, put)
-import           Control.Monad.State.Lazy  (execStateT)
-import           Control.Monad.Trans.Maybe (runMaybeT)
-import           Data.Foldable             (fold)
-import           Data.List                 (nub)
-import           Data.MultiSet             hiding (filter, fold, null)
-import           Data.Random               (MonadRandom, RVar, sample, shuffle)
+import           Control.Monad              (guard, unless, when)
+import           Control.Monad.Fail         (MonadFail)
+import           Control.Monad.Reader.Class (MonadReader, ask, asks)
+import           Control.Monad.State.Class  (MonadState, gets, modify, put)
+import           Control.Monad.State.Lazy   (execStateT)
+import           Control.Monad.Trans.Maybe  (runMaybeT)
+import           Data.Foldable              (fold)
+import           Data.List                  (nub)
+import           Data.MultiSet              hiding (filter, fold, null)
+import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
-import           Util                      (uncons)
+import           Util                       (uncons)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -79,7 +80,7 @@ data OnirimTransition =
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
   transitions = onirim_transitions
-  score = (Won ==) <$> gets osStatus
+  score = (Won ==) <$> asks osStatus
 
 initial_onirim_state :: OnirimState
 initial_onirim_state =
@@ -125,24 +126,23 @@ locations =
     Key <$> all_colours
   ]
 
-onirim_transitions :: MonadState OnirimState m => m [OnirimTransition]
+onirim_transitions :: (MonadReader OnirimState m) => m [OnirimTransition]
 onirim_transitions = do
-  status <- gets osStatus
-  hand <- gets osHand
-  doors <- gets osDoors
-  deck <- gets osDeck
-  return $
-    case status of
-      Uninitialised      -> [InitialSetup]
-      SolvingDoor colour -> [OpenDoor colour, IgnoreDoor colour]
-      SolvingNightmare   ->
-        concat
-        [ discard_key hand,
-          close_door doors,
-          discard_5 deck,
-          [DiscardHand]
-        ]
-      _                  -> Discard <$> hand
+  status <- asks osStatus
+  hand <- asks osHand
+  doors <- asks osDoors
+  deck <- asks osDeck
+  return $ case status of
+    Uninitialised      -> [InitialSetup]
+    SolvingDoor colour -> [OpenDoor colour, IgnoreDoor colour]
+    SolvingNightmare   ->
+      concat
+      [ discard_key hand,
+        close_door doors,
+        discard_5 deck,
+        [DiscardHand]
+      ]
+    _                  -> Discard <$> hand
 
 discard_key :: [Location] -> [OnirimTransition]
 discard_key = fmap DiscardKey . nub . fmap get_colour . filter is_key
@@ -154,12 +154,12 @@ close_door :: MultiSet Colour -> [OnirimTransition]
 close_door = fmap CloseDoor . distinctElems
 
 next_onirim_state ::
-     MonadState OnirimState m
+     MonadReader OnirimState m
   => MonadFail m
   => OnirimTransition
   -> m (StateDistribution OnirimState)
 next_onirim_state InitialSetup = do
-  state <- get
+  state <- ask
   return . Stochastic $ do
     (hand, deck) <- initial_hand_and_deck
     return $ state
@@ -169,18 +169,18 @@ next_onirim_state InitialSetup = do
       }
 
 next_onirim_state (Discard location) = do
-  Just hand <- remove_location location <$> gets osHand
-  discards <- (Location location :) <$> gets osDiscards
-  state <- get
+  Just hand <- remove_location location <$> asks osHand
+  discards <- (Location location :) <$> asks osDiscards
+  state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       put $ state { osHand = hand, osDiscards = discards }
       draw
 
 next_onirim_state (OpenDoor colour) = do
-  Just hand <- remove_location (Key colour) <$> gets osHand
-  doors <- insert colour <$> gets osDoors
-  state <- get
+  Just hand <- remove_location (Key colour) <$> asks osHand
+  doors <- insert colour <$> asks osDoors
+  state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       put $ state
@@ -191,8 +191,8 @@ next_onirim_state (OpenDoor colour) = do
       draw
 
 next_onirim_state (IgnoreDoor colour) = do
-  limbo <- gets osLimbo
-  state <- get
+  limbo <- asks osLimbo
+  state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       put $ state
@@ -202,10 +202,10 @@ next_onirim_state (IgnoreDoor colour) = do
       draw
 
 next_onirim_state (CloseDoor colour) = do
-  doors <- gets osDoors
-  limbo <- gets osLimbo
-  discards <- gets osDiscards
-  state <- get
+  doors <- asks osDoors
+  limbo <- asks osLimbo
+  discards <- asks osDiscards
+  state <- ask
   unless (colour `member` doors) $ fail "cannot close a door you didn't open"
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do

@@ -15,16 +15,18 @@ module Game
   )
 where
 
-import           Prelude                   hiding (head)
+import           Prelude                    hiding (head)
 
-import           Control.Monad             (replicateM_)
-import           Control.Monad.Fail        (MonadFail)
-import           Control.Monad.Loops       (whileJust_)
-import           Control.Monad.State.Class (MonadState, put)
-import           Control.Monad.Trans.Maybe (runMaybeT)
-import           Data.Random               (Distribution (rvar), MonadRandom,
-                                            RVar, sample)
-import           Util                      (head)
+import           Control.Monad              (replicateM_)
+import           Control.Monad.Fail         (MonadFail)
+import           Control.Monad.Loops        (whileJust_)
+import           Control.Monad.Reader       (asks, runReaderT)
+import           Control.Monad.Reader.Class (MonadReader)
+import           Control.Monad.State.Class  (MonadState, get, put)
+import           Control.Monad.Trans.Maybe  (runMaybeT)
+import           Data.Random                (Distribution (rvar), MonadRandom,
+                                             RVar, sample)
+import           Util                       (head)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -46,9 +48,10 @@ instance Distribution StateDistribution a where
 -- A state is considered final if the list of transitions from it is empty
 class (Ord score, Bounded score)
   => GameState state trans score | state -> trans, state -> score where
-  next_state :: (MonadState state m, MonadFail m) => trans -> m (StateDistribution state)
-  transitions :: (MonadState state m) => m [trans]
-  score :: (MonadState state m) => m score
+  next_state :: (MonadReader state m, MonadFail m) =>
+    trans -> m (StateDistribution state)
+  transitions :: MonadReader state m => m [trans]
+  score :: state -> score
 
 apply_transition ::
      GameState state transition score
@@ -56,21 +59,27 @@ apply_transition ::
   => MonadRandom m
   => MonadFail m
   => transition -> m ()
-apply_transition transition = next_state transition >>= sample >>= put
+apply_transition transition =
+      get
+  >>= runReaderT (next_state transition)
+  >>= sample
+  >>= put
 
 is_final ::
      GameState state transition score
-  => MonadState state m
+  => MonadReader state m
   => m Bool
-is_final = not . null <$> transitions
+is_final = asks (not . null . transitions)
 
+-- Note that @head . transitions@ works by using the basic reader instance,
+-- which happens to be just a function from state to a list of transitions
 force_move ::
      GameState state transition score
   => MonadState state m
   => MonadRandom m
   => MonadFail m
   => m ()
-force_move = transitions >>= head >>= apply_transition
+force_move = get >>= head . transitions >>= apply_transition
 
 force_game ::
      GameState state transition score

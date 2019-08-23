@@ -2,19 +2,19 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Util
   (uncons,
-   head
+   head,
+   to_state
   )
 where
 
 import           Prelude                      hiding (head)
 
 import           Control.Monad.Fail           (MonadFail)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import           Control.Monad.Reader         (ReaderT, runReaderT)
+import           Control.Monad.State          (StateT)
 import           Control.Monad.State.Lazy     (StateT (..))
 import           Control.Monad.Trans.Maybe    (MaybeT (..))
-import           Data.Random.Internal.Source  (MonadRandom (getRandomPrim),
-                                               getRandomPrimFrom)
-import           Data.Random.Source.DevRandom (DevRandom (DevURandom))
+import           Data.Random.Internal.Source  (MonadRandom (getRandomPrim))
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -43,3 +43,10 @@ instance MonadRandom m => MonadRandom (StateT s m) where
 
 instance MonadRandom m => MonadRandom (MaybeT m) where
   getRandomPrim p = MaybeT (Just <$> getRandomPrim p)
+
+-- This may exist somewhere
+to_state :: Monad m => ReaderT r m a -> StateT r m a
+to_state r = StateT $ \s ->
+  do
+   a <- runReaderT r s
+   return (a, s)
