@@ -159,6 +159,7 @@ next_onirim_state ::
   => OnirimTransition
   -> m (StateDistribution OnirimState)
 next_onirim_state InitialSetup = do
+  assert_status Uninitialised
   state <- ask
   return . Stochastic $ do
     (hand, deck) <- initial_hand_and_deck
@@ -169,6 +170,7 @@ next_onirim_state InitialSetup = do
       }
 
 next_onirim_state (Discard location) = do
+  assert_status Placing
   Just hand <- remove_location location <$> asks osHand
   discards <- (Location location :) <$> asks osDiscards
   state <- ask
@@ -178,6 +180,7 @@ next_onirim_state (Discard location) = do
       draw
 
 next_onirim_state (OpenDoor colour) = do
+  assert_status $ SolvingDoor colour
   Just hand <- remove_location (Key colour) <$> asks osHand
   doors <- insert colour <$> asks osDoors
   state <- ask
@@ -191,6 +194,7 @@ next_onirim_state (OpenDoor colour) = do
       draw
 
 next_onirim_state (IgnoreDoor colour) = do
+  assert_status $ SolvingDoor colour
   limbo <- asks osLimbo
   state <- ask
   return . Stochastic $
@@ -202,6 +206,7 @@ next_onirim_state (IgnoreDoor colour) = do
       draw
 
 next_onirim_state (CloseDoor colour) = do
+  assert_status SolvingNightmare
   doors <- asks osDoors
   limbo <- asks osLimbo
   discards <- asks osDiscards
@@ -216,6 +221,41 @@ next_onirim_state (CloseDoor colour) = do
           osDiscards = Dream Nightmare : discards
         }
       draw
+
+next_onirim_state (DiscardKey colour) = do
+  assert_status SolvingNightmare
+  Just hand <- remove_location (Key colour) <$> asks osHand
+  discards <- asks osDiscards
+  state <- ask
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state
+        { osHand = hand,
+          osStatus = Placing,
+          osDiscards = Dream Nightmare : Location (Key colour) : discards
+        }
+      draw
+
+-- XXX We need another draw that places dreams in limbo
+next_onirim_state DiscardHand = do
+  assert_status SolvingNightmare
+  hand <- asks osHand
+  discards <- asks osDiscards
+  state <- ask
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state
+        { osHand = [],
+          osStatus = Placing,
+          osDiscards = Dream Nightmare : (Location <$> hand) ++ discards
+        }
+      draw
+
+assert_status :: MonadFail m => MonadReader OnirimState m => Status -> m ()
+assert_status expected = do
+  status <- asks osStatus
+  unless (expected == status) $
+    fail $ "Must be in " <> show expected <> " but is in " <> show status
 
 remove_location :: Location -> [Location] -> Maybe [Location]
 remove_location card cards =
