@@ -11,6 +11,7 @@
 
 import           Control.Monad              (guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
+import           Control.Monad.Loops        (whileM_)
 import           Control.Monad.Reader.Class (MonadReader, ask, asks)
 import           Control.Monad.State.Class  (MonadState, gets, modify, put)
 import           Control.Monad.State.Lazy   (execStateT)
@@ -153,6 +154,12 @@ discard_5 deck = guard (length deck >= 5) >> [Discard5]
 close_door :: MultiSet Colour -> [OnirimTransition]
 close_door = fmap CloseDoor . distinctElems
 
+-- FIXME: We need to make it possible for StateDistribution to signal failure to
+-- sample, otherwise we need the runMaybeT below, which hides errors (sampling a
+-- failure just leaves the state intact)
+
+-- FIXME: There is a lot of boilerplate in these functions, try to find better
+-- abstractions
 next_onirim_state ::
      MonadReader OnirimState m
   => MonadFail m
@@ -236,7 +243,6 @@ next_onirim_state (DiscardKey colour) = do
         }
       draw
 
--- XXX We need another draw that places dreams in limbo
 next_onirim_state DiscardHand = do
   assert_status SolvingNightmare
   hand <- asks osHand
@@ -249,7 +255,7 @@ next_onirim_state DiscardHand = do
           osStatus = Placing,
           osDiscards = Dream Nightmare : (Location <$> hand) ++ discards
         }
-      draw
+      restore_hand
 
 assert_status :: MonadFail m => MonadReader OnirimState m => Status -> m ()
 assert_status expected = do
@@ -316,13 +322,41 @@ draw = do
 
       if length new_hand < 5
         then draw
-        else do
-          limbo <- gets osLimbo
-          unless (null limbo) shuffle_cards
+        else reshuffle_limbo
 
     Dream Nightmare -> modify $ \s -> s { osStatus = SolvingNightmare }
 
     Dream (Door colour) -> solve_door colour
+
+restore_hand ::
+     MonadState OnirimState m
+  => MonadRandom m
+  => MonadFail m
+  => m ()
+restore_hand = do
+  whileM_ ((<5) . length <$> gets osHand) pick_location
+  reshuffle_limbo
+
+pick_location ::
+     MonadState OnirimState m
+  => MonadRandom m
+  => MonadFail m
+  => m ()
+pick_location = do
+  top <- pick_top
+  hand <- gets osHand
+  limbo <- gets osLimbo
+  case top of
+    Location location -> modify $ \s -> s { osHand = location : hand }
+    Dream dream       -> modify $ \s -> s { osLimbo = dream : limbo }
+
+reshuffle_limbo ::
+     MonadState OnirimState m
+  => MonadRandom m
+  => m ()
+reshuffle_limbo = do
+  limbo <- gets osLimbo
+  unless (null limbo) shuffle_cards
 
 solve_door ::
      MonadState OnirimState m

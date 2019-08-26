@@ -23,7 +23,7 @@ import           Control.Monad.Loops        (whileJust_)
 import           Control.Monad.Reader       (asks, runReaderT)
 import           Control.Monad.Reader.Class (MonadReader)
 import           Control.Monad.State.Class  (MonadState, get, put)
-import           Control.Monad.Trans.Maybe  (runMaybeT)
+import           Control.Monad.Trans.Maybe  (MaybeT(..), runMaybeT)
 import           Data.Random                (Distribution (rvar), MonadRandom,
                                              RVar, sample)
 import           Util                       (head)
