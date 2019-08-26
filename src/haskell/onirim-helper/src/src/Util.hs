@@ -7,14 +7,14 @@ module Util
   )
 where
 
-import           Prelude                      hiding (head)
+import           Prelude                     hiding (head)
 
-import           Control.Monad.Fail           (MonadFail)
-import           Control.Monad.Reader         (ReaderT, runReaderT)
-import           Control.Monad.State          (StateT)
-import           Control.Monad.State.Lazy     (StateT (..))
-import           Control.Monad.Trans.Maybe    (MaybeT (..))
-import           Data.Random.Internal.Source  (MonadRandom (getRandomPrim))
+import           Control.Monad.Fail          (MonadFail)
+import           Control.Monad.Reader        (ReaderT, runReaderT)
+import           Control.Monad.State.Lazy    (StateT (..))
+import           Control.Monad.Trans.Maybe   (MaybeT (..))
+import           Control.Monad.Writer        (WriterT (..))
+import           Data.Random.Internal.Source (MonadRandom (getRandomPrim))
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -43,6 +43,11 @@ instance MonadRandom m => MonadRandom (StateT s m) where
 
 instance MonadRandom m => MonadRandom (MaybeT m) where
   getRandomPrim p = MaybeT (Just <$> getRandomPrim p)
+
+instance (Monoid w, MonadRandom m) => MonadRandom (WriterT w m) where
+  getRandomPrim p = WriterT $ do
+    p' <- getRandomPrim p
+    return (p', mempty)
 
 -- This may exist somewhere
 to_state :: Monad m => ReaderT r m a -> StateT r m a
