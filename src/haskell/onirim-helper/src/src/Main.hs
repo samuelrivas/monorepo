@@ -17,8 +17,9 @@ import           Control.Monad.State.Class  (MonadState, gets, modify, put)
 import           Control.Monad.State.Lazy   (execStateT)
 import           Control.Monad.Trans.Maybe  (runMaybeT)
 import           Data.Foldable              (fold)
-import           Data.List                  (nub)
-import           Data.MultiSet              hiding (filter, fold, null)
+import           Data.List                  (nub, partition)
+import           Data.MultiSet              hiding (filter, fold, null,
+                                             partition)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           Util                       (uncons)
@@ -42,6 +43,23 @@ get_colour = \case
   Key c -> c
   Sun c -> c
   Moon c -> c
+
+is_location :: Card -> Bool
+is_location (Location _) = True
+is_location (Dream _)    = False
+
+separate_types :: [Card] -> ([Location], [Dream])
+separate_types cards =
+  let
+    separate_types_acc [] acc =
+      acc
+    separate_types_acc (Location l : rest) (ls, ds) =
+      separate_types_acc rest (l:ls, ds)
+    separate_types_acc (Dream d : rest) (ls, ds) =
+      separate_types_acc rest (ls, d:ds)
+    (ls', ds') = separate_types_acc cards ([], [])
+  in
+    (reverse ls', reverse ds')
 
 is_key :: Location -> Bool
 is_key (Key _) = True
@@ -97,24 +115,18 @@ initial_onirim_state =
 all_colours :: [Colour]
 all_colours = [Red, Blue, Green, White]
 
--- dreams :: [Card]
--- dreams =
---   fold
---   [ Dream . Door <$> all_colours,
---     Dream . Door <$> all_colours,
---     replicate 10 $ Dream Nightmare
---   ]
 dreams :: [Dream]
 dreams =
   fold
   [ Door <$> all_colours,
-    replicate 2 Nightmare
+    Door <$> all_colours,
+    replicate 10 Nightmare
   ]
 
 locations :: [Location]
 locations =
   fold
-  [-- replicate 9 (Location . Sun $ Red),
+  [ replicate 9 (Sun Red),
     replicate 8 (Sun Blue),
     replicate 7 (Sun Green),
     replicate 6 (Sun White),
@@ -122,8 +134,8 @@ locations =
     Moon <$> all_colours,
     Moon <$> all_colours,
     Moon <$> all_colours,
-    -- Key <$> all_colours,
-    -- Key <$> all_colours,
+    Key <$> all_colours,
+    Key <$> all_colours,
     Key <$> all_colours
   ]
 
@@ -256,6 +268,29 @@ next_onirim_state DiscardHand = do
           osDiscards = Dream Nightmare : (Location <$> hand) ++ discards
         }
       restore_hand
+
+next_onirim_state Discard5 = do
+  assert_status SolvingNightmare
+  (to_discard, rest) <- splitAt 5 <$> asks osDeck
+
+  when (length to_discard /= 5) $
+    fail "Cannot discard 5, the deck doesn't have enough cards"
+
+  discards <- asks osDiscards
+  limbo <- asks osLimbo
+  state <- ask
+
+  let
+    (ls, ds) = separate_types to_discard
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state
+        { osStatus = Placing,
+          osDeck = rest,
+          osDiscards = Dream Nightmare : ((Location <$> ls) ++ discards),
+          osLimbo = ds ++ limbo
+        }
+      draw
 
 assert_status :: MonadFail m => MonadReader OnirimState m => Status -> m ()
 assert_status expected = do
