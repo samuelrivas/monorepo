@@ -9,20 +9,24 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
+import           Prelude                    hiding (head)
+
+import           Control.Applicative        ((<|>))
 import           Control.Monad              (guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.Loops        (whileM_)
-import           Control.Monad.Reader.Class (MonadReader, ask, asks)
+import           Control.Monad.Reader       (ask, asks)
+import           Control.Monad.Reader.Class (MonadReader)
 import           Control.Monad.State.Class  (MonadState, gets, modify, put)
 import           Control.Monad.State.Lazy   (execStateT)
 import           Control.Monad.Trans.Maybe  (runMaybeT)
 import           Data.Foldable              (fold)
-import           Data.List                  (nub, partition)
-import           Data.MultiSet              hiding (filter, fold, null,
-                                             partition)
+import           Data.List                  (nub)
+import           Data.MultiSet              (MultiSet, delete, distinctElems,
+                                             empty, insert, member)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
-import           Util                       (uncons)
+import           Util                       (head, uncons)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -44,9 +48,15 @@ get_colour = \case
   Sun c -> c
   Moon c -> c
 
-is_location :: Card -> Bool
-is_location (Location _) = True
-is_location (Dream _)    = False
+matching_symbols :: Location -> Location -> Bool
+matching_symbols (Key _) (Key _)   = True
+matching_symbols (Sun _) (Sun _)   = True
+matching_symbols (Moon _) (Moon _) = True
+matching_symbols _ _               = False
+
+-- is_location :: Card -> Bool
+-- is_location (Location _) = True
+-- is_location (Dream _)    = False
 
 separate_types :: [Card] -> ([Location], [Dream])
 separate_types cards =
@@ -75,10 +85,15 @@ data Status =
   | Won
   deriving (Show, Eq)
 
+data Labirynth = Labirynth
+  { labCurrent :: [Location],
+    labPast    :: [Location]
+  } deriving Show
+
 data OnirimState = OnirimState
   { osDoors     :: MultiSet Colour,
     osDeck      :: [Card],
-    osLabirynth :: [Location],
+    osLabirynth :: Labirynth,
     osDiscards  :: [Card],
     osHand      :: [Location],
     osLimbo     :: [Dream],
@@ -88,6 +103,7 @@ data OnirimState = OnirimState
 data OnirimTransition =
     InitialSetup
   | Discard Location
+  | Place Location
   | OpenDoor Colour
   | IgnoreDoor Colour
   | DiscardHand
@@ -106,7 +122,7 @@ initial_onirim_state =
   OnirimState
     empty
     []
-    []
+    (Labirynth [] [])
     []
     []
     []
@@ -196,6 +212,17 @@ next_onirim_state (Discard location) = do
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       put $ state { osHand = hand, osDiscards = discards }
+      draw
+
+next_onirim_state (Place location) = do
+  assert_status Placing
+  Just hand <- remove_location location <$> asks osHand
+  labirynth <- place location
+  state <- ask
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put $ state { osHand = hand, osLabirynth = labirynth }
+      -- Check if we can open a door, and shuffle in that case
       draw
 
 next_onirim_state (OpenDoor colour) = do
@@ -406,6 +433,28 @@ solve_door colour = do
     else do
       modify $ \s -> s { osLimbo = Door colour : limbo }
       draw
+
+labirynth_last :: MonadReader OnirimState m => m (Maybe Location)
+labirynth_last = do
+  labirynth <- asks osLabirynth
+  return $ (head . labCurrent $ labirynth) <|> (head . labPast $ labirynth)
+
+can_place :: MonadReader OnirimState m => Location -> m Bool
+can_place location  =
+  maybe True (not . matching_symbols location) <$> labirynth_last
+
+-- Return Just if a door can be opened
+place ::
+     MonadReader OnirimState m
+  => MonadFail m
+  => Location
+  -> m Labirynth
+place location = do
+  valid <- can_place location
+  unless valid $ fail ("Cannot place " <> show location)
+
+  lab <- asks osLabirynth
+  return $ lab { labPast = location : labPast lab }
 
 main :: IO ()
 -- main = execStateT force_game initial_onirim_state >>= print
