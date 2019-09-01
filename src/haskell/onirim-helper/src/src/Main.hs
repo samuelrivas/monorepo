@@ -171,7 +171,11 @@ onirim_transitions = do
         discard_5 deck,
         [DiscardHand]
       ]
-    _                  -> Discard <$> hand
+    -- FIXME: filter place to only those that can be placed
+    Placing            -> (Discard <$> hand) ++ (Place <$> hand)
+    Won                -> []
+    Lost               -> []
+    Prophecy           -> []
 
 discard_key :: [Location] -> [OnirimTransition]
 discard_key = fmap DiscardKey . nub . fmap get_colour . filter is_key
