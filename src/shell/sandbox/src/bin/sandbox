@@ -4,8 +4,6 @@
 #  * SH_LIB: the lib directory to load utils from
 #  * CUSTOM_PKGS the path to custom-pkgs.nix, where the sandboxes reside
 
-set -e
-set -u
 source $SH_LIB/prelude.sh
 
 ## Constants
@@ -48,6 +46,7 @@ sandbox() {
 
     nix-shell                                                   \
         --pure                                                  \
+        --show-trace                                            \
         --indirect --add-root "$roots_dir/$derivation"          \
         --keep XAUTHORITY                                       \
         --command "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK; return" \
