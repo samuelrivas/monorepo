@@ -16,7 +16,7 @@ in
 
     emacs-config = {
       full-user-name = lib.mkOption {
-        type = lib.types.string;
+        type = lib.types.str;
         default = "Unknown Fella";
         description = "The full user name.";
       };
@@ -51,7 +51,7 @@ in
         example = /tmp/reflection.org;
       };
       extra-config = lib.mkOption {
-        type = lib.types.string;
+        type = lib.types.str;
         default = "";
         description = "Config to add verbatim to emacs' configuration file.";
         example = ''
