@@ -17,9 +17,8 @@
         (revert-buffer t t t))))
   (message "Refreshed open files."))
 
-;; set the solarised theme, let's be daring and ignore the safety message as well :)
-(setq custom-safe-themes t)
-(load-theme 'solarized-dark)
+;; Color theme
+(load-theme 'solarized-dark t)
 
 ;; Minor modes
 (scroll-bar-mode -1)
