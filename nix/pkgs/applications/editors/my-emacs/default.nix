@@ -9,7 +9,7 @@
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
   aspell-wrapped,
-  colorThemeSolarized,
+  solarized-theme,
   coreutils,
   emacs-config,
   emacs-config-options,
@@ -49,7 +49,7 @@ let
   # Cheap or always needed, dependencies, just install them no matter what
   hardcoded-deps = [
     aspell-wrapped
-    colorThemeSolarized
+    solarized-theme
     emacs-config
     groovy-mode
     nix-mode
