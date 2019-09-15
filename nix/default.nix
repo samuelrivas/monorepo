@@ -93,7 +93,8 @@ let
         inherit (emacsPackagesNg) flycheck-haskell haskell-mode
                                   nix-mode groovy-mode tuareg
                                   terraform-mode yaml-mode;
-        inherit (emacsPackages) scalaMode2 erlangMode solarized-theme;
+        inherit (emacsPackages) scalaMode2 erlangMode;
+        inherit (self.upstream-pkgs.emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages_4_03) merlin ocp-indent utop;
         emacs-config-options = self.local-config.emacs-config;
