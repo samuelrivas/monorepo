@@ -17,8 +17,17 @@
         (revert-buffer t t t))))
   (message "Refreshed open files."))
 
-;; Color theme
-(load-theme 'solarized-dark t)
+;; Enable the solarised theme, with dark background We assume that
+;; color-theme-solarized is in the path and use that info to set
+;; custom-theme-load-path
+(add-to-list
+ 'custom-theme-load-path
+ (file-name-directory
+  (locate-file "color-theme-solarized" load-path '(".el" ".elc"))))
+
+(setq frame-background-mode 'dark)
+(load-theme 'solarized t)
+(enable-theme 'solarized)
 
 ;; Minor modes
 (scroll-bar-mode -1)
