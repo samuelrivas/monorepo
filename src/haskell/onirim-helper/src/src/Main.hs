@@ -3,15 +3,19 @@
 -- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
 import           Prelude                    hiding (head)
 
 import           Control.Applicative        ((<|>))
+import           Control.Lens               ((^.))
 import           Control.Monad              (guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.Loops        (whileM_)
@@ -21,11 +25,13 @@ import           Control.Monad.State.Class  (MonadState, gets, modify, put)
 import           Control.Monad.State.Lazy   (execStateT)
 import           Control.Monad.Trans.Maybe  (runMaybeT)
 import           Data.Foldable              (fold)
+import           Data.Generics.Labels       ()
 import           Data.List                  (nub)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
                                              empty, insert, member)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
+import           GHC.Generics               (Generic)
 import           Util                       (head, uncons)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
@@ -85,10 +91,11 @@ data Status =
   | Won
   deriving (Show, Eq)
 
+-- FIXME: Move to a data module, hide accessors and rename to remove underscore
 data Labirynth = Labirynth
-  { labCurrent :: [Location],
-    labPast    :: [Location]
-  } deriving Show
+  { _current :: [Location],
+    _past    :: [Location]
+  } deriving stock (Show, Generic)
 
 data OnirimState = OnirimState
   { osDoors     :: MultiSet Colour,
@@ -98,7 +105,7 @@ data OnirimState = OnirimState
     osHand      :: [Location],
     osLimbo     :: [Dream],
     osStatus    :: Status
-  } deriving Show
+  } deriving stock (Show, Generic)
 
 data OnirimTransition =
     InitialSetup
@@ -430,8 +437,8 @@ solve_door ::
   => MonadFail m
   => Colour -> m ()
 solve_door colour = do
-  hand <- gets osHand
-  limbo <- gets osLimbo
+  hand <- gets (^. #osHand)
+  limbo <- gets (^. #osLimbo)
   if  Key colour `elem` hand
     then modify $ \s -> s { osStatus = SolvingDoor colour }
     else do
@@ -441,7 +448,7 @@ solve_door colour = do
 labirynth_last :: MonadReader OnirimState m => m (Maybe Location)
 labirynth_last = do
   labirynth <- asks osLabirynth
-  return $ (head . labCurrent $ labirynth) <|> (head . labPast $ labirynth)
+  return $ head (labirynth ^. #_current) <|> head (labirynth ^. #_past)
 
 can_place :: MonadReader OnirimState m => Location -> m Bool
 can_place location  =
@@ -458,7 +465,7 @@ place location = do
   unless valid $ fail ("Cannot place " <> show location)
 
   lab <- asks osLabirynth
-  return $ lab { labPast = location : labPast lab }
+  return $ lab { _past = location : _past lab }
 
 main :: IO ()
 -- main = execStateT force_game initial_onirim_state >>= print

@@ -6,6 +6,8 @@
 }:
 let
   wanted-packages = with haskellPackages; [
+    generic-lens
+    lens
     multiset
     random-fu
   ];
