@@ -28,7 +28,7 @@ import           Data.Foldable              (fold)
 import           Data.Generics.Labels       ()
 import           Data.List                  (nub)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
-                                             empty, insert, member)
+                                             empty, insert, member, occur)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           GHC.Generics               (Generic)
@@ -40,13 +40,30 @@ data Colour = Red | Blue | Green | White
   deriving (Show, Eq, Ord)
 
 data Location = Key Colour | Sun Colour | Moon Colour
-  deriving (Show, Eq)
+  deriving Eq
+
+instance Show Location where
+  show (Key c)  = "K" <> concise_show c
+  show (Sun c)  = "S" <> concise_show c
+  show (Moon c) = "M" <> concise_show c
 
 data Dream = Door Colour | Nightmare
-  deriving (Show, Eq)
+  deriving Eq
 
 data Card = Location Location | Dream Dream
-  deriving (Show, Eq)
+  deriving Eq
+
+instance Show Dream where
+  show Nightmare = "N"
+  show (Door c)  = "D" <> concise_show c
+
+-- FIXME: Can we use lenses here to get the wrapped element?
+instance Show Card where
+  show (Location l) = show l
+  show (Dream d)    = show d
+
+concise_show :: Colour -> String
+concise_show = head . show
 
 get_colour :: Location -> Colour
 get_colour = \case
@@ -95,7 +112,7 @@ data Status =
 data Labirynth = Labirynth
   { _current :: [Location],
     _past    :: [Location]
-  } deriving stock (Show, Generic)
+  } deriving stock Generic
 
 data OnirimState = OnirimState
   { osDoors     :: MultiSet Colour,
@@ -105,7 +122,7 @@ data OnirimState = OnirimState
     osHand      :: [Location],
     osLimbo     :: [Dream],
     osStatus    :: Status
-  } deriving stock (Show, Generic)
+  } deriving stock Generic
 
 data OnirimTransition =
     InitialSetup
@@ -119,10 +136,39 @@ data OnirimTransition =
   | Discard5
   deriving Show
 
+showDoors :: MultiSet Colour -> String
+showDoors doors =
+  let
+    showColour c = case occur c doors of
+      0 -> "XX"
+      1 -> "X" <> show c
+      _ -> show c <> show c
+  in
+    unwords . fmap showColour $ [Red, Blue, Green, White]
+
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
   transitions = onirim_transitions
   score = (Won ==) <$> asks osStatus
+
+instance Show Labirynth where
+  show l = showCards (l ^. #_past) <> "|"
+    <> showCards (l ^. #_current)
+
+instance Show OnirimState where
+  show s =
+    unlines
+    ["Doors: " <> showDoors (s ^. #osDoors),
+     "Labirynth: " <> show (s ^. #osLabirynth),
+     "Deck: " <> showCards (s ^. #osDeck),
+     "Hand: " <> showCards (s ^. #osHand),
+     "Discards: " <> showCards (s ^. #osDiscards),
+     "Limbo: " <> showCards (s ^. #osLimbo),
+     "Status: " <> show (s ^. #osStatus)
+    ]
+
+showCards :: Show a => [a] -> String
+showCards = unwords . fmap show
 
 initial_onirim_state :: OnirimState
 initial_onirim_state =
