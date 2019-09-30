@@ -15,7 +15,7 @@
 import           Prelude                    hiding (head)
 
 import           Control.Applicative        ((<|>))
-import           Control.Lens               ((^.))
+import           Control.Lens               (over, set, view, (^.))
 import           Control.Monad              (guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.Loops        (whileM_)
@@ -26,7 +26,7 @@ import           Control.Monad.State.Lazy   (execStateT)
 import           Control.Monad.Trans.Maybe  (runMaybeT)
 import           Data.Foldable              (fold)
 import           Data.Generics.Labels       ()
-import           Data.List                  (nub)
+import           Data.List                  (nub, permutations, sort)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
                                              empty, insert, member, occur)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
@@ -40,7 +40,7 @@ data Colour = Red | Blue | Green | White
   deriving (Show, Eq, Ord)
 
 data Location = Key Colour | Sun Colour | Moon Colour
-  deriving Eq
+  deriving stock (Eq, Ord)
 
 instance Show Location where
   show (Key c)  = "K" <> concise_show c
@@ -48,10 +48,10 @@ instance Show Location where
   show (Moon c) = "M" <> concise_show c
 
 data Dream = Door Colour | Nightmare
-  deriving Eq
+  deriving stock (Ord, Eq)
 
 data Card = Location Location | Dream Dream
-  deriving Eq
+  deriving stock (Ord, Eq)
 
 instance Show Dream where
   show Nightmare = "N"
@@ -98,6 +98,10 @@ is_key :: Location -> Bool
 is_key (Key _) = True
 is_key _       = False
 
+is_door :: Card -> Bool
+is_door (Dream (Door _)) = True
+is_door _                = False
+
 data Status =
     Uninitialised
   | Placing
@@ -124,6 +128,7 @@ data OnirimState = OnirimState
     osStatus    :: Status
   } deriving stock Generic
 
+-- FIXME: Rearrange could be safer...
 data OnirimTransition =
     InitialSetup
   | Discard Location
@@ -134,6 +139,7 @@ data OnirimTransition =
   | DiscardKey Colour
   | CloseDoor Colour
   | Discard5
+  | Rearrange [Card]
   deriving Show
 
 showDoors :: MultiSet Colour -> String
@@ -214,21 +220,32 @@ onirim_transitions = do
   hand <- asks osHand
   doors <- asks osDoors
   deck <- asks osDeck
-  return $ case status of
-    Uninitialised      -> [InitialSetup]
-    SolvingDoor colour -> [OpenDoor colour, IgnoreDoor colour]
+  case status of
+    Uninitialised      -> return [InitialSetup]
+    SolvingDoor colour -> return [OpenDoor colour, IgnoreDoor colour]
     SolvingNightmare   ->
-      concat
+      return . concat $
       [ discard_key hand,
         close_door doors,
         discard_5 deck,
         [DiscardHand]
       ]
     -- FIXME: filter place to only those that can be placed
-    Placing            -> (Discard <$> hand) ++ (Place <$> hand)
-    Won                -> []
-    Lost               -> []
-    Prophecy           -> []
+    Placing            -> return $ (Discard <$> hand) ++ (Place <$> hand)
+    Won                -> return []
+    Lost               -> return []
+    Prophecy           -> prophecy_transitions
+
+prophecy_transitions :: (MonadReader OnirimState m) => m [OnirimTransition]
+prophecy_transitions =
+  let
+    valid = not . is_door . last
+  in do
+    hand <- asks . view $ #osDeck
+    if null hand then
+      return []
+    else
+      return $ Rearrange <$> (filter valid . permutations . take 5 $ hand)
 
 discard_key :: [Location] -> [OnirimTransition]
 discard_key = fmap DiscardKey . nub . fmap get_colour . filter is_key
@@ -266,9 +283,17 @@ next_onirim_state (Discard location) = do
   Just hand <- remove_location location <$> asks osHand
   discards <- (Location location :) <$> asks osDiscards
   state <- ask
-  return . Stochastic $
+
+  let new_state = set #osHand hand $
+                  set #osDiscards discards
+                  state
+
+  if is_key location then
+    return . Deterministic $ set #osStatus Prophecy new_state
+  else
+    return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      put $ state { osHand = hand, osDiscards = discards }
+      put new_state
       draw
 
 next_onirim_state (Place location) = do
@@ -376,11 +401,33 @@ next_onirim_state Discard5 = do
         }
       draw
 
+next_onirim_state (Rearrange cards) = do
+  assert_status Prophecy
+  state <- ask
+  assert_same_cards cards (take 5 $ state ^. #osDeck)
+
+  let
+    -- new_deck = init cards ++ drop 5 $ state ^. #osDeck
+    new_state =
+      over #osDeck ((init cards ++) . drop (length cards)) $
+      over #osDiscards (last cards :) $
+      set #osStatus Placing
+      state
+
+  return . Stochastic $
+    flip execStateT state $ runMaybeT $ do
+      put new_state
+      draw
+
 assert_status :: MonadFail m => MonadReader OnirimState m => Status -> m ()
 assert_status expected = do
   status <- asks osStatus
   unless (expected == status) $
     fail $ "Must be in " <> show expected <> " but is in " <> show status
+
+assert_same_cards :: MonadFail m => [Card] -> [Card] -> m ()
+assert_same_cards x y =
+  unless (sort x == sort y) (fail "Rearranging illegal cards in prophecy")
 
 remove_location :: Location -> [Location] -> Maybe [Location]
 remove_location card cards =
