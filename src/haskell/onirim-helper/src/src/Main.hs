@@ -15,8 +15,7 @@
 import           Prelude                    hiding (head)
 
 import           Control.Applicative        ((<|>))
-import           Control.Lens               (assign, over, set, view, (%=),
-                                             (.=), (^.))
+import           Control.Lens               (assign, modifying, set, view)
 import           Control.Monad              (guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.Loops        (whileM_)
@@ -159,19 +158,19 @@ instance GameState OnirimState OnirimTransition Bool where
   score = (Won ==) <$> asks osStatus
 
 instance Show Labirynth where
-  show l = showCards (l ^. #_past) <> "|"
-    <> showCards (l ^. #_current)
+  show l = showCards (view #_past l) <> "|"
+    <> showCards (view #_current l)
 
 instance Show OnirimState where
   show s =
     unlines
-    ["Doors: " <> showDoors (s ^. #osDoors),
-     "Labirynth: " <> show (s ^. #osLabirynth),
-     "Deck: " <> showCards (s ^. #osDeck),
-     "Hand: " <> showCards (s ^. #osHand),
-     "Discards: " <> showCards (s ^. #osDiscards),
-     "Limbo: " <> showCards (s ^. #osLimbo),
-     "Status: " <> show (s ^. #osStatus)
+    ["Doors: " <> showDoors (view #osDoors s),
+     "Labirynth: " <> show (view #osLabirynth s),
+     "Deck: " <> showCards (view #osDeck s),
+     "Hand: " <> showCards (view #osHand s),
+     "Discards: " <> showCards (view #osDiscards s),
+     "Limbo: " <> showCards (view #osLimbo s),
+     "Status: " <> show (view #osStatus s)
     ]
 
 showCards :: Show a => [a] -> String
@@ -324,29 +323,24 @@ next_onirim_state (OpenDoor colour) = do
 
 next_onirim_state (IgnoreDoor colour) = do
   assert_status $ SolvingDoor colour
-  limbo <- asks osLimbo
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      put $ state
-        { osLimbo = Door colour : limbo,
-          osStatus = Placing
-        }
+      modifying #osLimbo (Door colour :)
+      assign #osStatus Placing
       draw
 
 next_onirim_state (CloseDoor colour) = do
   assert_status SolvingNightmare
   doors <- asks osDoors
-  limbo <- asks osLimbo
-  discards <- asks osDiscards
-  state <- ask
   unless (colour `member` doors) $ fail "cannot close a door you didn't open"
+  state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      assign #osLimbo $ Door colour : limbo
-      assign #osDoors $ delete colour doors
+      modifying #osLimbo (Door colour :)
+      modifying #osDoors $ delete colour
+      modifying #osDiscards (Dream Nightmare :)
       assign #osStatus Placing
-      assign #osDiscards $ Dream Nightmare : discards
       draw
 
 next_onirim_state (DiscardKey colour) = do
@@ -355,9 +349,9 @@ next_onirim_state (DiscardKey colour) = do
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      #osHand .= hand
-      #osStatus .= Placing
-      #osDiscards %= ([Dream Nightmare, Location (Key colour)] ++)
+      assign #osHand hand
+      assign #osStatus Placing
+      modifying #osDiscards ([Dream Nightmare, Location (Key colour)] ++)
       draw
 
 next_onirim_state DiscardHand = do
@@ -400,19 +394,13 @@ next_onirim_state Discard5 = do
 next_onirim_state (Rearrange cards) = do
   assert_status Prophecy
   state <- ask
-  assert_same_cards cards (take 5 $ state ^. #osDeck)
-
-  let
-    -- new_deck = init cards ++ drop 5 $ state ^. #osDeck
-    new_state =
-      over #osDeck ((init cards ++) . drop (length cards)) $
-      over #osDiscards (last cards :) $
-      set #osStatus Placing
-      state
+  assert_same_cards cards (take 5 $ view #osDeck state)
 
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      put new_state
+      modifying #osDeck ((init cards ++) . drop (length cards))
+      modifying #osDeck (last cards :)
+      assign #osStatus Placing
       draw
 
 assert_status :: MonadFail m => MonadReader OnirimState m => Status -> m ()
@@ -526,18 +514,19 @@ solve_door ::
   => MonadFail m
   => Colour -> m ()
 solve_door colour = do
-  hand <- gets (^. #osHand)
-  limbo <- gets (^. #osLimbo)
+  hand <- gets (view #osHand)
   if  Key colour `elem` hand
-    then modify $ \s -> s { osStatus = SolvingDoor colour }
+    then assign #osStatus $ SolvingDoor colour
     else do
-      modify $ \s -> s { osLimbo = Door colour : limbo }
+      modifying #osLimbo (Door colour :)
       draw
 
 labirynth_last :: MonadReader OnirimState m => m (Maybe Location)
 labirynth_last = do
   labirynth <- asks osLabirynth
-  return $ head (labirynth ^. #_current) <|> head (labirynth ^. #_past)
+  return $
+        (head . view #_current $ labirynth)
+    <|> (head . view #_past    $ labirynth)
 
 can_place :: MonadReader OnirimState m => Location -> m Bool
 can_place location  =
