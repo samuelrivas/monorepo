@@ -15,7 +15,8 @@
 import           Prelude                    hiding (head)
 
 import           Control.Applicative        ((<|>))
-import           Control.Lens               (over, set, view, (^.))
+import           Control.Lens               (assign, over, set, view, (%=),
+                                             (.=), (^.))
 import           Control.Monad              (guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.Loops        (whileM_)
@@ -342,26 +343,21 @@ next_onirim_state (CloseDoor colour) = do
   unless (colour `member` doors) $ fail "cannot close a door you didn't open"
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      put $ state
-        { osLimbo = Door colour : limbo,
-          osDoors = delete colour doors,
-          osStatus = Placing,
-          osDiscards = Dream Nightmare : discards
-        }
+      assign #osLimbo $ Door colour : limbo
+      assign #osDoors $ delete colour doors
+      assign #osStatus Placing
+      assign #osDiscards $ Dream Nightmare : discards
       draw
 
 next_onirim_state (DiscardKey colour) = do
   assert_status SolvingNightmare
   Just hand <- remove_location (Key colour) <$> asks osHand
-  discards <- asks osDiscards
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      put $ state
-        { osHand = hand,
-          osStatus = Placing,
-          osDiscards = Dream Nightmare : Location (Key colour) : discards
-        }
+      #osHand .= hand
+      #osStatus .= Placing
+      #osDiscards %= ([Dream Nightmare, Location (Key colour)] ++)
       draw
 
 next_onirim_state DiscardHand = do
