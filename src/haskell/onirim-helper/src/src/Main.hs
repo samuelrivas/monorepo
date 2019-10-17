@@ -12,27 +12,30 @@
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Prelude                    hiding (head)
+import           Prelude                    hiding (getLine, head, print,
+                                             putStr)
 
 import           Control.Applicative        ((<|>))
 import           Control.Lens               (assign, modifying, set, view)
-import           Control.Monad              (guard, unless, when)
+import           Control.Monad              (forever, guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
+import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Loops        (whileM_)
 import           Control.Monad.Reader       (ask, asks)
 import           Control.Monad.Reader.Class (MonadReader)
-import           Control.Monad.State.Class  (MonadState, gets, modify, put)
+import           Control.Monad.State.Class  (MonadState, get, gets, modify, put)
 import           Control.Monad.State.Lazy   (execStateT)
-import           Control.Monad.Trans.Maybe  (runMaybeT)
+import           Control.Monad.Trans.Maybe  (MaybeT, runMaybeT)
 import           Data.Foldable              (fold)
 import           Data.Generics.Labels       ()
 import           Data.List                  (nub, permutations, sort)
+import           Data.Maybe                 (fromMaybe)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
                                              empty, insert, member, occur)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           GHC.Generics               (Generic)
-import           Util                       (head, uncons)
+import           Util                       (head, print, readline, uncons)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -545,6 +548,69 @@ place location = do
   lab <- asks osLabirynth
   return $ lab { _past = location : _past lab }
 
+-- FIXME: Show errors, and provide a way to bail out
+insist :: Monad m => MaybeT m a -> m a
+insist x = do
+  res <- runMaybeT x
+  case res of
+    Just a  -> pure a
+    Nothing -> insist x
+
+-- FIXME: Complete the transitions
+parse_user_input :: MonadFail m => String -> m OnirimTransition
+parse_user_input input =
+  let
+    location args = assume_one args >>= parse_location
+    colour args = assume_one args >>= parse_colour
+  in do
+    (cmd, args) <- uncons . words $ input
+    case cmd of
+      "place"   -> Place <$> location args
+      "discard" -> Discard <$> location args
+      "discardhand" -> pure DiscardHand
+      "discard5" -> pure Discard5
+      "closedoor" -> CloseDoor <$> colour args
+      "discardkey" -> DiscardKey <$> colour args
+      _         -> fail $ "Unknown transition " <> cmd
+
+assume_one :: Show a => MonadFail m => [a] -> m a
+assume_one [a]  = pure a
+assume_one many = fail $ "we wanted one element, but got " <> show many
+
+parse_location :: MonadFail m => String -> m Location
+parse_location ('M' : colour) = Moon <$> parse_colour colour
+parse_location ('S' : colour) = Sun <$> parse_colour colour
+parse_location ('K' : colour) = Key <$> parse_colour colour
+parse_location invalid        = fail $ "Invalid location " <> invalid
+
+parse_colour :: MonadFail m => String -> m Colour
+parse_colour "R"     = pure Red
+parse_colour "B"     = pure Blue
+parse_colour "G"     = pure Green
+parse_colour "W"     = pure White
+parse_colour invalid = fail $ "Invalid colour " <> invalid
+
+-- FIXME: Save provide all transitions
+get_transition ::
+     MonadState OnirimState m
+  => MonadFail m
+  => MonadIO m
+  => m OnirimTransition
+get_transition = do
+  get >>= print
+  fromMaybe "" <$> readline "Your move: " >>= parse_user_input
+
+user_step ::
+     MonadState OnirimState m
+  => MonadFail m
+  => MonadRandom m
+  => MonadIO m
+  => m ()
+user_step = insist get_transition >>= apply_transition
+
 main :: IO ()
--- main = execStateT force_game initial_onirim_state >>= print
-main = (flip execStateT initial_onirim_state . runMaybeT $ force_n_steps 10) >>= print
+main = do
+  state <- flip execStateT initial_onirim_state $ do
+    apply_transition InitialSetup
+    forever user_step
+  print state

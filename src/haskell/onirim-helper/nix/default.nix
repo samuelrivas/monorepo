@@ -10,6 +10,7 @@ let
     lens
     multiset
     random-fu
+    readline
   ];
   haskell-packages-selector = pkgs: wanted-packages;
   ghc = haskellPackages.ghcWithPackages haskell-packages-selector;

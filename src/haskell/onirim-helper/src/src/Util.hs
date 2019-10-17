@@ -3,18 +3,27 @@
 module Util
   (uncons,
    head,
-   to_state
+   print,
+   putStr,
+   getLine,
+   to_state,
+   addHistory,
+   readline
   )
 where
 
-import           Prelude                     hiding (head)
+import           Prelude                     hiding (getLine, head, print,
+                                              putStr)
+import qualified Prelude                     as Prelude
 
 import           Control.Monad.Fail          (MonadFail)
+import           Control.Monad.IO.Class      (MonadIO, liftIO)
 import           Control.Monad.Reader        (ReaderT, runReaderT)
 import           Control.Monad.State.Lazy    (StateT (..))
 import           Control.Monad.Trans.Maybe   (MaybeT (..))
 import           Control.Monad.Writer        (WriterT (..))
 import           Data.Random.Internal.Source (MonadRandom (getRandomPrim))
+import qualified System.Console.Readline     as Readline
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -25,6 +34,21 @@ uncons []     = fail "cannot uncons []"
 head :: (MonadFail m) => [a] -> m a
 head (x:_) = return x
 head []    = fail "cannot head []"
+
+print :: (Show a, MonadIO m) => a -> m ()
+print = liftIO . Prelude.print
+
+putStr :: MonadIO m => String -> m ()
+putStr = liftIO . Prelude.putStr
+
+getLine :: MonadIO m => m String
+getLine = liftIO Prelude.getLine
+
+readline :: MonadIO m => String -> m (Maybe String)
+readline = liftIO . Readline.readline
+
+addHistory :: MonadIO m => String -> m ()
+addHistory = liftIO . Readline.addHistory
 
 -- XXX Why are these instance not there? And, heck, why are there two
 -- MonadRandom implementations (there is an instance for
