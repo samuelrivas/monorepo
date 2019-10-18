@@ -452,6 +452,7 @@ pick_top = do
   modify $ \s -> s { osDeck = rest }
   return top
 
+-- FIXME: Go into lost if cannot draw
 -- Fill the hand up to 5, stopping if hitting actionable dreams
 draw ::
      MonadState OnirimState m
