@@ -80,10 +80,6 @@ matching_symbols (Sun _) (Sun _)   = True
 matching_symbols (Moon _) (Moon _) = True
 matching_symbols _ _               = False
 
--- is_location :: Card -> Bool
--- is_location (Location _) = True
--- is_location (Dream _)    = False
-
 separate_types :: [Card] -> ([Location], [Dream])
 separate_types cards =
   let
@@ -402,7 +398,7 @@ next_onirim_state (Rearrange cards) = do
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       modifying #osDeck ((init cards ++) . drop (length cards))
-      modifying #osDeck (last cards :)
+      modifying #osDiscards (last cards :)
       assign #osStatus Placing
       draw
 
