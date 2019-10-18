@@ -147,7 +147,7 @@ showDoors doors =
   let
     showColour c = case occur c doors of
       0 -> "XX"
-      1 -> "X" <> show c
+      1 -> "X" <> concise_show c
       _ -> show c <> show c
   in
     unwords . fmap showColour $ [Red, Blue, Green, White]
