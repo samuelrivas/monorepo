@@ -1,4 +1,4 @@
--- Everything here is to be moved to a better named module
+-- FIXME: Everything here is to be moved to a better named module
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Util
   (uncons,
@@ -27,6 +27,11 @@ import qualified System.Console.Readline     as Readline
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
+-- Explicitly unsafe operations
+--
+-- These are similar their original counterparts, but instead of being
+-- implicitly unsafe they run in MonadFail so that we can use them explicitly
+-- where it makes sense (or just because we are lazy, but honest :) )
 uncons :: (MonadFail m) => [a] -> m (a, [a])
 uncons (x:xs) = return (x, xs)
 uncons []     = fail "cannot uncons []"
@@ -35,6 +40,9 @@ head :: (MonadFail m) => [a] -> m a
 head (x:_) = return x
 head []    = fail "cannot head []"
 
+-- Lifted IO
+--
+-- IO operations lifted to MonadIO
 print :: (Show a, MonadIO m) => a -> m ()
 print = liftIO . Prelude.print
 
@@ -50,15 +58,21 @@ readline = liftIO . Readline.readline
 addHistory :: MonadIO m => String -> m ()
 addHistory = liftIO . Readline.addHistory
 
--- XXX Why are these instance not there? And, heck, why are there two
--- MonadRandom implementations (there is an instance for
--- Control.Monad.Random.Class)
+-- Miscellaneous stuff
+-- This may exist somewhere
+to_state :: Monad m => ReaderT r m a -> StateT r m a
+to_state r = StateT $ \s ->
+  do
+   a <- runReaderT r s
+   return (a, s)
 
--- Fallback, this is quite explicit, but does work, delete once you make sure
--- that the more generic ones below also work
--- instance MonadIO m => MonadRandom (StateT s m) where
---   getRandomPrim = liftIO . getRandomPrimFrom DevURandom
+-- Arbitrary instances
+--
+-- Useful instances not present in standard libraries
 
+-- MTL instances for MonadRandom. Note that there two MonadRandom
+-- implementations, these are for Data.Random.MonadRandom, but there is also
+-- Control.Monad.Random.Class
 instance MonadRandom m => MonadRandom (StateT s m) where
   getRandomPrim p = StateT $ \s ->
     do
@@ -72,10 +86,3 @@ instance (Monoid w, MonadRandom m) => MonadRandom (WriterT w m) where
   getRandomPrim p = WriterT $ do
     p' <- getRandomPrim p
     return (p', mempty)
-
--- This may exist somewhere
-to_state :: Monad m => ReaderT r m a -> StateT r m a
-to_state r = StateT $ \s ->
-  do
-   a <- runReaderT r s
-   return (a, s)

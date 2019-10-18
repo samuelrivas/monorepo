@@ -26,7 +26,7 @@ import           Control.Monad.Reader.Class (MonadReader)
 import           Control.Monad.State.Class  (MonadState, get, gets, modify, put)
 import           Control.Monad.State.Lazy   (execStateT)
 import           Control.Monad.Trans.Maybe  (MaybeT, runMaybeT)
-import           Data.Foldable              (fold)
+import           Data.Foldable              (fold, traverse_)
 import           Data.Generics.Labels       ()
 import           Data.List                  (nub, permutations, sort)
 import           Data.Maybe                 (fromMaybe)
@@ -35,7 +35,8 @@ import           Data.MultiSet              (MultiSet, delete, distinctElems,
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           GHC.Generics               (Generic)
-import           Util                       (head, print, readline, uncons)
+import           Util                       (addHistory, head, print, readline,
+                                             uncons)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -296,7 +297,8 @@ next_onirim_state (Discard location) = do
       put new_state
       draw
 
--- FIXME Open the doors when possible here
+-- FIXME: Open the doors when possible here
+-- FIXME: Win the game when opening the last door
 next_onirim_state (Place location) = do
   assert_status Placing
   Just hand <- remove_location location <$> asks osHand
@@ -554,7 +556,6 @@ insist x = do
     Just a  -> pure a
     Nothing -> insist x
 
--- FIXME: Complete the transitions
 parse_user_input :: MonadFail m => String -> m OnirimTransition
 parse_user_input input =
   let
@@ -610,7 +611,6 @@ parse_colour "G"     = pure Green
 parse_colour "W"     = pure White
 parse_colour invalid = fail $ "Invalid colour " <> invalid
 
--- FIXME: Save provide all transitions
 get_transition ::
      MonadState OnirimState m
   => MonadFail m
@@ -620,6 +620,21 @@ get_transition = do
   get >>= print
   fromMaybe "" <$> readline "Your move: " >>= parse_user_input
 
+-- TODO: Tie this better with the parser
+warmup_history :: MonadIO m => m ()
+warmup_history =
+  traverse_ addHistory
+   ["place",
+    "discard",
+    "discardhand",
+    "discard5",
+    "closedoor",
+    "discardkey",
+    "opendoor",
+    "ignoredoor",
+    "rearrange"
+   ]
+
 user_step ::
      MonadState OnirimState m
   => MonadFail m
@@ -628,9 +643,13 @@ user_step ::
   => m ()
 user_step = insist get_transition >>= apply_transition
 
+-- FIXME: The user loop is very wonky. If we try to "cheat" we just crash the
+-- program. Additionally, wehn inputing invalid commands we won't see why they
+-- are invalid, just that the state didn't advance
 main :: IO ()
 main = do
   state <- flip execStateT initial_onirim_state $ do
+    warmup_history
     apply_transition InitialSetup
     forever user_step
   print state
