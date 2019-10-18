@@ -16,7 +16,7 @@ import           Prelude                    hiding (getLine, head, print,
                                              putStr)
 
 import           Control.Applicative        ((<|>))
-import           Control.Lens               (assign, modifying, set, view)
+import           Control.Lens               (assign, modifying, over, set, view)
 import           Control.Monad              (forever, guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.IO.Class     (MonadIO)
@@ -117,6 +117,7 @@ data Labirynth = Labirynth
     _past    :: [Location]
   } deriving stock Generic
 
+-- FIXME: Move to a data module, hide accessors and rename to remove underscore
 data OnirimState = OnirimState
   { osDoors     :: MultiSet Colour,
     osDeck      :: [Card],
@@ -295,6 +296,7 @@ next_onirim_state (Discard location) = do
       put new_state
       draw
 
+-- FIXME Open the doors when possible here
 next_onirim_state (Place location) = do
   assert_status Placing
   Just hand <- remove_location location <$> asks osHand
@@ -541,8 +543,7 @@ place location = do
   valid <- can_place location
   unless valid $ fail ("Cannot place " <> show location)
 
-  lab <- asks osLabirynth
-  return $ lab { _past = location : _past lab }
+  over #_past (location :) <$> asks osLabirynth
 
 -- FIXME: Show errors, and provide a way to bail out
 insist :: Monad m => MaybeT m a -> m a
@@ -561,23 +562,45 @@ parse_user_input input =
   in do
     (cmd, args) <- uncons . words $ input
     case cmd of
-      "place"   -> Place <$> location args
-      "discard" -> Discard <$> location args
+      "place"       -> Place <$> location args
+      "discard"     -> Discard <$> location args
       "discardhand" -> pure DiscardHand
-      "discard5" -> pure Discard5
-      "closedoor" -> CloseDoor <$> colour args
-      "discardkey" -> DiscardKey <$> colour args
-      _         -> fail $ "Unknown transition " <> cmd
+      "discard5"    -> pure Discard5
+      "closedoor"   -> CloseDoor <$> colour args
+      "discardkey"  -> DiscardKey <$> colour args
+      "opendoor"    -> OpenDoor <$> colour args
+      "ignoredoor"  -> IgnoreDoor <$> colour args
+      "rearrange"   -> Rearrange <$> parse_cards args
+      _             -> fail $ "Unknown transition " <> cmd
 
 assume_one :: Show a => MonadFail m => [a] -> m a
 assume_one [a]  = pure a
 assume_one many = fail $ "we wanted one element, but got " <> show many
+
+un_maybe :: MonadFail m => Maybe a -> m a
+un_maybe (Just a) = pure a
+un_maybe Nothing  = fail "Wanted Just, got Nothing"
+
+-- FIXME: Unbreak this horribleness
+parse_card :: MonadFail m => String -> m Card
+parse_card c = do
+  location <- runMaybeT (Location <$> parse_location c)
+  dream <- runMaybeT (Dream <$> parse_dream c)
+  un_maybe (location <|> dream)
+
+parse_cards :: MonadFail m => [String] -> m [Card]
+parse_cards = traverse parse_card
 
 parse_location :: MonadFail m => String -> m Location
 parse_location ('M' : colour) = Moon <$> parse_colour colour
 parse_location ('S' : colour) = Sun <$> parse_colour colour
 parse_location ('K' : colour) = Key <$> parse_colour colour
 parse_location invalid        = fail $ "Invalid location " <> invalid
+
+parse_dream :: MonadFail m => String -> m Dream
+parse_dream "N"            = pure Nightmare
+parse_dream ('D' : colour) = Door <$> parse_colour colour
+parse_dream invalid        = fail $ "Invalid dream " <> invalid
 
 parse_colour :: MonadFail m => String -> m Colour
 parse_colour "R"     = pure Red
