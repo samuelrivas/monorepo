@@ -8,11 +8,12 @@ module Util
    getLine,
    to_state,
    addHistory,
-   readline
+   readline,
+   last
   )
 where
 
-import           Prelude                     hiding (getLine, head, print,
+import           Prelude                     hiding (getLine, head, last, print,
                                               putStr)
 import qualified Prelude                     as Prelude
 
@@ -39,6 +40,12 @@ uncons []     = fail "cannot uncons []"
 head :: (MonadFail m) => [a] -> m a
 head (x:_) = return x
 head []    = fail "cannot head []"
+
+last :: (MonadFail m) => [a] -> m a
+last l =
+  case head . reverse $ l of
+    (x:_) -> pure x
+    _     -> fail "cannot last []"
 
 -- Lifted IO
 --

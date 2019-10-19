@@ -12,11 +12,12 @@
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Prelude                    hiding (getLine, head, print,
+import           Prelude                    hiding (getLine, head, last, print,
                                              putStr)
 
 import           Control.Applicative        ((<|>))
-import           Control.Lens               (assign, modifying, over, set, view)
+import           Control.Lens               (Lens', assign, lens, modifying,
+                                             over, set, toListOf, view)
 import           Control.Monad              (forever, guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.IO.Class     (MonadIO)
@@ -35,8 +36,8 @@ import           Data.MultiSet              (MultiSet, delete, distinctElems,
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           GHC.Generics               (Generic)
-import           Util                       (addHistory, head, print, readline,
-                                             uncons)
+import           Util                       (addHistory, head, last, print,
+                                             readline, uncons)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -69,11 +70,19 @@ instance Show Card where
 concise_show :: Colour -> String
 concise_show = head . show
 
+colour :: Lens' Location Colour
+colour = lens get_colour set_colour
+
 get_colour :: Location -> Colour
 get_colour = \case
   Key c -> c
   Sun c -> c
   Moon c -> c
+
+set_colour :: Location -> Colour -> Location
+set_colour (Key _) c  = Key c
+set_colour (Sun _) c  = Sun c
+set_colour (Moon _) c = Moon c
 
 matching_symbols :: Location -> Location -> Bool
 matching_symbols (Key _) (Key _)   = True
@@ -149,7 +158,7 @@ showDoors doors =
     showColour c = case occur c doors of
       0 -> "XX"
       1 -> "X" <> concise_show c
-      _ -> show c <> show c
+      _ -> concise_show c <> concise_show c
   in
     unwords . fmap showColour $ [Red, Blue, Green, White]
 
@@ -159,23 +168,23 @@ instance GameState OnirimState OnirimTransition Bool where
   score = (Won ==) <$> asks osStatus
 
 instance Show Labirynth where
-  show l = showCards (view #_past l) <> "|"
-    <> showCards (view #_current l)
+  show l = show_cards (view #_past l) <> "|"
+    <> show_cards (view #_current l)
 
 instance Show OnirimState where
   show s =
     unlines
     ["Doors: " <> showDoors (view #osDoors s),
      "Labirynth: " <> show (view #osLabirynth s),
-     "Deck: " <> showCards (view #osDeck s),
-     "Hand: " <> showCards (view #osHand s),
-     "Discards: " <> showCards (view #osDiscards s),
-     "Limbo: " <> showCards (view #osLimbo s),
+     "Deck: " <> show_cards (view #osDeck s),
+     "Hand: " <> show_cards (view #osHand s),
+     "Discards: " <> show_cards (view #osDiscards s),
+     "Limbo: " <> show_cards (view #osLimbo s),
      "Status: " <> show (view #osStatus s)
     ]
 
-showCards :: Show a => [a] -> String
-showCards = unwords . fmap show
+show_cards :: Show a => [a] -> String
+show_cards = unwords . fmap show
 
 initial_onirim_state :: OnirimState
 initial_onirim_state =
@@ -222,9 +231,9 @@ onirim_transitions = do
   doors <- asks osDoors
   deck <- asks osDeck
   case status of
-    Uninitialised      -> return [InitialSetup]
-    SolvingDoor colour -> return [OpenDoor colour, IgnoreDoor colour]
-    SolvingNightmare   ->
+    Uninitialised    -> return [InitialSetup]
+    SolvingDoor c    -> return [OpenDoor c, IgnoreDoor c]
+    SolvingNightmare ->
       return . concat $
       [ discard_key hand,
         close_door doors,
@@ -240,7 +249,9 @@ onirim_transitions = do
 prophecy_transitions :: (MonadReader OnirimState m) => m [OnirimTransition]
 prophecy_transitions =
   let
-    valid = not . is_door . last
+    valid l = case reverse l of
+      (c : _) -> not . is_door $ c
+      _       -> True
   in do
     hand <- asks . view $ #osDeck
     if null hand then
@@ -302,18 +313,20 @@ next_onirim_state (Discard location) = do
 next_onirim_state (Place location) = do
   assert_status Placing
   Just hand <- remove_location location <$> asks osHand
-  labirynth <- place location
+  (labirynth, doorM) <- place location
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      put $ state { osHand = hand, osLabirynth = labirynth }
-      -- Check if we can open a door, and shuffle in that case
+      assign #osHand hand
+      assign #osLabirynth labirynth
+
+      open_door_M doorM
       draw
 
-next_onirim_state (OpenDoor colour) = do
-  assert_status $ SolvingDoor colour
-  Just hand <- remove_location (Key colour) <$> asks osHand
-  doors <- insert colour <$> asks osDoors
+next_onirim_state (OpenDoor c) = do
+  assert_status $ SolvingDoor c
+  Just hand <- remove_location (Key c) <$> asks osHand
+  doors <- insert c <$> asks osDoors
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
@@ -324,37 +337,37 @@ next_onirim_state (OpenDoor colour) = do
         }
       draw
 
-next_onirim_state (IgnoreDoor colour) = do
-  assert_status $ SolvingDoor colour
+next_onirim_state (IgnoreDoor c) = do
+  assert_status $ SolvingDoor c
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      modifying #osLimbo (Door colour :)
+      modifying #osLimbo (Door c :)
       assign #osStatus Placing
       draw
 
-next_onirim_state (CloseDoor colour) = do
+next_onirim_state (CloseDoor c) = do
   assert_status SolvingNightmare
   doors <- asks osDoors
-  unless (colour `member` doors) $ fail "cannot close a door you didn't open"
+  unless (c `member` doors) $ fail "cannot close a door you didn't open"
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      modifying #osLimbo (Door colour :)
-      modifying #osDoors $ delete colour
+      modifying #osLimbo (Door c :)
+      modifying #osDoors $ delete c
       modifying #osDiscards (Dream Nightmare :)
       assign #osStatus Placing
       draw
 
-next_onirim_state (DiscardKey colour) = do
+next_onirim_state (DiscardKey c) = do
   assert_status SolvingNightmare
-  Just hand <- remove_location (Key colour) <$> asks osHand
+  Just hand <- remove_location (Key c) <$> asks osHand
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
       assign #osHand hand
       assign #osStatus Placing
-      modifying #osDiscards ([Dream Nightmare, Location (Key colour)] ++)
+      modifying #osDiscards ([Dream Nightmare, Location (Key c)] ++)
       draw
 
 next_onirim_state DiscardHand = do
@@ -401,10 +414,19 @@ next_onirim_state (Rearrange cards) = do
 
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
+      to_discard <- last cards
       modifying #osDeck ((init cards ++) . drop (length cards))
-      modifying #osDiscards (last cards :)
+      modifying #osDiscards (to_discard :)
       assign #osStatus Placing
       draw
+
+open_door_M :: MonadRandom m => MonadState OnirimState m => Maybe Colour -> m ()
+open_door_M Nothing = pure ()
+open_door_M (Just c) = do
+  doors <- gets osDoors
+  when (occur c doors < 2) $
+    modifying #osDoors (insert c)
+  shuffle_cards
 
 assert_status :: MonadFail m => MonadReader OnirimState m => Status -> m ()
 assert_status expected = do
@@ -480,7 +502,7 @@ draw = do
 
     Dream Nightmare -> modify $ \s -> s { osStatus = SolvingNightmare }
 
-    Dream (Door colour) -> solve_door colour
+    Dream (Door c) -> solve_door c
 
 restore_hand ::
      MonadState OnirimState m
@@ -517,36 +539,62 @@ solve_door ::
   => MonadRandom m
   => MonadFail m
   => Colour -> m ()
-solve_door colour = do
+solve_door c = do
   hand <- gets (view #osHand)
-  if  Key colour `elem` hand
-    then assign #osStatus $ SolvingDoor colour
+  if  Key c `elem` hand
+    then assign #osStatus $ SolvingDoor c
     else do
-      modifying #osLimbo (Door colour :)
+      modifying #osLimbo (Door c :)
       draw
 
 labirynth_last :: MonadReader OnirimState m => m (Maybe Location)
 labirynth_last = do
   labirynth <- asks osLabirynth
   return $
-        (head . view #_current $ labirynth)
-    <|> (head . view #_past    $ labirynth)
+        (last . view #_current $ labirynth)
+    <|> (last . view #_past    $ labirynth)
 
 can_place :: MonadReader OnirimState m => Location -> m Bool
 can_place location  =
   maybe True (not . matching_symbols location) <$> labirynth_last
 
--- Return Just if a door can be opened
+-- FIXME: use current and past properly
+-- FIXME: open doors when appropriate
 place ::
      MonadReader OnirimState m
   => MonadFail m
   => Location
-  -> m Labirynth
+  -> m (Labirynth, Maybe Colour)
 place location = do
   valid <- can_place location
   unless valid $ fail ("Cannot place " <> show location)
 
-  over #_past (location :) <$> asks osLabirynth
+  -- if this is a different colour, restart head
+  -- if this is the same colour and is three then open door, empty head
+  -- otherwise just append
+
+  labirynth <- over #_current (++ [location]) <$> asks osLabirynth
+
+  pure $ fromMaybe
+         (labirynth, Nothing)
+         (open_door_from_labirynth labirynth <|> restart_labirynth labirynth)
+
+open_door_from_labirynth :: Labirynth -> Maybe (Labirynth, Maybe Colour)
+open_door_from_labirynth lab = do
+  [a, b, c] <- pure . toListOf (#_current . traverse . colour) $ lab
+  guard $ a == b && b == c
+  pure (over #_past (++ view #_current lab) $
+        set #_current [] lab,
+        Just c)
+
+restart_labirynth :: Labirynth -> Maybe (Labirynth, Maybe Colour)
+restart_labirynth lab = do
+  (a : b : _) <- pure . reverse . toListOf (#_current . traverse . colour) $ lab
+  guard $ a /= b
+  (h, t) <- uncons . reverse . view #_current $ lab
+  pure (over #_past (++ reverse t) $
+        set #_current [h] lab,
+        Nothing)
 
 -- FIXME: Show errors, and provide a way to bail out
 insist :: Monad m => MaybeT m a -> m a
@@ -560,7 +608,7 @@ parse_user_input :: MonadFail m => String -> m OnirimTransition
 parse_user_input input =
   let
     location args = assume_one args >>= parse_location
-    colour args = assume_one args >>= parse_colour
+    parse_colour' args = assume_one args >>= parse_colour
   in do
     (cmd, args) <- uncons . words $ input
     case cmd of
@@ -568,10 +616,10 @@ parse_user_input input =
       "discard"     -> Discard <$> location args
       "discardhand" -> pure DiscardHand
       "discard5"    -> pure Discard5
-      "closedoor"   -> CloseDoor <$> colour args
-      "discardkey"  -> DiscardKey <$> colour args
-      "opendoor"    -> OpenDoor <$> colour args
-      "ignoredoor"  -> IgnoreDoor <$> colour args
+      "closedoor"   -> CloseDoor <$> parse_colour' args
+      "discardkey"  -> DiscardKey <$> parse_colour' args
+      "opendoor"    -> OpenDoor <$> parse_colour' args
+      "ignoredoor"  -> IgnoreDoor <$> parse_colour' args
       "rearrange"   -> Rearrange <$> parse_cards args
       _             -> fail $ "Unknown transition " <> cmd
 
@@ -594,15 +642,15 @@ parse_cards :: MonadFail m => [String] -> m [Card]
 parse_cards = traverse parse_card
 
 parse_location :: MonadFail m => String -> m Location
-parse_location ('M' : colour) = Moon <$> parse_colour colour
-parse_location ('S' : colour) = Sun <$> parse_colour colour
-parse_location ('K' : colour) = Key <$> parse_colour colour
-parse_location invalid        = fail $ "Invalid location " <> invalid
+parse_location ('M' : c) = Moon <$> parse_colour c
+parse_location ('S' : c) = Sun <$> parse_colour c
+parse_location ('K' : c) = Key <$> parse_colour c
+parse_location invalid   = fail $ "Invalid location " <> invalid
 
 parse_dream :: MonadFail m => String -> m Dream
-parse_dream "N"            = pure Nightmare
-parse_dream ('D' : colour) = Door <$> parse_colour colour
-parse_dream invalid        = fail $ "Invalid dream " <> invalid
+parse_dream "N"       = pure Nightmare
+parse_dream ('D' : c) = Door <$> parse_colour c
+parse_dream invalid   = fail $ "Invalid dream " <> invalid
 
 parse_colour :: MonadFail m => String -> m Colour
 parse_colour "R"     = pure Red
