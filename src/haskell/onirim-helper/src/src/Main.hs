@@ -62,7 +62,6 @@ instance Show Dream where
   show Nightmare = "N"
   show (Door c)  = "D" <> concise_show c
 
--- FIXME: Can we use lenses here to get the wrapped element?
 instance Show Card where
   show (Location l) = show l
   show (Dream d)    = show d
