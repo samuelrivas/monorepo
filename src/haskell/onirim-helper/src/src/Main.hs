@@ -30,6 +30,7 @@ import           Control.Monad.Trans.Maybe  (MaybeT, runMaybeT)
 import           Data.Foldable              (fold, traverse_)
 import           Data.Generics.Labels       ()
 import           Data.List                  (nub, permutations, sort)
+import qualified Data.List                  as List
 import           Data.Maybe                 (fromMaybe)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
                                              empty, insert, member, occur)
@@ -418,13 +419,13 @@ next_onirim_state (Rearrange cards) = do
       assign #osStatus Placing
       draw
 
--- TODO: Discard opened door
 open_door_M :: MonadRandom m => MonadState OnirimState m => Maybe Colour -> m ()
 open_door_M Nothing = pure ()
 open_door_M (Just c) = do
   doors <- gets osDoors
-  when (occur c doors < 2) $
+  when (occur c doors < 2) $ do
     modifying #osDoors (insert c)
+    modifying #osDeck (List.delete $ Dream (Door c))
   shuffle_cards
 
 assert_status :: MonadFail m => MonadReader OnirimState m => Status -> m ()
