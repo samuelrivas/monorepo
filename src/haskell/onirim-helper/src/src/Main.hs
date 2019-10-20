@@ -326,15 +326,13 @@ next_onirim_state (Place location) = do
 next_onirim_state (OpenDoor c) = do
   assert_status $ SolvingDoor c
   Just hand <- remove_location (Key c) <$> asks osHand
-  doors <- insert c <$> asks osDoors
   state <- ask
   return . Stochastic $
     flip execStateT state $ runMaybeT $ do
-      put $ state
-        { osDoors = doors,
-          osHand = hand,
-          osStatus = Placing
-        }
+      modifying #osDoors (insert c)
+      modifying #osDiscards ((Location $ Key c) :)
+      assign #osHand hand
+      assign #osStatus Placing
       draw
 
 next_onirim_state (IgnoreDoor c) = do
