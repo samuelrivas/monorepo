@@ -418,6 +418,7 @@ next_onirim_state (Rearrange cards) = do
       assign #osStatus Placing
       draw
 
+-- TODO: Discard opened door
 open_door_M :: MonadRandom m => MonadState OnirimState m => Maybe Colour -> m ()
 open_door_M Nothing = pure ()
 open_door_M (Just c) = do
@@ -471,7 +472,7 @@ pick_top ::
   => m Card
 pick_top = do
   (top, rest) <- gets osDeck >>= uncons
-  modify $ \s -> s { osDeck = rest }
+  assign #osDeck rest
   return top
 
 -- FIXME: Go into lost if cannot draw
