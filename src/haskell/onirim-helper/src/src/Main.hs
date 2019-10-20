@@ -223,6 +223,7 @@ locations =
     Key <$> all_colours
   ]
 
+-- FIXME: How to verify that this is in sync with next_state?
 onirim_transitions :: (MonadReader OnirimState m) => m [OnirimTransition]
 onirim_transitions = do
   status <- asks osStatus
