@@ -199,7 +199,9 @@
 ;; Ocaml mode
 ;; TODO: this will fail if ocaml is blacklisted but I don't want to complicate
 ;; it moving it to a dynamicly generated file
-(load-library "tuareg-site-file")
+(with-demoted-errors
+  "Couldn't load tuareg, but this is only a problem if you want OCaml support: %S"
+  (load-library "tuareg-site-file"))
 
 (autoload 'utop-setup-ocaml-buffer "utop" "Toplevel for OCaml" t)
 (add-hook 'tuareg-mode-hook 'my-tuareg-mode-hook)
