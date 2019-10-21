@@ -143,6 +143,13 @@ let
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
       sandbox = false;
     };
+    onirim-helper-sandbox = callPackage ./../src/haskell/onirim-helper/nix {
+      haskellPackages = self.profiledHaskellPackages;
+      sandbox = true;
+    };
+    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
+      sandbox = false;
+    };
 
     # Shell-scripts
     # =============
