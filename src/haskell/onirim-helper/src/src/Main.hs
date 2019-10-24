@@ -17,7 +17,7 @@ import           Prelude                    hiding (getLine, head, last, print,
 
 import           Control.Applicative        ((<|>))
 import           Control.Lens               (Lens', assign, lens, modifying,
-                                             over, set, toListOf, view)
+                                             over, set, toListOf, uses, view)
 import           Control.Monad              (forever, guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.IO.Class     (MonadIO)
@@ -33,7 +33,7 @@ import           Data.List                  (nub, permutations, sort)
 import qualified Data.List                  as List
 import           Data.Maybe                 (fromMaybe)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
-                                             empty, insert, member, occur)
+                                             empty, insert, member, occur, size)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
 import           Game
 import           GHC.Generics               (Generic)
@@ -322,7 +322,7 @@ next_onirim_state (Place location) = do
       assign #osLabirynth labirynth
 
       open_door_M doorM
-      draw
+      guard_won draw
 
 next_onirim_state (OpenDoor c) = do
   assert_status $ SolvingDoor c
@@ -333,8 +333,10 @@ next_onirim_state (OpenDoor c) = do
       modifying #osDoors (insert c)
       modifying #osDiscards ((Location $ Key c) :)
       assign #osHand hand
-      assign #osStatus Placing
-      draw
+
+      guard_won $ do
+        assign #osStatus Placing
+        draw
 
 next_onirim_state (IgnoreDoor c) = do
   assert_status $ SolvingDoor c
@@ -418,6 +420,14 @@ next_onirim_state (Rearrange cards) = do
       modifying #osDiscards (to_discard :)
       assign #osStatus Placing
       draw
+
+guard_won :: MonadState OnirimState m => m () -> m ()
+guard_won m = do
+  opened_doors <- uses #osDoors size
+  if opened_doors == 8 then
+    assign #osStatus Won
+  else
+    m
 
 open_door_M :: MonadRandom m => MonadState OnirimState m => Maybe Colour -> m ()
 open_door_M Nothing = pure ()
