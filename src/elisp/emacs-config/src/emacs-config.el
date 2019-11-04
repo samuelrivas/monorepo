@@ -41,6 +41,9 @@
 (blink-cursor-mode -1)
 (auto-fill-mode t)
 
+;; Flycheck
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
 ;; Key bindings
 (global-set-key "\C-c\C-c" 'comment-region)
 (global-set-key "\C-c\C-u" 'uncomment-region)
@@ -178,14 +181,17 @@
 
 ;; Haskell mode
 (defvar haskell-mode-map)
-(eval-after-load 'flycheck
-  '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
+;; (eval-after-load 'flycheck
+;;   (setq-local flycheck-ghc-args ("-i")))
 
 (custom-set-variables
  '(haskell-process-suggest-remove-import-lines t)
  '(haskell-process-auto-import-loaded-modules t)
  '(haskell-process-log t)
  '(haskell-stylish-on-save nil)
+ '(flycheck-ghc-args '("-Wall" "-Werror" "-Wredundant-constraints" "-v"))
+ '(flycheck-ghc-search-path '("/home/samuel/src/monorepos/iltxn/lib/aeson-extensions/src" "/home/samuel/src/monorepos/iltxn/lib/bank-connections-engine/app" "/home/samuel/src/monorepos/iltxn/lib/bank-connections-engine/src" "/home/samuel/src/monorepos/iltxn/lib/bank-connections-engine/systest" "/home/samuel/src/monorepos/iltxn/lib/bank-connections-engine/test" "/home/samuel/src/monorepos/iltxn/lib/basic-types/src" "/home/samuel/src/monorepos/iltxn/lib/basic-types/test" "/home/samuel/src/monorepos/iltxn/lib/bookkeeping-service/app" "/home/samuel/src/monorepos/iltxn/lib/bookkeeping-service/src" "/home/samuel/src/monorepos/iltxn/lib/cheap-repl/src" "/home/samuel/src/monorepos/iltxn/lib/direct-debit-us/app" "/home/samuel/src/monorepos/iltxn/lib/direct-debit-us/refund-hack" "/home/samuel/src/monorepos/iltxn/lib/direct-debit-us/src" "/home/samuel/src/monorepos/iltxn/lib/direct-debit-us/systest" "/home/samuel/src/monorepos/iltxn/lib/direct-debit-us/test" "/home/samuel/src/monorepos/iltxn/lib/hedgehog-extras/src" "/home/samuel/src/monorepos/iltxn/lib/hedgehog-json-schema/src" "/home/samuel/src/monorepos/iltxn/lib/iltxn-docs/app" "/home/samuel/src/monorepos/iltxn/lib/iltxn-docs/src" "/home/samuel/src/monorepos/iltxn/lib/iltxn-engine/src" "/home/samuel/src/monorepos/iltxn/lib/iltxn-prelude/src" "/home/samuel/src/monorepos/iltxn/lib/iltxn-protocol-v2/src" "/home/samuel/src/monorepos/iltxn/lib/iltxn-protocol-v2/test" "/home/samuel/src/monorepos/iltxn/lib/iltxn-protocol/src" "/home/samuel/src/monorepos/iltxn/lib/iltxn-protocol/test" "/home/samuel/src/monorepos/iltxn/lib/iltxn-service/app" "/home/samuel/src/monorepos/iltxn/lib/iltxn-service/src" "/home/samuel/src/monorepos/iltxn/lib/iltxn-service/test" "/home/samuel/src/monorepos/iltxn/lib/kafka-extras/src" "/home/samuel/src/monorepos/iltxn/lib/monad-log/src" "/home/samuel/src/monorepos/iltxn/lib/monad-metrics/src" "/home/samuel/src/monorepos/iltxn/lib/postgres-extras/src" "/home/samuel/src/monorepos/iltxn/lib/servant-extras/src" "/home/samuel/src/monorepos/iltxn/lib/servicing-engine/app" "/home/samuel/src/monorepos/iltxn/lib/servicing-engine/src" "/home/samuel/src/monorepos/iltxn/lib/servicing-engine/systest" "/home/samuel/src/monorepos/iltxn/lib/servicing-engine/test" "/home/samuel/src/monorepos/iltxn/lib/test-common/src" "/home/samuel/src/monorepos/iltxn/lib/txn-backend/app" "/home/samuel/src/monorepos/iltxn/lib/txn-backend/src" "/home/samuel/src/monorepos/iltxn/lib/txn-backend/systest" "/home/samuel/src/monorepos/iltxn/lib/txn-backend/test"))
+ '(flycheck-ghc-language-extensions '("MultiParamTypeClasses" "ScopedTypeVariables" "FlexibleContexts" "FlexibleInstances" "KindSignatures" "TemplateHaskell" "NamedFieldPuns" "GeneralizedNewtypeDeriving" "StandaloneDeriving" "TypeOperators" "RecordWildCards" "OverloadedStrings" "DeriveGeneric" "ViewPatterns" "TupleSections" "MultiWayIf" "LambdaCase" "DeriveFunctor" "DataKinds" "DuplicateRecordFields" "TypeApplications" "OverloadedLabels" "NoImplicitPrelude" "DerivingVia"))
  )
 
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
