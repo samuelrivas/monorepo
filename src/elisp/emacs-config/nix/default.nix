@@ -3,12 +3,6 @@
   emacs,
   extra-config,
   full-user-name,
-  org-agenda-file,
-  org-interview-file,
-  org-meeting-file,
-  org-reflection-file,
-  org-template-dir,
-  org-todo-file,
   stdenv,
   writeTextFile
 }:
@@ -24,16 +18,6 @@ stdenv.mkDerivation rec {
     text = ''
       ;; User specific info
       (setq user-full-name "${full-user-name}")
-
-      ;; Org mode configuration
-      (defvar sams-org-config)
-      (setq sams-org-config '(
-        :agenda-file "${builtins.toString org-agenda-file}"
-        :template-dir "${builtins.toString org-template-dir}"
-        :todo-file "${builtins.toString org-todo-file}"
-        :meeting-file "${builtins.toString org-meeting-file}"
-        :reflection-file "${builtins.toString org-reflection-file}"
-        :interview-file "${builtins.toString org-interview-file}"))
     '';
   };
 
