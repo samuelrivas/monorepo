@@ -120,48 +120,6 @@
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
 
-;; ORG
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cc" 'org-capture)
-
-(defvar sams-org-config)
-
-(setq-default org-log-into-drawer t)
-(setq-default org-catch-invisible-edits 'error)
-(setq-default org-agenda-files (plist-get sams-org-config :agenda-file))
-(setq-default org-log-reschedule 'note)
-(setq-default org-log-done 'time)
-(setq-default org-refile-targets '((org-agenda-files :maxlevel . 9)))
-(setq-default org-refile-use-outline-path 'file)
-(setq-default org-refile-allow-creating-parent-nodes 'confirm)
-(setq-default org-clock-display-default-range 'untilnow)
-
-(defun sams-template (file)
-  (format "%s/%s" (plist-get sams-org-config :template-dir) file))
-
-(setq-default
- org-capture-templates
- `(("t" "Todo" entry
-    (file+headline ,(plist-get sams-org-config :todo-file) "Inkorg")
-    (file ,(sams-template "todo-capturing.org")))
-
-   ("m" "Meeting" entry
-    (file+datetree+prompt ,(plist-get sams-org-config :meeting-file))
-    (file ,(sams-template "meeting-capturing.org"))
-    :jump-to-captured t)
-
-   ("i" "Interview" entry
-    (file+datetree+prompt ,(plist-get sams-org-config :interview-file))
-    (file ,(sams-template "interview-capturing.org"))
-    :jump-to-captured t)
-
-   ("r" "Reflection" entry
-    (file+datetree+prompt ,(plist-get sams-org-config :reflection-file))
-    (file ,(sams-template "reflection-capturing.org"))
-    :jump-to-captured t))
-)
-
-
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
 (add-to-list 'auto-mode-alist '("\\.[he]rl\\'" . erlang-mode))
