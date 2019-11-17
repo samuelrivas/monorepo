@@ -17,6 +17,7 @@ let
   home-dir = builtins.getEnv "HOME";
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
   pkgs = import ./nixpkgs.nix { inherit system; };
+  pkgs-patched = import ./nixpkgs-patched.nix { inherit system; };
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
   callPackage = pkgs.lib.callPackageWith (pkgs
                                        // builders
@@ -93,7 +94,7 @@ let
                                   nix-mode groovy-mode tuareg
                                   terraform-mode yaml-mode;
         inherit (emacsPackages) scalaMode2 erlangMode;
-        inherit (self.upstream-pkgs.emacsPackages) colorThemeSolarized;
+        inherit (pkgs-patched.emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages_4_03) merlin ocp-indent utop;
         emacs-config-options = self.local-config.emacs-config;
