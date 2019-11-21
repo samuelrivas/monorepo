@@ -17,16 +17,16 @@ let
   home-dir = builtins.getEnv "HOME";
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
   pkgs = import ./nixpkgs.nix { inherit system; };
+  pkgs-all = pkgs // pkgs-sam;
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
-  callPackage = pkgs.lib.callPackageWith (pkgs
-                                       // builders
-                                       // self);
-  self = {
+  callPackage = pkgs.lib.callPackageWith (pkgs-all // builders);
+  pkgs-sam = {
 
     # Library functions
     # =================
     # Just so that we can use them when debugging in nix-repl
     inherit builders;
+    inherit pkgs;
 
     # Config
     # ======
@@ -43,7 +43,7 @@ let
     # which is a slight departure of what nixpkgs typically does
     local-config = import ./lib/load-config.nix {
       inherit (pkgs) lib;
-      pkgs = pkgs // self;
+      pkgs = pkgs-all;
       config-file = local-config-file;
       modules = [ ./modules/emacs-config.nix
                   ./modules/sams-pkgs.nix
@@ -59,7 +59,7 @@ let
     # Emacs stuff
     # ===========
     emacs-config = callPackage ./../src/elisp/emacs-config/nix
-      (self.local-config.emacs-config // {
+      (pkgs-sam.local-config.emacs-config // {
         inherit (pkgs) emacs;
       });
 
@@ -70,14 +70,14 @@ let
                                   nix-mode groovy-mode tuareg
                                   terraform-mode yaml-mode;
         inherit (emacsPackages) scalaMode2 erlangMode;
-        inherit (self.pkgs-upstream.emacsPackages) colorThemeSolarized;
+        inherit (pkgs-sam.pkgs-upstream.emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages_4_03) merlin ocp-indent utop;
-        emacs-config-options = self.local-config.emacs-config;
+        emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
 
     # A utility to instantiate a capable emacs in a haskell sandbox
-    emacs-for-haskell = haskell-env: self.emacs.override { ghc = haskell-env; };
+    emacs-for-haskell = haskell-env: pkgs-sam.emacs.override { ghc = haskell-env; };
 
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
@@ -85,7 +85,7 @@ let
     # Haskell stuff
     # =============
     profiledHaskellPackages = pkgs.haskellPackages.override {
-      overrides = self: super: {
+      overrides = pkgs-sam: super: {
         mkDerivation = args: super.mkDerivation (args // {
           enableLibraryProfiling = true;
         });
@@ -108,14 +108,14 @@ let
       sandbox = true;
     };
     hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      haskellPackages = self.profiledHaskellPackages;
+      haskellPackages = pkgs-sam.profiledHaskellPackages;
       sandbox = true;
     };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
       sandbox = false;
     };
     onirim-helper-sandbox = callPackage ./../src/haskell/onirim-helper/nix {
-      haskellPackages = self.profiledHaskellPackages;
+      haskellPackages = pkgs-sam.profiledHaskellPackages;
       sandbox = true;
     };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
@@ -131,7 +131,7 @@ let
     sh-lib = callPackage ./../src/shell/sh-lib/nix { };
 
     sandbox = callPackage ./../src/shell/sandbox/nix {
-      nix-root = self.local-config.sams-pkgs.dir + "/default.nix";
+      nix-root = pkgs-sam.local-config.sams-pkgs.dir + "/default.nix";
     };
 
     commit-hook-ticket-prefix = callPackage ./../src/shell/commit-hook-ticket-prefix/nix { };
@@ -151,7 +151,7 @@ let
       sandbox = true;
     };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
-      inherit (self.pkgs-upstream) rapidcheck;
+      inherit (pkgs-sam.pkgs-upstream) rapidcheck;
     };
     finndb = callPackage ./../src/c++/finndb/nix {
       sandbox = false;
@@ -168,4 +168,6 @@ let
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
   };
 in
-self
+# All official packages plus mine. We also add pkgs-sam as a set with all my
+# packages so that we can run nix-build -A pkgs-sam and test this monorepo
+pkgs-all // { inherit pkgs-sam; }
