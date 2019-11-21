@@ -17,7 +17,6 @@ let
   home-dir = builtins.getEnv "HOME";
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
   pkgs = import ./nixpkgs.nix { inherit system; };
-  pkgs-patched = import ./nixpkgs-patched.nix { inherit system; };
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
   callPackage = pkgs.lib.callPackageWith (pkgs
                                        // builders
@@ -51,7 +50,11 @@ let
                 ];
     };
 
-    upstream-pkgs = import ./nixpkgs-upstream.nix { inherit system; };
+    # Master branch of the nixpkgs repo
+    pkgs-upstream = import ./nixpkgs-upstream.nix { inherit system; };
+
+    # My own fork of nixpkgs, for patches that aren't merged
+    pkgs-patched = import ./nixpkgs-patched.nix { inherit system; };
 
     # Own packages, not general enough
     # ================================
@@ -71,13 +74,13 @@ let
 
     # Packages from upstream
     # ======================
-    scala = self.upstream-pkgs.scala;
-    scala-2_10 = self.upstream-pkgs.scala_2_10;
+    scala = self.pkgs-upstream.scala;
+    scala-2_10 = self.pkgs-upstream.scala_2_10;
 
     # Trivial sandboxes
     # =================
     bazel-sandbox = callPackage ./pkgs/development/tools/bazel-sandbox {
-      inherit (self.upstream-pkgs) bazel;
+      inherit (self.pkgs-upstream) bazel;
     };
 
     # Emacs stuff
@@ -94,7 +97,7 @@ let
                                   nix-mode groovy-mode tuareg
                                   terraform-mode yaml-mode;
         inherit (emacsPackages) scalaMode2 erlangMode;
-        inherit (pkgs-patched.emacsPackages) colorThemeSolarized;
+        inherit (self.pkgs-upstream.emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages_4_03) merlin ocp-indent utop;
         emacs-config-options = self.local-config.emacs-config;
@@ -180,7 +183,7 @@ let
       sandbox = true;
     };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
-      inherit (self.upstream-pkgs) rapidcheck;
+      inherit (self.pkgs-upstream) rapidcheck;
     };
     finndb = callPackage ./../src/c++/finndb/nix {
       inherit (pkgs.python3Packages) csvkit;
