@@ -1,0 +1,4 @@
+language: minimal
+sudo: required
+install: ./travis-install.sh
+script: ./travis-test.sh
