@@ -56,33 +56,6 @@ let
     # My own fork of nixpkgs, for patches that aren't merged
     pkgs-patched = import ./nixpkgs-patched.nix { inherit system; };
 
-    # Own packages, not general enough
-    # ================================
-    packer = callPackage ./pkgs/development/tools/packer { };
-
-    # Patches to upstream, to be pull requested
-    # ===========================================
-    java-json = callPackage ./pkgs/development/java/json { };
-    java-mailapi = callPackage ./pkgs/development/java/mailapi { };
-    spark = callPackage ./pkgs/applications/networking/cluster/spark {
-      mesosSupport = false;
-    };
-
-    cpplint = callPackage ./pkgs/development/tools/cpplint { };
-
-    convox = callPackage ./pkgs/development/tools/convox { };
-
-    # Packages from upstream
-    # ======================
-    scala = self.pkgs-upstream.scala;
-    scala-2_10 = self.pkgs-upstream.scala_2_10;
-
-    # Trivial sandboxes
-    # =================
-    bazel-sandbox = callPackage ./pkgs/development/tools/bazel-sandbox {
-      inherit (self.pkgs-upstream) bazel;
-    };
-
     # Emacs stuff
     # ===========
     emacs-config = callPackage ./../src/elisp/emacs-config/nix
@@ -108,11 +81,6 @@ let
 
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
-
-    # Scala stuff
-    # ===========
-    scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
-    samtime = callPackage ./../src/scala/samtime/nix { };
 
     # Haskell stuff
     # =============
@@ -186,7 +154,6 @@ let
       inherit (self.pkgs-upstream) rapidcheck;
     };
     finndb = callPackage ./../src/c++/finndb/nix {
-      inherit (pkgs.python3Packages) csvkit;
       sandbox = false;
     };
     finndb-sandbox = callPackage ./../src/c++/finndb/nix {
@@ -199,12 +166,6 @@ let
     # C stuff
     # =======
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
-
-    # Python stuff
-    # ============
-    python36Packages = callPackage ./python-packages.nix {
-      pythonPackages = pkgs.python36Packages;
-    };
   };
 in
 self
