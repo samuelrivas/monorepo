@@ -17,7 +17,6 @@ let
   home-dir = builtins.getEnv "HOME";
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
   pkgs = import ./nixpkgs.nix { inherit system; };
-  pkgs-patched = import ./nixpkgs-patched.nix { inherit system; };
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
   callPackage = pkgs.lib.callPackageWith (pkgs
                                        // builders
@@ -51,34 +50,11 @@ let
                 ];
     };
 
-    upstream-pkgs = import ./nixpkgs-upstream.nix { inherit system; };
+    # Master branch of the nixpkgs repo
+    pkgs-upstream = import ./nixpkgs-upstream.nix { inherit system; };
 
-    # Own packages, not general enough
-    # ================================
-    packer = callPackage ./pkgs/development/tools/packer { };
-
-    # Patches to upstream, to be pull requested
-    # ===========================================
-    java-json = callPackage ./pkgs/development/java/json { };
-    java-mailapi = callPackage ./pkgs/development/java/mailapi { };
-    spark = callPackage ./pkgs/applications/networking/cluster/spark {
-      mesosSupport = false;
-    };
-
-    cpplint = callPackage ./pkgs/development/tools/cpplint { };
-
-    convox = callPackage ./pkgs/development/tools/convox { };
-
-    # Packages from upstream
-    # ======================
-    scala = self.upstream-pkgs.scala;
-    scala-2_10 = self.upstream-pkgs.scala_2_10;
-
-    # Trivial sandboxes
-    # =================
-    bazel-sandbox = callPackage ./pkgs/development/tools/bazel-sandbox {
-      inherit (self.upstream-pkgs) bazel;
-    };
+    # My own fork of nixpkgs, for patches that aren't merged
+    pkgs-patched = import ./nixpkgs-patched.nix { inherit system; };
 
     # Emacs stuff
     # ===========
@@ -94,7 +70,7 @@ let
                                   nix-mode groovy-mode tuareg
                                   terraform-mode yaml-mode;
         inherit (emacsPackages) scalaMode2 erlangMode;
-        inherit (pkgs-patched.emacsPackages) colorThemeSolarized;
+        inherit (self.pkgs-upstream.emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages_4_03) merlin ocp-indent utop;
         emacs-config-options = self.local-config.emacs-config;
@@ -105,11 +81,6 @@ let
 
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
-
-    # Scala stuff
-    # ===========
-    scalacheck = callPackage ./pkgs/development/scala/scalacheck { };
-    samtime = callPackage ./../src/scala/samtime/nix { };
 
     # Haskell stuff
     # =============
@@ -180,10 +151,9 @@ let
       sandbox = true;
     };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
-      inherit (self.upstream-pkgs) rapidcheck;
+      inherit (self.pkgs-upstream) rapidcheck;
     };
     finndb = callPackage ./../src/c++/finndb/nix {
-      inherit (pkgs.python3Packages) csvkit;
       sandbox = false;
     };
     finndb-sandbox = callPackage ./../src/c++/finndb/nix {
@@ -196,12 +166,6 @@ let
     # C stuff
     # =======
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
-
-    # Python stuff
-    # ============
-    python36Packages = callPackage ./python-packages.nix {
-      pythonPackages = pkgs.python36Packages;
-    };
   };
 in
 self
