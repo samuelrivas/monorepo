@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
-set -u
+set -euo pipefail
 
 export NIX_CURL_FLAGS=-sS
 
@@ -9,12 +8,10 @@ source "$HOME/.nix-profile/etc/profile.d/nix.sh"
 
 info() {
     echo "NIX_PATH=$NIX_PATH"
-    echo "Channels Root"
-    ls -lh ~/.nix-defexpr/channels/nixpkgs
 }
 
 build_all() {
-    nix-build nix
+    nix-build -A pkgs-sam nix
 }
 
 main() {
