@@ -1,10 +1,6 @@
-# A few remarks
-#
-#  * This structure is probably going to change
-#  * I don't like camel case, so I won't use it for my stuff, even at the cost
-#    of needing to rewrite when contributing
-#
-# Right now, the high level structure is:
+# This is the root package set, it contains all packages from `nixpkgs`, and a
+# few added by us. All packages we add are also part of the pkgs-sam subset. The
+# rest of nix expressions are structured following these guidelines:
 #
 #  * For the sources contained in this monorepo, the nix expressions to build
 #    them are colocated with the source and linked from here
@@ -168,6 +164,6 @@ let
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
   };
 in
-# All official packages plus mine. We also add pkgs-sam as a set with all my
+# All official packages plus ours. We also add pkgs-sam as a set with all our
 # packages so that we can run nix-build -A pkgs-sam and test this monorepo
 pkgs-all // { inherit pkgs-sam; }
