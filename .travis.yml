@@ -1,4 +1,4 @@
-language: minimal
+language: nix
 sudo: required
 install: ./travis-install.sh
 script: ./travis-test.sh
