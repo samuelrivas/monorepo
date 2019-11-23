@@ -62,13 +62,15 @@ let
     # An emacs wrapper with the needed packages accessible
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
-        inherit (emacsPackagesNg) flycheck-haskell haskell-mode
-                                  nix-mode groovy-mode tuareg
-                                  terraform-mode yaml-mode;
-        inherit (emacsPackages) scalaMode2 erlangMode;
+        inherit (emacsPackages)
+          flycheck-haskell
+          haskell-mode
+          nix-mode groovy-mode tuareg
+          terraform-mode yaml-mode
+          scalaMode2 erlangMode;
         inherit (pkgs-sam.pkgs-upstream.emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
-        inherit (ocamlPackages_4_03) merlin ocp-indent utop;
+        inherit (ocamlPackages) merlin ocp-indent utop;
         emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
 
