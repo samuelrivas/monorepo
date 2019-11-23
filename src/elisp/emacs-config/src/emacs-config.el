@@ -161,7 +161,7 @@
   "Couldn't load tuareg, but this is only a problem if you want OCaml support: %S"
   (load-library "tuareg-site-file"))
 
-(autoload 'utop-setup-ocaml-buffer "utop" "Toplevel for OCaml" t)
+(autoload 'utop-minor-mode "utop" "Toplevel for OCaml" t)
 (add-hook 'tuareg-mode-hook 'my-tuareg-mode-hook)
 
 (defvar utop-command)
@@ -171,7 +171,7 @@
   (require 'merlin)
   (require 'ocp-indent)
   (setq utop-command "utop -emacs")
-  (utop-setup-ocaml-buffer)
+  (utop-minor-mode)
   (merlin-mode)
   (flyspell-prog-mode)
 
