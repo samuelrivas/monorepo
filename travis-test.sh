@@ -5,7 +5,7 @@ set -euo pipefail
 export NIX_CURL_FLAGS=-sS
 
 main() {
-    nix-build -A pkgs-sam nix
+    nix-build --max-jobs auto -A pkgs-sam nix
 }
 
 main
