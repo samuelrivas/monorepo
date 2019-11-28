@@ -24,14 +24,13 @@ stdenv.mkDerivation (sandbox-extras // {
   src = ./../src;
   name = "reservoir";
   buildInputs = [
+    bc
     cpplint
     gcc
     rndlib
+    sh-lib
     valgrind
-    bc
   ] ++ (if sandbox then extra-sandbox else []);
-
-  SH_LIB = "${sh-lib}/lib";
 
   doCheck = true;
   prePatch = ''
