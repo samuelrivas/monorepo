@@ -6,16 +6,13 @@
   sh-lib,
   stdenv,
 }:
-let
-  lib-dir = sh-lib + "/lib";
-in
 stdenv.mkDerivation rec {
   name = "sandbox";
 
   # TODO fix this so that we don't include ourselves
   src = ./../src;
 
-  buildInputs = [ makeWrapper ];
+  buildInputs = [ makeWrapper sh-lib ];
 
   dontBuild = true;
   dontStrip = true;
@@ -32,7 +29,7 @@ stdenv.mkDerivation rec {
   postFixup = ''
     wrapProgram "$out/bin/sandbox"              \
       --suffix-each PATH : "$nix/bin $gawk/bin" \
-      --set SH_LIB "${lib-dir}"                 \
+      --set SH_LIB "$SH_LIB"                    \
       --set CUSTOM_PKGS "${nix-root}"
   '';
 }
