@@ -82,6 +82,8 @@ let
 
     # Haskell stuff
     # =============
+    haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
+
     profiledHaskellPackages = pkgs.haskellPackages.override {
       overrides = pkgs-sam: super: {
         mkDerivation = args: super.mkDerivation (args // {
