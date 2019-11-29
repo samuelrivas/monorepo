@@ -1,5 +1,6 @@
 {
   emacs-for-haskell,
+  haskell-mk,
   haskellPackages,
   sandbox,
   stdenv,
@@ -22,6 +23,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     ghc
+    haskell-mk
   ] ++ (if sandbox
         then [(emacs-for-haskell ghc) haskellPackages.hoogle]
         else []);
