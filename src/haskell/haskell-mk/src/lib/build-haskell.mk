@@ -10,7 +10,13 @@
 #   - Control from the outside via PROGRAM-NAME, GHC-FLAGS, GHC-LD-FLAGS and
 #     GHC-PACKAGES
 
+# Interface
+GHC-PACKAGES ?=
+PROGRAM-NAME ?= main
+GHC-FLAGS ?= -Wall
+GHC-LD-FLAGS ?= -Wall
 
+# Internal variables
 BUILD-DIR := ../build
 LIB-DIR := $(BUILD-DIR)/lib
 BIN-DIR := $(BUILD-DIR)/bin
@@ -21,14 +27,11 @@ OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
 DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
 # Profiler
-GHC-FLAGS += -Wall -outputdir $(LIB-DIR)
-GHC-LD-FLAGS += -Wall
+GHC-FLAGS += -outputdir $(LIB-DIR)
 GHC := ghc $(GHC-FLAGS)
 
-GHC-PACKAGES ?=
 GHC-LD := ghc $(GHC-LD-FLAGS) $(addprefix -package , $(GHC-PACKAGES))
 
-PROGRAM-NAME ?= main
 PROGRAM := $(BIN-DIR)/$(PROGRAM-NAME)
 
 .PHONY: all
