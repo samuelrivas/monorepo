@@ -82,6 +82,8 @@ let
 
     # Haskell stuff
     # =============
+    haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
+
     profiledHaskellPackages = pkgs.haskellPackages.override {
       overrides = pkgs-sam: super: {
         mkDerivation = args: super.mkDerivation (args // {
@@ -89,6 +91,34 @@ let
         });
       };
     };
+
+    haskell-pkg =
+      { haskellPackages ? pkgs.haskellPackages,
+        name,
+        sandbox ? false,
+        src,
+        wanted-packages,
+      } :
+      let
+        haskell-packages-selector = _: wanted-packages;
+        ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
+      in
+        pkgs.stdenv.mkDerivation rec {
+
+          inherit name src;
+
+          buildInputs = [
+            ghc
+            pkgs-sam.haskell-mk
+          ] ++ (if sandbox
+                then [(pkgs-sam.emacs-for-haskell ghc) haskellPackages.hoogle]
+                else []);
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp ../build/bin/* $out/bin
+          '';
+        };
 
     name-generator = callPackage ./../src/haskell/name-generator/nix {
       sandbox = false;
