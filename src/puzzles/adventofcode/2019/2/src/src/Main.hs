@@ -69,9 +69,6 @@ get_output = uses #memory (head . elems)
 set_input :: Monad m => Int -> Int -> ProgramT m ()
 set_input noun verb = modifying #memory (// [(1, noun), (2, verb)])
 
-restore :: Monad m => ProgramT m ()
-restore = set_input 12 2
-
 all_tests :: [(Int, Int)]
 all_tests = (,) <$> [0..99] <*> [0..99]
 
@@ -88,13 +85,12 @@ main :: IO ()
 main = do
   memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
 
-  result <- evalStateT (restore >> run_program >> get_output) (initial_state memory)
+  result <- evalStateT (set_input 12 2 >> run_program >> get_output)
+            (initial_state memory)
   putStrLn $  "Solution 1: " <> show result
 
   results <- sequence $ eval_test (initial_state memory) <$> all_tests
-  let
-    indexed = zip results all_tests
-    sol = find fst indexed
+  let sol = find fst $ zip results all_tests
   case sol of
     Just (_, (noun, verb)) ->
       putStrLn $  "Solution 2: " <> show (noun * 100 + verb)
