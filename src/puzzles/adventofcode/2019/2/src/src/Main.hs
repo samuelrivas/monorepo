@@ -1,8 +1,9 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedLabels   #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import           Prelude              hiding (getLine)
 
@@ -11,6 +12,7 @@ import           Control.Monad.Loops  (whileM_)
 import           Control.Monad.State
 import           Data.Array           (elems, (!), (//))
 import           Data.Generics.Labels ()
+import           Data.List            (find)
 import           Data.Text            (splitOn, unpack)
 import           Data.Text.IO         (getLine)
 
@@ -27,7 +29,7 @@ parse_opcode :: Int -> Maybe Opcode
 parse_opcode 1  = Just Add
 parse_opcode 2  = Just Mul
 parse_opcode 99 = Just Halt
-parse_opcode _ = Nothing
+parse_opcode _  = Nothing
 
 next_opcode :: Monad m => ProgramT m (Maybe Opcode)
 next_opcode = do
@@ -61,14 +63,40 @@ run_arith op = do
 run_program :: Monad m => ProgramT m ()
 run_program = whileM_ ((== Running) <$> use #status) step_program
 
-get_memory :: Monad m => ProgramT m [Int]
-get_memory = uses #memory elems
+get_output :: Monad m => ProgramT m Int
+get_output = uses #memory (head . elems)
+
+set_input :: Monad m => Int -> Int -> ProgramT m ()
+set_input noun verb = modifying #memory (// [(1, noun), (2, verb)])
 
 restore :: Monad m => ProgramT m ()
-restore = modifying #memory (// [(1, 12), (2, 2)])
+restore = set_input 12 2
+
+all_tests :: [(Int, Int)]
+all_tests = (,) <$> [0..99] <*> [0..99]
+
+test :: Monad m => Int -> Int -> ProgramT m Bool
+test noun verb = do
+  set_input noun verb
+  run_program
+  (== 19690720) <$> get_output
+
+eval_test :: Monad m => ComputerState -> (Int, Int) -> m Bool
+eval_test s (noun, verb) = evalStateT (test noun verb) s
 
 main :: IO ()
 main = do
-  memory <- fmap (read . unpack) . splitOn "," <$> getLine
-  end_memory <- evalStateT (restore >> run_program >> get_memory) (initial_state memory)
-  print (head end_memory)
+  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
+
+  result <- evalStateT (restore >> run_program >> get_output) (initial_state memory)
+  putStrLn $  "Solution 1: " <> show result
+
+  results <- sequence $ eval_test (initial_state memory) <$> all_tests
+  let
+    indexed = zip results all_tests
+    sol = find fst indexed
+  case sol of
+    Just (_, (noun, verb)) ->
+      putStrLn $  "Solution 2: " <> show (noun * 100 + verb)
+    Nothing ->
+      putStrLn "Couldn't find solution 2"
