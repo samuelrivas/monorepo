@@ -194,6 +194,22 @@ let
     # C stuff
     # =======
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
+
+    # Contests, puzzles, etc
+    # ======================
+    adventofcode-2019 = {
+      day-2 = pkgs-sam.haskell-pkg
+        { inherit (pkgs) haskellPackages;
+          name = "adventofcode-2019-2";
+        sandbox = true;
+        src = ./../src/puzzles/adventofcode/2019/2/src;
+        wanted-packages = with pkgs.haskellPackages; [
+          generic-lens
+          lens
+          monad-loops
+        ];
+      };
+    };
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our
