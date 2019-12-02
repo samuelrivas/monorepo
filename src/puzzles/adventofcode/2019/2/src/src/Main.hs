@@ -10,7 +10,7 @@ import           Prelude              hiding (getLine)
 import           Control.Lens         (assign, modifying, use, uses)
 import           Control.Monad.Loops  (whileM_)
 import           Control.Monad.State
-import           Data.Array           (elems, (!), (//))
+import           Data.Array           ((!), (//))
 import           Data.Generics.Labels ()
 import           Data.List            (find)
 import           Data.Text            (splitOn, unpack)
@@ -64,7 +64,7 @@ run_program :: Monad m => ProgramT m ()
 run_program = whileM_ ((== Running) <$> use #status) step_program
 
 get_output :: Monad m => ProgramT m Int
-get_output = uses #memory (head . elems)
+get_output = uses #memory (! 0)
 
 set_input :: Monad m => Int -> Int -> ProgramT m ()
 set_input noun verb = modifying #memory (// [(1, noun), (2, verb)])
