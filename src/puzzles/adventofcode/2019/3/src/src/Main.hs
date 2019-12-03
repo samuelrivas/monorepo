@@ -10,9 +10,9 @@
 
 import           Prelude       hiding (getLine)
 
-import           Control.Lens  (over, _1, _2)
+import           Control.Lens  (over, _1, _2, _3, view)
 import           Data.Foldable (concatMap, foldl')
-import           Data.Map      (Map, empty, insert, keysSet)
+import           Data.Map      (Map, empty, insert, keysSet, insertWith)
 import           Data.Set      (Set, intersection)
 import qualified Data.Set      as Set
 import           Data.Text     (Text, splitOn, unpack)
@@ -25,6 +25,7 @@ data Move = U | D | R | L
   deriving stock Show
 
 type Grid = Map (Int, Int) Bool
+type Grid2 = Map (Int, Int) Int
 type Pos = (Int, Int)
 
 example_easy :: (Text, Text)
@@ -74,6 +75,15 @@ lay_cable =
   in
     snd . foldl' step ((0, 0), empty)
 
+lay_cable_2 :: [Move] -> Grid2
+lay_cable_2 =
+  let
+    step (count, pos, grid) move =
+      let newpos = get_new_pos (move, 1) pos
+      in (count + 1, newpos, insertWith min  newpos count grid)
+  in
+    view _3 . foldl' step (1, (0, 0), empty)
+
 get_crosses :: Grid -> Grid -> Set Pos
 get_crosses x y = intersection (keysSet x) (keysSet y)
 
@@ -88,12 +98,12 @@ cross_cables x y =
   in
     get_crosses cable_x cable_y
 
-find_solution :: [(Move, Int)] -> [(Move, Int)] -> Int
-find_solution x y =
+find_solution_1 :: [(Move, Int)] -> [(Move, Int)] -> Int
+find_solution_1 x y =
   Set.findMin . Set.map (manhattan (0, 0)) $ cross_cables x y
 
 main :: IO ()
 main = do
   Just x <- parse <$> getLine
   Just y <- parse <$> getLine
-  putStrLn $ "Solution 1: " <> show (find_solution x y)
+  putStrLn $ "Solution 1: " <> show (find_solution_1 x y)
