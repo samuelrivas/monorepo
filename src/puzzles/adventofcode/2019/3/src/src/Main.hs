@@ -25,6 +25,9 @@ data Move = U | D | R | L
   deriving stock Show
 
 type Grid = Map (Int, Int) Bool
+
+-- Each position is keyed on the coordinates, the value is the minimum cost of
+-- getting there from the origin cell
 type Grid2 = Map (Int, Int) Int
 type Pos = (Int, Int)
 
@@ -98,6 +101,7 @@ cross_cables x y =
   in
     get_crosses cable_x cable_y
 
+-- Return a set with "travel cost" and the intersection points
 cross_cables_2 :: [(Move, Int)] -> [(Move, Int)] -> Set (Int, Pos)
 cross_cables_2 x y =
   let
