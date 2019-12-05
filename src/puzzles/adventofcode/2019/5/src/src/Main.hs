@@ -47,7 +47,6 @@ run = flip runRWST () . unProgramT
 exec :: Monad m => ProgramT m a -> ComputerState -> m (ComputerState, Text)
 exec = flip execRWST () . unProgramT
 
--- Extend modes with infinite 0s so that we are safe reading them
 get_mode :: Int -> [Mode] -> Mode
 get_mode pos = fromMaybe Position . preview (ix pos)
 
