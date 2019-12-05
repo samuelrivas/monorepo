@@ -14,8 +14,8 @@
 
 import           Prelude               hiding (getLine)
 
-import           Control.Lens          (assign, ix, modifying, over, preview,
-                                        use, uses, view, _2)
+import           Control.Lens          (assign, firstOf, ix, modifying, over,
+                                        preview, traverse, use, uses, view, _2)
 import           Control.Monad         (MonadPlus, mzero)
 import           Control.Monad.Fail    (MonadFail (..))
 import           Control.Monad.Loops   (whileM_)
@@ -27,7 +27,7 @@ import           Control.Monad.State   (MonadState, StateT, evalStateT,
 import           Control.Monad.Writer  (MonadWriter)
 import           Data.Array            (elems, listArray, (!), (//))
 import           Data.Generics.Labels  ()
-import           Data.List             (find)
+import           Data.List             (find, uncons)
 import           Data.Maybe            (fromMaybe)
 import           Data.Text             (Text, pack, splitOn, unpack)
 import           Data.Text.IO          (getLine)
@@ -54,15 +54,16 @@ exec = flip execRWST () . unProgramT
 get_mode :: Int -> [Mode] -> Mode
 get_mode pos = fromMaybe Position . preview (ix pos)
 
-get_3_modes :: [Mode] -> (Mode, Mode, Mode)
-get_3_modes modes =
+get_2_modes :: [Mode] -> (Mode, Mode)
+get_2_modes modes =
   let get_mode' = flip get_mode modes
-  in (get_mode' 0, get_mode' 1, get_mode' 2)
+  in (get_mode' 0, get_mode' 1)
 
 
 parse_opcode :: Int -> [Mode] -> Maybe Opcode
-parse_opcode 1 modes   = Just $ Add $ get_3_modes modes
-parse_opcode 2 modes   = Just $ Mul $ get_3_modes modes
+parse_opcode 1 modes   = Just $ Add $ get_2_modes modes
+parse_opcode 2 modes   = Just $ Mul $ get_2_modes modes
+parse_opcode 3 _modes  = Just In
 parse_opcode 4 modes   = Just $ Out $ get_mode 0 modes
 parse_opcode 99 _modes = Just Halt
 parse_opcode _ _       = Nothing
@@ -87,7 +88,7 @@ pop_opcode :: Monad m => ProgramT m (Maybe Opcode)
 pop_opcode = parse_instruction_value <$> pop_value
 
 initial_state :: [Int] -> ComputerState
-initial_state list = ComputerState Running 0
+initial_state list = ComputerState [ ] Running 0
   $ listArray (0, length list - 1) list
 
 read_immediate :: Monad m => Int -> ProgramT m Int
@@ -95,6 +96,9 @@ read_immediate pos = (! pos) <$> use #memory
 
 read_position :: Monad m => Int -> ProgramT m Int
 read_position pos = read_immediate pos >>= read_immediate
+
+write_memory :: Monad m => Int -> Int -> ProgramT m ()
+write_memory value position = modifying #memory (// [(position, value)])
 
 step_program :: Monad m => ProgramT m ()
 step_program =
@@ -113,6 +117,16 @@ run_opcode :: Monad m => Opcode -> ProgramT m ()
 run_opcode Halt        = assign #status Finished
 run_opcode (Add modes) = run_arith (+) modes
 run_opcode (Mul modes) = run_arith (*) modes
+
+run_opcode In =
+  uses #input uncons >>= \case
+  Just (h, t) -> do
+    read_parameter Immediate >>= write_memory h
+    assign #input t
+  Nothing -> do
+    modifying #pp (+ (-1))
+    assign #status Interrupted
+
 run_opcode (Out mode) = do
   value <- read_parameter mode
   tell $ pack (show value) <> "\n"
@@ -131,15 +145,12 @@ read_parameter Position  = pop_value >>= read_immediate
 run_arith ::
   Monad m =>
   (Int -> Int -> Int) ->
-  (Mode, Mode, Mode) ->
+  (Mode, Mode) ->
   ProgramT m ()
-run_arith op (mode_1, mode_2, Position) = do
+run_arith op (mode_1, mode_2) = do
   x <- read_parameter mode_1
   y <- read_parameter mode_2
-  dest <- read_parameter Immediate
-
-  modifying #memory (// [(dest, op x y)])
-run_arith _ _ = assign #status Aborted
+  read_parameter Immediate >>= write_memory (op x y)
 
 load_program :: Monad m => [Int] -> ProgramT m ()
 load_program = put . initial_state
@@ -153,20 +164,8 @@ get_output = uses #memory (! 0)
 dump_memory :: Monad m => ProgramT m [Int]
 dump_memory = uses #memory elems
 
-set_input :: Monad m => Int -> Int -> ProgramT m ()
-set_input noun verb = modifying #memory (// [(1, noun), (2, verb)])
-
-all_tests :: [(Int, Int)]
-all_tests = (,) <$> [0..99] <*> [0..99]
-
-test :: Monad m => Int -> Int -> ProgramT m Bool
-test noun verb = do
-  set_input noun verb
-  run_program
-  (== 19690720) <$> get_output
-
-eval_test :: Monad m => ComputerState -> (Int, Int) -> m Bool
-eval_test s (noun, verb) = fst <$> eval (test noun verb) s
+push_input :: Monad m => Int -> ProgramT m ()
+push_input x = modifying #input (x:)
 
 launch :: Monad m => ProgramT m a -> [Int] -> m (a, ComputerState, Text)
 launch program memory = run program (initial_state memory)
@@ -175,14 +174,6 @@ main :: IO ()
 main = do
   memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
 
-  result <- eval (set_input 12 2 >> run_program >> get_output)
+  result <- eval (push_input 1 >> run_program >> get_output)
                  (initial_state memory)
   putStrLn $  "Solution 1: " <> show result
-
-  results <- sequence $ eval_test (initial_state memory) <$> all_tests
-  let sol = find fst $ zip results all_tests
-  case sol of
-    Just (_, (noun, verb)) ->
-      putStrLn $  "Solution 2: " <> show (noun * 100 + verb)
-    Nothing ->
-      putStrLn "Couldn't find solution 2"
