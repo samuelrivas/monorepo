@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -12,14 +11,15 @@
 
 import           Prelude              hiding (getLine)
 
-import           Control.Lens         (assign, modifying, over, use, uses, view,
-                                       _2)
+import           Control.Lens         (assign, ix, modifying, over, preview,
+                                       use, uses, view, _2)
 import           Control.Monad.Loops  (whileM_)
 import           Control.Monad.State  (MonadState, StateT, evalStateT,
                                        execStateT, put, runStateT)
 import           Data.Array           (elems, listArray, (!), (//))
 import           Data.Generics.Labels ()
 import           Data.List            (find)
+import           Data.Maybe           (fromMaybe)
 import           Data.Text            (splitOn, unpack)
 import           Data.Text.IO         (getLine)
 import           GHC.Generics         (Generic)
@@ -29,69 +29,85 @@ import           Internal
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 type ProgramT m a = StateT ComputerState m a
 
-initial_state :: [Int] -> ComputerState
-initial_state list = ComputerState Running 0
-  $ listArray (0, length list - 1) list
+-- Extend modes with infinite 0s so that we are safe reading them
+get_mode :: Int -> [Mode] -> Mode
+get_mode pos = fromMaybe Position . preview (ix pos)
 
-read_immediate :: MonadState ComputerState m => Int -> m Int
-read_immediate pos = (! pos) <$> use #memory
+get_3_modes :: [Mode] -> (Mode, Mode, Mode)
+get_3_modes modes =
+  let get_mode' = flip get_mode modes
+  in (get_mode' 0, get_mode' 1, get_mode' 2)
 
-read_position :: MonadState ComputerState m => Int -> m Int
-read_position pos = read_immediate pos >>= read_immediate
 
--- Return the Opcode and the amount of parameters it takes
-parse_opcode :: Int -> Maybe (Opcode, Int)
-parse_opcode 1  = Just (Add, 3)
-parse_opcode 2  = Just (Mul, 3)
-parse_opcode 99 = Just (Halt, 0)
-parse_opcode _  = Nothing
+parse_opcode :: Int -> [Mode] -> Maybe Opcode
+parse_opcode 1 modes   = Just $ Add $ get_3_modes modes
+parse_opcode 2 modes   = Just $ Mul $ get_3_modes modes
+parse_opcode 99 _modes = Just Halt
+parse_opcode _ _       = Nothing
 
 parse_mode :: Int -> Maybe Mode
 parse_mode 0 = Just Position
-parse_mode 1 = Just Value
+parse_mode 1 = Just Immediate
 parse_mode _ = Nothing
 
 factor :: Int -> [Int]
 factor 0 = []
 factor x = factor (x `div` 10) ++ [x `mod` 10]
 
-parse_instruction :: Int -> Maybe Instruction
-parse_instruction value =
+parse_instruction_value :: Int -> Maybe Opcode
+parse_instruction_value value =
   let
     int_opcode = value `mod` 100
-    int_modes = reverse . factor $ value `div` 10
-  in do
-    (opcode, parameters) <- parse_opcode int_opcode
-    modes <- sequence $ parse_mode <$> int_modes
-    pure $ Instruction opcode modes
+    int_modes = reverse . factor $ value `div` 100
+  in sequence (parse_mode <$> int_modes) >>= parse_opcode int_opcode
 
-next_opcode :: Monad m => ProgramT m (Maybe Opcode)
-next_opcode = do
-  pp <- use #pp
-  fmap fst . parse_opcode <$> read_immediate pp
+pop_opcode :: Monad m => ProgramT m (Maybe Opcode)
+pop_opcode = parse_instruction_value <$> pop_value
+
+initial_state :: [Int] -> ComputerState
+initial_state list = ComputerState Running 0
+  $ listArray (0, length list - 1) list
+
+read_immediate :: Monad m => Int -> ProgramT m Int
+read_immediate pos = (! pos) <$> use #memory
+
+read_position :: Monad m => Int -> ProgramT m Int
+read_position pos = read_immediate pos >>= read_immediate
 
 step_program :: Monad m => ProgramT m ()
 step_program =
-  next_opcode >>= \case
+  pop_opcode >>= \case
     Just opc -> run_opcode opc
     Nothing -> assign #status Aborted
 
 run_opcode :: Monad m => Opcode -> ProgramT m ()
-run_opcode Halt = assign #status Finished
-run_opcode Add  = run_arith (+)
-run_opcode Mul  = run_arith (*)
+run_opcode Halt    = assign #status Finished
+run_opcode (Add modes) = run_arith (+) modes
+run_opcode (Mul modes) = run_arith (*) modes
 
-run_arith :: Monad m => (Int -> Int -> Int) -> ProgramT m ()
-run_arith op = do
-  pp <- use #pp
-  memory <- use #memory
-  let
-    x = memory ! (memory ! (pp + 1))
-    y = memory ! (memory ! (pp + 2))
-    dest = memory ! (pp + 3)
+-- Read the next value in memory, and advance program counter
+pop_value :: Monad m => ProgramT m Int
+pop_value = do
+  value <- use #pp >>= read_immediate
+  modifying #pp (+1)
+  pure value
+
+read_parameter :: Monad m => Mode -> ProgramT m Int
+read_parameter Immediate = pop_value
+read_parameter Position = pop_value >>= read_immediate
+
+run_arith ::
+  Monad m =>
+  (Int -> Int -> Int) ->
+  (Mode, Mode, Mode) ->
+  ProgramT m ()
+run_arith op (mode_1, mode_2, Position) = do
+  x <- read_parameter mode_1
+  y <- read_parameter mode_2
+  dest <- read_parameter Immediate
 
   modifying #memory (// [(dest, op x y)])
-  modifying #pp (+ 4)
+run_arith _ _ = assign #status Aborted
 
 load_program :: Monad m => [Int] -> ProgramT m ()
 load_program = put . initial_state

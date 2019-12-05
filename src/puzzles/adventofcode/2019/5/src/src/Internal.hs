@@ -7,12 +7,11 @@
 module Internal (
   Status (..),
   ComputerState (ComputerState),
-  Instruction (Instruction),
   Opcode (..),
   Mode (..),
   ) where
 
-import           Data.Array           (Array, listArray)
+import           Data.Array           (Array)
 import           Data.Generics.Labels ()
 import           GHC.Generics         (Generic)
 
@@ -21,10 +20,12 @@ import           GHC.Generics         (Generic)
 data Status = Running | Finished | Aborted
   deriving stock (Show, Eq)
 
-data Opcode = Add | Mul | Halt
+data Opcode = Add (Mode, Mode, Mode)
+            | Mul (Mode, Mode, Mode)
+            | Halt
   deriving stock Show
 
-data Mode = Position | Value
+data Mode = Position | Immediate
   deriving stock Show
 
 data ComputerState = ComputerState {
@@ -32,9 +33,3 @@ data ComputerState = ComputerState {
   pp     :: Int,
   memory :: Array Int Int
   } deriving stock (Generic, Show)
-
-data Instruction = Instruction {
-  opcode :: Opcode,
-  modes  :: [Mode]
-  } deriving stock (Generic, Show)
-
