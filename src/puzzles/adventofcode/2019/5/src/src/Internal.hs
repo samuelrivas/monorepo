@@ -22,6 +22,7 @@ data Status = Running | Finished | Aborted
 
 data Opcode = Add (Mode, Mode, Mode)
             | Mul (Mode, Mode, Mode)
+            | Out Mode
             | Halt
   deriving stock Show
 

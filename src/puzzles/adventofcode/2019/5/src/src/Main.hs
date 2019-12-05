@@ -63,6 +63,7 @@ get_3_modes modes =
 parse_opcode :: Int -> [Mode] -> Maybe Opcode
 parse_opcode 1 modes   = Just $ Add $ get_3_modes modes
 parse_opcode 2 modes   = Just $ Mul $ get_3_modes modes
+parse_opcode 4 modes   = Just $ Out $ get_mode 0 modes
 parse_opcode 99 _modes = Just Halt
 parse_opcode _ _       = Nothing
 
@@ -112,6 +113,9 @@ run_opcode :: Monad m => Opcode -> ProgramT m ()
 run_opcode Halt        = assign #status Finished
 run_opcode (Add modes) = run_arith (+) modes
 run_opcode (Mul modes) = run_arith (*) modes
+run_opcode (Out mode) = do
+  value <- read_parameter mode
+  tell $ pack (show value) <> "\n"
 
 -- Read the next value in memory, and advance program counter
 pop_value :: Monad m => ProgramT m Int
