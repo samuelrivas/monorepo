@@ -1,3 +1,7 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -7,10 +11,10 @@
 
 import           Prelude              hiding (getLine)
 
-import           Control.Lens         (assign, modifying, use, uses)
+import           Control.Lens         (assign, modifying, use, uses, over, _2, view)
 import           Control.Monad.Loops  (whileM_)
-import           Control.Monad.State
-import           Data.Array           ((!), (//))
+import           Control.Monad.State (put, StateT, evalStateT, execStateT, runStateT)
+import           Data.Array           ((!), (//), elems)
 import           Data.Generics.Labels ()
 import           Data.List            (find)
 import           Data.Text            (splitOn, unpack)
@@ -59,11 +63,17 @@ run_arith op = do
   modifying #memory (// [(dest, op x y)])
   modifying #pp (+ 4)
 
+load_program :: Monad m => [Int] -> ProgramT m ()
+load_program = put . initial_state
+
 run_program :: Monad m => ProgramT m ()
 run_program = whileM_ ((== Running) <$> use #status) step_program
 
 get_output :: Monad m => ProgramT m Int
 get_output = uses #memory (! 0)
+
+dump_memory :: Monad m => ProgramT m [Int]
+dump_memory = uses #memory elems
 
 set_input :: Monad m => Int -> Int -> ProgramT m ()
 set_input noun verb = modifying #memory (// [(1, noun), (2, verb)])
@@ -79,6 +89,9 @@ test noun verb = do
 
 eval_test :: Monad m => ComputerState -> (Int, Int) -> m Bool
 eval_test s (noun, verb) = evalStateT (test noun verb) s
+
+launch :: ProgramT m a -> [Int] -> m (a, ComputerState)
+launch program memory = runStateT program (initial_state memory)
 
 main :: IO ()
 main = do

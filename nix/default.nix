@@ -207,6 +207,7 @@ let
           generic-lens
           lens
           monad-loops
+          writer-cps-mtl
         ];
       };
     };
