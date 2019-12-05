@@ -14,12 +14,13 @@
 
 import           Prelude               hiding (getLine, putStrLn)
 
-import           Control.Lens          (assign, ix, modifying, preview, use, uses)
+import           Control.Lens          (assign, ix, modifying, preview, use,
+                                        uses)
 import           Control.Monad         (when)
 import           Control.Monad.Loops   (whileM_)
 import           Control.Monad.Reader  (MonadReader)
-import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, get,
-                                        put, runRWST, tell)
+import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, get, put,
+                                        runRWST, tell)
 import           Control.Monad.State   (MonadState)
 import           Control.Monad.Writer  (MonadWriter)
 import           Data.Array            (elems, listArray, (!), (//))
