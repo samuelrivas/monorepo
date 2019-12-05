@@ -12,7 +12,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
-import           Prelude               hiding (getLine)
+import           Prelude               hiding (getLine, putStrLn)
 
 import           Control.Lens          (assign, firstOf, ix, modifying, over,
                                         preview, traverse, use, uses, view, _2)
@@ -30,7 +30,7 @@ import           Data.Generics.Labels  ()
 import           Data.List             (find, uncons)
 import           Data.Maybe            (fromMaybe)
 import           Data.Text             (Text, pack, splitOn, unpack)
-import           Data.Text.IO          (getLine)
+import           Data.Text.IO          (getLine, putStrLn)
 import           GHC.Generics          (Generic)
 
 import           Internal
@@ -158,9 +158,6 @@ load_program = put . initial_state
 run_program :: Monad m => ProgramT m ()
 run_program = whileM_ ((== Running) <$> use #status) step_program
 
-get_output :: Monad m => ProgramT m Int
-get_output = uses #memory (! 0)
-
 dump_memory :: Monad m => ProgramT m [Int]
 dump_memory = uses #memory elems
 
@@ -174,6 +171,5 @@ main :: IO ()
 main = do
   memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
 
-  result <- eval (push_input 1 >> run_program >> get_output)
-                 (initial_state memory)
-  putStrLn $  "Solution 1: " <> show result
+  ((), out) <- eval (push_input 1 >> run_program) (initial_state memory)
+  putStrLn $  "Solution 1: " <> out
