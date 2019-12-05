@@ -162,11 +162,8 @@ run_arith op (mode_1, mode_2) = do
   y <- read_parameter mode_2
   read_parameter Immediate >>= write_memory (op x y)
 
-load_program :: Monad m => [Int] -> ProgramT m ()
-load_program = put . initial_state
-
 run_program :: Monad m => ProgramT m ()
-run_program = whileM_ ((== Running) <$> use #status) step_program
+run_program = whileM_ (uses #status (== Running)) step_program
 
 dump_memory :: Monad m => ProgramT m [Int]
 dump_memory = uses #memory elems
