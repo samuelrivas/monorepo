@@ -156,11 +156,7 @@ set_bool p (mode_1, mode_2) = do
   dest <- read_parameter Immediate
   write_memory (fromEnum $ p x y) dest
 
-run_arith ::
-  Monad m =>
-  (Int -> Int -> Int) ->
-  (Mode, Mode) ->
-  ProgramT m ()
+run_arith :: Monad m => (Int -> Int -> Int) -> (Mode, Mode) -> ProgramT m ()
 run_arith op (mode_1, mode_2) = do
   x <- read_parameter mode_1
   y <- read_parameter mode_2
