@@ -2,32 +2,53 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedLabels    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedLabels           #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 
-import           Prelude              hiding (getLine)
+import           Prelude               hiding (getLine)
 
-import           Control.Lens         (assign, ix, modifying, over, preview,
-                                       use, uses, view, _2)
-import           Control.Monad.Loops  (whileM_)
-import           Control.Monad.State  (MonadState, StateT, evalStateT,
-                                       execStateT, put, runStateT)
-import           Data.Array           (elems, listArray, (!), (//))
-import           Data.Generics.Labels ()
-import           Data.List            (find)
-import           Data.Maybe           (fromMaybe)
-import           Data.Text            (splitOn, unpack)
-import           Data.Text.IO         (getLine)
-import           GHC.Generics         (Generic)
+import           Control.Lens          (assign, ix, modifying, over, preview,
+                                        use, uses, view, _2)
+import           Control.Monad         (MonadPlus, mzero)
+import           Control.Monad.Fail    (MonadFail (..))
+import           Control.Monad.Loops   (whileM_)
+import           Control.Monad.Reader  (MonadReader)
+import           Control.Monad.RWS.CPS (MonadRWS, RWST, evalRWST, execRWST, get,
+                                        put, runRWST, tell)
+import           Control.Monad.State   (MonadState, StateT, evalStateT,
+                                        execStateT, put, runStateT)
+import           Control.Monad.Writer  (MonadWriter)
+import           Data.Array            (elems, listArray, (!), (//))
+import           Data.Generics.Labels  ()
+import           Data.List             (find)
+import           Data.Maybe            (fromMaybe)
+import           Data.Text             (Text, pack, splitOn, unpack)
+import           Data.Text.IO          (getLine)
+import           GHC.Generics          (Generic)
 
 import           Internal
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
-type ProgramT m a = StateT ComputerState m a
+newtype ProgramT m a = ProgramT { unProgramT :: RWST () Text ComputerState m a }
+  deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
+                    MonadState ComputerState, MonadReader ())
+
+
+eval :: Monad m => ProgramT m a -> ComputerState -> m (a, Text)
+eval = flip evalRWST () . unProgramT
+
+run :: Monad m => ProgramT m a -> ComputerState -> m (a, ComputerState, Text)
+run = flip runRWST () . unProgramT
+
+exec :: Monad m => ProgramT m a -> ComputerState -> m (ComputerState, Text)
+exec = flip execRWST () . unProgramT
 
 -- Extend modes with infinite 0s so that we are safe reading them
 get_mode :: Int -> [Mode] -> Mode
@@ -78,10 +99,17 @@ step_program :: Monad m => ProgramT m ()
 step_program =
   pop_opcode >>= \case
     Just opc -> run_opcode opc
-    Nothing -> assign #status Aborted
+    Nothing -> abort "could not pop next opcode"
+
+abort :: Monad m => Text -> ProgramT m ()
+abort msg = do
+  tell $ "Something went wrong: " <> msg <> "\n"
+  tell ">>>>>>>> Dump\n"
+  get >>= tell . pack . show
+  assign #status Aborted
 
 run_opcode :: Monad m => Opcode -> ProgramT m ()
-run_opcode Halt    = assign #status Finished
+run_opcode Halt        = assign #status Finished
 run_opcode (Add modes) = run_arith (+) modes
 run_opcode (Mul modes) = run_arith (*) modes
 
@@ -94,7 +122,7 @@ pop_value = do
 
 read_parameter :: Monad m => Mode -> ProgramT m Int
 read_parameter Immediate = pop_value
-read_parameter Position = pop_value >>= read_immediate
+read_parameter Position  = pop_value >>= read_immediate
 
 run_arith ::
   Monad m =>
@@ -134,17 +162,17 @@ test noun verb = do
   (== 19690720) <$> get_output
 
 eval_test :: Monad m => ComputerState -> (Int, Int) -> m Bool
-eval_test s (noun, verb) = evalStateT (test noun verb) s
+eval_test s (noun, verb) = fst <$> eval (test noun verb) s
 
-launch :: ProgramT m a -> [Int] -> m (a, ComputerState)
-launch program memory = runStateT program (initial_state memory)
+launch :: Monad m => ProgramT m a -> [Int] -> m (a, ComputerState, Text)
+launch program memory = run program (initial_state memory)
 
 main :: IO ()
 main = do
   memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
 
-  result <- evalStateT (set_input 12 2 >> run_program >> get_output)
-            (initial_state memory)
+  result <- eval (set_input 12 2 >> run_program >> get_output)
+                 (initial_state memory)
   putStrLn $  "Solution 1: " <> show result
 
   results <- sequence $ eval_test (initial_state memory) <$> all_tests
