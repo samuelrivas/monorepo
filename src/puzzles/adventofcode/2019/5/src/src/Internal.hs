@@ -24,6 +24,10 @@ data Opcode = Add (Mode, Mode)
             | Mul (Mode, Mode)
             | In
             | Out Mode
+            | JumpTrue (Mode, Mode)
+            | JumpFalse (Mode, Mode)
+            | LessThan (Mode, Mode)
+            | Equals (Mode, Mode)
             | Halt
   deriving stock Show
 

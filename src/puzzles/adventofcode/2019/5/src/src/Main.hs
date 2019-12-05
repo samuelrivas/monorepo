@@ -1,5 +1,5 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE DerivingStrategies         #-}
@@ -14,24 +14,20 @@
 
 import           Prelude               hiding (getLine, putStrLn)
 
-import           Control.Lens          (assign, firstOf, ix, modifying, over,
-                                        preview, traverse, use, uses, view, _2)
-import           Control.Monad         (MonadPlus, mzero)
-import           Control.Monad.Fail    (MonadFail (..))
+import           Control.Lens          (assign, ix, modifying, preview, use, uses)
+import           Control.Monad         (when)
 import           Control.Monad.Loops   (whileM_)
 import           Control.Monad.Reader  (MonadReader)
-import           Control.Monad.RWS.CPS (MonadRWS, RWST, evalRWST, execRWST, get,
+import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, get,
                                         put, runRWST, tell)
-import           Control.Monad.State   (MonadState, StateT, evalStateT,
-                                        execStateT, put, runStateT)
+import           Control.Monad.State   (MonadState)
 import           Control.Monad.Writer  (MonadWriter)
 import           Data.Array            (elems, listArray, (!), (//))
 import           Data.Generics.Labels  ()
-import           Data.List             (find, uncons)
+import           Data.List             (uncons)
 import           Data.Maybe            (fromMaybe)
 import           Data.Text             (Text, pack, splitOn, unpack)
 import           Data.Text.IO          (getLine, putStrLn)
-import           GHC.Generics          (Generic)
 
 import           Internal
 
@@ -65,6 +61,10 @@ parse_opcode 1 modes   = Just $ Add $ get_2_modes modes
 parse_opcode 2 modes   = Just $ Mul $ get_2_modes modes
 parse_opcode 3 _modes  = Just In
 parse_opcode 4 modes   = Just $ Out $ get_mode 0 modes
+parse_opcode 5 modes   = Just $ JumpTrue $ get_2_modes modes
+parse_opcode 6 modes   = Just $ JumpFalse $ get_2_modes modes
+parse_opcode 7 modes   = Just $ LessThan $ get_2_modes modes
+parse_opcode 8 modes   = Just $ Equals $ get_2_modes modes
 parse_opcode 99 _modes = Just Halt
 parse_opcode _ _       = Nothing
 
@@ -91,11 +91,8 @@ initial_state :: [Int] -> ComputerState
 initial_state list = ComputerState [ ] Running 0
   $ listArray (0, length list - 1) list
 
-read_immediate :: Monad m => Int -> ProgramT m Int
-read_immediate pos = (! pos) <$> use #memory
-
-read_position :: Monad m => Int -> ProgramT m Int
-read_position pos = read_immediate pos >>= read_immediate
+read_memory :: Monad m => Int -> ProgramT m Int
+read_memory pos = (! pos) <$> use #memory
 
 write_memory :: Monad m => Int -> Int -> ProgramT m ()
 write_memory value position = modifying #memory (// [(position, value)])
@@ -117,6 +114,10 @@ run_opcode :: Monad m => Opcode -> ProgramT m ()
 run_opcode Halt        = assign #status Finished
 run_opcode (Add modes) = run_arith (+) modes
 run_opcode (Mul modes) = run_arith (*) modes
+run_opcode (JumpTrue modes) = jump_on (/= 0) modes
+run_opcode (JumpFalse modes) = jump_on (== 0) modes
+run_opcode (LessThan modes) = set_bool (<) modes
+run_opcode (Equals modes) = set_bool (==) modes
 
 run_opcode In =
   uses #input uncons >>= \case
@@ -134,13 +135,26 @@ run_opcode (Out mode) = do
 -- Read the next value in memory, and advance program counter
 pop_value :: Monad m => ProgramT m Int
 pop_value = do
-  value <- use #pp >>= read_immediate
+  value <- use #pp >>= read_memory
   modifying #pp (+1)
   pure value
 
 read_parameter :: Monad m => Mode -> ProgramT m Int
 read_parameter Immediate = pop_value
-read_parameter Position  = pop_value >>= read_immediate
+read_parameter Position  = pop_value >>= read_memory
+
+jump_on :: Monad m => (Int -> Bool) -> (Mode, Mode) -> ProgramT m ()
+jump_on p (mode_1, mode_2) = do
+  test <- read_parameter mode_1
+  dest <- read_parameter mode_2
+  when (p test) $ assign #pp dest
+
+set_bool :: Monad m => (Int -> Int -> Bool) -> (Mode, Mode) -> ProgramT m ()
+set_bool p (mode_1, mode_2) = do
+  x <- read_parameter mode_1
+  y <- read_parameter mode_2
+  dest <- read_parameter Immediate
+  write_memory (fromEnum $ p x y) dest
 
 run_arith ::
   Monad m =>
@@ -171,5 +185,8 @@ main :: IO ()
 main = do
   memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
 
-  ((), out) <- eval (push_input 1 >> run_program) (initial_state memory)
-  putStrLn $  "Solution 1: " <> out
+  ((), _s, out1) <- launch (push_input 1 >> run_program) memory
+  putStrLn $  "Solution 1: " <> out1
+
+  ((), _s, out2) <- launch (push_input 5 >> run_program) memory
+  putStrLn $  "Solution 2: " <> out2
