@@ -34,8 +34,7 @@ parse_opcode _  = Nothing
 next_opcode :: Monad m => ProgramT m (Maybe Opcode)
 next_opcode = do
   pp <- use #pp
-  memory <- use #memory
-  pure $ parse_opcode (memory ! pp)
+  parse_opcode <$> read_immediate pp
 
 step_program :: Monad m => ProgramT m ()
 step_program =
