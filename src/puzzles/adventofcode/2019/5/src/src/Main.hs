@@ -92,7 +92,7 @@ initial_state list = ComputerState [ ] Running 0
   $ listArray (0, length list - 1) list
 
 read_memory :: Monad m => Int -> ProgramT m Int
-read_memory pos = (! pos) <$> use #memory
+read_memory pos = uses #memory (! pos)
 
 write_memory :: Monad m => Int -> Int -> ProgramT m ()
 write_memory value position = modifying #memory (// [(position, value)])
