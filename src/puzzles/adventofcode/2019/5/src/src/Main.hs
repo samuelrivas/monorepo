@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -11,34 +12,63 @@
 
 import           Prelude              hiding (getLine)
 
-import           Control.Lens         (assign, modifying, use, uses, over, _2, view)
+import           Control.Lens         (assign, modifying, over, use, uses, view,
+                                       _2)
 import           Control.Monad.Loops  (whileM_)
-import           Control.Monad.State (put, StateT, evalStateT, execStateT, runStateT)
-import           Data.Array           ((!), (//), elems)
+import           Control.Monad.State  (MonadState, StateT, evalStateT,
+                                       execStateT, put, runStateT)
+import           Data.Array           (elems, listArray, (!), (//))
 import           Data.Generics.Labels ()
 import           Data.List            (find)
 import           Data.Text            (splitOn, unpack)
 import           Data.Text.IO         (getLine)
+import           GHC.Generics         (Generic)
 
-import           State
+import           Internal
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
-
-data Opcode = Add | Mul | Halt
-  deriving stock Show
-
 type ProgramT m a = StateT ComputerState m a
 
-parse_opcode :: Int -> Maybe Opcode
-parse_opcode 1  = Just Add
-parse_opcode 2  = Just Mul
-parse_opcode 99 = Just Halt
+initial_state :: [Int] -> ComputerState
+initial_state list = ComputerState Running 0
+  $ listArray (0, length list - 1) list
+
+read_immediate :: MonadState ComputerState m => Int -> m Int
+read_immediate pos = (! pos) <$> use #memory
+
+read_position :: MonadState ComputerState m => Int -> m Int
+read_position pos = read_immediate pos >>= read_immediate
+
+-- Return the Opcode and the amount of parameters it takes
+parse_opcode :: Int -> Maybe (Opcode, Int)
+parse_opcode 1  = Just (Add, 3)
+parse_opcode 2  = Just (Mul, 3)
+parse_opcode 99 = Just (Halt, 0)
 parse_opcode _  = Nothing
+
+parse_mode :: Int -> Maybe Mode
+parse_mode 0 = Just Position
+parse_mode 1 = Just Value
+parse_mode _ = Nothing
+
+factor :: Int -> [Int]
+factor 0 = []
+factor x = factor (x `div` 10) ++ [x `mod` 10]
+
+parse_instruction :: Int -> Maybe Instruction
+parse_instruction value =
+  let
+    int_opcode = value `mod` 100
+    int_modes = reverse . factor $ value `div` 10
+  in do
+    (opcode, parameters) <- parse_opcode int_opcode
+    modes <- sequence $ parse_mode <$> int_modes
+    pure $ Instruction opcode modes
 
 next_opcode :: Monad m => ProgramT m (Maybe Opcode)
 next_opcode = do
   pp <- use #pp
-  parse_opcode <$> read_immediate pp
+  fmap fst . parse_opcode <$> read_immediate pp
 
 step_program :: Monad m => ProgramT m ()
 step_program =
