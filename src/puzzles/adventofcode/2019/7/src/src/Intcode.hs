@@ -9,15 +9,18 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 
 module Intcode (
+  ComputerState,
   ProgramT,
+  dump_memory,
   eval,
-  run,
   exec,
+  initial_state,
+  launch,
+  push_input,
+  reset,
+  run,
   run_program,
   step_program,
-  dump_memory,
-  push_input,
-  launch
   ) where
 
 import           Prelude               hiding (getLine, putStrLn)
@@ -27,7 +30,7 @@ import           Control.Lens          (assign, ix, modifying, preview, use,
 import           Control.Monad         (when)
 import           Control.Monad.Loops   (whileM_)
 import           Control.Monad.Reader  (MonadReader)
-import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, get,
+import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, get, put,
                                         runRWST, tell)
 import           Control.Monad.State   (MonadState)
 import           Control.Monad.Writer  (MonadWriter)
@@ -174,11 +177,17 @@ step_program =
 run_program :: Monad m => ProgramT m ()
 run_program = whileM_ (uses #status (== Running)) step_program
 
+reset :: Monad m => [Int] -> ProgramT m ()
+reset = put . initial_state
+
 dump_memory :: Monad m => ProgramT m [Int]
 dump_memory = uses #memory elems
 
-push_input :: Monad m => Int -> ProgramT m ()
-push_input x = modifying #input (x:)
+push_input :: Monad m => [Int] -> ProgramT m ()
+push_input x = do
+  modifying #input (++ x)
+  st <- use #status
+  when (st == Interrupted) $ assign #status Running
 
 launch :: Monad m => ProgramT m a -> [Int] -> m (a, ComputerState, Text)
 launch program memory = run program (initial_state memory)
