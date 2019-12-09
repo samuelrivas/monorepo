@@ -13,22 +13,23 @@ module Internal (
   ) where
 
 import           Data.Array           (Array, listArray)
+import Data.Map.Strict (Map, fromList)
 import           Data.Generics.Labels ()
 import           GHC.Generics         (Generic)
 
-{-# ANN module "HLint: ignore Use camelCase" #-}
+{-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
 data Status = Running | Finished | Aborted | Interrupted
   deriving stock (Show, Eq)
 
-data Opcode = Add (Mode, Mode)
-            | Mul (Mode, Mode)
-            | In
+data Opcode = Add (Mode, Mode, Mode)
+            | Mul (Mode, Mode, Mode)
+            | In Mode
             | Out Mode
             | JumpTrue (Mode, Mode)
             | JumpFalse (Mode, Mode)
-            | LessThan (Mode, Mode)
-            | Equals (Mode, Mode)
+            | LessThan (Mode, Mode, Mode)
+            | Equals (Mode, Mode, Mode)
             | AdjustBase Mode
             | Halt
   deriving stock Show
@@ -37,19 +38,18 @@ data Mode = Position | Immediate | Relative
   deriving stock Show
 
 data ComputerState = ComputerState {
-  input  :: [Int],
+  input  :: [Integer],
   status :: Status,
-  pp     :: Int,
-  memory :: Array Int Int,
-  base :: Int
+  pp     :: Integer,
+  memory :: Map Integer Integer,
+  base :: Integer
   } deriving stock (Generic, Show)
 
-initial_state :: [Int] -> ComputerState
+initial_state :: [Integer] -> ComputerState
 initial_state code = ComputerState {
   input = [ ],
   status = Running,
   pp = 0,
-  memory = listArray (0, length code - 1) code,
+  memory = fromList (zip [0..] code),
   base = 0
   }
-
