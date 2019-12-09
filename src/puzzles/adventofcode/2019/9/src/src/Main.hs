@@ -1,8 +1,7 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -13,19 +12,13 @@
 
 import           Prelude               hiding (getLine, putStrLn, readFile)
 
-import           Control.Lens          (assign, use, uses, view, _2, _3)
-import           Control.Monad.Loops   (whileM)
-import           Control.Monad.State   (MonadState, evalState)
+import           Control.Lens          (view, _3)
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
-import           Data.List             (permutations)
-import           Data.List.NonEmpty    (NonEmpty (..), fromList, toList)
-import           Data.Text             (pack, splitOn, unpack, Text)
+import           Data.Text             (Text, splitOn, unpack)
 import           Data.Text.IO          (putStrLn, readFile)
-import           GHC.Generics          (Generic)
 
 import           Intcode
-import           Internal
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 example_1 :: [Integer]

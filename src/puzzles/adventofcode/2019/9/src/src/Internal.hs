@@ -12,9 +12,8 @@ module Internal (
   initial_state
   ) where
 
-import           Data.Array           (Array, listArray)
-import Data.Map.Strict (Map, fromList)
 import           Data.Generics.Labels ()
+import           Data.Map.Strict      (Map, fromList)
 import           GHC.Generics         (Generic)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -42,7 +41,7 @@ data ComputerState = ComputerState {
   status :: Status,
   pp     :: Integer,
   memory :: Map Integer Integer,
-  base :: Integer
+  base   :: Integer
   } deriving stock (Generic, Show)
 
 initial_state :: [Integer] -> ComputerState

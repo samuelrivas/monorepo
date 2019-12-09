@@ -43,10 +43,10 @@ import           Data.Text             (Text, pack)
 import           Internal
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
+
 newtype ProgramT m a = ProgramT { unProgramT :: RWST () Text ComputerState m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
                     MonadState ComputerState, MonadReader ())
-
 
 eval :: Monad m => ProgramT m a -> ComputerState -> m (a, Text)
 eval = flip evalRWST () . unProgramT
@@ -73,7 +73,7 @@ get_3_modes modes =
 parse_opcode :: Integer -> [Mode] -> Maybe Opcode
 parse_opcode 1 modes   = Just . Add $ get_3_modes modes
 parse_opcode 2 modes   = Just . Mul $ get_3_modes modes
-parse_opcode 3 modes  = Just . In $ get_mode 0 modes
+parse_opcode 3 modes   = Just . In $ get_mode 0 modes
 parse_opcode 4 modes   = Just . Out $ get_mode 0 modes
 parse_opcode 5 modes   = Just . JumpTrue $ get_2_modes modes
 parse_opcode 6 modes   = Just . JumpFalse $ get_2_modes modes
