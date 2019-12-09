@@ -33,7 +33,7 @@ data Opcode = Add (Mode, Mode)
             | Halt
   deriving stock Show
 
-data Mode = Position | Immediate
+data Mode = Position | Immediate | Relative
   deriving stock Show
 
 data ComputerState = ComputerState {

@@ -65,7 +65,6 @@ get_2_modes modes =
   let get_mode' = flip get_mode modes
   in (get_mode' 0, get_mode' 1)
 
-
 parse_opcode :: Int -> [Mode] -> Maybe Opcode
 parse_opcode 1 modes   = Just $ Add $ get_2_modes modes
 parse_opcode 2 modes   = Just $ Mul $ get_2_modes modes
@@ -82,6 +81,7 @@ parse_opcode _ _       = Nothing
 parse_mode :: Int -> Maybe Mode
 parse_mode 0 = Just Position
 parse_mode 1 = Just Immediate
+parse_mode 2 = Just Relative
 parse_mode _ = Nothing
 
 factor :: Int -> [Int]
@@ -147,6 +147,9 @@ pop_value = do
 read_parameter :: Monad m => Mode -> ProgramT m Int
 read_parameter Immediate = pop_value
 read_parameter Position  = pop_value >>= read_memory
+read_parameter Relative = do
+  value <- pop_value
+  uses #base (+ value) >>= read_memory
 
 jump_on :: Monad m => (Int -> Bool) -> (Mode, Mode) -> ProgramT m ()
 jump_on p (mode_1, mode_2) = do
