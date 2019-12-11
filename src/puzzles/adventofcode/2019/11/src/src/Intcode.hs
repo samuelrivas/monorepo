@@ -10,7 +10,7 @@
 
 module Intcode (
   ComputerState,
-  ProgramT,
+  IntcodeT,
   abort,
   dump_memory,
   eval,
@@ -50,18 +50,18 @@ import           Internal
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
-newtype ProgramT m a = ProgramT { unProgramT :: RWST () Text ComputerState m a }
+newtype IntcodeT m a = IntcodeT { unIntcodeT :: RWST () Text ComputerState m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
                     MonadState ComputerState, MonadReader (), MonadTrans)
 
-eval :: Monad m => ProgramT m a -> ComputerState -> m (a, Text)
-eval = flip evalRWST () . unProgramT
+eval :: Monad m => IntcodeT m a -> ComputerState -> m (a, Text)
+eval = flip evalRWST () . unIntcodeT
 
-run :: Monad m => ProgramT m a -> ComputerState -> m (a, ComputerState, Text)
-run = flip runRWST () . unProgramT
+run :: Monad m => IntcodeT m a -> ComputerState -> m (a, ComputerState, Text)
+run = flip runRWST () . unIntcodeT
 
-exec :: Monad m => ProgramT m a -> ComputerState -> m (ComputerState, Text)
-exec = flip execRWST () . unProgramT
+exec :: Monad m => IntcodeT m a -> ComputerState -> m (ComputerState, Text)
+exec = flip execRWST () . unIntcodeT
 
 get_mode :: Integer -> [Mode] -> Mode
 get_mode pos = fromMaybe Position . preview (ix . fromIntegral $ pos)
@@ -106,23 +106,23 @@ parse_instruction_value value =
     int_modes = reverse . factor $ value `div` 100
   in sequence (parse_mode <$> int_modes) >>= parse_opcode int_opcode
 
-pop_opcode :: Monad m => ProgramT m (Maybe Opcode)
+pop_opcode :: Monad m => IntcodeT m (Maybe Opcode)
 pop_opcode = parse_instruction_value <$> pop_value
 
-read_memory :: Monad m => Integer -> ProgramT m Integer
+read_memory :: Monad m => Integer -> IntcodeT m Integer
 read_memory pos = uses #memory (view (at pos . non 0))
 
-write_memory :: Monad m => Integer -> Integer -> ProgramT m ()
+write_memory :: Monad m => Integer -> Integer -> IntcodeT m ()
 write_memory value position = assign (#memory . at position) $ Just value
 
-abort :: Monad m => Text -> ProgramT m ()
+abort :: Monad m => Text -> IntcodeT m ()
 abort msg = do
   tell $ "Something went wrong: " <> msg <> "\n"
   tell ">>>>>>>> Dump\n"
   get >>= tell . show
   assign #status Aborted
 
-run_opcode :: Monad m => Opcode -> ProgramT m ()
+run_opcode :: Monad m => Opcode -> IntcodeT m ()
 run_opcode Halt        = assign #status Finished
 run_opcode (Add modes) = run_arith (+) modes
 run_opcode (Mul modes) = run_arith (*) modes
@@ -149,14 +149,14 @@ run_opcode (Out mode) = do
   trace $ "Output: " <> show value
   modifying #output (value:)
 
-jump_on :: Monad m => (Integer -> Bool) -> (Mode, Mode) -> ProgramT m ()
+jump_on :: Monad m => (Integer -> Bool) -> (Mode, Mode) -> IntcodeT m ()
 jump_on p (mode_1, mode_2) = do
   test <- read_value mode_1
   dest <- read_value mode_2
   when (p test) $ assign #pp dest
 
 set_bool :: Monad m =>
-  (Integer -> Integer -> Bool) -> (Mode, Mode, Mode) -> ProgramT m ()
+  (Integer -> Integer -> Bool) -> (Mode, Mode, Mode) -> IntcodeT m ()
 set_bool p (mode_1, mode_2, mode_3) = do
   x <- read_value mode_1
   y <- read_value mode_2
@@ -164,27 +164,27 @@ set_bool p (mode_1, mode_2, mode_3) = do
   write_memory (fromIntegral . fromEnum $ p x y) dest
 
 run_arith :: Monad m =>
-  (Integer -> Integer -> Integer) -> (Mode, Mode, Mode) -> ProgramT m ()
+  (Integer -> Integer -> Integer) -> (Mode, Mode, Mode) -> IntcodeT m ()
 run_arith op (mode_1, mode_2, mode_3) = do
   x <- read_value mode_1
   y <- read_value mode_2
   read_destination mode_3 >>= write_memory (op x y)
 
 -- Read the next value in memory, and advance program counter
-pop_value :: Monad m => ProgramT m Integer
+pop_value :: Monad m => IntcodeT m Integer
 pop_value = do
   value <- use #pp >>= read_memory
   modifying #pp (+1)
   pure value
 
-read_value :: Monad m => Mode -> ProgramT m Integer
+read_value :: Monad m => Mode -> IntcodeT m Integer
 read_value Position  = pop_value >>= read_memory
 read_value Immediate = pop_value
 read_value Relative = do
   value <- pop_value
   uses #base (+ value) >>= read_memory
 
-read_destination :: Monad m => Mode -> ProgramT m Integer
+read_destination :: Monad m => Mode -> IntcodeT m Integer
 read_destination Position = read_value Immediate
 read_destination Immediate = do
   abort "Trying to write to immediate position"
@@ -195,39 +195,39 @@ read_destination Relative = do
 
 -- Public interface
 
-step_program :: Monad m => ProgramT m ()
+step_program :: Monad m => IntcodeT m ()
 step_program =
   pop_opcode >>= \case
     Just opc -> run_opcode opc
     Nothing -> abort "could not pop next opcode"
 
-run_program :: Monad m => ProgramT m ()
+run_program :: Monad m => IntcodeT m ()
 run_program = whileM_ (uses #status (== Running)) step_program
 
-reset :: Monad m => [Integer] -> ProgramT m ()
+reset :: Monad m => [Integer] -> IntcodeT m ()
 reset = put . initial_state
 
-dump_memory :: Monad m => ProgramT m [(Integer, Integer)]
+dump_memory :: Monad m => IntcodeT m [(Integer, Integer)]
 dump_memory = uses #memory assocs
 
-get_output :: Monad m => ProgramT m [Integer]
+get_output :: Monad m => IntcodeT m [Integer]
 get_output = use #output
 
-flush_output :: Monad m => ProgramT m ()
+flush_output :: Monad m => IntcodeT m ()
 flush_output = assign #output []
 
-trace :: Monad m => Text -> ProgramT m ()
+trace :: Monad m => Text -> IntcodeT m ()
 --trace = const $ pure ()
 trace msg = tell $ "T>> " <> msg <> "\n"
 
-get_status :: Monad m => ProgramT m Status
+get_status :: Monad m => IntcodeT m Status
 get_status = use #status
 
-push_input :: Monad m => [Integer] -> ProgramT m ()
+push_input :: Monad m => [Integer] -> IntcodeT m ()
 push_input x = do
   modifying #input (++ x)
   st <- use #status
   when (st == Interrupted) $ assign #status Running
 
-launch :: Monad m => ProgramT m a -> [Integer] -> m (a, ComputerState, Text)
+launch :: Monad m => IntcodeT m a -> [Integer] -> m (a, ComputerState, Text)
 launch program memory = run program (initial_state memory)

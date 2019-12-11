@@ -58,7 +58,7 @@ data RobotState = RobotState {
   direction :: Direction
   } deriving stock (Show, Generic)
 
-type RobotT m = ProgramT (StateT RobotState m)
+type RobotT m = IntcodeT (StateT RobotState m)
 
 initial_state :: RobotState
 initial_state = RobotState {
