@@ -177,4 +177,3 @@ main = do
   putStrLn $ "Solution 1: " <> show (solution_1 code)
   putStrLn "Solution 2: "
   putStrLn $ solution_2 code
-
