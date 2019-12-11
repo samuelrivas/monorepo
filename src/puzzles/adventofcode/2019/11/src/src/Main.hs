@@ -20,7 +20,8 @@ import           Data.Generics.Labels  ()
 import           Data.Text             (Text, splitOn, unpack, pack)
 import           Data.Text.IO          (putStrLn, readFile)
 import Control.Monad.State (State, StateT, lift, runStateT)
-import Data.Map.Strict (Map, empty)
+import Data.Map.Strict (Map, empty, size)
+import Control.Monad.Loops (whileM, whileM_)
 import GHC.Generics (Generic)
 
 import           Intcode
@@ -111,6 +112,9 @@ step = do
   paint colour
   move rotation
 
+loop :: Monad m => RobotT m ()
+loop = whileM_ ((== Interrupted) <$> get_status) step
+
 get_input :: IO [Integer]
 get_input = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
 
@@ -121,7 +125,16 @@ run_robot x in_state code = do
   ((a, comp_state, w), out_state) <- runStateT (launch x code) in_state
   pure (a, view #status comp_state, out_state, w)
 
+solution_1 :: [Integer] -> Int
+solution_1 code =
+  let
+    robot_state = view _3 . runIdentity $
+      run_robot (step >> loop) Main.initial_state code
+  in
+    size . view #panels $ robot_state
+
 main :: IO ()
 main = do
   code <- get_input
-  undefined
+  putStrLn $ "Solution 1: " <> show (solution_1 code)
+

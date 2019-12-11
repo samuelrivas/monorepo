@@ -23,6 +23,7 @@ module Intcode (
   run_program,
   step_program,
   get_output,
+  get_status,
   flush_output,
   trace
   ) where
@@ -43,7 +44,7 @@ import           Data.Generics.Labels      ()
 import           Data.List                 (uncons)
 import           Data.Map.Strict           (assocs)
 import           Data.Maybe                (fromMaybe)
-import           Data.Text                 (Text, pack)
+import           Data.Text                 (Text)
 
 import           Internal
 
@@ -145,7 +146,7 @@ run_opcode (In mode) =
 
 run_opcode (Out mode) = do
   value <- read_value mode
-  trace $ "Output: " <> (show value)
+  trace $ "Output: " <> show value
   modifying #output (value:)
 
 jump_on :: Monad m => (Integer -> Bool) -> (Mode, Mode) -> ProgramT m ()
@@ -217,6 +218,9 @@ flush_output = assign #output []
 
 trace :: Monad m => Text -> ProgramT m ()
 trace msg = tell $ "T>> " <> msg <> "\n"
+
+get_status :: Monad m => ProgramT m Status
+get_status = use #status
 
 push_input :: Monad m => [Integer] -> ProgramT m ()
 push_input x = do
