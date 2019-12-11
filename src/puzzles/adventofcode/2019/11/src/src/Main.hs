@@ -1,8 +1,7 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -12,26 +11,27 @@
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TupleSections         #-}
 
-import           Prelude               hiding (Left, Right, getLine, putStrLn,
-                                        readFile, show, concat)
+import           Prelude               hiding (Left, Right, concat, getLine,
+                                        putStrLn, readFile, show)
 
 import           Control.Lens          (assign, at, modifying, non, over, set,
-                                        toListOf, use, view, _1, _2, _3, traverse)
-import           Control.Monad.Loops   (whileM, whileM_)
-import           Control.Monad.State   (State, StateT, lift, runStateT)
+                                        toListOf, traverse, use, view, _1, _2,
+                                        _3)
+import           Control.Monad.Loops   (whileM_)
+import           Control.Monad.State   (StateT, lift, runStateT)
+import           Data.Foldable         (maximum, minimum)
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
-import           Data.Map.Strict       (Map, empty, findMax, findMin, keys,
-                                        size)
-import           Data.Text             (Text, pack, splitOn, unpack, concat, intercalate)
-import           Data.Text.IO          (putStrLn, readFile )
-import Data.Foldable (maximum, minimum)
+import           Data.Map.Strict       (Map, empty, keys, size)
+import           Data.Text             (Text, concat, intercalate, splitOn,
+                                        unpack)
+import           Data.Text.IO          (putStrLn, readFile)
 import           GHC.Generics          (Generic)
 
 import           Intcode               hiding (initial_state)
 import           Internal              hiding (initial_state)
-import Data.List.Split (chunksOf)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -161,7 +161,7 @@ show_map format plane =
 formatter :: Maybe Colour -> Text
 formatter (Just White) = "X"
 formatter (Just Black) = " "
-formatter Nothing = "."
+formatter Nothing      = "."
 
 solution_2 :: [Integer] -> Text
 solution_2 code =
@@ -177,4 +177,4 @@ main = do
   putStrLn $ "Solution 1: " <> show (solution_1 code)
   putStrLn "Solution 2: "
   putStrLn $ solution_2 code
-  
+

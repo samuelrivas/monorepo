@@ -13,13 +13,13 @@ module Internal (
   show
   ) where
 
-import Prelude hiding (show)
+import           Prelude              hiding (show)
 import qualified Prelude
 
 import           Data.Generics.Labels ()
 import           Data.Map.Strict      (Map, fromList)
+import           Data.Text            (Text, pack)
 import           GHC.Generics         (Generic)
-import Data.Text (Text, pack)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
