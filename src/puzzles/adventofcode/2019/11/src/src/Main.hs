@@ -2,30 +2,36 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Prelude               hiding (getLine, putStrLn, readFile, Left, Right, show)
+import           Prelude               hiding (Left, Right, getLine, putStrLn,
+                                        readFile, show, concat)
 
-import           Control.Lens          (use, non, view, _3, at, assign, modifying, over, _1, _2)
+import           Control.Lens          (assign, at, modifying, non, over, set,
+                                        toListOf, use, view, _1, _2, _3, traverse)
+import           Control.Monad.Loops   (whileM, whileM_)
+import           Control.Monad.State   (State, StateT, lift, runStateT)
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
-import           Data.Text             (Text, splitOn, unpack, pack)
-import           Data.Text.IO          (putStrLn, readFile)
-import Control.Monad.State (State, StateT, lift, runStateT)
-import Data.Map.Strict (Map, empty, size)
-import Control.Monad.Loops (whileM, whileM_)
-import GHC.Generics (Generic)
+import           Data.Map.Strict       (Map, empty, findMax, findMin, keys,
+                                        size)
+import           Data.Text             (Text, pack, splitOn, unpack, concat, intercalate)
+import           Data.Text.IO          (putStrLn, readFile )
+import Data.Foldable (maximum, minimum)
+import           GHC.Generics          (Generic)
 
-import           Intcode
-import           Internal
+import           Intcode               hiding (initial_state)
+import           Internal              hiding (initial_state)
+import Data.List.Split (chunksOf)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -47,8 +53,8 @@ decode = toEnum . fromIntegral
 type Coord = (Int, Int)
 
 data RobotState = RobotState {
-  panels :: Map Coord Colour,
-  pos :: Coord,
+  panels    :: Map Coord Colour,
+  pos       :: Coord,
   direction :: Direction
   } deriving stock (Show, Generic)
 
@@ -61,20 +67,23 @@ initial_state = RobotState {
   direction = Up
   }
 
+initial_state_2 :: RobotState
+initial_state_2 = set (#panels . at (0, 0)) (Just White) initial_state
+
 rotate :: Rotate -> Direction -> Direction
-rotate Counter Up = Left
-rotate Counter Left = Down
-rotate Counter Down = Right
+rotate Counter Up    = Left
+rotate Counter Left  = Down
+rotate Counter Down  = Right
 rotate Counter Right = Up
-rotate Clock Up = Right
-rotate Clock Right = Down
-rotate Clock Down = Left
-rotate Clock Left = Up
+rotate Clock Up      = Right
+rotate Clock Right   = Down
+rotate Clock Down    = Left
+rotate Clock Left    = Up
 
 next_pos :: Direction -> Coord -> Coord
-next_pos Up = over _2 (+ 1)
-next_pos Down = over _2 (+ (-1))
-next_pos Left = over _1 (+ (-1))
+next_pos Up    = over _2 (+ 1)
+next_pos Down  = over _2 (+ (-1))
+next_pos Left  = over _1 (+ (-1))
 next_pos Right = over _1 (+ 1)
 
 get_move :: Monad m => RobotT m (Rotate, Colour)
@@ -133,8 +142,39 @@ solution_1 code =
   in
     size . view #panels $ robot_state
 
+show_map :: (Maybe a -> Text) -> Map Coord a -> Text
+show_map format plane =
+  let
+    coords = keys plane
+    xs = toListOf (traverse . _1) coords
+    ys = toListOf (traverse . _2) coords
+    max_x = maximum xs
+    min_x = minimum xs
+    max_y = maximum ys
+    min_y = minimum ys
+    row y = (, y) <$> [min_x..max_x]
+    show_coord coord = format $ view (at coord) plane
+    printed y = concat (show_coord <$> row y)
+  in
+    intercalate "\n" (printed <$> reverse [min_y..max_y])
+
+formatter :: Maybe Colour -> Text
+formatter (Just White) = "X"
+formatter (Just Black) = " "
+formatter Nothing = "."
+
+solution_2 :: [Integer] -> Text
+solution_2 code =
+  let
+    painted = view (_3 . #panels) . runIdentity $
+      run_robot (step >> loop) initial_state_2 code
+  in
+    show_map formatter painted
+
 main :: IO ()
 main = do
   code <- get_input
   putStrLn $ "Solution 1: " <> show (solution_1 code)
-
+  putStrLn "Solution 2: "
+  putStrLn $ solution_2 code
+  

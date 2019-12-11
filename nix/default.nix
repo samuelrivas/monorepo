@@ -208,6 +208,7 @@ let
           lens
           monad-loops
           writer-cps-mtl
+          split
         ];
       };
     };

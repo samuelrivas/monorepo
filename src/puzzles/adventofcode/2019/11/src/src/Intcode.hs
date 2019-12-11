@@ -217,6 +217,7 @@ flush_output :: Monad m => ProgramT m ()
 flush_output = assign #output []
 
 trace :: Monad m => Text -> ProgramT m ()
+--trace = const $ pure ()
 trace msg = tell $ "T>> " <> msg <> "\n"
 
 get_status :: Monad m => ProgramT m Status
