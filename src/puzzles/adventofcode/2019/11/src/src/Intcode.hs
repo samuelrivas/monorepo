@@ -23,10 +23,11 @@ module Intcode (
   run_program,
   step_program,
   get_output,
-  flush_output
+  flush_output,
+  trace
   ) where
 
-import           Prelude                   hiding (getLine, putStrLn)
+import           Prelude                   hiding (getLine, putStrLn, show)
 
 import           Control.Lens              (assign, at, ix, modifying, non,
                                             preview, use, uses, view)
@@ -117,7 +118,7 @@ abort :: Monad m => Text -> ProgramT m ()
 abort msg = do
   tell $ "Something went wrong: " <> msg <> "\n"
   tell ">>>>>>>> Dump\n"
-  get >>= tell . pack . show
+  get >>= tell . show
   assign #status Aborted
 
 run_opcode :: Monad m => Opcode -> ProgramT m ()
@@ -144,8 +145,8 @@ run_opcode (In mode) =
 
 run_opcode (Out mode) = do
   value <- read_value mode
+  trace $ "Output: " <> (show value)
   modifying #output (value:)
-  tell $ "Ouptut: " <> pack (show value) <> "\n"
 
 jump_on :: Monad m => (Integer -> Bool) -> (Mode, Mode) -> ProgramT m ()
 jump_on p (mode_1, mode_2) = do
@@ -213,6 +214,9 @@ get_output = use #output
 
 flush_output :: Monad m => ProgramT m ()
 flush_output = assign #output []
+
+trace :: Monad m => Text -> ProgramT m ()
+trace msg = tell $ "T>> " <> msg <> "\n"
 
 push_input :: Monad m => [Integer] -> ProgramT m ()
 push_input x = do

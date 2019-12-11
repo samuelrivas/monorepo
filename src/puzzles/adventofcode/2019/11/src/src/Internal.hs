@@ -9,14 +9,22 @@ module Internal (
   ComputerState (ComputerState),
   Opcode (..),
   Mode (..),
-  initial_state
+  initial_state,
+  show
   ) where
+
+import Prelude hiding (show)
+import qualified Prelude
 
 import           Data.Generics.Labels ()
 import           Data.Map.Strict      (Map, fromList)
 import           GHC.Generics         (Generic)
+import Data.Text (Text, pack)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
+
+show :: Show a => a -> Text
+show = pack . Prelude.show
 
 data Status = Running | Finished | Aborted | Interrupted
   deriving stock (Show, Eq)
