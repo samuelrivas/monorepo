@@ -1,6 +1,6 @@
--- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
--- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
--- {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -19,11 +19,12 @@ import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
 import           Data.Text             (Text, splitOn, unpack)
 import           Data.Text.IO          (putStrLn, readFile)
-import Control.Monad.State (State, lift)
-import Data.Map.Strict (Map)
+import Control.Monad.State (State, StateT, lift, runStateT)
+import Data.Map.Strict (Map, empty)
 import GHC.Generics (Generic)
 
 import           Intcode
+import           Internal
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -46,10 +47,12 @@ data Panels = Panels {
   pos :: Coord
   } deriving stock (Show, Generic)
 
-type Robot = ProgramT (State Panels)
+type RobotT m = ProgramT (StateT Panels m)
 
+initial_panels :: Panels
+initial_panels = Panels empty (0, 0)
 
-step :: Robot (Maybe (Move, Colour))
+step :: Monad m => RobotT m (Maybe (Move, Colour))
 step = do
   location <- lift $ use #pos
   on_colour <- lift $ use (#panels . at location . non Black)
@@ -63,7 +66,16 @@ step = do
       abort "Didn't get two outputs!"
       pure Nothing
 
+get_input :: IO [Integer]
+get_input = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
+
+run_robot ::
+  Monad m => RobotT m a -> Panels -> [Integer] -> m (a, Status, Panels)
+run_robot x initial_panels code = do
+  ((a, comp_state, _w), final_panels) <- runStateT (launch x code) initial_panels
+  pure (a, view #status comp_state, final_panels)
+
 main :: IO ()
 main = do
-  code :: [Integer] <- fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
+  code <- get_input
   undefined
