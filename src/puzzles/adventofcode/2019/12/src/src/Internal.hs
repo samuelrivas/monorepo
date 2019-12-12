@@ -11,8 +11,8 @@ module Internal (
   mk_moon
 ) where
 
+import           Control.Lens         (view)
 import           Data.Generics.Labels ()
-import Control.Lens (view)
 import           GHC.Generics         (Generic)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -20,7 +20,7 @@ import           GHC.Generics         (Generic)
 type Coord = (Integer, Integer, Integer)
 
 data Moon = Moon {
-  pos :: Coord,
+  pos      :: Coord,
   velocity :: Coord
   } deriving (Generic)
 

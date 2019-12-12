@@ -1,6 +1,6 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -8,21 +8,16 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Control.Lens          (assign, at, each, modifying, non, over,
-                                        set, sumOf, to, toListOf, traverse, use,
-                                        view, _1, _2, _3)
-import           Control.Monad         (replicateM_)
-import           Control.Monad.Loops   (whileM_)
-import           Control.Monad.State   (State, execState, get, modify, put)
-import           Data.Foldable         (foldl')
-import           Data.Functor.Identity (runIdentity)
-import           Data.Generics.Labels  ()
-import           Data.Map.Strict       (Map, empty, keys, size)
-import           Data.Text             (Text, concat, intercalate, splitOn,
-                                        unpack)
-import           GHC.Generics          (Generic)
+import           Control.Lens         (Getter, each, over, set, sumOf, to,
+                                       toListOf, traverse, view, _1, _2, _3)
+import           Control.Monad        (replicateM_)
+import           Control.Monad.Loops  (whileM)
+import           Control.Monad.State  (State, evalState, execState, get, modify)
+import           Data.Foldable        (foldl')
+import           Data.Generics.Labels ()
 
 import           Internal
 
@@ -71,6 +66,12 @@ step = do
   let delta_vs = velocity_delta moons <$> moons
   modify $ zipWith update_moon delta_vs
 
+read_dimmension :: Getter Coord Integer -> ProblemMonad ([Integer], [Integer])
+read_dimmension getter = do
+  moons <- get
+  pure (toListOf (traverse . #pos . getter) moons,
+        toListOf (traverse . #velocity . getter) moons)
+
 run_steps :: Int -> [Moon] -> [Moon]
 run_steps n  = execState (replicateM_ n step)
 
@@ -89,6 +90,25 @@ solution_1 =
   let moons = run_steps 1000 input
   in sum $ energy <$> moons
 
+find_cycle :: [Moon] -> Getter Coord Integer -> [([Integer], [Integer])]
+find_cycle moons getter =
+  flip evalState moons $ do
+  initial <- read_dimmension getter
+  step
+  tail' <- whileM ((/= initial) <$> read_dimmension getter)
+             (step >> read_dimmension getter)
+  pure (initial : tail')
+
+solution_2 :: Int
+solution_2 =
+  let
+    xs = length $ find_cycle input _1
+    ys = length $ find_cycle input _2
+    zs = length $ find_cycle input _3
+  in
+    lcm xs $ lcm ys zs
+
 main :: IO ()
-main =
+main = do
   putStrLn $ "Solution 1: " <> show solution_1
+  putStrLn $ "Solution 2: " <> show solution_2
