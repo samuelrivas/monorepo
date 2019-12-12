@@ -29,6 +29,9 @@ example_1 = mk_moon <$> [(-1, 0, 2), (2, -10, -7), (4, -8, 8), (3, 5, -1)]
 example_2 :: [Moon]
 example_2 = mk_moon <$> [(-8, -10, 0), (5, 5, 10), (2, -7, 3), (9, -8, -3)]
 
+input :: [Moon]
+input = mk_moon <$> [(-10, -10, -13), (5, 5, -9), (3, 8, -16), (1, 3, -3)]
+
 sum_coord :: Coord -> Coord -> Coord
 sum_coord (x1, y1, z1) (x2, y2, z2) = (x1 + x2, y1 + y2, z1 + z2)
 
@@ -66,8 +69,8 @@ step = do
   let delta_vs = velocity_delta moons <$> moons
   modify $ zipWith update_moon delta_vs
 
-read_dimmension :: Getter Coord Integer -> ProblemMonad ([Integer], [Integer])
-read_dimmension getter = do
+read_dimension :: Getter Coord Integer -> ProblemMonad ([Integer], [Integer])
+read_dimension getter = do
   moons <- get
   pure (toListOf (traverse . #pos . getter) moons,
         toListOf (traverse . #velocity . getter) moons)
@@ -79,25 +82,23 @@ energy :: Moon -> Integer
 energy m = sumOf (#pos . each . to abs) m
            * sumOf (#velocity . each . to abs) m
 
-input :: [Moon]
-input = mk_moon <$> [(-10, -10, -13),
-                     (5, 5, -9),
-                     (3, 8, -16),
-                     (1, 3, -3)]
-
 solution_1 :: Integer
 solution_1 =
   let moons = run_steps 1000 input
   in sum $ energy <$> moons
 
+-- Find the cycle sequence for a given dimension (_1, _2, or _3). Return the
+-- list of positions and velocities for each step for debugging purposes
 find_cycle :: [Moon] -> Getter Coord Integer -> [([Integer], [Integer])]
 find_cycle moons getter =
   flip evalState moons $ do
-  initial <- read_dimmension getter
+  initial <- read_dimension getter
   step
-  tail' <- whileM ((/= initial) <$> read_dimmension getter)
-             (step >> read_dimmension getter)
-  pure (initial : tail')
+  no_cycle <- whileM ((/= initial) <$> read_dimension getter) $ do
+    moons' <-  read_dimension getter
+    step
+    pure moons'
+  pure (initial : no_cycle)
 
 solution_2 :: Int
 solution_2 =
