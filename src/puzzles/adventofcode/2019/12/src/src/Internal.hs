@@ -4,7 +4,12 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedLabels   #-}
-module Internal (Moon) where
+
+module Internal (
+  Moon,
+  Coord,
+  mk_moon
+) where
 
 import           Data.Generics.Labels ()
 import Control.Lens (view)
@@ -12,12 +17,17 @@ import           GHC.Generics         (Generic)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
+type Coord = (Integer, Integer, Integer)
+
 data Moon = Moon {
-  pos :: (Integer, Integer, Integer),
-  velocity :: (Integer, Integer, Integer)
+  pos :: Coord,
+  velocity :: Coord
   } deriving (Generic)
 
 instance Show Moon where
   show a = "<pos=" <> (show . view #pos $ a)
-    <> ", velocity=" <> (show . view #velocity $ a)
+    <> ", vel=" <> (show . view #velocity $ a)
     <> ">"
+
+mk_moon :: Coord -> Moon
+mk_moon pos' = Moon pos' (0, 0, 0)
