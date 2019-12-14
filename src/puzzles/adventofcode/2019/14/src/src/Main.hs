@@ -11,22 +11,27 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import Prelude hiding (readFile, unlines, lines)
+import           Prelude              hiding (lines, readFile, unlines)
 
-import           Control.Lens         (Getter, each, over, set, sumOf, to, at, non,
-                                       toListOf, traverse, view, _1, _2, _3)
+import           Control.Lens         (Getter, at, each, non, over, set, sumOf,
+                                       to, toListOf, traverse, view, _1, _2, _3)
 import           Control.Monad        (replicateM_)
 import           Control.Monad.Loops  (whileM)
 import           Control.Monad.State  (State, evalState, execState, get, modify)
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
-import Data.Tuple (swap)
-import Data.HashMap.Strict (HashMap, fromList, unionWith, singleton)
-import Data.Text (Text, intercalate, splitOn, lines, words, unpack, stripPrefix)
-import Data.Text.IO (readFile)
-import qualified Data.Text as Text
-import Data.Ratio ((%))
-import Data.Maybe (fromMaybe)
+import           Data.Graph
+import           Data.HashMap.Strict  (HashMap, fromList, singleton, unionWith)
+import qualified Data.HashMap.Strict  as HashMap
+import           Data.HashSet         (HashSet, member)
+import qualified Data.HashSet         as HashSet
+import           Data.Maybe           (fromMaybe)
+import           Data.Ratio           ((%))
+import           Data.Text            (Text, intercalate, lines, splitOn,
+                                       stripPrefix, unpack, words)
+import qualified Data.Text            as Text
+import           Data.Text.IO         (readFile)
+import           Data.Tuple           (swap)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -62,8 +67,8 @@ input_to_map =
   let to_entry (amounts, (n, element)) = (element, (n, amounts))
   in fromList . fmap to_entry
 
-input :: IO [([Amount], Amount)]
-input = parse_input <$> readFile "input.txt"
+get_input :: IO [([Amount], Amount)]
+get_input = parse_input <$> readFile "input.txt"
 
 -- XXX Needs to run in toposort
 needs :: Reactions -> Amount -> HashMap Text Int
@@ -85,7 +90,32 @@ unreact :: Reactions -> [Text] -> HashMap Text Int
 unreact reactions toposort =
   foldl' (produce reactions) (singleton "FUEL" 1) toposort
 
+to_graph ::
+  Reactions -> (Graph, Vertex -> Text)
+to_graph reactions =
+  let
+    to_edges :: (Text, (Int, [Amount])) -> (Text, Text, [Text])
+    to_edges (chemical, (_, amounts)) =
+      (chemical, chemical, view  _2 <$> amounts)
+    (g, vs, _ks) = graphFromEdges (to_edges <$> HashMap.toList reactions)
+  in (g, view _1 . vs)
+
+topological :: Reactions -> [Text]
+topological reactions =
+  let (g, idx) = to_graph reactions
+  in idx <$> topSort g
+
+solve_1 :: [([Amount], Amount)] -> Int
+solve_1 input =
+  let
+    reactions = input_to_map input
+    sorted = topological reactions
+    final = unreact reactions sorted
+  in
+    view (at "ORE" . non 0) final
+
 main :: IO ()
 main = do
-  putStrLn $ "Solution 1: " <> "??"
-  
+  input <- get_input
+  putStrLn $ "Solution 1: " <> show (solve_1 input )
+
