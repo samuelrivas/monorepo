@@ -16,10 +16,10 @@ module Intcode (
   eval,
   exec,
   initial_state,
-  launch,
   push_input,
   reset,
   run,
+  run',
   run_program,
   step_program,
   get_output,
@@ -33,6 +33,7 @@ import           Prelude                   hiding (getLine, putStrLn, show)
 import           Control.Lens              (assign, at, ix, modifying, non,
                                             preview, use, uses, view)
 import           Control.Monad             (when)
+import Control.Monad.IO.Class (MonadIO (..))
 import           Control.Monad.Loops       (whileM_)
 import           Control.Monad.Reader      (MonadReader)
 import           Control.Monad.RWS.CPS     (RWST, evalRWST, execRWST, get, put,
@@ -52,16 +53,20 @@ import           Internal
 
 newtype IntcodeT m a = IntcodeT { unIntcodeT :: RWST () Text ComputerState m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
-                    MonadState ComputerState, MonadReader (), MonadTrans)
+                    MonadState ComputerState, MonadReader (), MonadTrans,
+                    MonadIO)
 
-eval :: Monad m => IntcodeT m a -> ComputerState -> m (a, Text)
-eval = flip evalRWST () . unIntcodeT
+eval :: Monad m => IntcodeT m a -> [Integer] -> m (a, Text)
+eval program code = evalRWST (unIntcodeT program) () (initial_state code)
 
-run :: Monad m => IntcodeT m a -> ComputerState -> m (a, ComputerState, Text)
-run = flip runRWST () . unIntcodeT
+run :: Monad m => IntcodeT m a -> [Integer] -> m (a, ComputerState, Text)
+run program code = runRWST (unIntcodeT program) () (initial_state code)
 
-exec :: Monad m => IntcodeT m a -> ComputerState -> m (ComputerState, Text)
-exec = flip execRWST () . unIntcodeT
+run' :: Monad m => IntcodeT m a -> ComputerState -> m (a, ComputerState, Text)
+run' program st = runRWST (unIntcodeT program) () st
+
+exec :: Monad m => IntcodeT m a -> [Integer] -> m (ComputerState, Text)
+exec program code = execRWST (unIntcodeT program) () (initial_state code)
 
 get_mode :: Integer -> [Mode] -> Mode
 get_mode pos = fromMaybe Position . preview (ix . fromIntegral $ pos)
@@ -146,7 +151,6 @@ run_opcode (In mode) =
 
 run_opcode (Out mode) = do
   value <- read_value mode
-  trace $ "Output: " <> show value
   modifying #output (value:)
 
 jump_on :: Monad m => (Integer -> Bool) -> (Mode, Mode) -> IntcodeT m ()
@@ -228,6 +232,3 @@ push_input x = do
   modifying #input (++ x)
   st <- use #status
   when (st == Interrupted) $ assign #status Running
-
-launch :: Monad m => IntcodeT m a -> [Integer] -> m (a, ComputerState, Text)
-launch program memory = run program (initial_state memory)

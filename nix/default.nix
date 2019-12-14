@@ -208,7 +208,8 @@ let
           lens
           monad-loops
           writer-cps-mtl
-          split
+          readline
+          ansi-terminal
         ];
       };
     };
