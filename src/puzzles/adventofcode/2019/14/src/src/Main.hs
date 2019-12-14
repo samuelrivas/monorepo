@@ -13,22 +13,17 @@
 
 import           Prelude              hiding (lines, readFile, unlines)
 
-import           Control.Lens         (Getter, at, each, non, over, set, sumOf,
-                                       to, toListOf, traverse, view, _1, _2, _3)
-import           Control.Monad        (replicateM_)
-import           Control.Monad.Loops  (whileM)
-import           Control.Monad.State  (State, evalState, execState, get, modify)
+import           Control.Lens         (at, non, over, set, traverse, view, _1,
+                                       _2)
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import           Data.Graph
 import           Data.HashMap.Strict  (HashMap, fromList, singleton, unionWith)
 import qualified Data.HashMap.Strict  as HashMap
-import           Data.HashSet         (HashSet, member)
-import qualified Data.HashSet         as HashSet
 import           Data.Maybe           (fromMaybe)
 import           Data.Ratio           ((%))
 import           Data.Text            (Text, intercalate, lines, splitOn,
-                                       stripPrefix, unpack, words)
+                                       unpack)
 import qualified Data.Text            as Text
 import           Data.Text.IO         (readFile)
 import           Data.Tuple           (swap)
@@ -62,15 +57,15 @@ parse_line line =
 parse_input :: Text -> [([Amount], Amount)]
 parse_input = fmap parse_line . lines
 
-input_to_map :: [([Amount], Amount)] -> Reactions
-input_to_map =
+input_to_reactions :: [([Amount], Amount)] -> Reactions
+input_to_reactions =
   let to_entry (amounts, (n, element)) = (element, (n, amounts))
   in fromList . fmap to_entry
 
 get_input :: IO [([Amount], Amount)]
 get_input = parse_input <$> readFile "input.txt"
 
--- XXX Needs to run in toposort
+-- How many chemicals we need to produce something?
 needs :: Reactions -> Amount -> HashMap Text Int
 needs reactions (n, chemical) =
   fromMaybe mempty $ do
@@ -78,17 +73,23 @@ needs reactions (n, chemical) =
     let multiplier :: Int = ceiling $ n % production
     Just . fromList . fmap swap $ over (traverse . _1) (* multiplier) needed
 
-produce :: Reactions -> HashMap Text Int -> Text -> HashMap Text Int
-produce reactions inventory chemical =
+-- given an inventory of chemicals, "unreact" one of them. That one is removed
+-- and the reactors needed to create the amount we had of it are added to the
+-- inventory
+unreact :: Reactions -> HashMap Text Int -> Text -> HashMap Text Int
+unreact reactions inventory chemical =
   let
     amount = view (at chemical . non 0) inventory
     wanted = needs reactions (amount, chemical)
   in
     unionWith (+) wanted (set (at chemical) Nothing inventory)
 
-unreact :: Reactions -> [Text] -> HashMap Text Int
-unreact reactions toposort =
-  foldl' (produce reactions) (singleton "FUEL" 1) toposort
+-- Unreact in chain until only ORE is left. This needs to be done in topological
+-- order for correction, otherwise whe need to account for leftovers from
+-- previous "unreactions" We assume that "FUEL" is first and "ORE" is last
+unreaction_chain :: Reactions -> [Text] -> Int -> HashMap Text Int
+unreaction_chain reactions toposort n =
+  foldl' (unreact reactions) (singleton "FUEL" n) toposort
 
 to_graph ::
   Reactions -> (Graph, Vertex -> Text)
@@ -105,17 +106,47 @@ topological reactions =
   let (g, idx) = to_graph reactions
   in idx <$> topSort g
 
-solve_1 :: [([Amount], Amount)] -> Int
-solve_1 input =
+ore_for_n_fuel :: [([Amount], Amount)] -> Int -> Int
+ore_for_n_fuel input n =
   let
-    reactions = input_to_map input
+    reactions = input_to_reactions input
     sorted = topological reactions
-    final = unreact reactions sorted
+    final = unreaction_chain reactions sorted n
   in
     view (at "ORE" . non 0) final
+
+bin_search_open :: (Int -> Ordering) -> Int -> Int -> (Int, Int)
+bin_search_open p start current =
+  case p current of
+    EQ -> (current, current)
+    LT -> bin_search_open p start (current * 2)
+    GT -> bin_search p start current
+
+bin_search :: (Int -> Ordering) -> Int -> Int -> (Int, Int)
+bin_search p low high =
+  let
+    test = low + ((high - low) `div` 2)
+  in
+    if low > high
+    then swap (low, high)
+    else case p test of
+           EQ -> (test, test)
+           LT -> bin_search p (test + 1) high
+           GT -> bin_search p low (test - 1)
+
+find_how_much_fuel :: [([Amount], Amount)] -> Int -> Int
+find_how_much_fuel input fuel =
+  let p = flip compare fuel . ore_for_n_fuel input
+  in view _1 $ bin_search_open p 1 1
+
+solve_1 :: [([Amount], Amount)] -> Int
+solve_1 = flip ore_for_n_fuel 1
+
+solve_2 :: [([Amount], Amount)] -> Int
+solve_2 = flip find_how_much_fuel 1000000000000
 
 main :: IO ()
 main = do
   input <- get_input
-  putStrLn $ "Solution 1: " <> show (solve_1 input )
-
+  putStrLn $ "Solution 1: " <> show (solve_1 input)
+  putStrLn $ "Solution 2: " <> show (solve_2 input)
