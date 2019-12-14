@@ -210,6 +210,7 @@ let
           writer-cps-mtl
           readline
           ansi-terminal
+          regex-pcre
         ];
       };
     };
