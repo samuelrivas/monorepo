@@ -1,8 +1,7 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -11,33 +10,24 @@
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TupleSections         #-}
 
-import           Prelude                   hiding (Left, Right, concat, getLine,
-                                            putStrLn, readFile, show)
+import           Prelude               hiding (Left, Right, concat, getLine,
+                                        putStrLn, readFile, show)
 import qualified Prelude
 
-import           Control.Lens              (assign, at, ix, modifying, non,
-                                            over, set, toListOf, traverse, use,
-                                            uses, view, _1, _2, _3)
-import           Control.Monad.IO.Class    (liftIO)
-import           Control.Monad.Loops       (whileM_, untilJust)
-import           Control.Monad.State       (StateT, get, lift, runStateT, when, evalStateT)
-import           Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
-import Control.Monad (replicateM_)
-import           Data.Foldable             (maximum, minimum, traverse_, fold)
-import           Data.Functor.Identity     (runIdentity)
-import           Data.Generics.Labels      ()
-import           Data.Map.Strict           (Map, empty, keys, size)
-import           Data.Sequence             (Seq ((:<|)), fromList, (<|), (><), (|>))
-import           Data.Text                 (Text, concat, intercalate, splitOn,
-                                            unpack, pack)
-import           Data.Text.IO              (putStrLn, readFile)
-import           GHC.Generics              (Generic)
-import           System.Console.ANSI       (clearScreen, setCursorPosition)
-import Data.Maybe (isNothing)
-import           Control.Monad.RWS.CPS     (RWST, evalRWST, execRWST, get, put,
-                                            runRWST, tell)
+import           Control.Lens          (assign, at, modifying, set, use, view)
+import           Control.Monad         (when)
+import           Control.Monad.Loops   (untilJust)
+import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, lift, tell)
+import           Data.Foldable         (fold)
+import           Data.Functor.Identity (runIdentity)
+import           Data.Generics.Labels  ()
+import           Data.Map.Strict       (Map, empty)
+import           Data.Maybe            (isNothing)
+import           Data.Sequence         (Seq ((:<|)), fromList, (><), (|>))
+import qualified Data.Sequence         as Seq
+import           Data.Text             (Text, pack, splitOn, unpack)
+import           Data.Text.IO          (putStrLn, readFile)
 
 import           Bidim
 import           Intcode
@@ -48,6 +38,7 @@ show = pack . Prelude.show
 
 type ExploreT m = RWST () Text Exploration m
 
+-- Uncomment to enable tracing
 trsh :: Monad m => [Text] -> ExploreT m ()
 -- trsh = tell . fold . (<> ["\n"])
 trsh _ = pure ()
@@ -64,9 +55,6 @@ decode = toEnum . fromIntegral
 
 encodeMove :: Move -> Integer
 encodeMove = (+1) . encode
-
-allMoves :: [Move]
-allMoves = [minBound..maxBound]
 
 getInput :: IO [Integer]
 getInput = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
@@ -115,9 +103,6 @@ moveDroid move = do
       pure $ decode output
     _ -> error "too many outputs"
 
-evaluateNode :: Monad m => Node -> ExploreT m Cell
-evaluateNode = undefined
-
 -- Return neighbour nodes from a given node
 explodeNode :: Node -> IntcodeState -> [Node]
 explodeNode node intcodeState =
@@ -154,13 +139,35 @@ explore =
             then do
             trsh ["Found Goal at ", show pos]
             assign #goal $ Just (pos, path)
+            assign #goalNode $ Just node
             pure $ Just True
           else
             pure Nothing
-        Just Goal -> do
-          trsh ["Found goal again!! at ", show pos, "this cannot happen"]
-          assign #goal $ Just (pos, path)
-          pure $ Just True
+        Just _ -> do
+          trsh ["Revisiting ", show pos, " doing nothing"]
+          pure Nothing
+
+-- Fix this copypaste!
+expand :: Monad m => ExploreT m (Maybe Integer)
+expand =
+  popNode >>= \case
+    Nothing -> do
+      trsh ["no more nodes, stopping"]
+      time <- use #maxPath
+      pure $ Just time
+    Just node ->
+      let pos = view #pos node
+          path = view #path node
+      in use (#map . at pos) >>= \case
+        Nothing -> do
+          (cell, nextIntcodeState) <- evalNode node
+          assign (#map . at pos) . Just $ cell
+          trsh ["pos ", show pos, " is ", show cell]
+          when (cell == Empty || cell == Goal) $ do
+            trsh ["Exploding ", show pos]
+            pushNodes $ explodeNode node nextIntcodeState
+            modifying #maxPath (max (fromIntegral . length $ path))
+          pure Nothing
         Just _ -> do
           trsh ["Revisiting ", show pos, " doing nothing"]
           pure Nothing
@@ -187,10 +194,33 @@ solution_1 :: [Integer] -> ((Map Coord Cell, Maybe (Coord, [Move])), Text)
 solution_1 intcode = runIdentity . evalRWST (search intcode) () $ mkExploration
 
 formatCell :: Maybe Cell -> Text
-formatCell Nothing = " "
-formatCell (Just Wall) = "#"
+formatCell Nothing      = " "
+formatCell (Just Wall)  = "#"
 formatCell (Just Empty) = "."
-formatCell (Just Goal) = "X"
+formatCell (Just Goal)  = "X"
+
+search_2 ::
+  Monad m => Node -> ExploreT m (Map Coord Cell, Integer)
+search_2 startNode = do
+  pushNode startNode
+  _ <- untilJust expand
+  -- _ <- replicateM_ 30 expand
+  (,) <$> use #map <*> use #maxPath
+
+-- This is horrible, but works for now. Find the oxygen system using the first
+-- part, then reset the state erasing the map and the remaining search
+-- nodes. After that restart the search from the oxygen position, but using the
+-- slightly modified search_2 which will exhaust the search and keep track of
+-- the longest path in the state
+solution_2 :: [Integer] -> ((Map Coord Cell, Integer), Text)
+solution_2 intcode =
+  let
+    (departingState, _) = runIdentity . execRWST (search intcode) () $ mkExploration
+    Just departingNode = view #goalNode departingState
+    newNode = set #path [] departingNode
+    newState = set #map empty $ set #nodes Seq.empty  departingState
+  in
+    runIdentity . evalRWST (search_2 newNode) () $ newState
 
 main :: IO ()
 main = do
@@ -200,4 +230,9 @@ main = do
   putStrLn $ "Solution 1: " <> (show . length  $ path)
   putStrLn $ "At " <> show coord
   putStrLn $ showMap formatCell cellMap
-  putStrLn $ searchLog
+  putStrLn searchLog
+
+  let ((cellMap', time), searchLog') = solution_2 code
+  putStrLn $ "Solution 2: " <> show time
+  putStrLn $ showMap formatCell cellMap'
+  putStrLn searchLog'

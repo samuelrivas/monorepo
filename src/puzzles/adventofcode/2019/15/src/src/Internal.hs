@@ -35,14 +35,18 @@ data Move = North | South | West | East
 data Exploration = Exploration {
   map   :: Map Coord Cell,
   nodes :: Seq Node,
-  goal  :: Maybe (Coord, [Move])
+  goal  :: Maybe (Coord, [Move]),
+  goalNode :: Maybe Node,
+  maxPath :: Integer
   } deriving stock (Show, Generic)
 
 mkExploration :: Exploration
 mkExploration = Exploration {
   Internal.map = Map.empty,
   nodes = Seq.empty,
-  goal = Nothing
+  goal = Nothing,
+  goalNode = Nothing,
+  maxPath = 0
   }
 
 data Node = Node {
