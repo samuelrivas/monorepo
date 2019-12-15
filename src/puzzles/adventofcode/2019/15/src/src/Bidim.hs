@@ -42,8 +42,9 @@ showMap format plane =
     minY = minimum ys
     row y = (, y) <$> [minX..maxX]
     showCoord :: Coord -> Text
+    showCoord (0,0) = "O"
     showCoord coord = format $ view (at coord) plane
     printed :: Int -> Text
     printed y = concat (showCoord <$> row y)
   in
-    intercalate "\n" (printed <$> [minY..maxY])
+    intercalate "\n" (printed <$> reverse [minY..maxY])

@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedLabels   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 module IntcodeInternal (
   Status (..),
   IntcodeState (IntcodeState),
@@ -20,6 +21,7 @@ import           Data.Generics.Labels ()
 import           Data.Map.Strict      (Map, fromList)
 import           Data.Text            (Text, pack)
 import           GHC.Generics         (Generic)
+import qualified Data.List as List
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -49,7 +51,15 @@ data IntcodeState = IntcodeState {
   pp     :: Integer,
   memory :: Map Integer Integer,
   base   :: Integer
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic)
+
+instance Show IntcodeState where
+  show st = List.intercalate " || " [
+    "input: " <> Prelude.show (input st),
+    "output: " <> Prelude.show (output st),
+    "status: " <> Prelude.show (status st),
+    "pp: " <> Prelude.show (pp st)
+    ]
 
 initialState :: [Integer] -> IntcodeState
 initialState code = IntcodeState {
