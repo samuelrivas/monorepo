@@ -35,6 +35,7 @@ data Exploration = Exploration {
 
 data Node = Node {
   move :: Move,
+  pos :: Coord,
   intcodeState :: IntcodeState,
   path :: [Move]
   } deriving stock (Show, Generic)

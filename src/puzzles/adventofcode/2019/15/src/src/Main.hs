@@ -40,6 +40,10 @@ import           Internal
 
 type ExploreT m = StateT Exploration m
 
+assert :: Bool -> ()
+assert False = error "assertion failed"
+assert True = ()
+
 encode :: (Num c, Enum a) => a -> c
 encode = fromIntegral . fromEnum
 
@@ -58,17 +62,47 @@ getInput = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
 popNode :: Monad m => ExploreT m (Maybe Node)
 popNode = undefined
 
+pushNode :: Monad m => Node -> ExploreT m ()
+pushNode = undefined
+
+-- Push only unexplored nodes to the queue
+pushNodes :: Monad m => [Node] -> ExploreT m ()
+pushNodes = undefined
+
 moveDroid :: Monad m => Move -> IntcodeT m Cell
-moveDroid = undefined
+moveDroid move = do
+  assert . (== Interrupted) <$> getStatus
+  pushInput [encodeMove move]
+  runProgram
+  getOutput >>= \case
+    [output] -> do
+      flushOutput
+      pure $ decode output
+    _ -> error "too many outputs"
+
+explode :: IntcodeState -> Coord -> ExploreT m [Node]
+explode = undefined
 
 -- Returns the target node if found
-expand :: Monad m => ExploreT m (Maybe Node)
-expand = popNode >>= \case
-  Just node -> expandNode node
-  Nothing -> pure Nothing
+-- Use maybeT here to remove noise
+explore :: Monad m => ExploreT m ()
+explore = popNode >>= \case
+  Just node ->
+    let
+      pos :: Coord = view #pos node
+    in
+      use (#map . at pos) >>= \case
+        Nothing -> do
+          (cell, intcodeState) <- exploreNode node
+          assign (#map . at pos) . Just $ cell
+          explode intcodeState pos >>= pushNodes
+        Just _ ->
+          pure ()
 
-expandNode :: Monad m => Node -> ExploreT m (Maybe Node)
-expandNode node =
+  Nothing -> pure ()
+
+exploreNode :: Monad m => Node -> ExploreT m (Cell, IntcodeState)
+exploreNode node =
   let
     intcodeState = view #intcodeState node
     move = view #move node
@@ -76,9 +110,7 @@ expandNode node =
   in do
     (intCell, intcodeState', _) <- lift $ runEmpty moveInstruction
     case decode <$> intCell of
-      [Goal] -> pure $ Just node
-      [Wall] -> undefined
-      [Empty] -> undefined
+      [cell] -> pure (cell, intcodeState')
       _ -> error "cannot decode!"
 
 main :: IO ()

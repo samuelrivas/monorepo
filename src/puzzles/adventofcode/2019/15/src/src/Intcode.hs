@@ -10,6 +10,7 @@
 
 module Intcode (
   IntcodeState,
+  Status (..),
   IntcodeT,
   abort,
   dumpMemory,
