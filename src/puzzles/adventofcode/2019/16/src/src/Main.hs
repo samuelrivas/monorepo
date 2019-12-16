@@ -1,6 +1,6 @@
--- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
--- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
--- {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -31,6 +31,7 @@ import Data.List (concatMap, unfoldr)
 show :: Show a => a -> Text
 show = pack . Prelude.show
 
+-- Pretty sure this won't work for efficiency reasons, but gonna try anyway.
 phaseSignal :: Int -> [Int]
 phaseSignal pos = drop 1 . cycle $ concatMap (replicate pos) [0, 1, 0, -1]
 
@@ -43,14 +44,14 @@ step n  = (`mod` 10) . abs . convol (phaseSignal n)
 phase :: [Int] -> [Int]
 phase l = take (length l) $ unfoldr (\b -> Just (step b l, b + 1)) 1
 
-solve1 :: [Int] -> Int
-solve1 = undefined
+solve1 :: [Int] -> Text
+solve1 input = Text.concat . fmap show . take 8 $ foldl (.) id (replicate 100 phase) input
 
 solve2 :: [Int] -> Int
 solve2 = undefined
 
 getInput :: IO [Int]
-getInput = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
+getInput = fmap ((+ (- fromEnum '0')) . fromEnum) . unpack <$> readFile "input.txt"
 
 main :: IO ()
 main = do
