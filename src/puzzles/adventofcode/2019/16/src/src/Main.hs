@@ -56,5 +56,5 @@ getInput = fmap ((+ (- fromEnum '0')) . fromEnum) . unpack <$> readFile "input.t
 main :: IO ()
 main = do
   input <- getInput
-  putStrLn $ "Solution 1: " <> show (solve1 input)
+  putStrLn $ "Solution 1: " <> solve1 input
   putStrLn $ "Solution 2: " <> show (solve2 input)
