@@ -34,6 +34,7 @@ import           Prelude                   hiding (getLine, putStrLn, show)
 import           Control.Lens              (assign, at, ix, modifying, non,
                                             preview, use, uses, view)
 import           Control.Monad             (when)
+import           Control.Monad.Fail        (MonadFail)
 import           Control.Monad.IO.Class    (MonadIO (..))
 import           Control.Monad.Loops       (whileM_)
 import           Control.Monad.Reader      (MonadReader)
@@ -52,7 +53,7 @@ import           IntcodeInternal
 newtype IntcodeT m a = IntcodeT { unIntcodeT :: RWST () Text IntcodeState m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
                     MonadState IntcodeState, MonadReader (), MonadTrans,
-                    MonadIO)
+                    MonadIO, MonadFail)
 
 eval :: Monad m => IntcodeT m a -> [Integer] -> m (a, Text)
 eval program code = evalRWST (unIntcodeT program) () (initialState code)
