@@ -15,7 +15,7 @@ import           Prelude               hiding (Left, Right, concat, getLine,
                                         putStrLn, readFile, show)
 import qualified Prelude
 
-import           Control.Lens          (assign, at, modifying, set, use, view, _1, _2)
+import           Control.Lens          (assign, at, modifying, set, use, view, _1, _2, productOf, both)
 import           Control.Monad         (when)
 import           Control.Monad.Loops   (untilJust)
 import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, lift, tell)
@@ -67,17 +67,29 @@ formatMap Nothing = "?"
 formatMap (Just c) = pack [c]
 
 isCross :: Scaffold -> Coord -> Bool
-isCross = undefined
+isCross scaffold coord =
+  let
+    cross = [ coord,
+              coord `plus` (0, 1),
+             coord `plus` (0, -1),
+             coord `plus` (-1, 0),
+             coord `plus` (1, 0)]
+  in
+    maybe False (all (== '#'))
+    $ mapM (\pos -> view (at pos) scaffold) cross
 
 findCrosses :: Scaffold -> [Coord]
 findCrosses scaffold = filter (isCross scaffold) $ keys scaffold
+
+solution1 :: Scaffold -> Int
+solution1 = sum . fmap (productOf both) . findCrosses
 
 main :: IO ()
 main = do
   code <- getInput
   let scaffold = readScaffold code
 
-  putStrLn $ showMap formatMap scaffold
+  putStrLn $ showBindim formatMap scaffold
 
-  putStrLn $ "Solution 1: "
+  putStrLn $ "Solution 1: " <> show (solution1 scaffold)
   putStrLn $ "Solution 2: "

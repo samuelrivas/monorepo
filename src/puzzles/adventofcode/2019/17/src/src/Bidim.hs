@@ -16,7 +16,7 @@ module Bidim (
   Coord,
   boundaries,
   plus,
-  showMap
+  showBindim
   ) where
 
 import           Prelude         hiding (concat)
@@ -35,12 +35,14 @@ plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 -- We need this to be a sorted map just to get the coordinate boundaries. This
 -- can easily be improved if we wrap this in its own type and keep track of them
 -- when inserting
-showMap :: (Maybe a -> Text) -> Bidim a -> Text
-showMap format bidim =
+showBindim :: (Maybe a -> Text) -> Bidim a -> Text
+showBindim format bidim =
   let
     ((minX, minY), (maxX, maxY)) = boundaries bidim
     row y = (, y) <$> [minX..maxX]
     showCoord :: Coord -> Text
+    showCoord (0, 0) = "$"
+    showCoord (54, 34) = "%"
     showCoord coord = format $ view (at coord) bidim
     printed :: Int -> Text
     printed y = concat (showCoord <$> row y)
