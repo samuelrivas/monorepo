@@ -16,6 +16,7 @@
 
 module Bidim (
   Coord,
+  plus,
   showMap
   ) where
 
@@ -26,6 +27,10 @@ import Data.Map.Strict (Map, keys)
 import Control.Lens (toListOf, traverse, _1, _2, view, at)
 
 type Coord = (Int, Int)
+
+-- Better would be to wrap this and make it an instance of Num
+plus :: Coord -> Coord -> Coord
+plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 
 -- We need this to be a sorted map just to get the coordinate boundaries. This
 -- can easily be improved if we wrap this in its own type and keep track of them
@@ -42,9 +47,8 @@ showMap format plane =
     minY = minimum ys
     row y = (, y) <$> [minX..maxX]
     showCoord :: Coord -> Text
-    showCoord (0,0) = "O"
     showCoord coord = format $ view (at coord) plane
     printed :: Int -> Text
     printed y = concat (showCoord <$> row y)
   in
-    intercalate "\n" (printed <$> reverse [minY..maxY])
+    intercalate "\n" (printed <$> [minY..maxY])
