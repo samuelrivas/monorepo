@@ -13,7 +13,6 @@ module Intcode (
   Status (..),
   IntcodeT,
   abort,
-  dumpMemory,
   eval,
   exec,
   flushOutput,
@@ -45,7 +44,6 @@ import           Control.Monad.Trans.Class (MonadTrans)
 import           Control.Monad.Writer      (MonadWriter)
 import           Data.Generics.Labels      ()
 import           Data.List                 (uncons)
-import           Data.Map.Strict           (assocs)
 import           Data.Maybe                (fromMaybe)
 import           Data.Text                 (Text)
 
@@ -214,9 +212,6 @@ save = get
 
 reset :: Monad m => IntcodeState -> IntcodeT m ()
 reset = put
-
-dumpMemory :: Monad m => IntcodeT m [(Integer, Integer)]
-dumpMemory = uses #memory assocs
 
 getOutput :: Monad m => IntcodeT m [Integer]
 getOutput = uses #output reverse

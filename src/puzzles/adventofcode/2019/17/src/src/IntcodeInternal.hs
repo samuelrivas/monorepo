@@ -18,7 +18,7 @@ import           Prelude              hiding (show)
 import qualified Prelude
 
 import           Data.Generics.Labels ()
-import           Data.Map.Strict      (Map, fromList)
+import           Data.HashMap.Strict      (HashMap, fromList)
 import           Data.Text            (Text, pack)
 import           GHC.Generics         (Generic)
 import qualified Data.List as List
@@ -49,7 +49,7 @@ data IntcodeState = IntcodeState {
   output :: [Integer],
   status :: Status,
   pp     :: Integer,
-  memory :: Map Integer Integer,
+  memory :: HashMap Integer Integer,
   base   :: Integer
   } deriving stock (Generic)
 
