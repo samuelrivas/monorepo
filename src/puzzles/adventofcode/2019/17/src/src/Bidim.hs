@@ -1,13 +1,10 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -15,18 +12,21 @@
 {-# LANGUAGE TupleSections         #-}
 
 module Bidim (
+  Bidim,
   Coord,
+  boundaries,
   plus,
   showMap
   ) where
 
-import           Prelude hiding (concat)
+import           Prelude         hiding (concat)
 
-import Data.Text (Text, intercalate, concat)
-import Data.Map.Strict (Map, keys)
-import Control.Lens (toListOf, traverse, _1, _2, view, at)
+import           Control.Lens    (at, toListOf, traverse, view, _1, _2)
+import           Data.Map.Strict (Map, keys)
+import           Data.Text       (Text, concat, intercalate)
 
 type Coord = (Int, Int)
+type Bidim a = Map Coord a
 
 -- Better would be to wrap this and make it an instance of Num
 plus :: Coord -> Coord -> Coord
@@ -35,20 +35,27 @@ plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 -- We need this to be a sorted map just to get the coordinate boundaries. This
 -- can easily be improved if we wrap this in its own type and keep track of them
 -- when inserting
-showMap :: (Maybe a -> Text) -> Map Coord a -> Text
-showMap format plane =
+showMap :: (Maybe a -> Text) -> Bidim a -> Text
+showMap format bidim =
   let
-    coords = keys plane
+    ((minX, minY), (maxX, maxY)) = boundaries bidim
+    row y = (, y) <$> [minX..maxX]
+    showCoord :: Coord -> Text
+    showCoord coord = format $ view (at coord) bidim
+    printed :: Int -> Text
+    printed y = concat (showCoord <$> row y)
+  in
+    intercalate "\n" (printed <$> [minY..maxY])
+
+boundaries :: Bidim a -> (Coord, Coord)
+boundaries bidim =
+  let
+    coords = keys bidim
     xs = toListOf (traverse . _1) coords
     ys = toListOf (traverse . _2) coords
     maxX = maximum xs
     minX = minimum xs
     maxY = maximum ys
     minY = minimum ys
-    row y = (, y) <$> [minX..maxX]
-    showCoord :: Coord -> Text
-    showCoord coord = format $ view (at coord) plane
-    printed :: Int -> Text
-    printed y = concat (showCoord <$> row y)
-  in
-    intercalate "\n" (printed <$> [minY..maxY])
+  in ((minX, minY), (maxX, maxY))
+

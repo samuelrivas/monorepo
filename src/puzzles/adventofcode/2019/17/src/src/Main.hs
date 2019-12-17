@@ -22,7 +22,7 @@ import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, lift, tell)
 import           Data.Foldable         (fold, foldl')
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
-import           Data.Map.Strict       (Map, empty, insert)
+import           Data.Map.Strict       (Map, empty, insert, keys)
 import           Data.Maybe            (isNothing)
 import           Data.Sequence         (Seq ((:<|)), fromList, (><), (|>))
 import qualified Data.Sequence         as Seq
@@ -31,6 +31,8 @@ import           Data.Text.IO          (putStrLn, readFile)
 
 import           Bidim
 import           Intcode
+
+type Scaffold = Map Coord Char
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -51,7 +53,7 @@ getInput = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
 intToChar :: Integer -> Char
 intToChar = toEnum . fromIntegral
 
-readScaffold :: [Integer] -> Map Coord Char
+readScaffold :: [Integer] -> Scaffold
 readScaffold code =
   let
     out = fmap intToChar . view _1 . runIdentity . eval (runProgram >> getOutput) $ code
@@ -64,9 +66,18 @@ formatMap :: Maybe Char -> Text
 formatMap Nothing = "?"
 formatMap (Just c) = pack [c]
 
+isCross :: Scaffold -> Coord -> Bool
+isCross = undefined
+
+findCrosses :: Scaffold -> [Coord]
+findCrosses scaffold = filter (isCross scaffold) $ keys scaffold
+
 main :: IO ()
 main = do
   code <- getInput
+  let scaffold = readScaffold code
+
+  putStrLn $ showMap formatMap scaffold
 
   putStrLn $ "Solution 1: "
   putStrLn $ "Solution 2: "
