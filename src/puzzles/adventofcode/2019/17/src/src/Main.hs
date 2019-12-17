@@ -12,7 +12,7 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 
 import           Prelude               hiding (Left, Right, concat, getLine,
-                                        putStrLn, readFile, show)
+                                        putStrLn, readFile, show, putStr)
 import qualified Prelude
 
 import System.Console.Readline (readline)
@@ -29,7 +29,7 @@ import           Data.Maybe            (isNothing)
 import           Data.Sequence         (Seq ((:<|)), fromList, (><), (|>))
 import qualified Data.Sequence         as Seq
 import           Data.Text             (Text, pack, splitOn, unpack)
-import           Data.Text.IO          (putStrLn, readFile)
+import           Data.Text.IO          (putStrLn, readFile, putStr)
 import Data.List (maximumBy, sort, tails)
 
 import           Bidim
@@ -95,19 +95,20 @@ findCrosses scaffold = filter (isCross scaffold) $ keys scaffold
 findPath :: Scaffold -> Text
 findPath = undefined
 
-nextStep :: Scaffold -> Pos -> Direction -> Char
-nextStep = undefined 
+-- nextStep :: Scaffold -> Pos -> Direction -> Char
+-- nextStep = undefined 
 
 solution1 :: Scaffold -> Int
 solution1 = sum . fmap (productOf both) . findCrosses
 
 userLoop :: IntcodeT IO ()
 userLoop = do
+  runProgram
   output <- getOutput
   flushOutput
-  liftIO . putStrLn $ intcodeToText output
+  liftIO . putStr $ intcodeToText output
   getStatus >>= \case
-    Running -> runProgram >> userLoop
+    Running -> userLoop
     Finished -> liftIO . putStrLn $ "finished"
     Aborted -> liftIO . putStrLn $ "aborted"
     Interrupted -> do

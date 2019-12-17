@@ -24,6 +24,7 @@ module Intcode (
   runEmpty,
   run,
   runProgram,
+  runWithOutput,
   save,
   stepProgram,
   trace
@@ -207,6 +208,15 @@ stepProgram =
 
 runProgram :: Monad m => IntcodeT m ()
 runProgram = whileM_ (uses #status (== Running)) stepProgram
+
+runWithOutput :: Monad m => IntcodeT m [Integer]
+runWithOutput = do
+    whileM_
+      ((&&) <$> uses #status (== Running) <*> uses #output (== []))
+      stepProgram
+    output <- getOutput
+    flushOutput
+    pure output
 
 save :: Monad m => IntcodeT m IntcodeState
 save = get
