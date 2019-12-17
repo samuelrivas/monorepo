@@ -204,13 +204,13 @@ let
         sandbox = true;
         src = ./../src/puzzles/adventofcode/2019/2/src;
         wanted-packages = with pkgs.haskellPackages; [
+          ansi-terminal
           generic-lens
           lens
           monad-loops
-          writer-cps-mtl
           readline
-          ansi-terminal
           regex-pcre
+          writer-cps-mtl
         ];
       };
     };
