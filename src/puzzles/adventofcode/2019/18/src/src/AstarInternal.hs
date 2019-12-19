@@ -12,30 +12,27 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 
 module AstarInternal (
-  Heuristic,
-  CostFunction,
   AstarContext (AstarContext),
   AstarConfig (AstarConfig)
   ) where
 
-import           Data.Map.Strict (Map)
-import Data.HashSet (HashSet)
-import           GHC.Generics    (Generic)
-
-type Heuristic node = node -> Int
-type CostFunction node = node -> Int
+import           Control.Monad.Reader (Reader)
+import           Data.HashSet         (HashSet)
+import           Data.Map.Strict      (Map)
+import           GHC.Generics         (Generic)
 
 data AstarContext node = AstarContext {
   openNodes :: Map Int node,
   seenNodes :: HashSet node
   } deriving stock (Show, Generic)
 
-data AstarConfig node = AstarConfig {
-  h       :: Heuristic node,
-  c       :: CostFunction node,
-  explode :: node -> [node],
-  isGoal  :: node -> Bool
+data AstarConfig node pc = AstarConfig {
+  h              :: node -> Reader pc Int,
+  c              :: node -> Reader pc Int,
+  explode        :: node -> Reader pc [node],
+  isGoal         :: node -> Reader pc Bool,
+  privateContext :: pc
   } deriving stock (Generic)
 
-instance Show (AstarConfig node) where
+instance Show (AstarConfig node context) where
   show = const "AstarConfig"
