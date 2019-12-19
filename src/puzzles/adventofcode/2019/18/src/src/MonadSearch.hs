@@ -12,22 +12,20 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 
 module MonadSearch (
-  MonadSearch,
+  MonadSearch (..),
   search
   ) where
 
-import           Control.Monad             (filterM)
+import           Control.Monad             (filterM, unless)
 
 data SearchStatus node = Failed | Exploring | Found node
   deriving Show
 
-data NodeStatus = Seen | New | Goal
-  deriving (Show, Eq)
-
 class Monad m => MonadSearch node m | m -> node where
   popNode :: m (Maybe node)
   pushNode :: node -> m ()
-  evalNode :: node -> m NodeStatus
+  seenNode :: node -> m Bool
+  goalNode :: node -> m Bool
   explode :: node -> m [node]
 
 step :: MonadSearch node m => m (SearchStatus node)
@@ -38,10 +36,12 @@ step =
 
 checkNode :: MonadSearch node m => node -> m (SearchStatus node)
 checkNode node =
-  evalNode node >>= \case
-    Goal -> pure $ Found node
-    Seen -> pure Exploring
-    New -> explode node >>= pushNodes >> pure Exploring
+  goalNode node >>= \case
+    True -> pure $ Found node
+    False -> do
+      seen <- seenNode node
+      unless seen $ explode node >>= pushNodes
+      pure Exploring
 
 pushNodes :: MonadSearch node m => [node] -> m ()
 pushNodes nodes = filterSeen nodes >>= mapM_ pushNode
@@ -50,7 +50,7 @@ pushNodes nodes = filterSeen nodes >>= mapM_ pushNode
 --
 -- Todo evaluate the trad off between CPU and saved memory here
 filterSeen :: MonadSearch node m => [node] -> m [node]
-filterSeen = filterM (fmap (/= Seen) . evalNode)
+filterSeen = filterM (fmap not . seenNode)
 
 search :: MonadSearch node m => m (Maybe node)
 search = step >>= \case

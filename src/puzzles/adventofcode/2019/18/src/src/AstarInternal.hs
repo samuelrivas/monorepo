@@ -14,7 +14,6 @@
 module AstarInternal (
   Heuristic,
   CostFunction,
-  Explode,
   AstarContext (AstarContext),
   AstarConfig (AstarConfig)
   ) where
@@ -25,7 +24,6 @@ import           GHC.Generics    (Generic)
 
 type Heuristic node = node -> Int
 type CostFunction node = node -> Int
-type Explode node = node -> [node]
 
 data AstarContext node = AstarContext {
   openNodes :: Map Int node,
@@ -35,7 +33,7 @@ data AstarContext node = AstarContext {
 data AstarConfig node = AstarConfig {
   h       :: Heuristic node,
   c       :: CostFunction node,
-  explode :: Explode node,
+  explode :: node -> [node],
   isGoal  :: node -> Bool
   } deriving stock (Generic)
 
