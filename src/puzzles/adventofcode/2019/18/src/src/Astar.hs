@@ -30,10 +30,6 @@ import qualified Data.Map.Strict           as Map
 import           AstarInternal
 import           MonadSearch
 
-type Heuristic node = node -> Int
-type CostFunction node = node -> Int
-type Explode node = node -> [node]
-
 newtype AstarT node w m a = AstarT {
   unAstarT :: RWST (AstarConfig node) w (AstarContext node) m a
   } deriving newtype (Functor, Applicative, Monad, MonadWriter w,
