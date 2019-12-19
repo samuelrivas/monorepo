@@ -1,16 +1,14 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
@@ -18,16 +16,12 @@ module Astar where
 
 import           Prelude
 
-import           Control.Applicative       (Alternative (..))
-import           Control.Lens              (assign, at, modifying, set, use,
-                                            uses, view)
+import           Control.Lens              (assign, at, modifying, uses, view)
 import           Control.Monad.Fail        (MonadFail)
 import           Control.Monad.IO.Class    (MonadIO)
 import           Control.Monad.RWS.CPS     (MonadReader, MonadState,
-                                            MonadWriter, RWST, lift, runRWST,
-                                            tell)
+                                            MonadWriter, RWST, runRWST)
 import           Control.Monad.Trans.Class (MonadTrans)
-import           Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
 import           Data.Generics.Labels      ()
 import           Data.Hashable             (Hashable)
 import qualified Data.HashSet              as HashSet
