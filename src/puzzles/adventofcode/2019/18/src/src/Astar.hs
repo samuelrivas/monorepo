@@ -46,6 +46,15 @@ instance (Eq node, Hashable node , Monad m, Monoid w)
   goalNode = astarGetGoalNode
   explode  = astarExplodeNode
 
+mkConfig ::
+  (node -> Reader pc Int) -> -- h
+  (node -> Reader pc Int) -> -- c
+  (node -> Reader pc [node]) -> -- explode
+  (node -> Reader pc Bool) -> -- isGoal
+  pc ->
+  AstarConfig node pc
+mkConfig = AstarConfig
+
 runAstarT ::
   Monoid w
   => AstarT node pc w m a
@@ -53,6 +62,19 @@ runAstarT ::
   -> AstarContext node
   -> m (a, AstarContext node, w)
 runAstarT = runRWST . unAstarT
+
+evalAstarT ::
+  Monoid w => Eq node => Hashable node => Monad m =>
+  AstarConfig node pc -> node -> m (Maybe node, w)
+evalAstarT astarConfig initialNode  =
+  let
+    initialContext = AstarContext Map.empty HashSet.empty
+  in do
+    (nodeM, _, w) <- runAstarT
+                       (pushAstarNode initialNode >> search)
+                       astarConfig
+                       initialContext
+    pure (nodeM, w)
 
 popBest :: Monad m => AstarT node pc w m (Maybe node)
 popBest =

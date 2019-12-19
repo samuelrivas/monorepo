@@ -26,6 +26,7 @@ data AstarContext node = AstarContext {
   seenNodes :: HashSet node
   } deriving stock (Show, Generic)
 
+-- FIXME wrap, at least, h and c so that they have different types
 data AstarConfig node pc = AstarConfig {
   h              :: node -> Reader pc Int,
   c              :: node -> Reader pc Int,
