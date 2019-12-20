@@ -114,7 +114,7 @@ nodeForKey parent toPos key =
     if HashSet.member key keys
     then pure . Just $ baseNewNode
     else pure . Just $
-           over #h (+ (-1)) $
+           over #h (+ (- hValueOfKey)) $
            over #keys (HashSet.insert key) baseNewNode
 
 nodeForDoor :: MazeNode -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
@@ -133,7 +133,7 @@ nextNode fromNode toPos =
     fromPos = view #pos fromNode
   in
     set #pos toPos $
-    set #parent (Just fromPos) $
+    over #path (fromPos :) $
     over #c (+ 1)
     fromNode
 

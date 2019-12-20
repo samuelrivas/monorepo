@@ -17,6 +17,7 @@ module Internal (
   MazeMemory (MazeMemory),
   MazeContext,
   initialNode,
+  hValueOfKey,
   toMemory
   ) where
 
@@ -29,11 +30,11 @@ import           Bidim
 type MazeContext = Bidim Char
 
 data MazeNode = MazeNode {
-  pos    :: Coord,
-  parent :: Maybe Coord,
-  keys   :: HashSet Char,
-  c      :: Int,
-  h      :: Int
+  pos  :: Coord,
+  path :: [Coord],
+  keys :: HashSet Char,
+  c    :: Int,
+  h    :: Int
   } deriving stock (Eq, Generic, Show)
 
 instance Hashable MazeNode
@@ -45,14 +46,17 @@ data MazeMemory = MazeMemory {
 
 instance Hashable MazeMemory
 
+hValueOfKey :: Int
+hValueOfKey = 100
+
 initialNode :: Coord -> Int -> MazeNode
 initialNode startingPoint numberOfKeys =
   MazeNode {
   pos = startingPoint,
-  parent = Nothing,
+  path = [],
   keys = empty,
   c = 0,
-  h = numberOfKeys
+  h = numberOfKeys * hValueOfKey
   }
 
 toMemory :: MazeNode -> MazeMemory
