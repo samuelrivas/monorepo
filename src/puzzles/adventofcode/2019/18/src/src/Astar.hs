@@ -158,6 +158,7 @@ astarPushNode node = do
   value <- valueNode node
   modifying #openNodes $ PQueue.insert value node
 
--- For debugging
+-- For debugging. Making this an actual op will significantly slow down the run
 trace :: Monad m => Text -> AstarT node nodeMem pc Text m ()
-trace msg = tell (msg <> "\n")
+trace _msg = pure ()
+-- trace msg = tell (msg <> "\n")

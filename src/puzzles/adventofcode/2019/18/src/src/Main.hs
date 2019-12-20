@@ -38,7 +38,7 @@ import qualified Data.HashSet as HashSet
 import           Astar
 import           Bidim
 import           Internal
-import MonadSearch (step)
+import MonadSearch (step, search)
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -47,13 +47,33 @@ solve1 :: Text -> IO ()
 solve1 text =
   let
     (maze, starting, keys) = parseInput text
-    steps = replicateM_ 1000 step
   in do
-    ((), ctx, trace) <- runInAstarT
-                          (steps >> (liftIO $ putStrLn "foo"))
+    (node, _ctx, trace) <- runInAstarT
+                          search
                           (astarConfig maze)
                           (initialNode starting (length keys))
-    putStrLn trace
+    putStrLn $ "Done: " <> show node
+    putStrLn $ "Sol: " <> show (views #path length (fromJust node))
+--    putStrLn trace
+
+watchSearch :: Int -> AstarT MazeNode MazeMemory (Bidim Char) Text IO ()
+watchSearch steps = do
+  replicateM_ steps step
+  peekBest >>= \case
+    Just node ->
+      if view #h node == 0
+      then
+        liftIO $ putStrLn $ "Found! " <>
+          show node <> "\n" <>
+          show (views #path length node)
+      else do
+
+        liftIO . putStrLn $ show (view #pos node) <>
+          " c: " <> show (view #c node) <>
+          " h: " <> show (view #h node) <>
+          " k: " <> show (view #keys node)
+        watchSearch steps
+    Nothing -> liftIO $ putStrLn "Done"
 
 solve2 :: a -> IO ()
 solve2 = undefined

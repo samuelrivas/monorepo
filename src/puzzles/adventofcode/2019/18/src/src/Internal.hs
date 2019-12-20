@@ -46,8 +46,9 @@ data MazeMemory = MazeMemory {
 
 instance Hashable MazeMemory
 
+-- This should not overshoot, if we want to guarantee the best solution
 hValueOfKey :: Int
-hValueOfKey = 100
+hValueOfKey = 1
 
 initialNode :: Coord -> Int -> MazeNode
 initialNode startingPoint numberOfKeys =
