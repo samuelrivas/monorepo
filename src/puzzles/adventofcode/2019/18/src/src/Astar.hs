@@ -9,7 +9,7 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
@@ -17,18 +17,19 @@ module Astar where
 
 import           Prelude
 
-import           Control.Lens              (assign, at, modifying, uses, view)
-import           Control.Monad.Fail        (MonadFail)
-import           Control.Monad.IO.Class    (MonadIO)
-import           Control.Monad.Reader      (Reader, runReader)
-import           Control.Monad.RWS.CPS     (MonadReader, MonadState,
-                                            MonadWriter, RWST, runRWST, tell)
-import           Control.Monad.Trans.Class (MonadTrans)
-import           Data.Generics.Labels      ()
-import           Data.Hashable             (Hashable)
-import qualified Data.HashSet              as HashSet
-import qualified Data.Map.Strict           as Map
-import Data.Text (Text, pack)
+import           Control.Lens                  (assign, modifying, uses, view)
+import           Control.Monad.Fail            (MonadFail)
+import           Control.Monad.IO.Class        (MonadIO)
+import           Control.Monad.Reader          (Reader, runReader)
+import           Control.Monad.RWS.CPS         (MonadReader, MonadState,
+                                                MonadWriter, RWST, runRWST,
+                                                tell)
+import           Control.Monad.Trans.Class     (MonadTrans)
+import           Data.Generics.Labels          ()
+import           Data.Hashable                 (Hashable)
+import qualified Data.HashSet                  as HashSet
+import qualified Data.PriorityQueue.FingerTree as PQueue
+import           Data.Text                     (Text, pack)
 
 import           AstarInternal
 import           MonadSearch
@@ -73,7 +74,7 @@ runAstarT ::
   -> m (a, AstarContext node nodeMem, w)
 runAstarT = runRWST . unAstarT
 
-evalAstarT ::
+searchAstarT ::
   Show node =>
   Eq node =>
   Eq nodeMem =>
@@ -81,22 +82,16 @@ evalAstarT ::
   Hashable nodeMem =>
   Monad m =>
   AstarConfig node nodeMem pc -> node -> m (Maybe node, Text)
-evalAstarT astarConfig initialNode  =
-  let
-    initialContext = AstarContext Map.empty HashSet.empty
-  in do
-    (nodeM, _, w) <- runAstarT
-                       (astarPushNode initialNode >> search)
-                       astarConfig
-                       initialContext
-    pure (nodeM, w)
+searchAstarT astarConfig initialNode  = do
+  (nodeM, _, w) <- runInAstarT search astarConfig initialNode
+  pure (nodeM, w)
 
-evalAstarT' ::
+runInAstarT ::
   Show node => Eq node => Hashable node => Monad m =>
-  AstarConfig node nodeMem pc -> node -> AstarT node nodeMem pc Text m a ->
+  AstarT node nodeMem pc Text m a -> AstarConfig node nodeMem pc -> node ->
   m (a, AstarContext node nodeMem, Text)
-evalAstarT' astarConfig initialNode x =
-  let initialContext = AstarContext Map.empty HashSet.empty
+runInAstarT x astarConfig initialNode =
+  let initialContext = AstarContext PQueue.empty HashSet.empty
   in runAstarT
        (astarPushNode initialNode >> x)
        astarConfig
@@ -106,7 +101,7 @@ popBest ::
   Show node => Eq node => Hashable node => Monad m =>
   AstarT node nodeMem pc Text m (Maybe node)
 popBest =
-  uses #openNodes Map.minView >>= \case
+  uses #openNodes PQueue.minView >>= \case
     Just (node, newMap) -> do
       trace ("popping node: " <> pack (show node))
       assign #openNodes newMap
@@ -148,7 +143,7 @@ astarPushNode :: Show node => Monad m => node -> AstarT node nodeMem pc Text m (
 astarPushNode node = do
   trace $ "Pushing node: " <> (pack . show $ node)
   value <- valueNode node
-  assign (#openNodes . at value) . Just $ node
+  modifying #openNodes $ PQueue.insert value node
 
 -- For debugging
 trace :: Monad m => Text -> AstarT node nodeMem pc Text m ()

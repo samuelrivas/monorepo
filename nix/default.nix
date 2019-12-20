@@ -205,6 +205,7 @@ let
         src = ./../src/puzzles/adventofcode/2019/2/src;
         wanted-packages = with pkgs.haskellPackages; [
           ansi-terminal
+          fingertree
           generic-lens
           lens
           monad-loops

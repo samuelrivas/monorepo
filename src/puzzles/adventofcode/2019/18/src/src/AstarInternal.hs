@@ -16,13 +16,13 @@ module AstarInternal (
   AstarConfig (AstarConfig)
   ) where
 
-import           Control.Monad.Reader (Reader)
-import           Data.HashSet         (HashSet)
-import           Data.Map.Strict      (Map)
-import           GHC.Generics         (Generic)
+import           Control.Monad.Reader          (Reader)
+import           Data.HashSet                  (HashSet)
+import           Data.PriorityQueue.FingerTree (PQueue)
+import           GHC.Generics                  (Generic)
 
 data AstarContext node nodeMem = AstarContext {
-  openNodes :: Map Int node,
+  openNodes :: PQueue Int node,
   seenNodes :: HashSet nodeMem
   } deriving stock (Show, Generic)
 

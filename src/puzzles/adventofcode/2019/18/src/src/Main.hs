@@ -72,7 +72,7 @@ findBest maze =
     config = mkConfig heuristic cost explode gotAllKeys nodeToMem maze
     startingNode = initialNode startingPoint (length keys)
   in
-    runIdentity $ evalAstarT config startingNode
+    runIdentity $ searchAstarT config startingNode
 
 heuristic :: MazeNode -> Reader MazeContext Int
 heuristic = pure . view #h
