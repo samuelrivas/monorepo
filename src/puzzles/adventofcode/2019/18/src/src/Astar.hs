@@ -9,7 +9,6 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
@@ -25,19 +24,17 @@ module Astar (
 
 import           Prelude
 
-import           Control.Lens                  (assign, modifying, uses, view, _1)
+import           Control.Lens                  (assign, modifying, uses, view)
 import           Control.Monad.Fail            (MonadFail)
 import           Control.Monad.IO.Class        (MonadIO)
 import           Control.Monad.Reader          (Reader, runReader)
 import           Control.Monad.RWS.CPS         (MonadReader, MonadState,
-                                                MonadWriter, RWST, runRWST,
-                                                tell)
+                                                MonadWriter, RWST, runRWST)
 import           Control.Monad.Trans.Class     (MonadTrans)
 import           Data.Generics.Labels          ()
 import           Data.Hashable                 (Hashable)
 import qualified Data.HashSet                  as HashSet
 import qualified Data.PriorityQueue.FingerTree as PQueue
-import           Data.Text                     (Text, pack)
 
 import           AstarInternal
 import           MonadSearch
@@ -56,7 +53,7 @@ instance
    Hashable nodeMem,
    Hashable node,
    Monad m) =>
-  MonadSearch node (AstarT node nodeMem pc Text m) where
+  MonadSearch node (AstarT node nodeMem pc w m) where
   popNode = popBest
   pushNode = astarPushNode
   seenNode = astarSeenNode
@@ -83,21 +80,22 @@ runAstarT ::
 runAstarT = runRWST . unAstarT
 
 searchAstarT ::
+  Monoid w =>
   Show node =>
   Eq node =>
   Eq nodeMem =>
   Hashable node =>
   Hashable nodeMem =>
   Monad m =>
-  AstarConfig node nodeMem pc -> node -> m (Maybe node, Text)
+  AstarConfig node nodeMem pc -> node -> m (Maybe node, w)
 searchAstarT astarConfig initialNode  = do
   (nodeM, _, w) <- runInAstarT search astarConfig initialNode
   pure (nodeM, w)
 
 runInAstarT ::
-  Show node => Eq node => Hashable node => Monad m =>
-  AstarT node nodeMem pc Text m a -> AstarConfig node nodeMem pc -> node ->
-  m (a, AstarContext node nodeMem, Text)
+  Monoid w => Show node => Eq node => Hashable node => Monad m =>
+  AstarT node nodeMem pc w m a -> AstarConfig node nodeMem pc -> node ->
+  m (a, AstarContext node nodeMem, w)
 runInAstarT x astarConfig initialNode =
   let initialContext = AstarContext PQueue.empty HashSet.empty
   in runAstarT
@@ -107,18 +105,17 @@ runInAstarT x astarConfig initialNode =
 
 popBest ::
   Show node => Eq node => Hashable node => Monad m =>
-  AstarT node nodeMem pc Text m (Maybe node)
+  AstarT node nodeMem pc w m (Maybe node)
 popBest =
   uses #openNodes PQueue.minView >>= \case
     Just (node, newMap) -> do
-      trace ("popping node: " <> pack (show node))
       assign #openNodes newMap
       pure $ Just node
     Nothing -> pure Nothing
 
 peekBest ::
   Show node => Eq node => Hashable node => Monad m =>
-  AstarT node nodeMem pc Text m (Maybe node)
+  AstarT node nodeMem pc w m (Maybe node)
 peekBest = uses #openNodes $ fmap fst . PQueue.minView
 
 valueNode :: Monad m => node -> AstarT node nodeMem pc w m Int
@@ -152,13 +149,11 @@ astarSeenNode node = do
   mem <- runInPrivateContext $ toMem node
   uses #seenNodes (HashSet.member mem)
 
-astarPushNode :: Show node => Monad m => node -> AstarT node nodeMem pc Text m ()
+astarPushNode :: Show node => Monad m => node -> AstarT node nodeMem pc w m ()
 astarPushNode node = do
-  trace $ "Pushing node: " <> (pack . show $ node)
   value <- valueNode node
   modifying #openNodes $ PQueue.insert value node
 
 -- For debugging. Making this an actual op will significantly slow down the run
-trace :: Monad m => Text -> AstarT node nodeMem pc Text m ()
-trace _msg = pure ()
+-- trace :: Monad m => w -> AstarT node nodeMem pc w m ()
 -- trace msg = tell (msg <> "\n")

@@ -2,43 +2,43 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Prelude               hiding (lines, putStrLn, readFile, show,
-                                        unlines)
+import           Prelude                hiding (lines, putStrLn, readFile, show,
+                                         unlines)
 import qualified Prelude
 
-import           Control.Lens          (at, non, over, set, traverse, view,
-                                        views, _1, _2)
-import           Data.Char             (isAsciiLower, isAsciiUpper, toLower)
-import           Data.Foldable         (find, foldl')
-import           Data.Functor.Identity (runIdentity)
-import           Data.Generics.Labels  ()
-import           Data.List             (concatMap, unfoldr)
-import qualified Data.Map.Strict       as Map
-import           Data.Maybe            (fromMaybe, fromJust, catMaybes)
-import           Data.Ratio            ((%))
-import           Data.Text             (Text, intercalate, lines, pack, splitOn,
-                                        unpack)
-import qualified Data.Text             as Text
-import           Data.Text.IO          (putStrLn, readFile)
-import Control.Monad.Reader (Reader)
-import Control.Monad (replicateM_)
-import Control.Monad.IO.Class (liftIO)
-import qualified Data.HashSet as HashSet
+import           Control.Lens           (at, non, over, set, traverse, view,
+                                         views, _1, _2)
+import           Control.Monad          (replicateM_)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader   (Reader)
+import           Data.Char              (isAsciiLower, isAsciiUpper, toLower)
+import           Data.Foldable          (find, foldl')
+import           Data.Functor.Identity  (runIdentity)
+import           Data.Generics.Labels   ()
+import qualified Data.HashSet           as HashSet
+import           Data.List              (concatMap, unfoldr)
+import qualified Data.Map.Strict        as Map
+import           Data.Maybe             (catMaybes, fromJust, fromMaybe)
+import           Data.Ratio             ((%))
+import           Data.Text              (Text, intercalate, lines, pack,
+                                         splitOn, unpack)
+import qualified Data.Text              as Text
+import           Data.Text.IO           (putStrLn, readFile)
 
 import           Astar
 import           Bidim
 import           Internal
-import MonadSearch (step, search)
+import           MonadSearch            (search, step)
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -48,32 +48,31 @@ solve1 text =
   let
     (maze, starting, keys) = parseInput text
   in do
-    (node, _ctx, trace) <- runInAstarT
-                          search
-                          (astarConfig maze)
-                          (initialNode starting (length keys))
-    putStrLn $ "Done: " <> show node
-    putStrLn $ "Sol: " <> show (views #path length (fromJust node))
+    (node, _trace :: ()) <- searchAstarT
+                            (astarConfig maze)
+                            (initialNode starting (length keys))
+    -- putStrLn $ "Done: " <> show node
+    putStrLn $ "Solution1: " <> show (views #path length (fromJust node))
 --    putStrLn trace
 
-watchSearch :: Int -> AstarT MazeNode MazeMemory (Bidim Char) Text IO ()
-watchSearch steps = do
-  replicateM_ steps step
-  peekBest >>= \case
-    Just node ->
-      if view #h node == 0
-      then
-        liftIO $ putStrLn $ "Found! " <>
-          show node <> "\n" <>
-          show (views #path length node)
-      else do
+-- watchSearch :: Int -> AstarT MazeNode MazeMemory (Bidim Char) Text IO ()
+-- watchSearch steps = do
+--   replicateM_ steps step
+--   peekBest >>= \case
+--     Just node ->
+--       if view #h node == 0
+--       then
+--         liftIO $ putStrLn $ "Found! " <>
+--           show node <> "\n" <>
+--           show (views #path length node)
+--       else do
 
-        liftIO . putStrLn $ show (view #pos node) <>
-          " c: " <> show (view #c node) <>
-          " h: " <> show (view #h node) <>
-          " k: " <> show (view #keys node)
-        watchSearch steps
-    Nothing -> liftIO $ putStrLn "Done"
+--         liftIO . putStrLn $ show (view #pos node) <>
+--           " c: " <> show (view #c node) <>
+--           " h: " <> show (view #h node) <>
+--           " k: " <> show (view #keys node)
+--         watchSearch steps
+--     Nothing -> liftIO $ putStrLn "Done"
 
 solve2 :: a -> IO ()
 solve2 = undefined
