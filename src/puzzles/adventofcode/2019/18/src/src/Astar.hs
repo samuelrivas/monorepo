@@ -13,11 +13,19 @@
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
-module Astar where
+module Astar (
+  AstarConfig,
+  AstarT,
+  mkConfig,
+  runAstarT,
+  runInAstarT,
+  searchAstarT,
+  peekBest
+  ) where
 
 import           Prelude
 
-import           Control.Lens                  (assign, modifying, uses, view)
+import           Control.Lens                  (assign, modifying, uses, view, _1)
 import           Control.Monad.Fail            (MonadFail)
 import           Control.Monad.IO.Class        (MonadIO)
 import           Control.Monad.Reader          (Reader, runReader)
@@ -107,6 +115,11 @@ popBest =
       assign #openNodes newMap
       pure $ Just node
     Nothing -> pure Nothing
+
+peekBest ::
+  Show node => Eq node => Hashable node => Monad m =>
+  AstarT node nodeMem pc Text m (Maybe node)
+peekBest = uses #openNodes $ fmap fst . PQueue.minView
 
 valueNode :: Monad m => node -> AstarT node nodeMem pc w m Int
 valueNode node = do

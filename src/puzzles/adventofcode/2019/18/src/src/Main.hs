@@ -31,17 +31,29 @@ import           Data.Text             (Text, intercalate, lines, pack, splitOn,
 import qualified Data.Text             as Text
 import           Data.Text.IO          (putStrLn, readFile)
 import Control.Monad.Reader (Reader)
+import Control.Monad (replicateM_)
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.HashSet as HashSet
 
 import           Astar
 import           Bidim
 import           Internal
+import MonadSearch (step)
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
 
-solve1 :: a -> IO ()
-solve1 = undefined
+solve1 :: Text -> IO ()
+solve1 text =
+  let
+    (maze, starting, keys) = parseInput text
+    steps = replicateM_ 1000 step
+  in do
+    ((), ctx, trace) <- runInAstarT
+                          (steps >> (liftIO $ putStrLn "foo"))
+                          (astarConfig maze)
+                          (initialNode starting (length keys))
+    putStrLn trace
 
 solve2 :: a -> IO ()
 solve2 = undefined
@@ -61,6 +73,9 @@ getStartingPoint bidim =
 
 getKeys :: Bidim Char -> [Char]
 getKeys = filter isAsciiLower . Map.elems
+
+astarConfig :: Bidim Char -> AstarConfig MazeNode MazeMemory MazeContext
+astarConfig = mkConfig heuristic cost explode gotAllKeys nodeToMem
 
 type MazeT m a = AstarT MazeNode (Bidim Char) Text m a
 
