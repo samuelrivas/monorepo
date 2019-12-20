@@ -21,19 +21,20 @@ import           Data.HashSet         (HashSet)
 import           Data.Map.Strict      (Map)
 import           GHC.Generics         (Generic)
 
-data AstarContext node = AstarContext {
+data AstarContext node nodeMem = AstarContext {
   openNodes :: Map Int node,
-  seenNodes :: HashSet node
+  seenNodes :: HashSet nodeMem
   } deriving stock (Show, Generic)
 
 -- FIXME wrap, at least, h and c so that they have different types
-data AstarConfig node pc = AstarConfig {
+data AstarConfig node nodeMem pc = AstarConfig {
   h              :: node -> Reader pc Int,
   c              :: node -> Reader pc Int,
   explode        :: node -> Reader pc [node],
   isGoal         :: node -> Reader pc Bool,
+  nodeToMem      :: node -> Reader pc nodeMem,
   privateContext :: pc
   } deriving stock (Generic)
 
-instance Show (AstarConfig node context) where
+instance Show (AstarConfig node nodeMem context) where
   show = const "AstarConfig"

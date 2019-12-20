@@ -18,7 +18,7 @@ import qualified Prelude
 
 import           Control.Lens          (at, non, over, set, traverse, view,
                                         views, _1, _2)
-import           Data.Char             (isAsciiLower)
+import           Data.Char             (isAsciiLower, isAsciiUpper, toLower)
 import           Data.Foldable         (find, foldl')
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
@@ -31,6 +31,7 @@ import           Data.Text             (Text, intercalate, lines, pack, splitOn,
 import qualified Data.Text             as Text
 import           Data.Text.IO          (putStrLn, readFile)
 import Control.Monad.Reader (Reader)
+import qualified Data.HashSet as HashSet
 
 import           Astar
 import           Bidim
@@ -68,7 +69,7 @@ findBest maze =
   let
     startingPoint = getStartingPoint maze
     keys = getKeys maze
-    config = mkConfig heuristic cost explode gotAllKeys maze
+    config = mkConfig heuristic cost explode gotAllKeys nodeToMem maze
     startingNode = initialNode startingPoint (length keys)
   in
     runIdentity $ evalAstarT config startingNode
@@ -81,10 +82,11 @@ cost = pure . view #c
 
 explode :: MazeNode -> Reader MazeContext [MazeNode]
 explode node =
-  let
-    candidates = cross (view #pos node)
-  in
-    catMaybes <$> mapM (candidateToNode node) candidates
+  let candidates = cross (view #pos node)
+  in catMaybes <$> mapM (candidateToNode node) candidates
+
+nodeToMem :: MazeNode -> Reader MazeContext MazeMemory
+nodeToMem = pure . toMemory
 
 gotAllKeys :: MazeNode -> Reader MazeContext Bool
 gotAllKeys = fmap (== 0) . heuristic
@@ -99,15 +101,31 @@ candidateToNode fromNode toPos =
     Just letter
       | isAsciiLower letter ->
         nodeForKey fromNode toPos letter
-      | isAsciiLower letter ->
+      | isAsciiUpper letter ->
         nodeForDoor fromNode toPos letter
       | otherwise -> error $ "found " <>  [letter]
 
 nodeForKey :: MazeNode -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
-nodeForKey parent pos cell = undefined
+nodeForKey parent toPos key =
+  let
+    keys = view #keys parent
+    baseNewNode = nextNode parent toPos
+  in
+    if HashSet.member key keys
+    then pure . Just $ baseNewNode
+    else pure . Just $
+           over #h (+ (-1)) $
+           over #keys (HashSet.insert key) baseNewNode
 
 nodeForDoor :: MazeNode -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
-nodeForDoor parent pos cell = undefined
+nodeForDoor parent toPos door =
+  let
+    keys = view #keys parent
+    key = toLower door
+  in
+    if HashSet.member key keys
+    then pure . Just $ nextNode parent toPos
+    else pure Nothing
 
 nextNode :: MazeNode -> Coord -> MazeNode
 nextNode fromNode toPos =
@@ -115,7 +133,7 @@ nextNode fromNode toPos =
     fromPos = view #pos fromNode
   in
     set #pos toPos $
-    over #path (fromPos :) $
+    set #parent (Just fromPos) $
     over #c (+ 1)
     fromNode
 

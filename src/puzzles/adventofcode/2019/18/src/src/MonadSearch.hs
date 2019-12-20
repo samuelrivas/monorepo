@@ -13,7 +13,8 @@
 
 module MonadSearch (
   MonadSearch (..),
-  search
+  search,
+  step
   ) where
 
 import           Control.Monad             (filterM, unless)
@@ -26,6 +27,7 @@ class Monad m => MonadSearch node m | m -> node where
   pushNode :: node -> m ()
   seenNode :: node -> m Bool
   goalNode :: node -> m Bool
+  markSeen :: node -> m ()
   explode :: node -> m [node]
 
 step :: MonadSearch node m => m (SearchStatus node)
@@ -41,6 +43,7 @@ checkNode node =
     False -> do
       seen <- seenNode node
       unless seen $ explode node >>= pushNodes
+      markSeen node
       pure Exploring
 
 pushNodes :: MonadSearch node m => [node] -> m ()
