@@ -17,7 +17,7 @@ import           Prelude                hiding (lines, putStrLn, readFile, show,
                                          unlines)
 import qualified Prelude
 
-import           Control.Lens           (at, non, over, set, traverse, view,
+import           Control.Lens           (at, non, over, set, traverse, view, preview,
                                          views, _1, _2, ix)
 import           Control.Monad          (replicateM_)
 import           Control.Monad.IO.Class (liftIO)
@@ -53,30 +53,38 @@ solve1 text =
                             (astarConfig maze)
                             (initialNode [starting] (length keys))
     -- putStrLn $ "Done: " <> show node
-    putStrLn $ "Solution1: " <> show (views #path length (fromJust node))
+    putStrLn $ "Solution 1: " <> show (views #path length (fromJust node))
 --    putStrLn trace
 
--- watchSearch :: Int -> AstarT MazeNode MazeMemory (Bidim Char) Text IO ()
--- watchSearch steps = do
---   replicateM_ steps step
---   peekBest >>= \case
---     Just node ->
---       if view #h node == 0
---       then
---         liftIO $ putStrLn $ "Found! " <>
---           show node <> "\n" <>
---           show (views #path length node)
---       else do
+watchSearch :: Int -> AstarT MazeNode MazeMemory (Bidim Char) Text IO ()
+watchSearch steps = do
+  replicateM_ steps step
+  peekBest >>= \case
+    Just node ->
+      if view #h node == 0
+      then
+        liftIO $ putStrLn $ "Found! " <>
+          show node <> "\n" <>
+          show (views #path length node)
+      else do
 
---         liftIO . putStrLn $ show (view #pos node) <>
---           " c: " <> show (view #c node) <>
---           " h: " <> show (view #h node) <>
---           " k: " <> show (view #keys node)
---         watchSearch steps
---     Nothing -> liftIO $ putStrLn "Done"
+        liftIO . putStrLn $ show (view #pos node) <>
+          " c: " <> show (view #c node) <>
+          " h: " <> show (view #h node) <>
+          " k: " <> show (view #keys node)
+        watchSearch steps
+    Nothing -> liftIO $ putStrLn "Done"
 
-solve2 :: a -> IO ()
-solve2 = undefined
+solve2 :: Text -> IO ()
+solve2 text =
+  let
+    (maze, starting, keys) = parseInput2 text
+  in do
+    (node, _trace :: ()) <- searchAstarT
+                            (astarConfig maze)
+                            (initialNode starting (length keys))
+    -- putStrLn $ "Done: " <> show node
+    putStrLn $ "Solution 2: " <> show (views #path length (fromJust node))
 
 getInput :: IO Text
 getInput = readFile "input.txt"
@@ -131,8 +139,15 @@ cost = pure . view #c
 
 explode :: MazeNode -> Reader MazeContext [MazeNode]
 explode node =
-  let candidates = cross . head $ view #pos  node
-  in catMaybes <$> mapM (candidateToNode node 0) candidates
+  let
+    robots = [0..(length . view #pos $ node) - 1]
+  in concat <$> sequence (explodeRobot node <$> robots)
+
+explodeRobot :: MazeNode -> Int -> Reader MazeContext [MazeNode]
+explodeRobot node robotIx =
+  let
+    candidates = cross . fromJust $ preview (#pos . ix robotIx) node
+  in catMaybes <$> mapM (candidateToNode node robotIx) candidates
 
 nodeToMem :: MazeNode -> Reader MazeContext MazeMemory
 nodeToMem = pure . toMemory
