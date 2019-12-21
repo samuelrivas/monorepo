@@ -11,13 +11,14 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TupleSections         #-}
 
 import           Prelude                hiding (lines, putStrLn, readFile, show,
                                          unlines)
 import qualified Prelude
 
 import           Control.Lens           (at, non, over, set, traverse, view,
-                                         views, _1, _2)
+                                         views, _1, _2, ix)
 import           Control.Monad          (replicateM_)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Reader   (Reader)
@@ -50,7 +51,7 @@ solve1 text =
   in do
     (node, _trace :: ()) <- searchAstarT
                             (astarConfig maze)
-                            (initialNode starting (length keys))
+                            (initialNode [starting] (length keys))
     -- putStrLn $ "Done: " <> show node
     putStrLn $ "Solution1: " <> show (views #path length (fromJust node))
 --    putStrLn trace
@@ -85,10 +86,24 @@ parseInput text =
   let bidim = fromText text
   in (bidim, getStartingPoint bidim, getKeys bidim)
 
+parseInput2 :: Text -> (Bidim Char, [Coord], [Char])
+parseInput2 text =
+  let
+    (bidim, center, keys) = parseInput text
+    wallCoords = center : cross center
+    newWall = Map.fromList $ (, '#') <$> wallCoords
+    newBidim = Map.union newWall bidim
+  in
+    (newBidim, getStartingPoints center, keys)
+
 getStartingPoint :: Bidim Char -> Coord
 getStartingPoint bidim =
   let tupleM = find (views _2 (== '@')) $ Map.toList bidim
   in view _1 . fromJust $ tupleM
+
+getStartingPoints :: Coord -> [Coord]
+getStartingPoints center =
+  (center `plus`) <$> [(1, 1), (1, -1), (-1, 1), (-1, -1)]
 
 getKeys :: Bidim Char -> [Char]
 getKeys = filter isAsciiLower . Map.elems
@@ -104,7 +119,7 @@ findBest maze =
     startingPoint = getStartingPoint maze
     keys = getKeys maze
     config = mkConfig heuristic cost explode gotAllKeys nodeToMem maze
-    startingNode = initialNode startingPoint (length keys)
+    startingNode = initialNode [startingPoint] (length keys)
   in
     runIdentity $ searchAstarT config startingNode
 
@@ -116,8 +131,8 @@ cost = pure . view #c
 
 explode :: MazeNode -> Reader MazeContext [MazeNode]
 explode node =
-  let candidates = cross (view #pos node)
-  in catMaybes <$> mapM (candidateToNode node) candidates
+  let candidates = cross . head $ view #pos  node
+  in catMaybes <$> mapM (candidateToNode node 0) candidates
 
 nodeToMem :: MazeNode -> Reader MazeContext MazeMemory
 nodeToMem = pure . toMemory
@@ -125,25 +140,25 @@ nodeToMem = pure . toMemory
 gotAllKeys :: MazeNode -> Reader MazeContext Bool
 gotAllKeys = fmap (== 0) . heuristic
 
-candidateToNode :: MazeNode -> Coord -> Reader MazeContext (Maybe MazeNode)
-candidateToNode fromNode toPos =
+candidateToNode :: MazeNode -> Int -> Coord -> Reader MazeContext (Maybe MazeNode)
+candidateToNode fromNode robotIx toPos =
   view (at toPos) >>= \case
     Nothing -> pure Nothing
     Just '#' -> pure Nothing
-    Just '.' -> pure . Just $ nextNode fromNode toPos
-    Just '@' -> pure . Just $ nextNode fromNode toPos
+    Just '.' -> pure . Just $ nextNode fromNode robotIx toPos
+    Just '@' -> pure . Just $ nextNode fromNode robotIx toPos
     Just letter
       | isAsciiLower letter ->
-        nodeForKey fromNode toPos letter
+        nodeForKey fromNode robotIx toPos letter
       | isAsciiUpper letter ->
-        nodeForDoor fromNode toPos letter
+        nodeForDoor fromNode robotIx toPos letter
       | otherwise -> error $ "found " <>  [letter]
 
-nodeForKey :: MazeNode -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
-nodeForKey parent toPos key =
+nodeForKey :: MazeNode -> Int -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
+nodeForKey parent robotIx toPos key =
   let
     keys = view #keys parent
-    baseNewNode = nextNode parent toPos
+    baseNewNode = nextNode parent robotIx toPos
   in
     if HashSet.member key keys
     then pure . Just $ baseNewNode
@@ -151,22 +166,22 @@ nodeForKey parent toPos key =
            over #h (+ (- hValueOfKey)) $
            over #keys (HashSet.insert key) baseNewNode
 
-nodeForDoor :: MazeNode -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
-nodeForDoor parent toPos door =
+nodeForDoor :: MazeNode -> Int -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
+nodeForDoor parent robotIx toPos door =
   let
     keys = view #keys parent
     key = toLower door
   in
     if HashSet.member key keys
-    then pure . Just $ nextNode parent toPos
+    then pure . Just $ nextNode parent robotIx toPos
     else pure Nothing
 
-nextNode :: MazeNode -> Coord -> MazeNode
-nextNode fromNode toPos =
+nextNode :: MazeNode -> Int -> Coord -> MazeNode
+nextNode fromNode robotIx toPos =
   let
     fromPos = view #pos fromNode
   in
-    set #pos toPos $
+    set (#pos . ix robotIx) toPos $
     over #path (fromPos :) $
     over #c (+ 1)
     fromNode

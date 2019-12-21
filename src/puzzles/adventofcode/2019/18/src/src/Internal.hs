@@ -30,8 +30,8 @@ import           Bidim
 type MazeContext = Bidim Char
 
 data MazeNode = MazeNode {
-  pos  :: Coord,
-  path :: [Coord],
+  pos  :: [Coord],
+  path :: [[Coord]],
   keys :: HashSet Char,
   c    :: Int,
   h    :: Int
@@ -40,7 +40,7 @@ data MazeNode = MazeNode {
 instance Hashable MazeNode
 
 data MazeMemory = MazeMemory {
-  pos  :: Coord,
+  pos  :: [Coord],
   keys :: HashSet Char
   } deriving stock (Eq, Generic, Show)
 
@@ -50,10 +50,10 @@ instance Hashable MazeMemory
 hValueOfKey :: Int
 hValueOfKey = 1
 
-initialNode :: Coord -> Int -> MazeNode
-initialNode startingPoint numberOfKeys =
+initialNode :: [Coord] -> Int -> MazeNode
+initialNode startingPoints numberOfKeys =
   MazeNode {
-  pos = startingPoint,
+  pos = startingPoints,
   path = [],
   keys = empty,
   c = 0,
