@@ -11,26 +11,30 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Prelude               hiding (Left, Right, concat, getLine,
-                                        putStrLn, readFile, show, putStr)
+import           Prelude                 hiding (Left, Right, concat, getLine,
+                                          putStr, putStrLn, readFile, show)
 import qualified Prelude
 
-import System.Console.Readline (readline)
-import Control.Monad.IO.Class (liftIO)
-import           Control.Lens          (assign, at, modifying, set, use, view, _1, _2, productOf, both, ix)
-import           Control.Monad         (when)
-import           Control.Monad.Loops   (untilJust)
-import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, lift, tell)
-import           Data.Foldable         (fold, foldl')
-import           Data.Functor.Identity (runIdentity)
-import           Data.Generics.Labels  ()
-import           Data.Map.Strict       (Map, empty, insert, keys)
-import           Data.Maybe            (isNothing)
-import           Data.Sequence         (Seq ((:<|)), fromList, (><), (|>))
-import qualified Data.Sequence         as Seq
-import           Data.Text             (Text, pack, splitOn, unpack)
-import           Data.Text.IO          (putStrLn, readFile, putStr)
-import Data.List (maximumBy, sort, tails)
+import           Control.Applicative     ((<|>))
+import           Control.Lens            (assign, at, both, ix, modifying,
+                                          productOf, set, use, view, views, _1,
+                                          _2)
+import           Control.Monad           (when)
+import           Control.Monad.IO.Class  (liftIO)
+import           Control.Monad.Loops     (untilJust)
+import           Control.Monad.RWS.CPS   (RWST, evalRWST, execRWST, lift, tell)
+import           Data.Foldable           (fold, foldl')
+import           Data.Functor.Identity   (runIdentity)
+import           Data.Generics.Labels    ()
+import           Data.List               (find, maximumBy, sort, tails)
+import           Data.Map.Strict         (Map, empty, insert, keys, toList)
+import           Data.Maybe              (isNothing)
+import           Data.Maybe              (fromJust)
+import           Data.Sequence           (Seq ((:<|)), fromList, (><), (|>))
+import qualified Data.Sequence           as Seq
+import           Data.Text               (Text, pack, splitOn, unpack)
+import           Data.Text.IO            (putStr, putStrLn, readFile)
+import           System.Console.Readline (readline)
 
 import           Bidim
 import           Intcode
@@ -38,6 +42,31 @@ import           Intcode
 type Scaffold = Map Coord Char
 
 data Direction = Up | Down | Left | Right
+  deriving Show
+data Move = Advance | Rotate Bool -- sloppy, but false is left and true is right
+  deriving Show
+
+nextCoord :: Direction -> Coord -> Coord
+nextCoord Up    = plus (0, 1)
+nextCoord Down  = plus (0, -1)
+nextCoord Left  = plus (-1, 0)
+nextCoord Right = plus (1, 0)
+
+sideCoords :: Direction -> Coord -> (Coord, Coord)
+sideCoords Up c    = (nextCoord Left c, nextCoord Right c)
+sideCoords Down c  = (nextCoord Right c, nextCoord Left c)
+sideCoords Right c = (nextCoord Up c, nextCoord Down c)
+sideCoords Left c  = (nextCoord Down c, nextCoord Up c)
+
+rotate :: Bool -> Direction -> Direction
+rotate True Up     = Right
+rotate True Down   = Left
+rotate True Left   = Up
+rotate True Right  = Down
+rotate False Up    = Left
+rotate False Down  = Right
+rotate False Left  = Down
+rotate False Right = Up
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -69,12 +98,12 @@ readScaffold code =
   let
     out = intcodeToText . view _1 . runIdentity . eval (runProgram >> getOutput) $ code
     f (pos, scaffold) '\n' = (set _1 0 pos `plus` (0, 1), scaffold)
-    f (pos, scaffold) c = (pos `plus` (1, 0), insert pos c scaffold)
+    f (pos, scaffold) c    = (pos `plus` (1, 0), insert pos c scaffold)
   in
     view _2 . foldl' f ((0 ,0), empty) $ unpack out
 
 formatMap :: Maybe Char -> Text
-formatMap Nothing = "?"
+formatMap Nothing  = "?"
 formatMap (Just c) = pack [c]
 
 isCross :: Scaffold -> Coord -> Bool
@@ -95,8 +124,24 @@ findCrosses scaffold = filter (isCross scaffold) $ keys scaffold
 findPath :: Scaffold -> Text
 findPath = undefined
 
--- nextStep :: Scaffold -> Pos -> Direction -> Char
--- nextStep = undefined 
+nextMove :: Scaffold -> Direction -> Coord -> Maybe Move
+nextMove scaffold direction coord =
+  case view (at (nextCoord direction coord)) scaffold of
+    Just '#'  -> Just Advance
+    Just '.'  -> nextMoveRotate scaffold direction coord
+    Just what -> error $ "found strange cell" <> [what]
+    Nothing   -> nextMoveRotate scaffold direction coord
+
+nextMoveRotate :: Scaffold -> Direction -> Coord -> Maybe Move
+nextMoveRotate scaffold direction coord =
+  let
+    (leftPos, rightPos) = sideCoords direction coord
+    left = Rotate False <$ view (at leftPos) scaffold
+    right = Rotate True <$ view (at rightPos) scaffold
+  in left <|> right
+
+startingPos :: Scaffold -> Coord
+startingPos = fst . fromJust . find (views _2 (== '^')) . toList
 
 solution1 :: Scaffold -> Int
 solution1 = sum . fmap (productOf both) . findCrosses
@@ -148,7 +193,7 @@ maximum' key  =  snd . aux maximumBy compare key
 lds :: Ord a => [a] -> [a]
 lds = maximum' length . mapAdjacent lcp . sort . tails where
     lcp (x:xs) (y:ys) | x == y = x : lcp xs ys
-    lcp _      _               = []
+    lcp _      _      = []
 
 mapAdjacent :: (a -> a -> b) -> [a] -> [b]
 mapAdjacent f xs = zipWith f xs (tail xs)
