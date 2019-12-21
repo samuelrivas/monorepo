@@ -21,8 +21,10 @@ module Internal (
   toMemory
   ) where
 
+import           Control.Lens  (ix, preview)
 import           Data.Hashable (Hashable)
 import           Data.HashSet  (HashSet, empty)
+import           Data.Maybe    (fromJust)
 import           GHC.Generics  (Generic)
 
 import           Bidim
@@ -30,18 +32,20 @@ import           Bidim
 type MazeContext = Bidim Char
 
 data MazeNode = MazeNode {
-  pos  :: [Coord],
-  path :: [[Coord]],
-  keys :: HashSet Char,
-  c    :: Int,
-  h    :: Int
+  pos     :: [Coord],
+  robotIx :: Int,
+  path    :: [[Coord]],
+  keys    :: HashSet Char,
+  c       :: Int,
+  h       :: Int
   } deriving stock (Eq, Generic, Show)
 
 instance Hashable MazeNode
 
 data MazeMemory = MazeMemory {
-  pos  :: [Coord],
-  keys :: HashSet Char
+  robotIx :: Int,
+  pos     :: Coord,
+  keys    :: HashSet Char
   } deriving stock (Eq, Generic, Show)
 
 instance Hashable MazeMemory
@@ -55,6 +59,7 @@ initialNode startingPoints numberOfKeys =
   MazeNode {
   pos = startingPoints,
   path = [],
+  robotIx = 0,
   keys = empty,
   c = 0,
   h = numberOfKeys * hValueOfKey
@@ -62,7 +67,9 @@ initialNode startingPoints numberOfKeys =
 
 toMemory :: MazeNode -> MazeMemory
 toMemory node =
-  MazeMemory {
-  pos = pos (node :: MazeNode) ,
-  keys = keys (node :: MazeNode)
+  let movedRobot = robotIx (node :: MazeNode)
+  in MazeMemory {
+    robotIx = movedRobot,
+    pos = fromJust $ preview (ix movedRobot) $ pos (node :: MazeNode),
+    keys = keys (node :: MazeNode)
   }

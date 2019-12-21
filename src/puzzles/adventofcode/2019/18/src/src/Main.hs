@@ -1,6 +1,6 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -17,29 +17,25 @@ import           Prelude                hiding (lines, putStrLn, readFile, show,
                                          unlines)
 import qualified Prelude
 
-import           Control.Lens           (at, non, over, set, traverse, view, preview,
-                                         views, _1, _2, ix)
+import           Control.Lens           (at, ix, over, preview, set, view,
+                                         views, _1, _2)
 import           Control.Monad          (replicateM_)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Reader   (Reader)
 import           Data.Char              (isAsciiLower, isAsciiUpper, toLower)
-import           Data.Foldable          (find, foldl')
+import           Data.Foldable          (find)
 import           Data.Functor.Identity  (runIdentity)
 import           Data.Generics.Labels   ()
 import qualified Data.HashSet           as HashSet
-import           Data.List              (concatMap, unfoldr)
 import qualified Data.Map.Strict        as Map
-import           Data.Maybe             (catMaybes, fromJust, fromMaybe)
-import           Data.Ratio             ((%))
-import           Data.Text              (Text, intercalate, lines, pack,
-                                         splitOn, unpack)
-import qualified Data.Text              as Text
+import           Data.Maybe             (catMaybes, fromJust)
+import           Data.Text              (Text, pack)
 import           Data.Text.IO           (putStrLn, readFile)
 
 import           Astar
 import           Bidim
 import           Internal
-import           MonadSearch            (search, step)
+import           MonadSearch            (step)
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -84,7 +80,11 @@ solve2 text =
                             (astarConfig maze)
                             (initialNode starting (length keys))
     -- putStrLn $ "Done: " <> show node
+--    putStrLn $  showBidim (Text.singleton . fromJust) maze
     putStrLn $ "Solution 2: " <> show (views #path length (fromJust node))
+    -- putStrLn $ show starting
+    -- putStrLn "----------"
+    -- putStrLn $ Text.unlines . reverse $ (show <$> view #path (fromJust node))
 
 getInput :: IO Text
 getInput = readFile "input.txt"
@@ -197,6 +197,7 @@ nextNode fromNode robotIx toPos =
     fromPos = view #pos fromNode
   in
     set (#pos . ix robotIx) toPos $
+    set #robotIx robotIx $
     over #path (fromPos :) $
     over #c (+ 1)
     fromNode

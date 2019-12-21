@@ -18,15 +18,15 @@ module Bidim (
   cross,
   fromText,
   plus,
-  showBindim
+  showBidim
   ) where
 
 import           Prelude         hiding (concat)
 
-import           Control.Lens    (set, at, toListOf, traverse, view, _1, _2)
-import           Data.Map.Strict (Map, keys, insert, empty)
+import           Control.Lens    (at, set, toListOf, traverse, view, _1, _2)
+import           Data.Foldable   (foldl')
+import           Data.Map.Strict (Map, empty, insert, keys)
 import           Data.Text       (Text, concat, intercalate, unpack)
-import Data.Foldable (foldl')
 
 type Coord = (Int, Int)
 type Bidim a = Map Coord a
@@ -46,14 +46,12 @@ cross coord = [
 -- We need this to be a sorted map just to get the coordinate boundaries. This
 -- can easily be improved if we wrap this in its own type and keep track of them
 -- when inserting
-showBindim :: (Maybe a -> Text) -> Bidim a -> Text
-showBindim format bidim =
+showBidim :: (Maybe a -> Text) -> Bidim a -> Text
+showBidim format bidim =
   let
     ((minX, minY), (maxX, maxY)) = boundaries bidim
     row y = (, y) <$> [minX..maxX]
     showCoord :: Coord -> Text
-    showCoord (0, 0) = "$"
-    showCoord (54, 34) = "%"
     showCoord coord = format $ view (at coord) bidim
     printed :: Int -> Text
     printed y = concat (showCoord <$> row y)
@@ -84,6 +82,6 @@ fromText :: Text -> Bidim Char
 fromText out =
   let
     f (pos, bidim) '\n' = (set _1 0 pos `plus` (0, 1), bidim)
-    f (pos, bidim) c = (pos `plus` (1, 0), insert pos c bidim)
+    f (pos, bidim) c    = (pos `plus` (1, 0), insert pos c bidim)
   in
     view _2 . foldl' f ((0 ,0), empty) $ unpack out
