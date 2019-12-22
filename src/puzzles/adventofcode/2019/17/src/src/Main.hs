@@ -19,10 +19,12 @@ import           Control.Applicative     ((<|>))
 import           Control.Lens            (assign, at, both, ix, modifying,
                                           productOf, set, use, view, views, _1,
                                           _2)
+import Data.List (unfoldr)
 import           Control.Monad           (when)
 import           Control.Monad.IO.Class  (liftIO)
 import           Control.Monad.Loops     (untilJust)
 import           Control.Monad.RWS.CPS   (RWST, evalRWST, execRWST, lift, tell)
+import Control.Monad.State -- close this
 import           Data.Foldable           (fold, foldl')
 import           Data.Functor.Identity   (runIdentity)
 import           Data.Generics.Labels    ()
@@ -47,8 +49,8 @@ data Move = Advance | Rotate Bool -- sloppy, but false is left and true is right
   deriving Show
 
 nextCoord :: Direction -> Coord -> Coord
-nextCoord Up    = plus (0, 1)
-nextCoord Down  = plus (0, -1)
+nextCoord Up    = plus (0, -1)
+nextCoord Down  = plus (0, 1)
 nextCoord Left  = plus (-1, 0)
 nextCoord Right = plus (1, 0)
 
@@ -124,21 +126,46 @@ findCrosses scaffold = filter (isCross scaffold) $ keys scaffold
 findPath :: Scaffold -> Text
 findPath = undefined
 
-nextMove :: Scaffold -> Direction -> Coord -> Maybe Move
+nextMove :: Scaffold -> Direction -> Coord -> Maybe (Move, Coord, Direction)
 nextMove scaffold direction coord =
   case view (at (nextCoord direction coord)) scaffold of
-    Just '#'  -> Just Advance
+    Just '#'  -> Just (Advance, nextCoord direction coord, direction)
     Just '.'  -> nextMoveRotate scaffold direction coord
     Just what -> error $ "found strange cell" <> [what]
     Nothing   -> nextMoveRotate scaffold direction coord
 
-nextMoveRotate :: Scaffold -> Direction -> Coord -> Maybe Move
+nextMoveRotate :: Scaffold -> Direction -> Coord -> Maybe (Move, Coord, Direction)
 nextMoveRotate scaffold direction coord =
   let
     (leftPos, rightPos) = sideCoords direction coord
-    left = Rotate False <$ view (at leftPos) scaffold
-    right = Rotate True <$ view (at rightPos) scaffold
+    findScaffold pos =
+      view (at pos) scaffold >>= \case
+        '#' -> Just ()
+        '.' -> Nothing
+        what -> error $ "found strange cell" <> [what]
+    left = (Rotate False, coord, rotate False direction) <$ findScaffold leftPos
+    right = (Rotate True, coord, rotate True direction)  <$ findScaffold rightPos
   in left <|> right
+
+robot :: (Scaffold, Coord, Direction) -> Maybe (Move, (Scaffold, Coord, Direction))
+robot (scaffold, pos, direction) = do
+  (move, nextPos, nextDirection) <- nextMove scaffold direction pos
+  Just (move, (scaffold, nextPos, nextDirection))
+
+path :: Scaffold -> Coord -> Direction -> [Move]
+path scaffold origin startingDirection =
+  unfoldr robot (scaffold, origin, startingDirection)
+
+toInstructions :: [Move] -> String
+toInstructions =
+  let
+    f (count, acc) '.' = (count + 1, acc)
+    f (count, acc) rot | count >0
+  -- let
+  --   format Advance = '.'
+  --   format (Rotate True) = 'R'
+  --   format (Rotate False) = 'L'
+  -- in fmap format
 
 startingPos :: Scaffold -> Coord
 startingPos = fst . fromJust . find (views _2 (== '^')) . toList
@@ -161,6 +188,7 @@ userLoop = do
       pushInput $ textToIntcode (input <> "\n")
       userLoop
 
+
 main :: IO ()
 main = do
   code <- getInput
@@ -170,7 +198,6 @@ main = do
 
   putStrLn $ "Solution 1: " <> show (solution1 scaffold)
   putStrLn $ "Solution 2: "
-
 
 --
 
