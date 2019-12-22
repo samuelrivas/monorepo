@@ -60,15 +60,42 @@ cut n deck = do
   (lo, hi) <- getBounds deck
   mapIndices (lo, hi) (\x -> (x - lo + n) `mod` (hi - lo + 1)) deck
 
+increment :: Int -> STUArray s Int Int -> ST s (STUArray s Int Int)
+increment n deck = do
+  (lo, hi) <- getBounds deck
+
+  let nElements = hi - lo + 1
+
+  mapIndices
+    (lo, hi)
+    (\x ->
+       let inv = modInv n nElements
+       in ((x - lo) * inv) `mod` nElements)
+    deck
+
+modAbs :: Integral i => i -> i -> i
+modAbs x modulus =
+  let m = x `mod` modulus
+  in if m < 0 then modulus + m else m
+
+extendedEuclid :: Integral i => i -> i -> (i, i)
+extendedEuclid _ 0 = (1, 0)
+extendedEuclid a b =
+  let
+    q = a `div` b
+    r = a `mod` b
+    (x, y) = extendedEuclid b r
+  in
+    (y, x - q * y)
+
+-- Returns 1 if there isn't an inv
+modInv :: Integral i => i -> i -> i
+modInv n modulus =
+  let (a, _) = extendedEuclid (modAbs n modulus) modulus
+  in modAbs a modulus
+
 getInput :: IO Text
 getInput = readFile "input.txt"
-
--- toList :: forall s.ST s (STUArray s Int Int) -> [Int]
--- toList  = (IArray.elems :: UArray Int Int -> [Int]) .
---           (runSTUArray :: ST s (STUArray s Int Int) -> UArray Int Int)
-
--- toList :: (forall s.ST s (STUArray s Int Int)) -> [Int]
--- toList = IArray.elems . (runSTUArray :: ST s (STUArray s Int Int) -> UArray Int Int)
 
 main :: IO ()
 main = do
