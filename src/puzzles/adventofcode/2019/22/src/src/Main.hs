@@ -47,134 +47,148 @@ import Control.Monad.ST
 
 type Deck s = STUArray s Int Int
 
-shamelessParse :: ST s (STUArray s Int Int)
-shamelessParse = factoryDeck 10007 >>= cut 1470
-  >>= increment 46
-  >>= cut (-6481)
-  >>= increment 70
-  >>= cut 547
-  >>= increment 48
-  >>= cut (-6479)
-  >>= increment 69
-  >>= cut (-5203)
-  >>= increment 13
-  >>= newStack
-  >>= increment 73
-  >>= newStack
-  >>= cut (-6689)
-  >>= increment 61
-  >>= cut (-9853)
-  >>= increment 48
-  >>= cut (-9673)
-  >>= newStack
-  >>= increment 3
-  >>= newStack
-  >>= increment 64
-  >>= cut 5789
-  >>= increment 66
-  >>= newStack
-  >>= increment 70
-  >>= cut (-2588)
-  >>= increment 6
-  >>= newStack
-  >>= increment 6
-  >>= cut (-7829)
-  >>= increment 49
-  >>= newStack
-  >>= increment 19
-  >>= cut 9777
-  >>= newStack
-  >>= increment 27
-  >>= cut 6210
-  >>= newStack
-  >>= increment 12
-  >>= cut 6309
-  >>= increment 12
-  >>= cut (-9458)
-  >>= increment 5
-  >>= cut 6369
-  >>= increment 27
-  >>= cut 2278
-  >>= increment 42
-  >>= cut 6656
-  >>= increment 62
-  >>= cut (-1424)
-  >>= increment 25
-  >>= newStack
-  >>= increment 12
-  >>= newStack
-  >>= cut (-7399)
-  >>= newStack
-  >>= cut (-8925)
-  >>= increment 47
-  >>= newStack
-  >>= cut 5249
-  >>= increment 65
-  >>= cut (-213)
-  >>= newStack
-  >>= cut 6426
-  >>= increment 22
-  >>= cut (-6683)
-  >>= increment 38
-  >>= newStack
-  >>= increment 62
-  >>= cut 6855
-  >>= increment 75
-  >>= cut 4965
-  >>= newStack
-  >>= cut (-5792)
-  >>= increment 30
-  >>= cut 9250
-  >>= increment 19
-  >>= cut (-948)
-  >>= increment 26
-  >>= cut (-5123)
-  >>= increment 68
-  >>= cut (-604)
-  >>= increment 41
-  >>= newStack
-  >>= increment 45
-  >>= cut 5572
-  >>= newStack
-  >>= cut 3853
-  >>= increment 21
-  >>= cut 1036
-  >>= newStack
-  >>= increment 6
-  >>= cut 8114
-  >>= newStack
-  >>= increment 38
-  >>= cut (-5)
-  >>= increment 58
-  >>= cut 9539
-  >>= increment 19
+shamelessParse :: Integral i => i -> i -> i
+shamelessParse nCards =
+    cut nCards 1470
+  . increment nCards 46
+  . cut nCards (-6481)
+  . increment nCards 70
+  . cut nCards 547
+  . increment nCards 48
+  . cut nCards (-6479)
+  . increment nCards 69
+  . cut nCards (-5203)
+  . increment nCards 13
+  . newStack nCards
+  . increment nCards 73
+  . newStack nCards
+  . cut nCards (-6689)
+  . increment nCards 61
+  . cut nCards (-9853)
+  . increment nCards 48
+  . cut nCards (-9673)
+  . newStack nCards
+  . increment nCards 3
+  . newStack nCards
+  . increment nCards 64
+  . cut nCards 5789
+  . increment nCards 66
+  . newStack nCards
+  . increment nCards 70
+  . cut nCards (-2588)
+  . increment nCards 6
+  . newStack nCards
+  . increment nCards 6
+  . cut nCards (-7829)
+  . increment nCards 49
+  . newStack nCards
+  . increment nCards 19
+  . cut nCards 9777
+  . newStack nCards
+  . increment nCards 27
+  . cut nCards 6210
+  . newStack nCards
+  . increment nCards 12
+  . cut nCards 6309
+  . increment nCards 12
+  . cut nCards (-9458)
+  . increment nCards 5
+  . cut nCards 6369
+  . increment nCards 27
+  . cut nCards 2278
+  . increment nCards 42
+  . cut nCards 6656
+  . increment nCards 62
+  . cut nCards (-1424)
+  . increment nCards 25
+  . newStack nCards
+  . increment nCards 12
+  . newStack nCards
+  . cut nCards (-7399)
+  . newStack nCards
+  . cut nCards (-8925)
+  . increment nCards 47
+  . newStack nCards
+  . cut nCards 5249
+  . increment nCards 65
+  . cut nCards (-213)
+  . newStack nCards
+  . cut nCards 6426
+  . increment nCards 22
+  . cut nCards (-6683)
+  . increment nCards 38
+  . newStack nCards
+  . increment nCards 62
+  . cut nCards 6855
+  . increment nCards 75
+  . cut nCards 4965
+  . newStack nCards
+  . cut nCards (-5792)
+  . increment nCards 30
+  . cut nCards 9250
+  . increment nCards 19
+  . cut nCards (-948)
+  . increment nCards 26
+  . cut nCards (-5123)
+  . increment nCards 68
+  . cut nCards (-604)
+  . increment nCards 41
+  . newStack nCards
+  . increment nCards 45
+  . cut nCards 5572
+  . newStack nCards
+  . cut nCards 3853
+  . increment nCards 21
+  . cut nCards 1036
+  . newStack nCards
+  . increment nCards 6
+  . cut nCards 8114
+  . newStack nCards
+  . increment nCards 38
+  . cut nCards (-5)
+  . increment nCards 58
+  . cut nCards 9539
+  . increment nCards 19
 
+-- factoryDeck :: MArray a Int m => Int -> m (a Int Int)
+-- factoryDeck n = newListArray (0, n - 1) [0..n-1]
 
-factoryDeck :: MArray a Int m => Int -> m (a Int Int)
-factoryDeck n = newListArray (0, n - 1) [0..n-1]
+-- newStack :: STUArray s Int Int -> ST s (STUArray s Int Int)
+-- newStack deck = do
+--   (lo, hi) <- getBounds deck
+--   mapIndices (lo, hi) (\x -> hi - x + lo) deck
 
-newStack :: STUArray s Int Int -> ST s (STUArray s Int Int)
-newStack deck = do
-  (lo, hi) <- getBounds deck
-  mapIndices (lo, hi) (\x -> hi - x + lo) deck
+newStack :: Integral i => i -> i -> i
+newStack nCards i = nCards - i - 1
 
-cut :: Int -> STUArray s Int Int -> ST s (STUArray s Int Int)
-cut n deck = do
-  (lo, hi) <- getBounds deck
-  mapIndices (lo, hi) (\x -> (x - lo + n) `mod` (hi - lo + 1)) deck
+-- cut :: Int -> STUArray s Int Int -> ST s (STUArray s Int Int)
+-- cut n deck = do
+--   (lo, hi) <- getBounds deck
+--   mapIndices (lo, hi) (\x -> (x - lo + n) `mod` (hi - lo + 1)) deck
 
-increment :: Int -> STUArray s Int Int -> ST s (STUArray s Int Int)
-increment n deck = do
-  (lo, hi) <- getBounds deck
+cut :: Integral i => i -> i -> i -> i
+cut nCards n i = (i + n) `mod` nCards
+-- increment :: Int -> STUArray s Int Int -> ST s (STUArray s Int Int)
+-- increment n deck = do
+--   (lo, hi) <- getBounds deck
 
-  let nElements = hi - lo + 1
+--   let nElements = hi - lo + 1
 
-  mapIndices
-    (lo, hi)
-    (\x ->
-       let inv = modInv n nElements
-       in ((x - lo) * inv) `mod` nElements)
-    deck
+--   mapIndices
+--     (lo, hi)
+--     (\x ->
+--        let inv = modInv n nElements
+--        in ((x - lo) * inv) `mod` nElements)
+--     deck
+
+increment :: Integral i => i -> i -> i -> i
+increment nCards n i =
+  let inv = modInv n nCards
+  in (i * inv) `mod` nCards
+
+-- For a deck of n cards (n being prime) power x == power (n + x -1)
+power :: Integral i => Int -> (i -> i) -> (i -> i)
+power n f = foldr (.) id $ replicate n f
 
 modAbs :: Integral i => i -> i -> i
 modAbs x modulus =
