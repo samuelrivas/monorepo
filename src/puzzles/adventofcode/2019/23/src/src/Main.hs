@@ -62,7 +62,11 @@ getInput :: IO [Integer]
 getInput = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
 
 solution1 :: [Integer] -> Int
-solution1 = undefined
+solution1 intcode =
+  let
+    networkState = initialNetworkState intcode
+  in
+    undefined
 
 computerStep ::
   Monad m => Maybe [Integer] -> IntcodeT m ([Integer], Status)
@@ -99,6 +103,10 @@ runNode addr = do
 dispatchOutput :: Monad m =>  [Integer] -> NetworkT m ()
 dispatchOutput [] = pure ()
 dispatchOutput (addr : x : y : t) = do
+  if addr == 255
+    then error $ "sent to 255: " <> Prelude.show (x, y)
+    else pure ()
+
   node <- uses #nodes (! addr)
   let inputs :: [Integer] = view (#input . _Just) node
       newNode = set #input (Just $ x : y : inputs) node
@@ -140,4 +148,3 @@ initialNetworkState intcode =
     nodes = (\addr -> (addr, mkNodeState . intcodeState $ addr)) <$> [0..49]
   in
     NetworkState $ HashMap.fromList nodes
-    
