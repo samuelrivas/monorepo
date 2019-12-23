@@ -78,7 +78,8 @@ computerStep inputM = do
 
   pure (output, status)
 
-runNode :: Monad m => Integer -> NetworkT m ()
+-- Returns packages sent
+runNode :: Monad m => Integer -> NetworkT m [Integer]
 runNode addr = do
   nodeState <- uses #nodes (! addr)
   let computerState = view #computerState nodeState
@@ -93,6 +94,7 @@ runNode addr = do
   assign (#nodes . at addr) $ Just newNode
 
   dispatchOutput output
+  pure output
 
 dispatchOutput :: Monad m =>  [Integer] -> NetworkT m ()
 dispatchOutput [] = pure ()
@@ -104,8 +106,8 @@ dispatchOutput (addr : x : y : t) = do
   dispatchOutput t
 dispatchOutput other = error $ "weird output: " ++ Prelude.show other
 
-networkStep :: Monad m => NetworkT m ()
-networkStep = undefined
+networkStep :: Monad m => NetworkT m [[Integer]]
+networkStep = sequence $ runNode <$> [0..49]
 
 initComputer :: Monad m => Integer -> IntcodeT m ()
 initComputer = pushInput . pure
@@ -119,14 +121,23 @@ main = do
 
 
 -- Testing
-startingIntcodeState :: IO IntcodeState
-startingIntcodeState = view _2 <$> (getInput >>= run (initComputer 1))
+initialisedIntcode :: Integer -> IO IntcodeState
+initialisedIntcode id = view _2 <$> (getInput >>= run (initComputer id))
 
-startingNetworkState :: IO NetworkState
-startingNetworkState = do
-  intcodeState <- startingIntcodeState
+debugNetworkState :: IO NetworkState
+debugNetworkState = do
+  intcodeState <- initialisedIntcode 1
   let nodeState = mkNodeState intcodeState
   pure . NetworkState $ HashMap.singleton 1 nodeState
 
 mkNodeState :: IntcodeState -> NodeState
 mkNodeState intcodeState = NodeState intcodeState Nothing
+
+initialNetworkState :: [Integer] -> NetworkState
+initialNetworkState intcode =
+  let
+    intcodeState addr = view _2 . runIdentity $ run (initComputer addr) intcode
+    nodes = (\addr -> (addr, mkNodeState . intcodeState $ addr)) <$> [0..49]
+  in
+    NetworkState $ HashMap.fromList nodes
+    
