@@ -5,7 +5,6 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -13,32 +12,20 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TupleSections         #-}
 
-import           Prelude                hiding (lines, putStrLn, readFile, show,
-                                         unlines)
+import           Prelude              hiding (lines, putStrLn, readFile, show,
+                                       unlines)
 import qualified Prelude
 
-import           Control.Lens           (at, ix, over, preview, set, view,
-                                         views, _1, _2)
-import           Control.Monad          (replicateM_)
-import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Reader   (Reader)
-import           Data.Char              (isAsciiLower, isAsciiUpper, toLower)
-import           Data.Foldable          (find)
-import           Data.Functor.Identity  (runIdentity)
-import           Data.Generics.Labels   ()
-import  Data.HashSet          (HashSet)
-import qualified Data.HashSet           as HashSet
-import qualified Data.Map.Strict        as Map
-import qualified Data.HashMap.Strict        as HashMap
-import  Data.HashMap.Strict        ( HashMap)
-import  Data.Map.Strict        ( Map)
-import qualified Data.Text as Text
-import           Data.Maybe             (catMaybes, fromJust)
-import           Data.Text              (Text, pack)
-import           Data.Text.IO           (putStrLn, readFile)
-import Control.Monad.State
-import Data.Bool (bool)
-import Data.Foldable (foldl')
+import           Control.Monad.State  (StateT, evalStateT, gets, modify)
+import           Data.Bool            (bool)
+import           Data.Foldable        (foldl')
+import           Data.Generics.Labels ()
+import           Data.HashSet         (HashSet)
+import qualified Data.HashSet         as HashSet
+import           Data.Map.Strict      (Map)
+import qualified Data.Map.Strict      as Map
+import           Data.Text            (Text, pack)
+import           Data.Text.IO         (putStrLn, readFile)
 
 import           Bidim
 
@@ -50,10 +37,16 @@ solve1 text =
   let eris = parseInput text
   in do
     dup <- evalStateT (findDup eris) HashSet.empty
-    putStrLn "input:"
-    putStrLn $ showBidim showCell eris
-    putStrLn "First dup:"
-    putStrLn $ showBidim showCell dup
+    putStrLn $ "Solution 1: " <> show (bioDiv dup)
+
+bioDiv :: Bidim Bool -> Integer
+bioDiv bidim =
+  let
+    index (x,y) = x + 5 * y
+    cellBioDiv total pos True   = total + 2 ^ index pos
+    cellBioDiv total _pos False = total
+  in
+    Map.foldlWithKey cellBioDiv 0 bidim
 
 solve2 :: Text -> IO ()
 solve2 text =
@@ -83,9 +76,9 @@ updateCell eris pos isBug =
     numBugs = sum $ fromEnum <$> neighbors
   in
     case (numBugs, isBug) of
-      (n, True) | n /= 1 -> False
+      (n, True) | n /= 1            -> False
       (n, False) | 1 <= n && n <= 2 -> True
-      (_, _) -> isBug
+      (_, _)                        -> isBug
 
 updateHyperCell :: HyperEris -> HyperCoord -> Bool -> Bool
 updateHyperCell _ ((2, 2), _) _ = False
@@ -95,9 +88,9 @@ updateHyperCell eris pos isBug =
     numBugs = sum $ fromEnum <$> neighbors
   in
     case (numBugs, isBug) of
-      (n, True) | n /= 1 -> False
+      (n, True) | n /= 1            -> False
       (n, False) | 1 <= n && n <= 2 -> True
-      (_, _) -> isBug
+      (_, _)                        -> isBug
 
 minute :: Bidim Bool -> Bidim Bool
 minute eris = Map.mapWithKey (updateCell eris) eris
@@ -105,6 +98,7 @@ minute eris = Map.mapWithKey (updateCell eris) eris
 hyperMinute :: HyperEris -> HyperEris
 hyperMinute eris = Map.mapWithKey (updateHyperCell eris) eris
 
+-- For debugging
 project :: Integer -> HyperEris -> Bidim Bool
 project level hyperEris =
   let onlyLevel hyperCoord _ = snd hyperCoord == level
@@ -119,12 +113,6 @@ type ErisT = StateT (HashSet Text)
 type HyperCoord = (Coord, Integer)
 
 type HyperEris = Map HyperCoord Bool
-
-row :: Integer -> Integer -> [HyperCoord]
-row = undefined
-
-column :: Integer -> Integer -> [HyperCoord]
-column = undefined
 
 inBounds :: Coord -> Bool
 inBounds coord@(x, y) =
@@ -157,40 +145,39 @@ hyperCross hyperCoord@(coord, level) =
 
 innerTop :: HyperCoord -> [HyperCoord]
 innerTop ((2, 1), level) = (, level + 1) . (, 0) <$> [0..4]
-innerTop _ = []
+innerTop _               = []
 
 innerBottom :: HyperCoord -> [HyperCoord]
 innerBottom ((2, 3), level) = (, level + 1) . (, 4) <$> [0..4]
-innerBottom _ = []
+innerBottom _               = []
 
 innerLeft :: HyperCoord -> [HyperCoord]
 innerLeft ((1, 2), level) = (, level + 1) . (0, ) <$> [0..4]
-innerLeft _ = []
+innerLeft _               = []
 
 innerRight :: HyperCoord -> [HyperCoord]
 innerRight ((3, 2), level) = (, level + 1) . (4, ) <$> [0..4]
-innerRight _ = []
+innerRight _               = []
 
 outerTop :: HyperCoord -> [HyperCoord]
 outerTop ((_, 0), level) = [((2, 1), level - 1)]
-outerTop _ = []
+outerTop _               = []
 
 outerBottom :: HyperCoord -> [HyperCoord]
 outerBottom ((_, 4), level) = [((2, 3), level - 1)]
-outerBottom _ = []
+outerBottom _               = []
 
 outerLeft :: HyperCoord -> [HyperCoord]
 outerLeft ((0, _), level) = [((1, 2), level - 1)]
-outerLeft _ = []
+outerLeft _               = []
 
 outerRight :: HyperCoord -> [HyperCoord]
 outerRight ((4, _), level) = [((3, 2), level - 1)]
-outerRight _ = []
+outerRight _               = []
 
 emptyHyperEris :: HyperEris
 emptyHyperEris =
   Map.fromList [(((x, y), l), False) | x <- [0..4], y <- [0..4], l <- [-101..101]]
-
 
 getHyperEris :: Text -> HyperEris
 getHyperEris text = Map.union (inject 0 . parseInput $ text) emptyHyperEris
@@ -210,5 +197,5 @@ findDup eris =
 main :: IO ()
 main = do
   input <- getInput
-  -- solve1 input
+  solve1 input
   solve2 input
