@@ -38,6 +38,7 @@ import           Data.Text              (Text, pack)
 import           Data.Text.IO           (putStrLn, readFile)
 import Control.Monad.State
 import Data.Bool (bool)
+import Data.Foldable (foldl')
 
 import           Bidim
 
@@ -55,7 +56,13 @@ solve1 text =
     putStrLn $ showBidim showCell dup
 
 solve2 :: Text -> IO ()
-solve2 text = undefined
+solve2 text =
+  let
+    hyperEris = getHyperEris text
+    infested = foldl' (.) id (replicate 200 hyperMinute) hyperEris
+    count = Map.foldl (flip $ (+) . fromEnum) 0 infested
+  in
+    putStrLn $ "Solution 2: " <> show count
 
 getInput :: IO Text
 getInput = readFile "input.txt"
@@ -203,5 +210,5 @@ findDup eris =
 main :: IO ()
 main = do
   input <- getInput
-  solve1 input
+  -- solve1 input
   solve2 input
