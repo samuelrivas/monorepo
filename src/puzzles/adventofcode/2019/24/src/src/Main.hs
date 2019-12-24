@@ -26,6 +26,7 @@ import           Data.Char              (isAsciiLower, isAsciiUpper, toLower)
 import           Data.Foldable          (find)
 import           Data.Functor.Identity  (runIdentity)
 import           Data.Generics.Labels   ()
+import  Data.HashSet          (HashSet)
 import qualified Data.HashSet           as HashSet
 import qualified Data.Map.Strict        as Map
 import qualified Data.Text as Text
@@ -43,7 +44,12 @@ show = pack . Prelude.show
 solve1 :: Text -> IO ()
 solve1 text =
   let eris = parseInput text
-  in putStrLn $ showBidim showCell eris
+  in do
+    dup <- evalStateT (findDup eris) HashSet.empty
+    putStrLn "input:"
+    putStrLn $ showBidim showCell eris
+    putStrLn "First dup:"
+    putStrLn $ showBidim showCell dup
 
 solve2 :: Text -> IO ()
 solve2 text = undefined
@@ -73,6 +79,20 @@ updateCell eris pos isBug =
 
 minute :: Bidim Bool -> Bidim Bool
 minute eris = Map.mapWithKey (updateCell eris) eris
+
+type ErisT = StateT (HashSet Text)
+
+findDup :: Monad m => Bidim Bool -> ErisT m (Bidim Bool)
+findDup eris =
+  let
+    printedEris = showBidim showCell eris
+  in do
+    seen <- gets $ HashSet.member printedEris
+    if seen
+      then pure eris
+      else do
+        modify (HashSet.insert printedEris)
+        findDup (minute eris)
 
 main :: IO ()
 main = do
