@@ -149,36 +149,44 @@ hyperCross hyperCoord@(coord, level) =
       ]
 
 innerTop :: HyperCoord -> [HyperCoord]
-innerTop ((2, 1), level) = (, level - 1) . (, 0) <$> [0..4]
+innerTop ((2, 1), level) = (, level + 1) . (, 0) <$> [0..4]
 innerTop _ = []
 
 innerBottom :: HyperCoord -> [HyperCoord]
-innerBottom ((2, 3), level) = (, level - 1) . (, 4) <$> [0..4]
+innerBottom ((2, 3), level) = (, level + 1) . (, 4) <$> [0..4]
 innerBottom _ = []
 
 innerLeft :: HyperCoord -> [HyperCoord]
-innerLeft ((1, 2), level) = (, level - 1) . (0, ) <$> [0..4]
+innerLeft ((1, 2), level) = (, level + 1) . (0, ) <$> [0..4]
 innerLeft _ = []
 
 innerRight :: HyperCoord -> [HyperCoord]
-innerRight ((3, 2), level) = (, level - 1) . (4, ) <$> [0..4]
+innerRight ((3, 2), level) = (, level + 1) . (4, ) <$> [0..4]
 innerRight _ = []
 
 outerTop :: HyperCoord -> [HyperCoord]
-outerTop ((_, 4), level) = [((2, 0), level + 1)]
+outerTop ((_, 0), level) = [((2, 1), level - 1)]
 outerTop _ = []
 
 outerBottom :: HyperCoord -> [HyperCoord]
-outerBottom ((_, 0), level) = [((2, 4), level + 1)]
+outerBottom ((_, 4), level) = [((2, 3), level - 1)]
 outerBottom _ = []
 
 outerLeft :: HyperCoord -> [HyperCoord]
-outerLeft ((4, _), level) = [((0, 2), level + 1)]
+outerLeft ((0, _), level) = [((1, 2), level - 1)]
 outerLeft _ = []
 
 outerRight :: HyperCoord -> [HyperCoord]
-outerRight ((0, _), level) = [((4, 2), level + 1)]
+outerRight ((4, _), level) = [((3, 2), level - 1)]
 outerRight _ = []
+
+emptyHyperEris :: HyperEris
+emptyHyperEris =
+  Map.fromList [(((x, y), l), False) | x <- [0..4], y <- [0..4], l <- [-101..101]]
+
+
+getHyperEris :: Text -> HyperEris
+getHyperEris text = Map.union (inject 0 . parseInput $ text) emptyHyperEris
 
 findDup :: Monad m => Bidim Bool -> ErisT m (Bidim Bool)
 findDup eris =
