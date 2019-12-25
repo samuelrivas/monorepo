@@ -1,41 +1,31 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-import           Prelude                 hiding (Left, Right, concat, getLine,
-                                          putStr, putStrLn, readFile, show, unlines)
+import           Prelude                hiding (Left, Right, concat, getLine,
+                                         putStr, putStrLn, readFile, show,
+                                         unlines)
 import qualified Prelude
 
-import           Control.Applicative     ((<|>))
-import           Control.Lens            (assign, at, both, ix, modifying,
-                                          productOf, set, use, view, views, _1,
-                                          _2)
-import Data.Hashable (Hashable)
-import           Control.Monad           (when)
-import           Control.Monad.IO.Class  (liftIO)
-import           Control.Monad.Loops     (untilJust)
-import           Control.Monad.RWS.CPS   (RWST, evalRWST, execRWST, lift, tell)
-import Control.Monad.State -- close this
-import           Data.Foldable           (fold, foldl')
-import           Data.Functor.Identity   (runIdentity)
-import           Data.Generics.Labels    ()
-import           Data.List               (subsequences, find, maximumBy, sort, tails)
-import           Data.Map.Strict         (Map, empty, insert, keys, toList)
-import           Data.Text               (Text, pack, splitOn, unpack, lines, unlines)
-import qualified           Data.Text as Text
-import           Data.Text.IO            (putStr, putStrLn, readFile)
-import           System.Console.Readline (readline)
-import qualified Data.HashSet as HashSet
-import Data.HashSet (HashSet)
+import           Control.Lens           (view, _1, _2)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Functor.Identity  (runIdentity)
+import           Data.Generics.Labels   ()
+import           Data.Hashable          (Hashable)
+import           Data.HashSet           (HashSet)
+import qualified Data.HashSet           as HashSet
+import           Data.List              (find, subsequences)
+import           Data.Text              (Text, pack, splitOn, unlines, unpack)
+import qualified Data.Text              as Text
+import           Data.Text.IO           (putStrLn, readFile)
 
 import           Intcode
 
@@ -73,7 +63,7 @@ atCheckpoint =
        runProgram >>
        flushOutput))
 
--- Explored manally
+-- Explored manually
 inventory :: HashSet Text
 inventory = HashSet.fromList [
   "easter egg",
@@ -117,14 +107,13 @@ alertLighter = "Alert! Droids on this ship are lighter than the detected value!"
 alertHeavier :: Text
 alertHeavier = "Alert! Droids on this ship are heavier than the detected value!"
 
-findCorrectInventory :: IntcodeState -> Maybe (HashSet Text)
-findCorrectInventory checkpoint =
+findCorrectDropSet :: IntcodeState -> Maybe (HashSet Text)
+findCorrectDropSet checkpoint =
   find (view _1 . runIdentity. runEmpty . checkDropSet checkpoint) $
     allSubsets inventory
 
--- Found by testing from the checkpoint
+-- Found by testing drop sets from the checkpoint
 correctInventory :: [Text]
--- correctInventory = ["shell","weather machine","festive hat","whirled peas"]
 correctInventory = ["easter egg", "mug", "sand", "space heater"]
 
 solution1 :: [Integer] -> IO Text
