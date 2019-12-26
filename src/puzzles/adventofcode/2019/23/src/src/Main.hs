@@ -61,12 +61,21 @@ decode = toEnum . fromIntegral
 getInput :: IO [Integer]
 getInput = fmap (read . unpack) . splitOn "," <$> readFile "input.txt"
 
-solution1 :: [Integer] -> Int
+allNodes :: [Integer]
+allNodes = [0..49]
+
+solution1 :: Monad m => [Integer] -> m Integer
 solution1 intcode =
+  let networkState = initialNetworkState intcode
+  in view _2 <$> evalStateT runUntilNat networkState
+
+initialNetworkState :: [Integer] -> NetworkState
+initialNetworkState intcode =
   let
-    networkState = initialNetworkState intcode
+    intcodeState addr = view _2 . runIdentity $ run (initComputer addr) intcode
+    nodes = (\addr -> (addr, mkNodeState . intcodeState $ addr)) <$> allNodes
   in
-    undefined
+    NetworkState (HashMap.fromList nodes) Nothing
 
 computerStep ::
   Monad m => Maybe [Integer] -> IntcodeT m ([Integer], Status)
@@ -102,11 +111,10 @@ runNode addr = do
 
 dispatchOutput :: Monad m =>  [Integer] -> NetworkT m ()
 dispatchOutput [] = pure ()
+dispatchOutput (255 : x : y : t) = do
+  assign #nat $ Just (x, y)
+  dispatchOutput t
 dispatchOutput (addr : x : y : t) = do
-  if addr == 255
-    then error $ "sent to 255: " <> Prelude.show (x, y)
-    else pure ()
-
   node <- uses #nodes (! addr)
   let inputs :: [Integer] = view (#input . _Just) node
       newNode = set #input (Just $ x : y : inputs) node
@@ -120,11 +128,15 @@ networkStep = sequence $ runNode <$> [0..49]
 initComputer :: Monad m => Integer -> IntcodeT m ()
 initComputer = pushInput . pure
 
+runUntilNat :: Monad m => NetworkT m (Integer, Integer)
+runUntilNat = untilJust (networkStep >> use #nat)
+
 main :: IO ()
 main = do
   code <- getInput
 
-  putStrLn $ "Solution 1: " <> show (solution1 code)
+  sol1 <- solution1 code
+  putStrLn $ "Solution 1: " <> show sol1
   putStrLn $ "Solution 2: "
 
 
@@ -136,15 +148,7 @@ debugNetworkState :: IO NetworkState
 debugNetworkState = do
   intcodeState <- initialisedIntcode 1
   let nodeState = mkNodeState intcodeState
-  pure . NetworkState $ HashMap.singleton 1 nodeState
+  pure $ NetworkState (HashMap.singleton 1 nodeState) Nothing
 
 mkNodeState :: IntcodeState -> NodeState
 mkNodeState intcodeState = NodeState intcodeState Nothing
-
-initialNetworkState :: [Integer] -> NetworkState
-initialNetworkState intcode =
-  let
-    intcodeState addr = view _2 . runIdentity $ run (initComputer addr) intcode
-    nodes = (\addr -> (addr, mkNodeState . intcodeState $ addr)) <$> [0..49]
-  in
-    NetworkState $ HashMap.fromList nodes

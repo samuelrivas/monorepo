@@ -30,6 +30,7 @@ data NodeState = NodeState {
   input :: Maybe [Integer]
   } deriving stock (Show, Generic)
 
-newtype NetworkState = NetworkState {
-  nodes :: HashMap Integer NodeState
+data NetworkState = NetworkState {
+  nodes :: HashMap Integer NodeState,
+  nat :: Maybe (Integer, Integer)
   } deriving stock (Show, Generic)
