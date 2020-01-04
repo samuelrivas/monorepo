@@ -15,7 +15,10 @@ let low-battery = haskell-pkg {
       ];
       inherit haskellPackages sandbox;
     };
-in writeShellScriptBin "low-battery-notify" ''
-   export PATH=${libnotify}/bin:${acpi}/bin
-   ${low-battery}/bin/low-battery-check
-   ''
+in if sandbox then
+     low-battery
+   else
+     writeShellScriptBin "low-battery-notify" ''
+       export PATH=${libnotify}/bin:${acpi}/bin
+       ${low-battery}/bin/low-battery-check
+     ''
