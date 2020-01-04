@@ -98,6 +98,7 @@ let
         sandbox ? false,
         src,
         wanted-packages,
+        extra-build-inputs ? [],
       } :
       let
         haskell-packages-selector = _: wanted-packages;
@@ -110,9 +111,11 @@ let
           buildInputs = [
             ghc
             pkgs-sam.haskell-mk
-          ] ++ (if sandbox
-                then [(pkgs-sam.emacs-for-haskell ghc) haskellPackages.hoogle]
-                else []);
+          ]
+          ++ extra-build-inputs
+          ++ (if sandbox
+              then [(pkgs-sam.emacs-for-haskell ghc) haskellPackages.hoogle]
+              else []);
 
           installPhase = ''
             mkdir -p $out/bin
@@ -147,6 +150,12 @@ let
       sandbox = true;
     };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
+      sandbox = false;
+    };
+    low-battery-sandbox = callPackage ./../src/haskell/low-battery/nix {
+      sandbox = true;
+    };
+    low-battery = callPackage ./../src/haskell/low-battery/nix {
       sandbox = false;
     };
 
