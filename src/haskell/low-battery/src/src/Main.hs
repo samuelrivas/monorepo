@@ -6,7 +6,8 @@
 
 module Main (
   main,
-  test
+  test,
+  test2
   ) where
 
 import           Control.Monad (when)
@@ -17,6 +18,9 @@ import           Text.Parsec
 
 test :: String
 test = "Battery 0: Discharging, 63%, 05:46:02 remaining\n"
+
+test2 :: String
+test2 = "Battery 0: Charging, 9%, 01:48:25 until charged\n"
 
 acpiCommand :: String
 acpiCommand = "acpi -b"
