@@ -16,6 +16,9 @@ import           Data.Foldable (foldl')
 import           HSH           (exit, run)
 import           Text.Parsec
 
+data Status = Charging | Discharging Int
+  deriving Show
+
 test :: String
 test = "Battery 0: Discharging, 63%, 05:46:02 remaining\n"
 
@@ -34,14 +37,25 @@ notComma = noneOf ","
 colon :: Parsec String st Char
 colon = char ':'
 
+notColon :: Parsec String st Char
+notColon = noneOf ":"
+
 number :: Parsec String st Int
 number = foldl' (\n c -> n * 10 + digitToInt c) 0 <$> many1 digit
 
 remaining :: Parsec String st (Int, Int, Int)
-remaining = time <* spaces <* string "remaining"
+remaining = time <* spaces <* (string "remaining" <|> string "until charged")
+
+charging :: Parsec String st ()
+charging = spaces <* string "Charging"
+
+discharging :: Parsec String st ()
+discharging = spaces <* string "Discharging"
 
 timeLeft :: Parsec String st (Int, Int, Int)
-timeLeft = many notComma *> comma *> many notComma *> comma *> remaining
+timeLeft = many notColon *> colon *> (try charging <|> try discharging) *>
+           many notComma *> comma *>
+           many notComma *> comma *> remaining
 
 time :: Parsec String st (Int, Int, Int)
 time = (,,) <$> (number <* colon) <*> (number <* colon) <*> number
