@@ -10,11 +10,13 @@ module Main (
   test2
   ) where
 
-import           Control.Monad (when)
-import           Data.Char     (digitToInt)
-import           Data.Foldable (foldl')
-import           HSH           (exit, run)
-import           Text.Parsec
+import           Control.Applicative ((<|>))
+import           Control.Monad       (when)
+import           Data.Char           (digitToInt)
+import           Data.Foldable       (foldl')
+import           HSH                 (exit, run)
+import           Text.Parsec         (Parsec, char, digit, many, many1, noneOf,
+                                      parse, spaces, string, try)
 
 data Status = Charging | Discharging Int
   deriving Show
@@ -53,7 +55,8 @@ discharging :: Parsec String st ()
 discharging = spaces <* string "Discharging"
 
 timeLeft :: Parsec String st (Int, Int, Int)
-timeLeft = many notColon *> colon *> (try charging <|> try discharging) *>
+timeLeft = many notColon *> colon *>
+           (try charging <|> try discharging) *>
            many notComma *> comma *>
            many notComma *> comma *> remaining
 
