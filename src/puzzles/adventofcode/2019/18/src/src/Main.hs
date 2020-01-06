@@ -13,6 +13,20 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TupleSections         #-}
 
+-- Ideas to speed this up
+--
+--  - Graph compression: Generate a graph linking doors, keys and crossroads,
+--    compressing all pahts into a single transition with cost equal to the
+--    length of the path. This might be quite some work
+--
+--  - Generate better heuristics. For example: a function of the Manhattan
+--    distances to all the doors, where the necessary keys are taking into
+--    account. The distance to a door for which we don't have the key should be
+--    higher than any possible distance so that we force the algorithm to move
+--    towards the necessary keys. Blocked keys may add the cost of walking
+--    towards the door. This seems more promising to me, but I don't know how to
+--    easily check whether a key is blocked...
+
 import           Prelude                hiding (lines, putStrLn, readFile, show,
                                          unlines)
 import qualified Prelude
