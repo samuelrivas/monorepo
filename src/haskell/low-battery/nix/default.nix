@@ -20,5 +20,6 @@ in if sandbox then
    else
      writeShellScriptBin "low-battery-notify" ''
        export PATH=${libnotify}/bin:${acpi}/bin
+       export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1002/bus
        ${low-battery}/bin/low-battery-check
      ''
