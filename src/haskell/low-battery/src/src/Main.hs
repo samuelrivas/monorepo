@@ -73,7 +73,7 @@ handleAcpiOutput :: String -> IO ()
 handleAcpiOutput acpiOutput =
   case parse minutesLeft acpiOutput acpiOutput of
     Right minutes ->
-      when (minutes < 10) $ warnLowBattery minutes
+      when (minutes < 20) $ warnLowBattery minutes
     Left err -> do
       print err
       exit 1
