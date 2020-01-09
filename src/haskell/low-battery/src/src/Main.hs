@@ -81,9 +81,9 @@ handleAcpiOutput :: String -> IO ()
 handleAcpiOutput acpiOutput =
   case parse acpiLine acpiOutput acpiOutput of
     Right status ->
-      let minutesLeft' = toMinutes $ view #timeLeft status
-      in unless (view #isCharging status || minutesLeft' > warningMinutes) $
-         warnLowBattery minutesLeft'
+      let minutesLeft = toMinutes $ view #timeLeft status
+      in unless (view #isCharging status || minutesLeft > warningMinutes) $
+         warnLowBattery minutesLeft
     Left err -> do
       print err
       exit 1
