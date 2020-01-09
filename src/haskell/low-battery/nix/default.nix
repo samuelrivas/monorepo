@@ -12,6 +12,8 @@ let low-battery = haskell-pkg {
       wanted-packages = with haskellPackages; [
         HSH
         parsec
+        generic-lens
+        lens
       ];
       inherit haskellPackages sandbox;
     };
