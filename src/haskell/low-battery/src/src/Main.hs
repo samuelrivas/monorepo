@@ -92,10 +92,10 @@ timeMessage :: Int -> String
 timeMessage t = show t <> " minutes left"
 
 criticalMinutes :: Int
-criticalMinutes = 2
+criticalMinutes = 30
 
 warningMinutes :: Int
-warningMinutes = 20
+warningMinutes = 40
 
 urgency :: Int -> String
 urgency x
