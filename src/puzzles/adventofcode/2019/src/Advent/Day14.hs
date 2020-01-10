@@ -27,7 +27,6 @@ import           Data.Ratio           ((%))
 import           Data.Text            (Text, intercalate, lines, splitOn,
                                        unpack)
 import qualified Data.Text            as Text
-import           Data.Text.IO         (readFile)
 import           Data.Tuple           (swap)
 
 import           System.IO.Advent     (getInput)
