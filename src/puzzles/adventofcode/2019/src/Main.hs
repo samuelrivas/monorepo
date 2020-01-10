@@ -1,4 +1,3 @@
-
 import           Data.HashMap.Lazy  (HashMap)
 import qualified Data.HashMap.Lazy  as HashMap
 import           System.Environment (getArgs)

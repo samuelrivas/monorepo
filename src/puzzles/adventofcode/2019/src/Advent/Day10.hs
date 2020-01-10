@@ -78,8 +78,8 @@ parse text =
 
 init_acc :: Text -> Acc
 init_acc text =
-  let (asteroids, limit) = parse text
-  in Acc asteroids (0,0) limit
+  let (asteroids', limit') = parse text
+  in Acc asteroids' (0,0) limit'
 
 set_position :: Acc -> Coord -> Acc
 set_position acc pos =
