@@ -1,5 +1,6 @@
-import           Data.HashMap       (Map)
-import qualified Data.HashMap       as HashMap
+
+import           Data.HashMap.Lazy  (HashMap)
+import qualified Data.HashMap.Lazy  as HashMap
 import           System.Environment (getArgs)
 
 import qualified Advent.Day10
@@ -33,7 +34,7 @@ import qualified Advent.Day9
 
 -- FIXME: Running without arguments should run all of them
 
-dispatcher :: Map String (IO ())
+dispatcher :: HashMap String (IO ())
 dispatcher =
   HashMap.fromList
   [("2", Advent.Day2.main),

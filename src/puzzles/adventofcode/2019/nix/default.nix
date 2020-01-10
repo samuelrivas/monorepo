@@ -9,12 +9,12 @@ let
     ansi-terminal
     fingertree
     generic-lens
-    hashmap
     lens
     monad-loops
     readline
     regex-pcre
     unliftio
+    unordered-containers
     writer-cps-mtl
   ];
   haskell-packages-selector = _: wanted-packages;
