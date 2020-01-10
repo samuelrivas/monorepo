@@ -23,7 +23,7 @@ import           Data.Generics.Labels  ()
 import           Data.List             (permutations)
 import           Data.List.NonEmpty    (NonEmpty (..), fromList, toList)
 import           Data.Text             (pack, splitOn, unpack)
-import           Data.Text.IO          (putStrLn, readFile)
+import           Data.Text.IO          (putStrLn)
 import           GHC.Generics          (Generic)
 
 import           Advent.Day7.Intcode
