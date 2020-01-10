@@ -14,12 +14,15 @@ GHC := ghc $(GHC-FLAGS)
 PROGRAM := $(BIN-DIR)/$(PROGRAM-NAME)
 
 .PHONY: all
-all: $(PROGRAM)
+all: $(PROGRAM) $(INPUT-FILES)
 
 $(BIN-DIR):
 	mkdir -p $@
 
 $(GEN-DIR):
+	mkdir -p $@
+
+$(LIB-DIR):
 	mkdir -p $@
 
 .PHONY: clean

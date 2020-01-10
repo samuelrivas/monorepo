@@ -14,6 +14,7 @@ let
     monad-loops
     readline
     regex-pcre
+    unliftio
     writer-cps-mtl
   ];
   haskell-packages-selector = _: wanted-packages;
@@ -22,8 +23,9 @@ in
 stdenv.mkDerivation rec {
 
   name = "adventofcode-2019";
-
   src = ./../src;
+
+  ADVENT_INPUT_DIR = ./../src/inputs;
 
   buildInputs = [
     ghc

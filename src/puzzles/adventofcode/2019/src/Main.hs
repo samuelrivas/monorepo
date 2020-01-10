@@ -1,15 +1,7 @@
-import System.Environment (getArgs)
-import qualified Data.HashMap as HashMap
-import Data.HashMap (Map)
+import           Data.HashMap       (Map)
+import qualified Data.HashMap       as HashMap
+import           System.Environment (getArgs)
 
-import qualified Advent.Day2
-import qualified Advent.Day3
-import qualified Advent.Day4
-import qualified Advent.Day5
-import qualified Advent.Day6
-import qualified Advent.Day7
-import qualified Advent.Day8
-import qualified Advent.Day9
 import qualified Advent.Day10
 import qualified Advent.Day11
 import qualified Advent.Day12
@@ -20,12 +12,20 @@ import qualified Advent.Day16
 import qualified Advent.Day17
 import qualified Advent.Day18
 import qualified Advent.Day19
+import qualified Advent.Day2
 import qualified Advent.Day20
 import qualified Advent.Day21
 import qualified Advent.Day22
 import qualified Advent.Day23
 import qualified Advent.Day24
 import qualified Advent.Day25
+import qualified Advent.Day3
+import qualified Advent.Day4
+import qualified Advent.Day5
+import qualified Advent.Day6
+import qualified Advent.Day7
+import qualified Advent.Day8
+import qualified Advent.Day9
 
 -- FIXME: Run each argument separately so that we can report errors independendly.
 -- Like "2: solution ...
@@ -69,5 +69,5 @@ main :: IO ()
 main = do
   args <- getArgs
   case dispatch args of
-    Just x -> sequence_ x
+    Just x  -> sequence_ x
     Nothing -> putStrLn "invalid arguments"
