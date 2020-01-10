@@ -26,7 +26,6 @@ HS-FILES := $(wildcard src/*.hs)
 OBJECT-FILES := $(addprefix $(LIB-DIR)/, $(notdir $(HS-FILES:.hs=.o)))
 DEPENDENCIES-FILE := $(GEN-DIR)/dependencies.mk
 
-# Profiler
 GHC-FLAGS += -outputdir $(LIB-DIR)
 GHC := ghc $(GHC-FLAGS)
 
