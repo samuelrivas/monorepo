@@ -206,6 +206,9 @@ let
 
     # Contests, puzzles, etc
     # ======================
+    adventofcode-2019-sandbox = callPackage ./../src/puzzles/adventofcode/2019/nix {
+      sandbox = true;
+    };
     adventofcode-2019 = {
       day-2 = pkgs-sam.haskell-pkg
         { inherit (pkgs) haskellPackages;
