@@ -29,7 +29,7 @@ import qualified Data.HashMap.Strict   as HashMap
 import           Data.Maybe            (fromMaybe)
 import           Data.Monoid           (Sum (..))
 import           Data.Text             (Text, pack, splitOn, unpack)
-import           Data.Text.IO          (putStrLn, readFile)
+import           Data.Text.IO          (putStrLn)
 
 import           Advent.Day23.Intcode
 import           Advent.Day23.Internal
