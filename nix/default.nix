@@ -206,23 +206,8 @@ let
 
     # Contests, puzzles, etc
     # ======================
-    adventofcode-2019 = {
-      day-2 = pkgs-sam.haskell-pkg
-        { inherit (pkgs) haskellPackages;
-          name = "adventofcode-2019-2";
-        sandbox = true;
-        src = ./../src/puzzles/adventofcode/2019/2/src;
-        wanted-packages = with pkgs.haskellPackages; [
-          ansi-terminal
-          fingertree
-          generic-lens
-          lens
-          monad-loops
-          readline
-          regex-pcre
-          writer-cps-mtl
-        ];
-      };
+    adventofcode-2019-sandbox = callPackage ./../src/puzzles/adventofcode/2019/nix {
+      sandbox = true;
     };
   };
 in
