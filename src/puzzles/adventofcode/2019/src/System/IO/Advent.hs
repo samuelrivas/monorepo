@@ -15,3 +15,6 @@ getInput :: MonadIO m => String -> m Text
 getInput day =
   let file = day <> ".txt"
   in (</> file) <$> adventInputDir >>= liftIO . readFile
+
+adventPath :: String -> FilePath -> IO FilePath
+adventPath day path =  (</> day </> path) <$> adventInputDir
