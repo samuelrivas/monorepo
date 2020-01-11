@@ -10,8 +10,6 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-module Advent.Day6 where
-
 import           Prelude              hiding (getLine, lines, putStrLn,
                                        readFile, unlines)
 
@@ -27,10 +25,8 @@ import           Data.Maybe           (fromJust, isJust)
 import           Data.Set             (Set, notMember)
 import qualified Data.Set             as Set
 import           Data.Text            (Text, lines, pack, splitOn, unlines)
-import           Data.Text.IO         (putStrLn)
+import           Data.Text.IO         (putStrLn, readFile)
 import           Data.Tuple           (swap)
-
-import           System.IO.Advent     (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -104,7 +100,7 @@ solution_1 orbits =
   in
     count_orbits idx g
 
--- Find the shortest path from orig to dest, both included in the result
+-- Find the shortest path from orig to dest, both included int he result
 path :: Graph -> Int -> Int -> Maybe [Int]
 path dest orig = aux_path [] Set.empty dest orig
 
@@ -134,6 +130,6 @@ solution_2 orbits =
 
 main :: IO ()
 main = do
-  Just orbits <- parse_input <$> getInput "6"
+  Just orbits <- parse_input <$> readFile "input.txt"
   putStrLn $ "Solution 1: " <> (pack . show . solution_1 $ orbits)
   putStrLn $ "Solution 2: " <> (pack . show . fromJust . solution_2 $ orbits)
