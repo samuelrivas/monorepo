@@ -18,26 +18,16 @@ import           Prelude                 hiding (Left, Right, concat, getLine,
 import qualified Prelude
 
 import           Control.Applicative     ((<|>))
-import           Control.Lens            (assign, at, both, ix, modifying,
-                                          productOf, set, use, view, views, _1,
-                                          _2)
-import           Control.Monad           (when)
+import           Control.Lens            (at, both, ix, productOf, set, view,
+                                          views, _1, _2)
 import           Control.Monad.IO.Class  (liftIO)
-import           Control.Monad.Loops     (untilJust)
-import           Control.Monad.RWS.CPS   (RWST, evalRWST, execRWST, lift, tell)
-import           Control.Monad.State
-import           Data.Foldable           (fold, foldl')
+import           Data.Foldable           (foldl')
 import           Data.Functor.Identity   (runIdentity)
-import           Data.Generics.Labels    ()
-import           Data.List               (unfoldr)
-import           Data.List               (find, maximumBy, sort, tails)
+import           Data.List               (find, maximumBy, sort, tails, unfoldr)
 import           Data.Map.Strict         (Map, empty, insert, keys, toList)
-import           Data.Maybe              (isNothing)
 import           Data.Maybe              (fromJust)
-import           Data.Sequence           (Seq ((:<|)), fromList, (><), (|>))
-import qualified Data.Sequence           as Seq
 import           Data.Text               (Text, pack, splitOn, unpack)
-import           Data.Text.IO            (putStr, putStrLn, readFile)
+import           Data.Text.IO            (putStr, putStrLn)
 import           System.Console.Readline (readline)
 
 import           Advent.Day17.Bidim
@@ -200,7 +190,7 @@ main = do
   putStrLn $ showBindim formatMap scaffold
 
   putStrLn $ "Solution 1: " <> show (solution1 scaffold)
-  putStrLn $ "Solution 2: "
+  putStrLn $ "Solution 2: (not done :( )"
 
 --
 
