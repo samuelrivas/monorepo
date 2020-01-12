@@ -22,10 +22,13 @@
   gnused,
   groovy-mode,
   haskell-mode,
+  helm,
+  helm-ls-git,
   hlint,
   merlin,
   nix-mode,
   ocp-indent,
+  projectile,
   sbt,
   scalaMode2,
   silver-searcher,
@@ -55,7 +58,10 @@ let
     dumb-jump
     emacs-config
     groovy-mode
+    helm
+    helm-ls-git
     nix-mode
+    projectile
     silver-searcher
     terraform-mode
     yaml-mode

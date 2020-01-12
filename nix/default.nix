@@ -64,11 +64,18 @@ let
       (with pkgs; {
         inherit (emacsPackages)
           dumb-jump
+          erlangMode
           flycheck-haskell
+          groovy-mode
           haskell-mode
-          nix-mode groovy-mode tuareg
-          terraform-mode yaml-mode
-          scalaMode2 erlangMode;
+          helm
+          helm-ls-git
+          nix-mode
+          projectile
+          scalaMode2
+          terraform-mode
+          tuareg
+          yaml-mode;
         inherit (pkgs-sam.pkgs-upstream.emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages) merlin ocp-indent utop;
