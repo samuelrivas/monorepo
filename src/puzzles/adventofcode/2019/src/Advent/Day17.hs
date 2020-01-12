@@ -31,8 +31,7 @@ import           Data.Text.IO            (putStr, putStrLn)
 import           System.Console.Readline (readline)
 
 import           Advent.Day17.Bidim
-import           Advent.Day17.Intcode
-import           System.IO.Advent        (getInput)
+import           Control.Monad.Intcode
 
 type Scaffold = Map Coord Char
 
@@ -76,14 +75,8 @@ encode = fromIntegral . fromEnum
 decode :: (Integral c, Enum a) => c -> a
 decode = toEnum . fromIntegral
 
-intcodeToText :: [Integer] -> Text
-intcodeToText = pack . fmap decode
-
-textToIntcode :: Text -> [Integer]
-textToIntcode = fmap encode . unpack
-
 readInput :: IO [Integer]
-readInput = fmap (read . unpack) . splitOn "," <$> getInput "17"
+readInput = codeForDay "17"
 
 readInput2 :: IO [Integer]
 readInput2 = set (ix 0) 2 <$> readInput
@@ -106,9 +99,10 @@ isCross scaffold coord =
   let
     cross = [ coord,
               coord `plus` (0, 1),
-             coord `plus` (0, -1),
-             coord `plus` (-1, 0),
-             coord `plus` (1, 0)]
+              coord `plus` (0, -1),
+              coord `plus` (-1, 0),
+              coord `plus` (1, 0)
+            ]
   in
     maybe False (all (== '#'))
     $ mapM (\pos -> view (at pos) scaffold) cross
