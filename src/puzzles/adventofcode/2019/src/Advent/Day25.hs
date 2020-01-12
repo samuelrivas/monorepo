@@ -15,7 +15,6 @@ module Advent.Day25 where
 import           Prelude                hiding (Left, Right, concat, getLine,
                                          putStr, putStrLn, readFile, show,
                                          unlines)
-import qualified Prelude
 
 import           Control.Lens           (view, _1, _2)
 import           Control.Monad.IO.Class (liftIO)
@@ -25,28 +24,15 @@ import           Data.Hashable          (Hashable)
 import           Data.HashSet           (HashSet)
 import qualified Data.HashSet           as HashSet
 import           Data.List              (find, subsequences)
-import           Data.Text              (Text, pack, splitOn, unlines, unpack)
+import           Data.Text              (Text, unlines)
 import qualified Data.Text              as Text
 import           Data.Text.IO           (putStrLn, readFile)
 
 import           Control.Monad.Intcode
-import           System.IO.Advent       (adventPath, getInput)
-
-show :: Show a => a -> Text
-show = pack . Prelude.show
-
-assert :: Bool -> ()
-assert False = error "assertion failed"
-assert True  = ()
-
-encode :: (Num c, Enum a) => a -> c
-encode = fromIntegral . fromEnum
-
-decode :: (Integral c, Enum a) => c -> a
-decode = toEnum . fromIntegral
+import           System.IO.Advent       (adventPath)
 
 getCode :: IO [Integer]
-getCode = fmap (read . unpack) . splitOn "," <$> getInput "25"
+getCode = codeForDay "25"
 
 cleanComments :: Text -> Text
 cleanComments = Text.unlines.  filter ((/=) '#' . Text.head) . Text.lines

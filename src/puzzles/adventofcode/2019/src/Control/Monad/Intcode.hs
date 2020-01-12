@@ -14,6 +14,7 @@ module Control.Monad.Intcode (
   IntcodeT,
   abort,
   asciiTerminal,
+  codeForDay,
   eval,
   exec,
   flushOutput,
@@ -51,11 +52,12 @@ import           Control.Monad.Writer           (MonadWriter)
 import           Data.Generics.Labels           ()
 import           Data.List                      (uncons)
 import           Data.Maybe                     (fromMaybe)
-import           Data.Text                      (Text, pack, unpack)
+import           Data.Text                      (Text, pack, splitOn, unpack)
 import           Data.Text.IO                   (putStr, putStrLn)
 import           System.Console.Readline        (readline)
 
 import           Control.Monad.Intcode.Internal
+import           System.IO.Advent               (getInput)
 
 newtype IntcodeT m a = IntcodeT { unIntcodeT :: RWST () Text IntcodeState m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
@@ -249,6 +251,10 @@ pushInput x = do
   st <- use #status
   when (st == Interrupted) $ assign #status Running
 
+-- Adventofcode utils
+codeForDay :: MonadIO m => String -> m [Integer]
+codeForDay day = fmap (read . unpack) . splitOn "," <$> getInput day
+
 -- ASCII Interface
 encode :: (Num c, Enum a) => a -> c
 encode = fromIntegral . fromEnum
@@ -262,7 +268,7 @@ intcodeToText = pack . fmap decode
 textToIntcode :: Text -> [Integer]
 textToIntcode = fmap encode . unpack
 
-asciiTerminal :: IntcodeT IO ()
+asciiTerminal :: MonadFail m => MonadIO m => IntcodeT m ()
 asciiTerminal = do
   runProgram
   output <- getOutput
