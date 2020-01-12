@@ -77,6 +77,9 @@
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face trailing empty tabs lines-tail))
 
+;; Dumb jump mode
+(dumb-jump-mode)
+
 ;; LaTeX mode
 (defun my-latex-mode-hook ()
   "LaTeX mode hook"

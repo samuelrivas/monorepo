@@ -63,6 +63,7 @@ let
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
         inherit (emacsPackages)
+          dumb-jump
           flycheck-haskell
           haskell-mode
           nix-mode groovy-mode tuareg
