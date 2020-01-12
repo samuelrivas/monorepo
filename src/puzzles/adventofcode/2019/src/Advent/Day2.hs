@@ -16,9 +16,9 @@ import           Data.Array           ((!), (//))
 import           Data.Generics.Labels ()
 import           Data.List            (find)
 import           Data.Text            (splitOn, unpack)
-import           Data.Text.IO         (getLine)
 
 import           Advent.Day2.State
+import           System.IO.Advent     (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -85,7 +85,7 @@ eval_test s (noun, verb) = evalStateT (test noun verb) s
 
 main :: IO ()
 main = do
-  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
+  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput "2"
 
   result <- evalStateT (set_input 12 2 >> run_program >> get_output)
             (initial_state memory)

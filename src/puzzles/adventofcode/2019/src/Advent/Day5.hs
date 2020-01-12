@@ -30,11 +30,13 @@ import           Data.Generics.Labels  ()
 import           Data.List             (uncons)
 import           Data.Maybe            (fromMaybe)
 import           Data.Text             (Text, pack, splitOn, unpack)
-import           Data.Text.IO          (getLine, putStrLn)
+import           Data.Text.IO          (putStrLn)
 
 import           Advent.Day5.Internal
+import           System.IO.Advent      (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
+
 newtype ProgramT m a = ProgramT { unProgramT :: RWST () Text ComputerState m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
                     MonadState ComputerState, MonadReader ())
@@ -178,7 +180,7 @@ launch program memory = run program (initial_state memory)
 
 main :: IO ()
 main = do
-  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getLine
+  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput "5"
 
   ((), _s, out1) <- launch (push_input 1 >> run_program) memory
   putStrLn $  "Solution 1: " <> out1
