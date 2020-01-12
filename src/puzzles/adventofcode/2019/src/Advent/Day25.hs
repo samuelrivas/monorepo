@@ -29,7 +29,7 @@ import           Data.Text              (Text, pack, splitOn, unlines, unpack)
 import qualified Data.Text              as Text
 import           Data.Text.IO           (putStrLn, readFile)
 
-import           Advent.Day25.Intcode
+import           Control.Monad.Intcode
 import           System.IO.Advent       (adventPath, getInput)
 
 show :: Show a => a -> Text

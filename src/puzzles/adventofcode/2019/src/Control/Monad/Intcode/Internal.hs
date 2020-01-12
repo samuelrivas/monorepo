@@ -5,26 +5,20 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedLabels   #-}
 {-# LANGUAGE OverloadedStrings  #-}
-module Advent.Day25.IntcodeInternal (
+module Control.Monad.Intcode.Internal (
   Status (..),
   IntcodeState (IntcodeState),
   Opcode (..),
   Mode (..),
-  initialState,
-  show
+  initialState
   ) where
 
-import           Prelude              hiding (show)
-import qualified Prelude
+import           Prelude
 
 import           Data.Generics.Labels ()
 import           Data.HashMap.Strict  (HashMap, fromList)
 import qualified Data.List            as List
-import           Data.Text            (Text, pack)
 import           GHC.Generics         (Generic)
-
-show :: Show a => a -> Text
-show = pack . Prelude.show
 
 data Status = Running | Finished | Aborted | Interrupted
   deriving stock (Show, Eq)
@@ -55,10 +49,10 @@ data IntcodeState = IntcodeState {
 
 instance Show IntcodeState where
   show st = List.intercalate " || " [
-    "input: " <> Prelude.show (input st),
-    "output: " <> Prelude.show (output st),
-    "status: " <> Prelude.show (status st),
-    "pp: " <> Prelude.show (pp st)
+    "input: " <> show (input st),
+    "output: " <> show (output st),
+    "status: " <> show (status st),
+    "pp: " <> show (pp st)
     ]
 
 initialState :: [Integer] -> IntcodeState

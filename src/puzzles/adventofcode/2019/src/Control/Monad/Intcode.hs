@@ -8,7 +8,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
-module Advent.Day25.Intcode (
+module Control.Monad.Intcode (
   IntcodeState,
   Status (..),
   IntcodeT,
@@ -33,29 +33,29 @@ module Advent.Day25.Intcode (
   trace
   ) where
 
-import           Prelude                      hiding (getLine, putStr, putStrLn,
-                                               show)
+import           Prelude                        hiding (getLine, putStr,
+                                                 putStrLn)
 
-import           Control.Lens                 (assign, at, ix, modifying, non,
-                                               preview, use, uses, view)
-import           Control.Monad                (when)
-import           Control.Monad.Fail           (MonadFail)
-import           Control.Monad.IO.Class       (MonadIO (..))
-import           Control.Monad.Loops          (whileM_)
-import           Control.Monad.Reader         (MonadReader)
-import           Control.Monad.RWS.CPS        (RWST, evalRWST, execRWST, get,
-                                               put, runRWST, tell)
-import           Control.Monad.State          (MonadState)
-import           Control.Monad.Trans.Class    (MonadTrans)
-import           Control.Monad.Writer         (MonadWriter)
-import           Data.Generics.Labels         ()
-import           Data.List                    (uncons)
-import           Data.Maybe                   (fromMaybe)
-import           Data.Text                    (Text, pack, unpack)
-import           Data.Text.IO                 (putStr, putStrLn)
-import           System.Console.Readline      (readline)
+import           Control.Lens                   (assign, at, ix, modifying, non,
+                                                 preview, use, uses, view)
+import           Control.Monad                  (when)
+import           Control.Monad.Fail             (MonadFail)
+import           Control.Monad.IO.Class         (MonadIO (..))
+import           Control.Monad.Loops            (whileM_)
+import           Control.Monad.Reader           (MonadReader)
+import           Control.Monad.RWS.CPS          (RWST, evalRWST, execRWST, get,
+                                                 put, runRWST, tell)
+import           Control.Monad.State            (MonadState)
+import           Control.Monad.Trans.Class      (MonadTrans)
+import           Control.Monad.Writer           (MonadWriter)
+import           Data.Generics.Labels           ()
+import           Data.List                      (uncons)
+import           Data.Maybe                     (fromMaybe)
+import           Data.Text                      (Text, pack, unpack)
+import           Data.Text.IO                   (putStr, putStrLn)
+import           System.Console.Readline        (readline)
 
-import           Advent.Day25.IntcodeInternal
+import           Control.Monad.Intcode.Internal
 
 newtype IntcodeT m a = IntcodeT { unIntcodeT :: RWST () Text IntcodeState m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter Text,
@@ -78,137 +78,137 @@ exec program code = execRWST (unIntcodeT program) () (initialState code)
 getMode :: Integer -> [Mode] -> Mode
 getMode pos = fromMaybe Position . preview (ix . fromIntegral $ pos)
 
-get_2_modes :: [Mode] -> (Mode, Mode)
-get_2_modes modes =
+get2Modes :: [Mode] -> (Mode, Mode)
+get2Modes modes =
   let getMode' = flip getMode modes
   in (getMode' 0, getMode' 1)
 
-get_3_modes :: [Mode] -> (Mode, Mode, Mode)
-get_3_modes modes =
+get3Modes :: [Mode] -> (Mode, Mode, Mode)
+get3Modes modes =
   let getMode' = flip getMode modes
   in (getMode' 0, getMode' 1, getMode' 2)
 
 parseOpcode :: Integer -> [Mode] -> Maybe Opcode
-parseOpcode 1 modes   = Just . Add $ get_3_modes modes
-parseOpcode 2 modes   = Just . Mul $ get_3_modes modes
+parseOpcode 1 modes   = Just . Add $ get3Modes modes
+parseOpcode 2 modes   = Just . Mul $ get3Modes modes
 parseOpcode 3 modes   = Just . In $ getMode 0 modes
 parseOpcode 4 modes   = Just . Out $ getMode 0 modes
-parseOpcode 5 modes   = Just . JumpTrue $ get_2_modes modes
-parseOpcode 6 modes   = Just . JumpFalse $ get_2_modes modes
-parseOpcode 7 modes   = Just . LessThan $ get_3_modes modes
-parseOpcode 8 modes   = Just . Equals $ get_3_modes modes
+parseOpcode 5 modes   = Just . JumpTrue $ get2Modes modes
+parseOpcode 6 modes   = Just . JumpFalse $ get2Modes modes
+parseOpcode 7 modes   = Just . LessThan $ get3Modes modes
+parseOpcode 8 modes   = Just . Equals $ get3Modes modes
 parseOpcode 9 modes   = Just . AdjustBase $ getMode 0 modes
 parseOpcode 99 _modes = Just Halt
 parseOpcode _ _       = Nothing
 
-parse_mode :: Integer -> Maybe Mode
-parse_mode 0 = Just Position
-parse_mode 1 = Just Immediate
-parse_mode 2 = Just Relative
-parse_mode _ = Nothing
+parseMode :: Integer -> Maybe Mode
+parseMode 0 = Just Position
+parseMode 1 = Just Immediate
+parseMode 2 = Just Relative
+parseMode _ = Nothing
 
 factor :: Integer -> [Integer]
 factor 0 = []
 factor x = factor (x `div` 10) ++ [x `mod` 10]
 
-parse_instruction_value :: Integer -> Maybe Opcode
-parse_instruction_value value =
+parseInstructionValue :: Integer -> Maybe Opcode
+parseInstructionValue value =
   let
     int_opcode = value `mod` 100
     int_modes = reverse . factor $ value `div` 100
-  in sequence (parse_mode <$> int_modes) >>= parseOpcode int_opcode
+  in sequence (parseMode <$> int_modes) >>= parseOpcode int_opcode
 
-pop_opcode :: Monad m => IntcodeT m (Maybe Opcode)
-pop_opcode = parse_instruction_value <$> pop_value
+popOpcode :: Monad m => IntcodeT m (Maybe Opcode)
+popOpcode = parseInstructionValue <$> popValue
 
-read_memory :: Monad m => Integer -> IntcodeT m Integer
-read_memory pos = uses #memory (view (at pos . non 0))
+readMemory :: Monad m => Integer -> IntcodeT m Integer
+readMemory pos = uses #memory (view (at pos . non 0))
 
-write_memory :: Monad m => Integer -> Integer -> IntcodeT m ()
-write_memory value position = assign (#memory . at position) $ Just value
+writeMemory :: Monad m => Integer -> Integer -> IntcodeT m ()
+writeMemory value position = assign (#memory . at position) $ Just value
 
 abort :: Monad m => Text -> IntcodeT m ()
 abort msg = do
   tell $ "Something went wrong: " <> msg <> "\n"
   tell ">>>>>>>> Dump\n"
-  get >>= tell . show
+  get >>= tell . pack . show
   assign #status Aborted
 
 runOpcode :: Monad m => Opcode -> IntcodeT m ()
 runOpcode Halt        = assign #status Finished
-runOpcode (Add modes) = run_arith (+) modes
-runOpcode (Mul modes) = run_arith (*) modes
-runOpcode (JumpTrue modes) = jump_on (/= 0) modes
-runOpcode (JumpFalse modes) = jump_on (== 0) modes
-runOpcode (LessThan modes) = set_bool (<) modes
-runOpcode (Equals modes) = set_bool (==) modes
+runOpcode (Add modes) = runArith (+) modes
+runOpcode (Mul modes) = runArith (*) modes
+runOpcode (JumpTrue modes) = jumpOn (/= 0) modes
+runOpcode (JumpFalse modes) = jumpOn (== 0) modes
+runOpcode (LessThan modes) = setBool (<) modes
+runOpcode (Equals modes) = setBool (==) modes
 
 runOpcode (AdjustBase mode) = do
-  value <- read_value mode
+  value <- readValue mode
   modifying #base (+ value)
 
 runOpcode (In mode) =
   uses #input uncons >>= \case
   Just (h, t) -> do
-    read_destination mode >>= write_memory h
+    readDestination mode >>= writeMemory h
     assign #input t
   Nothing -> do
     modifying #pp (+ (-1))
     assign #status Interrupted
 
 runOpcode (Out mode) = do
-  value <- read_value mode
+  value <- readValue mode
   modifying #output (value:)
 
-jump_on :: Monad m => (Integer -> Bool) -> (Mode, Mode) -> IntcodeT m ()
-jump_on p (mode_1, mode_2) = do
-  test <- read_value mode_1
-  dest <- read_value mode_2
+jumpOn :: Monad m => (Integer -> Bool) -> (Mode, Mode) -> IntcodeT m ()
+jumpOn p (mode_1, mode_2) = do
+  test <- readValue mode_1
+  dest <- readValue mode_2
   when (p test) $ assign #pp dest
 
-set_bool :: Monad m =>
+setBool :: Monad m =>
   (Integer -> Integer -> Bool) -> (Mode, Mode, Mode) -> IntcodeT m ()
-set_bool p (mode_1, mode_2, mode_3) = do
-  x <- read_value mode_1
-  y <- read_value mode_2
-  dest <- read_destination mode_3
-  write_memory (fromIntegral . fromEnum $ p x y) dest
+setBool p (mode_1, mode_2, mode_3) = do
+  x <- readValue mode_1
+  y <- readValue mode_2
+  dest <- readDestination mode_3
+  writeMemory (fromIntegral . fromEnum $ p x y) dest
 
-run_arith :: Monad m =>
+runArith :: Monad m =>
   (Integer -> Integer -> Integer) -> (Mode, Mode, Mode) -> IntcodeT m ()
-run_arith op (mode_1, mode_2, mode_3) = do
-  x <- read_value mode_1
-  y <- read_value mode_2
-  read_destination mode_3 >>= write_memory (op x y)
+runArith op (mode_1, mode_2, mode_3) = do
+  x <- readValue mode_1
+  y <- readValue mode_2
+  readDestination mode_3 >>= writeMemory (op x y)
 
 -- Read the next value in memory, and advance program counter
-pop_value :: Monad m => IntcodeT m Integer
-pop_value = do
-  value <- use #pp >>= read_memory
+popValue :: Monad m => IntcodeT m Integer
+popValue = do
+  value <- use #pp >>= readMemory
   modifying #pp (+1)
   pure value
 
-read_value :: Monad m => Mode -> IntcodeT m Integer
-read_value Position  = pop_value >>= read_memory
-read_value Immediate = pop_value
-read_value Relative = do
-  value <- pop_value
-  uses #base (+ value) >>= read_memory
+readValue :: Monad m => Mode -> IntcodeT m Integer
+readValue Position  = popValue >>= readMemory
+readValue Immediate = popValue
+readValue Relative = do
+  value <- popValue
+  uses #base (+ value) >>= readMemory
 
-read_destination :: Monad m => Mode -> IntcodeT m Integer
-read_destination Position = read_value Immediate
-read_destination Immediate = do
+readDestination :: Monad m => Mode -> IntcodeT m Integer
+readDestination Position = readValue Immediate
+readDestination Immediate = do
   abort "Trying to write to immediate position"
   pure (-1)
-read_destination Relative = do
-  pos <- read_value Immediate
+readDestination Relative = do
+  pos <- readValue Immediate
   uses #base (+ pos)
 
 -- Public interface
 
 stepProgram :: Monad m => IntcodeT m ()
 stepProgram =
-  pop_opcode >>= \case
+  popOpcode >>= \case
     Just opc -> runOpcode opc
     Nothing -> abort "could not pop next opcode"
 
