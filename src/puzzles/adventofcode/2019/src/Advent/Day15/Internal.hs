@@ -15,14 +15,14 @@ module Advent.Day15.Internal (
 
 import           Prelude
 
-import           Data.Map.Strict      (Map)
-import qualified Data.Map.Strict      as Map
-import           Data.Sequence        (Seq)
-import qualified Data.Sequence        as Seq
-import           GHC.Generics         (Generic)
+import           Data.Map.Strict       (Map)
+import qualified Data.Map.Strict       as Map
+import           Data.Sequence         (Seq)
+import qualified Data.Sequence         as Seq
+import           GHC.Generics          (Generic)
 
-import           Advent.Day15.Bidim   (Coord)
-import           Advent.Day15.Intcode (IntcodeState)
+import           Advent.Day15.Bidim    (Coord)
+import           Control.Monad.Intcode (IntcodeState)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 

@@ -11,7 +11,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-module Advent.Day15 where
+module Advent.Day15 (main) where
 
 import           Prelude               hiding (Left, Right, concat, getLine,
                                         putStrLn, readFile, show)
@@ -27,13 +27,12 @@ import           Data.Map.Strict       (Map, empty)
 import           Data.Maybe            (isNothing)
 import           Data.Sequence         (Seq ((:<|)), fromList, (><), (|>))
 import qualified Data.Sequence         as Seq
-import           Data.Text             (Text, pack, splitOn, unpack)
+import           Data.Text             (Text, pack)
 import           Data.Text.IO          (putStrLn)
 
 import           Advent.Day15.Bidim
-import           Advent.Day15.Intcode
 import           Advent.Day15.Internal
-import           System.IO.Advent      (getInput)
+import           Control.Monad.Intcode
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -57,9 +56,6 @@ decode = toEnum . fromIntegral
 
 encodeMove :: Move -> Integer
 encodeMove = (+1) . encode
-
-getIntcode :: IO [Integer]
-getIntcode = fmap (read . unpack) . splitOn "," <$> getInput "15"
 
 popNode :: Monad m => ExploreT m (Maybe Node)
 popNode =
@@ -226,7 +222,7 @@ solution_2 intcode =
 
 main :: IO ()
 main = do
-  code <- getIntcode
+  code <- codeForDay "15"
   let ((cellMap, Just (coord, path)), searchLog) = solution_1 code
 
   putStrLn $ "Solution 1: " <> (show . length  $ path)

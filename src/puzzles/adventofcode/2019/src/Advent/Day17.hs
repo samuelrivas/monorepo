@@ -26,7 +26,7 @@ import           Data.Functor.Identity   (runIdentity)
 import           Data.List               (find, maximumBy, sort, tails, unfoldr)
 import           Data.Map.Strict         (Map, empty, insert, keys, toList)
 import           Data.Maybe              (fromJust)
-import           Data.Text               (Text, pack, splitOn, unpack)
+import           Data.Text               (Text, pack, unpack)
 import           Data.Text.IO            (putStr, putStrLn)
 import           System.Console.Readline (readline)
 
