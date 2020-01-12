@@ -17,11 +17,11 @@ module Advent.Day23.Internal (
   NodeState (NodeState)
   ) where
 
-import           Data.HashMap.Strict  (HashMap)
-import           Data.Monoid          (Sum)
-import           GHC.Generics         (Generic)
+import           Data.HashMap.Strict   (HashMap)
+import           Data.Monoid           (Sum)
+import           GHC.Generics          (Generic)
 
-import           Advent.Day23.Intcode
+import           Control.Monad.Intcode
 
 data NodeState = NodeState {
   computerState :: IntcodeState,

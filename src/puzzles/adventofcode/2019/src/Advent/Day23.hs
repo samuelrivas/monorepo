@@ -28,30 +28,19 @@ import           Data.HashMap.Strict   ((!))
 import qualified Data.HashMap.Strict   as HashMap
 import           Data.Maybe            (fromMaybe)
 import           Data.Monoid           (Sum (..))
-import           Data.Text             (Text, pack, splitOn, unpack)
+import           Data.Text             (Text, pack)
 import           Data.Text.IO          (putStrLn)
 
-import           Advent.Day23.Intcode
 import           Advent.Day23.Internal
-import           System.IO.Advent      (getInput)
+import           Control.Monad.Intcode
 
 type NetworkT = StateT NetworkState
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
 
-assert :: Bool -> ()
-assert False = error "assertion failed"
-assert True  = ()
-
-encode :: (Num c, Enum a) => a -> c
-encode = fromIntegral . fromEnum
-
-decode :: (Integral c, Enum a) => c -> a
-decode = toEnum . fromIntegral
-
 getCode :: IO [Integer]
-getCode = fmap (read . unpack) . splitOn "," <$> getInput "23"
+getCode = codeForDay "23"
 
 allNodes :: [Integer]
 allNodes = [0..49]
