@@ -19,6 +19,7 @@
   flycheck-haskell,
   gawk,
   ghc,
+  git,
   gnused,
   groovy-mode,
   haskell-mode,
@@ -57,6 +58,7 @@ let
     colorThemeSolarized
     dumb-jump
     emacs-config
+    git
     groovy-mode
     helm
     helm-ls-git
