@@ -77,6 +77,13 @@
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face trailing empty tabs lines-tail))
 
+;; helm, projectile, etc
+(helm-mode)
+(projectile-mode)
+(dumb-jump-mode)
+
+(global-set-key (kbd "C-x C-d") 'helm-browse-project)
+
 ;; LaTeX mode
 (defun my-latex-mode-hook ()
   "LaTeX mode hook"

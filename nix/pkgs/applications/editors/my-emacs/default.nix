@@ -11,6 +11,7 @@
   aspell-wrapped,
   colorThemeSolarized,
   coreutils,
+  dumb-jump,
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
@@ -21,12 +22,16 @@
   gnused,
   groovy-mode,
   haskell-mode,
+  helm,
+  helm-ls-git,
   hlint,
   merlin,
   nix-mode,
   ocp-indent,
+  projectile,
   sbt,
   scalaMode2,
+  silver-searcher,
   stdenv,
   stylish-haskell,
   terraform-mode,
@@ -50,9 +55,14 @@ let
   hardcoded-deps = [
     aspell-wrapped
     colorThemeSolarized
+    dumb-jump
     emacs-config
     groovy-mode
+    helm
+    helm-ls-git
     nix-mode
+    projectile
+    silver-searcher
     terraform-mode
     yaml-mode
   ];
