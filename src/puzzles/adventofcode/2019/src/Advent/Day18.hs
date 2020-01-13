@@ -7,6 +7,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -29,32 +30,27 @@
 
 module Advent.Day18 where
 
-import           Prelude                  hiding (lines, putStrLn, readFile,
-                                           show, unlines)
-import qualified Prelude
+import           Perlude
 
-import           Control.Lens             (at, ix, over, preview, set, view,
-                                           views, _1, _2)
-import           Control.Monad            (replicateM_)
-import           Control.Monad.IO.Class   (liftIO)
-import           Control.Monad.Reader     (Reader)
-import           Data.Char                (isAsciiLower, isAsciiUpper, toLower)
-import           Data.Foldable            (find)
-import           Data.Functor.Identity    (runIdentity)
-import           Data.Generics.Labels     ()
-import qualified Data.HashSet             as HashSet
-import qualified Data.Map.Strict          as Map
-import           Data.Maybe               (catMaybes, fromJust)
-import           Data.Text                (Text, pack)
-import           Data.Text.IO             (putStrLn, readFile)
+import           Control.Lens           (at, ix, over, preview, set, view,
+                                         views, _1, _2)
+import           Control.Monad          (replicateM_)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader   (Reader)
+import           Data.Char              (isAsciiLower, isAsciiUpper, toLower)
+import           Data.Foldable          (find)
+import           Data.Functor.Identity  (runIdentity)
+import           Data.Generics.Labels   ()
+import qualified Data.HashSet           as HashSet
+import qualified Data.Map.Strict        as Map
+import           Data.Maybe             (catMaybes, fromJust)
+import           Data.Text              (Text, pack)
+import           Data.Text.IO           (putStrLn)
 
 import           Advent.Day18.Astar
 import           Advent.Day18.Bidim
 import           Advent.Day18.Internal
-import           Advent.Day18.MonadSearch (step)
-
-show :: Show a => a -> Text
-show = pack . Prelude.show
+import           Control.Monad.Search   (step)
 
 solve1 :: Text -> IO ()
 solve1 text =
@@ -183,7 +179,7 @@ candidateToNode fromNode robotIx toPos =
         nodeForKey fromNode robotIx toPos letter
       | isAsciiUpper letter ->
         nodeForDoor fromNode robotIx toPos letter
-      | otherwise -> error $ "found " <>  [letter]
+      | otherwise -> error $ "found " <>  pack [letter]
 
 nodeForKey :: MazeNode -> Int -> Coord -> Char -> Reader MazeContext (Maybe MazeNode)
 nodeForKey parent robotIx toPos key =

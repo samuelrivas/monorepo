@@ -18,9 +18,10 @@ module Perlude (
 
 import           Data.Generics.Labels as X ()
 import           Data.Text            as X (Text, lines, pack, unpack)
-import           Data.Text.IO         as X (putStrLn)
+import           Data.Text.IO         as X (putStrLn, readFile)
 import           GHC.Generics         as X (Generic)
-import           Prelude              as X hiding (error, lines, putStrLn, show)
+import           Prelude              as X hiding (error, lines, putStrLn,
+                                            readFile, show)
 import qualified Prelude
 
 show :: Show a => a -> Text
