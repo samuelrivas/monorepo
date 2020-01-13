@@ -11,7 +11,7 @@
 
 module Advent.Day4 where
 
-import           Prelude
+import           Perlude
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
