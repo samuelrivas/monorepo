@@ -7,14 +7,14 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TupleSections         #-}
 module Advent.Day13 where
 
-import           Prelude                   hiding (Left, Right, concat, getLine,
-                                            putStrLn, readFile, show)
+import           Perlude
 
 import           Control.Lens              (assign, at, ix, modifying, set,
                                             toListOf, traverse, use, uses, view,
@@ -25,16 +25,11 @@ import           Data.Foldable             (maximum, minimum)
 import           Data.Functor.Identity     (runIdentity)
 import           Data.Generics.Labels      ()
 import           Data.Map.Strict           (Map, keys)
-import           Data.Text                 (Text, concat, intercalate, splitOn,
-                                            unpack)
-import           Data.Text.IO              (putStrLn)
+import qualified Data.Text                 as Text
 import           System.Console.ANSI       (clearScreen, setCursorPosition)
 
 import           Advent.Day13.GameInternal
-import           Advent.Day13.Intcode      hiding (initial_state)
-import           Advent.Day13.Internal     hiding (initial_state)
-import           System.IO.Advent          (getInput)
-
+import           Control.Monad.Intcode
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -48,7 +43,7 @@ decode = toEnum . fromIntegral
 
 read_game :: [Integer] -> [Integer]
 read_game code =
-  view _1 . runIdentity $ run (run_program >> get_output) code
+  view _1 . runIdentity $ run (runProgram >> getOutput) code
 
 parse_output :: Monad m => [Integer] -> GameT m ()
 parse_output (-1 : 0 : score : t) =
@@ -65,7 +60,7 @@ parse_output (x : y : thing : t) =
 parse_output [] = pure ()
 parse_output _ = undefined
 
-
+-- FIXME: use Bidim
 show_map :: (Maybe a -> Text) -> Map Coord a -> Text
 show_map format plane =
   let
@@ -78,9 +73,9 @@ show_map format plane =
     min_y = minimum ys
     row y = (, y) <$> [min_x..max_x]
     show_coord coord = format $ view (at coord) plane
-    printed y = concat (show_coord <$> row y)
+    printed y = Text.concat (show_coord <$> row y)
   in
-    intercalate "\n" (printed <$> [min_y..max_y])
+    Text.intercalate "\n" (printed <$> [min_y..max_y])
 
 show_screen :: Map Coord Tile -> Text
 show_screen =
@@ -94,7 +89,7 @@ show_screen =
   in show_map formatter
 
 get_input :: IO [Integer]
-get_input = fmap (read . unpack) . splitOn "," <$> getInput "13"
+get_input = codeForDay "13"
 
 get_input_2 :: IO [Integer]
 get_input_2 = set (ix 0) 2 <$> get_input
@@ -107,34 +102,37 @@ type GameT m = StateT GameState (IntcodeT m)
 step_game :: Monad m => GameT m Status
 step_game =
   do
-    lift run_program
-    lift get_output >>= parse_output
+    lift runProgram
+    lift getOutput >>= parse_output
     lift $ use #status
 
 input_joystick :: Monad m => Integer -> GameT m ()
-input_joystick x = modifying #inputs (x:) >> (lift . push_input $ [x])
+input_joystick x = modifying #inputs (x:) >> (lift . pushInput $ [x])
 
 replay :: Monad m => [Integer] -> GameT m ()
-replay = sequence_ . fmap input_joystick
+replay = mapM_ input_joystick
 
-get_saved :: Monad m => GameT m ([Integer], ComputerState)
+get_saved :: Monad m => GameT m ([Integer], IntcodeState)
 get_saved = (,) <$> uses #inputs reverse <*> use #saved_state
 
-save :: Monad m => GameT m ComputerState
-save = lift get
+save_game :: Monad m => GameT m IntcodeState
+save_game = lift get
 
-run_game :: Monad m => GameT m a -> [Integer]-> m (a, GameState, ComputerState, Text)
+run_game :: Monad m => GameT m a -> [Integer]-> m (a, GameState, IntcodeState, Text)
 run_game game code =
   let program = runStateT game initial_state
   in do
     ((a, game_state), computer_state, traces) <- run program code
     pure (a, game_state, computer_state, traces)
 
-run_saved ::Monad m => GameT m a -> ComputerState -> m (a, GameState, ComputerState, Text)
+run_saved ::
+  Monad m =>
+  GameT m a -> IntcodeState -> m (a, GameState, IntcodeState, Text)
 run_saved game st =
   let program = runStateT game initial_state
   in do
-    ((a, game_state), computer_state, traces) <- run' program st
+    -- ((a, game_state), computer_state, traces) <- run' program st
+    ((a, game_state), computer_state, traces) <- runEmpty (reset st >> program)
     pure (a, game_state, computer_state, traces)
 
 play :: GameT IO ()
@@ -145,7 +143,7 @@ play =
       do
         input <- get_joystick
         if input == 2
-          then save >>= assign #saved_state
+          then save_game >>= assign #saved_state
           else do
           input_joystick input
           play

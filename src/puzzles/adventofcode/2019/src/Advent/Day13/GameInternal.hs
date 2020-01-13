@@ -4,16 +4,17 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedLabels   #-}
+
 module Advent.Day13.GameInternal (
   GameState,
   Tile (..),
   initial_state
   ) where
 
-import           Advent.Day13.Intcode (ComputerState)
-import           Data.Generics.Labels ()
-import           Data.Map.Strict      (Map, empty)
-import           GHC.Generics         (Generic)
+import           Control.Monad.Intcode (IntcodeState)
+import           Data.Generics.Labels  ()
+import           Data.Map.Strict       (Map, empty)
+import           GHC.Generics          (Generic)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -26,7 +27,7 @@ data GameState = GameState {
   screen      :: Map Coord Tile,
   score       :: Integer,
   inputs      :: [Integer],
-  saved_state :: ComputerState
+  saved_state :: IntcodeState
   } deriving stock (Generic, Show)
 
 initial_state :: GameState
