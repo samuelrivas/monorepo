@@ -4,20 +4,21 @@
 
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Advent.Day3 where
 
-import           Prelude          hiding (getLine, lines)
+import           Perlude
 
 import           Control.Lens     (over, view, _1, _2, _3)
 import           Data.Foldable    (concatMap, foldl')
 import           Data.Map         (Map, empty, insert, insertWith, keysSet, (!))
 import           Data.Set         (Set, intersection)
 import qualified Data.Set         as Set
-import           Data.Text        (Text, lines, splitOn, unpack)
+import           Data.Text        (splitOn)
 import qualified Data.Text        as Text
 
 import           System.IO.Advent (getInput)
