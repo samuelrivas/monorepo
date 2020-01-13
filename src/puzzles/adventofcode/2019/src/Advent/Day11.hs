@@ -8,14 +8,15 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TupleSections         #-}
-module Advent.Day11 where
 
-import           Prelude               hiding (Left, Right, concat, getLine,
-                                        putStrLn, readFile, show)
+module Advent.Day11 (main) where
+
+import           Perlude               hiding (Left, Right)
 
 import           Control.Lens          (assign, at, modifying, non, over, set,
                                         toListOf, traverse, use, view, _1, _2,
@@ -24,16 +25,12 @@ import           Control.Monad.Loops   (whileM_)
 import           Control.Monad.State   (StateT, lift, runStateT)
 import           Data.Foldable         (maximum, minimum)
 import           Data.Functor.Identity (runIdentity)
-import           Data.Generics.Labels  ()
 import           Data.Map.Strict       (Map, empty, keys, size)
-import           Data.Text             (Text, concat, intercalate, splitOn,
-                                        unpack)
+import           Data.Text             (Text)
+import qualified Data.Text             as Text
 import           Data.Text.IO          (putStrLn)
-import           GHC.Generics          (Generic)
 
-import           Advent.Day11.Intcode  hiding (initial_state)
-import           Advent.Day11.Internal hiding (initial_state)
-import           System.IO.Advent      (getInput)
+import           Control.Monad.Intcode
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -92,11 +89,11 @@ get_move :: Monad m => RobotT m (Rotate, Colour)
 get_move = do
   location <- lift $ use #pos
   on_colour <- lift $ use (#panels . at location . non Black)
-  push_input [encode on_colour]
-  run_program
-  get_output >>= \case
-    [mv, colour] -> do
-      flush_output
+  pushInput [encode on_colour]
+  runProgram
+  getOutput >>= \case
+    [colour, mv] -> do
+      flushOutput
       pure  (decode mv, decode colour)
     _ -> do
       abort "Didn't get two outputs!"
@@ -124,16 +121,16 @@ step = do
   move rotation
 
 loop :: Monad m => RobotT m ()
-loop = whileM_ ((== Interrupted) <$> get_status) step
+loop = whileM_ ((== Interrupted) <$> getStatus) step
 
 get_input :: IO [Integer]
-get_input = fmap (read . unpack) . splitOn "," <$> getInput "11"
+get_input = codeForDay "11"
 
 run_robot ::
   Monad m =>
   RobotT m a -> RobotState -> [Integer] -> m (a, Status, RobotState, Text)
 run_robot x in_state code = do
-  ((a, comp_state, w), out_state) <- runStateT (launch x code) in_state
+  ((a, comp_state, w), out_state) <- runStateT (run x code) in_state
   pure (a, view #status comp_state, out_state, w)
 
 solution_1 :: [Integer] -> Int
@@ -156,9 +153,9 @@ show_map format plane =
     min_y = minimum ys
     row y = (, y) <$> [min_x..max_x]
     show_coord coord = format $ view (at coord) plane
-    printed y = concat (show_coord <$> row y)
+    printed y = Text.concat (show_coord <$> row y)
   in
-    intercalate "\n" (printed <$> reverse [min_y..max_y])
+    Text.intercalate "\n" (printed <$> reverse [min_y..max_y])
 
 formatter :: Maybe Colour -> Text
 formatter (Just White) = "X"
