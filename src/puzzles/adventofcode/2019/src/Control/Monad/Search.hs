@@ -2,22 +2,28 @@
 -- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE FunctionalDependencies     #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE NoImplicitPrelude      #-}
+{-# LANGUAGE OverloadedLabels       #-}
+{-# LANGUAGE RankNTypes             #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
 
-module Advent.Day18.MonadSearch (
+-- Class of monads implementing exploration searches. Concrete monads can be,
+-- for example, dfs, bfs, A star, beam search, etc..
+module Control.Monad.Search (
   MonadSearch (..),
   search,
   step
   ) where
 
-import           Control.Monad             (filterM, unless)
+import           Perlude
+
+import           Control.Monad (filterM, unless)
 
 data SearchStatus node = Failed | Exploring | Found node
   deriving Show

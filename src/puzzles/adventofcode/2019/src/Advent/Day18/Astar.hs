@@ -8,6 +8,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedLabels           #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
@@ -22,7 +23,7 @@ module Advent.Day18.Astar (
   peekBest
   ) where
 
-import           Prelude
+import           Perlude
 
 import           Control.Lens                  (assign, modifying, uses, view)
 import           Control.Monad.Fail            (MonadFail)
@@ -37,7 +38,7 @@ import qualified Data.HashSet                  as HashSet
 import qualified Data.PriorityQueue.FingerTree as PQueue
 
 import           Advent.Day18.AstarInternal
-import           Advent.Day18.MonadSearch
+import           Control.Monad.Search          (MonadSearch (..), search)
 
 newtype AstarT node nodeMem pc w m a = AstarT {
   unAstarT :: RWST (AstarConfig node nodeMem  pc) w (AstarContext node nodeMem) m a
