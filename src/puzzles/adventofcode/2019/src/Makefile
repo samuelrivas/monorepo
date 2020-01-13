@@ -1,7 +1,7 @@
 # Interface
 MAIN-MODULE ?= Main.hs
 PROGRAM-NAME ?= advent
-GHC-FLAGS ?= -Wall -O3 -j -fno-warn-missing-signatures
+GHC-FLAGS ?= -Wall -O3 -j
 
 # Internal variables
 BUILD-DIR := ../build

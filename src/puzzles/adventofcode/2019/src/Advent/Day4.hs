@@ -4,13 +4,14 @@
 
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Advent.Day4 where
 
-import Prelude
+import           Prelude
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
