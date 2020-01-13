@@ -17,14 +17,12 @@ module Advent.Day7 where
 
 import           Perlude
 
-import           Control.Lens          (assign, use, uses, view, _1, _2, _3)
+import           Control.Lens          (assign, use, uses, view, _1, _2)
 import           Control.Monad.Loops   (whileM)
 import           Control.Monad.State   (MonadState, evalState)
 import           Data.Functor.Identity (runIdentity)
 import           Data.List             (permutations)
 import           Data.List.NonEmpty    (NonEmpty (..), fromList, toList)
-import           Data.Text             (pack, splitOn, unpack)
-import           Data.Text.IO          (putStrLn)
 
 import           Control.Monad.Intcode
 
@@ -127,5 +125,5 @@ main :: IO ()
 main = do
   code :: [Integer] <- codeForDay "7"
 
-  putStrLn $  "Solution 1: " <> (show $ find_solution_1 code)
-  putStrLn $  "Solution 2: " <> (show $ find_solution_2 code)
+  putStrLn $  "Solution 1: " <> show (find_solution_1 code)
+  putStrLn $  "Solution 2: " <> show (find_solution_2 code)
