@@ -129,3 +129,45 @@ INSERT into valuations (date, asset, amount, decimals) VALUES
 ("2000-01-01", "USD", 10000000000, 10);
 INSERT into valuations (date, asset, amount, decimals) VALUES
 ("2000-01-01", "EUR", 10000000000, 10);
+
+/* Known assets */
+INSERT INTO asset_info (asset, currency, type) VALUES ("SEK", "SEK", "cash");
+INSERT INTO asset_info (asset, currency, type) VALUES ("EUR", "EUR", "cash");
+INSERT INTO asset_info (asset, currency, type) VALUES ("USD", "USD", "cash");
+INSERT INTO asset_info (asset, currency, type) VALUES ("NOK", "NOK", "cash");
+INSERT INTO asset_info (asset, currency, type) VALUES ("AMF Räntefond Lång", "SEK", "debt security");
+INSERT INTO asset_info (asset, currency, type) VALUES ("AMF Räntefond Mix", "SEK", "debt security");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Alphabet Inc Class A", "USD", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Amazon.com Inc", "USD", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Carnegie Corporate Bond A SEK", "SEK", "debt security");
+INSERT INTO asset_info (asset, currency, type) VALUES ("FIM Euro", "SEK", "debt security");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Intel Corp", "USD", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Microsoft Corp", "USD", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("SEB Etisk Global Indexfond C USD - Lux", "SEK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("SPP Aktiefond Europa", "SEK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("SPP Aktiefond USA", "SEK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Schibsted ser. B", "NOK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Tesla Inc", "USD", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("UB Global REIT A", "SEK", "real estate");
+INSERT INTO asset_info (asset, currency, type) VALUES ("ÖH REALOBLIG", "SEK", "debt security");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Öhman Etisk Index Europa", "SEK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Öhman Etisk Index USA A", "SEK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Öhman Realräntefond A", "SEK", "debt security");
+
+INSERT INTO asset_info (asset, currency, type) VALUES ("ABERTIS INFR", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("ACCIONA", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("AENA SA", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("BANKINTER", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("BBVA-ACCION IBEX 35 ETF", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("CELLNEX TELECOM SAU", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("ENDESA", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("FERROVIAL", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("GRIFOLS SA", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("IBERDROLA", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("INDITEX", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("ISHARES S&P 500", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("MAPFRE", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("NATURGY ENERGY GROUP SA", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("SIEMENS GAMESA RENEWABLE ENERGY", "EUR", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("Avanza Global", "SEK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("ISHARES B E AGG", "EUR", "debt security");
