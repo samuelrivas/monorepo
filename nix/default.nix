@@ -70,6 +70,7 @@ let
           haskell-mode
           helm
           helm-ls-git
+          htmlize
           nix-mode
           projectile
           scalaMode2

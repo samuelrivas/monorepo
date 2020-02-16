@@ -26,6 +26,7 @@
   helm,
   helm-ls-git,
   hlint,
+  htmlize,
   merlin,
   nix-mode,
   ocp-indent,
@@ -62,6 +63,7 @@ let
     groovy-mode
     helm
     helm-ls-git
+    htmlize
     nix-mode
     projectile
     silver-searcher
