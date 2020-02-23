@@ -14,7 +14,7 @@ let
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
   pkgs = import ./nixpkgs.nix { inherit system; };
   pkgs-all = pkgs // pkgs-sam;
-  builders = pkgs.callPackage ./lib/build-support/builders.nix { };
+  builders = pkgs.callPackage ./pkgs/build-support/builders.nix { };
   callPackage = pkgs.lib.callPackageWith (pkgs-all // builders);
   pkgs-sam = {
 
