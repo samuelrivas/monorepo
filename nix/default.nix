@@ -83,14 +83,18 @@ let
         emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
 
-    # A utility to instantiate a capable emacs in a haskell sandbox
-    emacs-for-haskell = haskell-env: pkgs-sam.emacs.override { ghc = haskell-env; };
-
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
 
     # Haskell stuff
     # =============
+    haskell-lib = import ./pkgs/development/haskell-modules/lib.nix {
+      inherit pkgs pkgs-sam;
+    };
+
+    # A utility to instantiate a capable emacs in a haskell sandbox
+    emacs-for-haskell = pkgs-sam.haskell-lib.emacs-for-haskell;
+
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
 
     profiledHaskellPackages = pkgs.haskellPackages.override {
@@ -101,37 +105,7 @@ let
       };
     };
 
-    haskell-pkg =
-      { haskellPackages ? pkgs.haskellPackages,
-        name,
-        sandbox ? false,
-        src,
-        wanted-packages,
-        extra-build-inputs ? [],
-      } :
-      let
-        haskell-packages-selector = _: wanted-packages;
-        ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
-      in
-        pkgs.stdenv.mkDerivation rec {
-
-          inherit name src;
-
-          buildInputs = [
-            ghc
-            pkgs-sam.haskell-mk
-          ]
-          ++ extra-build-inputs
-          ++ (if sandbox
-              then [(pkgs-sam.emacs-for-haskell ghc) haskellPackages.hoogle]
-              else []);
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp ../build/bin/* $out/bin
-          '';
-        };
-
+    haskell-pkg = pkgs-sam.haskell-lib.haskell-pkg;
     name-generator = callPackage ./../src/haskell/name-generator/nix {
       sandbox = false;
     };
