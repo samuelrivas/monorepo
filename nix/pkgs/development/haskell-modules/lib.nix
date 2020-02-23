@@ -36,4 +36,12 @@
             cp ../build/bin/* $out/bin
           '';
       };
+
+  profiledHaskellPackages = pkgs.haskellPackages.override {
+    overrides = _pkgs: super: {
+      mkDerivation = args: super.mkDerivation (args // {
+        enableLibraryProfiling = true;
+      });
+    };
+  };
 }

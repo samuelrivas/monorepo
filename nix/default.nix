@@ -97,14 +97,6 @@ let
 
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
 
-    profiledHaskellPackages = pkgs.haskellPackages.override {
-      overrides = pkgs-sam: super: {
-        mkDerivation = args: super.mkDerivation (args // {
-          enableLibraryProfiling = true;
-        });
-      };
-    };
-
     haskell-pkg = pkgs-sam.haskell-lib.haskell-pkg;
     name-generator = callPackage ./../src/haskell/name-generator/nix {
       sandbox = false;
@@ -122,14 +114,14 @@ let
       sandbox = true;
     };
     hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      haskellPackages = pkgs-sam.profiledHaskellPackages;
+      haskellPackages = pkgs-sam.haskell-lib.profiledHaskellPackages;
       sandbox = true;
     };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
       sandbox = false;
     };
     onirim-helper-sandbox = callPackage ./../src/haskell/onirim-helper/nix {
-      haskellPackages = pkgs-sam.profiledHaskellPackages;
+      haskellPackages = pkgs-sam.haskell-lib.profiledHaskellPackages;
       sandbox = true;
     };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
