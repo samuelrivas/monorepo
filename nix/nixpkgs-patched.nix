@@ -1,7 +1,7 @@
 let pkgs = builtins.fetchGit {
       url = https://github.com/samuelrivas/nixpkgs.git;
       name = "nixpkgs-patched";
-      ref = "fix-color-theme-solarized";
-      rev = "fdb00fdc2c146171e424bbe9263780462bb7964c";
+      ref = "HsYAML-0-2";
+      rev = "fed961a02890a41c264ae85f04b3b636c82949fb";
     };
 in import pkgs

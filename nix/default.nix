@@ -78,7 +78,7 @@ let
           tuareg
           yaml-mode;
         inherit (pkgs-sam.pkgs-upstream.emacsPackages) colorThemeSolarized;
-        inherit (haskellPackages) hlint stylish-haskell;
+        inherit (pkgs-sam.pkgs-patched.haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages) merlin ocp-indent utop;
         emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
@@ -133,38 +133,49 @@ let
         };
 
     name-generator = callPackage ./../src/haskell/name-generator/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = false;
     };
     name-generator-sandbox = callPackage ./../src/haskell/name-generator/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = true;
     };
     ds-processing = callPackage ./../src/haskell/ds-processing/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = false;
     };
     boardgamer = callPackage ./../src/haskell/boardgamer/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = false;
     };
     boardgamer-sandbox = callPackage ./../src/haskell/boardgamer/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = true;
     };
     hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      haskellPackages = pkgs-sam.profiledHaskellPackages;
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
+      # haskellPackages = pkgs-sam.profiledHaskellPackages;
       sandbox = true;
     };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = false;
     };
     onirim-helper-sandbox = callPackage ./../src/haskell/onirim-helper/nix {
-      haskellPackages = pkgs-sam.profiledHaskellPackages;
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
+      # haskellPackages = pkgs-sam.profiledHaskellPackages;
       sandbox = true;
     };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = false;
     };
     low-battery-sandbox = callPackage ./../src/haskell/low-battery/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = true;
     };
     low-battery = callPackage ./../src/haskell/low-battery/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = false;
     };
 
@@ -216,6 +227,7 @@ let
     # Contests, puzzles, etc
     # ======================
     adventofcode-2019-sandbox = callPackage ./../src/puzzles/adventofcode/2019/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
       sandbox = true;
     };
   };
