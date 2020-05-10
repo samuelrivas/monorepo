@@ -83,6 +83,10 @@
 (dumb-jump-mode)
 
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
+(add-to-list 'helm-completing-read-handlers-alist
+             '(org-capture . helm-org-completing-read-tags))
+(add-to-list 'helm-completing-read-handlers-alist
+             '(org-set-tags . helm-org-completing-read-tags))
 
 ;; LaTeX mode
 (defun my-latex-mode-hook ()
