@@ -64,12 +64,14 @@ let
       (with pkgs; {
         inherit (emacsPackages)
           dumb-jump
+          colorThemeSolarized
           erlangMode
           flycheck-haskell
           groovy-mode
           haskell-mode
           helm
           helm-ls-git
+          helm-org
           htmlize
           nix-mode
           projectile
@@ -77,7 +79,6 @@ let
           terraform-mode
           tuareg
           yaml-mode;
-        inherit (emacsPackages) colorThemeSolarized;
         inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages) merlin ocp-indent utop;
         emacs-config-options = pkgs-sam.local-config.emacs-config;

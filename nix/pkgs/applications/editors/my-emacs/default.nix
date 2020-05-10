@@ -25,6 +25,7 @@
   haskell-mode,
   helm,
   helm-ls-git,
+  helm-org,
   hlint,
   htmlize,
   merlin,
@@ -63,6 +64,7 @@ let
     groovy-mode
     helm
     helm-ls-git
+    helm-org
     htmlize
     nix-mode
     projectile
