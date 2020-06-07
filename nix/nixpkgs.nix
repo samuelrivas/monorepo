@@ -2,6 +2,6 @@ let pkgs = builtins.fetchGit {
       url = https://github.com/NixOS/nixpkgs.git;
       name = "nixpkgs-stable";
       ref = "nixos-20.03";
-      rev = "4d373182597cff60b3a820affb5a73dd274e205b";
+      rev = "a53ed231d21803b61ca3cb10cedef9b7c09a2503";
     };
 in import pkgs
