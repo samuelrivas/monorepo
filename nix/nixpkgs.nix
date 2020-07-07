@@ -1,7 +1,7 @@
-let pkgs = builtins.fetchGit {
-      url = https://github.com/NixOS/nixpkgs.git;
-      name = "nixpkgs-stable";
-      ref = "nixos-20.03";
-      rev = "1aa5271117107032e13f07bf025e3c4d26db8915";
-    };
+let
+  commit-sha = "02203c195495aeb5fa1eeffea6cfa8a291de05a8";
+  pkgs = builtins.fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/${commit-sha}.tar.gz";
+    sha256 = "0qawlcy5f19vji19jsfrc13cpc8jdvp7xw617x01sg2dk5g1040q";
+  };
 in import pkgs
