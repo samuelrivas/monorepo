@@ -1,3 +1,4 @@
+# Change to the faster fetchTarball when you modify this
 let pkgs =  builtins.fetchGit {
       url = https://github.com/NixOS/nixpkgs.git;
       name = "nixpkgs-upstream";
