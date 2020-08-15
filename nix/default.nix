@@ -105,11 +105,10 @@ let
     haskell-pkg =
       { haskellPackages ? pkgs.haskellPackages,
         name,
-        sandbox ? false,
         src,
         wanted-packages,
         extra-build-inputs ? [],
-      } :
+      }:
       let
         haskell-packages-selector = _: wanted-packages;
         ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
@@ -121,24 +120,29 @@ let
           buildInputs = [
             ghc
             pkgs-sam.haskell-mk
-          ]
-          ++ extra-build-inputs
-          ++ (if sandbox
-              then [(pkgs-sam.emacs-for-haskell ghc) haskellPackages.hoogle]
-              else []);
+          ] ++ extra-build-inputs;
 
           installPhase = ''
             mkdir -p $out/bin
             cp ../build/bin/* $out/bin
           '';
+
+          meta = {
+            inherit haskellPackages ghc;
+          };
         };
 
-    name-generator = callPackage ./../src/haskell/name-generator/nix {
-      sandbox = false;
-    };
-    name-generator-sandbox = callPackage ./../src/haskell/name-generator/nix {
-      sandbox = true;
-    };
+    haskell-shell = haskell-drv:
+      haskell-drv.overrideAttrs (attrs:
+
+        { buildInputs = attrs.buildInputs ++ [
+            (pkgs-sam.emacs-for-haskell haskell-drv.meta.ghc)
+            haskell-drv.meta.haskellPackages.hoogle
+          ];
+        });
+
+    name-generator = callPackage ./../src/haskell/name-generator/nix { };
+
     ds-processing = callPackage ./../src/haskell/ds-processing/nix {
       sandbox = false;
     };
