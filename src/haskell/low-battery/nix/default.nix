@@ -15,13 +15,12 @@ let low-battery = haskell-pkg {
         generic-lens
         lens
       ];
-      inherit haskellPackages sandbox;
+      inherit haskellPackages;
     };
-in if sandbox then
-     low-battery
-   else
-     writeShellScriptBin "low-battery-notify" ''
-       export PATH=${libnotify}/bin:${acpi}/bin
-       export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1002/bus
-       ${low-battery}/bin/low-battery-check
-     ''
+in (writeShellScriptBin "low-battery-notify" ''
+     export PATH=${libnotify}/bin:${acpi}/bin
+     export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1002/bus
+     ${low-battery}/bin/low-battery-check
+   '')
+
+// { sandbox = low-battery; }

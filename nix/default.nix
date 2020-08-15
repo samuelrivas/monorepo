@@ -84,15 +84,13 @@ let
         emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
 
-    # A utility to instantiate a capable emacs in a haskell sandbox
-    emacs-for-haskell = haskell-env: pkgs-sam.emacs.override { ghc = haskell-env; };
-
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
 
     # Haskell stuff
     # =============
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
+    haskell-lib = import ./lib/haskell.nix { inherit pkgs pkgs-sam; };
 
     profiledHaskellPackages = pkgs.haskellPackages.override {
       overrides = pkgs-sam: super: {
@@ -101,73 +99,13 @@ let
         });
       };
     };
+    inherit (pkgs-sam.haskell-lib) emacs-for-haskell haskell-pkg haskell-shell;
 
-    haskell-pkg =
-      { haskellPackages ? pkgs.haskellPackages,
-        name,
-        sandbox ? false,
-        src,
-        wanted-packages,
-        extra-build-inputs ? [],
-      } :
-      let
-        haskell-packages-selector = _: wanted-packages;
-        ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
-      in
-        pkgs.stdenv.mkDerivation rec {
-
-          inherit name src;
-
-          buildInputs = [
-            ghc
-            pkgs-sam.haskell-mk
-          ]
-          ++ extra-build-inputs
-          ++ (if sandbox
-              then [(pkgs-sam.emacs-for-haskell ghc) haskellPackages.hoogle]
-              else []);
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp ../build/bin/* $out/bin
-          '';
-        };
-
-    name-generator = callPackage ./../src/haskell/name-generator/nix {
-      sandbox = false;
-    };
-    name-generator-sandbox = callPackage ./../src/haskell/name-generator/nix {
-      sandbox = true;
-    };
-    ds-processing = callPackage ./../src/haskell/ds-processing/nix {
-      sandbox = false;
-    };
-    boardgamer = callPackage ./../src/haskell/boardgamer/nix {
-      sandbox = false;
-    };
-    boardgamer-sandbox = callPackage ./../src/haskell/boardgamer/nix {
-      sandbox = true;
-    };
-    hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      # haskellPackages = pkgs-sam.profiledHaskellPackages;
-      sandbox = true;
-    };
-    hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      sandbox = false;
-    };
-    onirim-helper-sandbox = callPackage ./../src/haskell/onirim-helper/nix {
-      # haskellPackages = pkgs-sam.profiledHaskellPackages;
-      sandbox = true;
-    };
-    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
-      sandbox = false;
-    };
-    low-battery-sandbox = callPackage ./../src/haskell/low-battery/nix {
-      sandbox = true;
-    };
-    low-battery = callPackage ./../src/haskell/low-battery/nix {
-      sandbox = false;
-    };
+    name-generator = callPackage ./../src/haskell/name-generator/nix { };
+    boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
+    hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
+    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix { };
+    low-battery = callPackage ./../src/haskell/low-battery/nix { sandbox = false; };
 
     # Shell-scripts
     # =============
