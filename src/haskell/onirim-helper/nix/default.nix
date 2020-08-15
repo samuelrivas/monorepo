@@ -1,7 +1,6 @@
 {
   haskell-pkg,
   haskellPackages,
-  sandbox,
 }: haskell-pkg {
   name = "onirim-helper";
   src = ./../src;
@@ -12,5 +11,5 @@
     random-fu
     readline
   ];
-  inherit haskellPackages sandbox;
+  inherit haskellPackages;
 }

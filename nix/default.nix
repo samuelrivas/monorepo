@@ -142,36 +142,10 @@ let
         });
 
     name-generator = callPackage ./../src/haskell/name-generator/nix { };
-
-    ds-processing = callPackage ./../src/haskell/ds-processing/nix {
-      sandbox = false;
-    };
-    boardgamer = callPackage ./../src/haskell/boardgamer/nix {
-      sandbox = false;
-    };
-    boardgamer-sandbox = callPackage ./../src/haskell/boardgamer/nix {
-      sandbox = true;
-    };
-    hashcode-photoalbum-sandbox = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      # haskellPackages = pkgs-sam.profiledHaskellPackages;
-      sandbox = true;
-    };
-    hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix {
-      sandbox = false;
-    };
-    onirim-helper-sandbox = callPackage ./../src/haskell/onirim-helper/nix {
-      # haskellPackages = pkgs-sam.profiledHaskellPackages;
-      sandbox = true;
-    };
-    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
-      sandbox = false;
-    };
-    low-battery-sandbox = callPackage ./../src/haskell/low-battery/nix {
-      sandbox = true;
-    };
-    low-battery = callPackage ./../src/haskell/low-battery/nix {
-      sandbox = false;
-    };
+    boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
+    hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
+    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix { };
+    low-battery = callPackage ./../src/haskell/low-battery/nix { sandbox = false; };
 
     # Shell-scripts
     # =============

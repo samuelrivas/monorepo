@@ -15,7 +15,7 @@ let low-battery = haskell-pkg {
         generic-lens
         lens
       ];
-      inherit haskellPackages sandbox;
+      inherit haskellPackages;
     };
 in if sandbox then
      low-battery
