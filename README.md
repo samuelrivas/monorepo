@@ -6,7 +6,7 @@
 
 From the top level, you can build everything by running
 
-    nix-build -A pkgs-sam nix
+    nix build -f nix pkgs-sam
 
 provided you have nix installed. It will take a while the first time you run it,
 but nix will only rebuild what's necessary afterwards.
@@ -17,13 +17,13 @@ You can see all available packages by running
 
 And build any of them by running
 
-    nix-build -A <package> nix
+    nix-build -f nix pkgs-sam.<package>
 
 After that, `result` contains a link to the built package
 
 You can obviously install any of those packages in your environemnt by running
 
-    nix-env -i <package> -f nix
+    nix-env -i pkgs-sam.<package> -f nix
 
 ## Configuration
 
