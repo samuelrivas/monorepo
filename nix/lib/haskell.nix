@@ -12,12 +12,11 @@ rec {
     { haskellPackages ? pkgs.haskellPackages,
       name,
       src,
-      wanted-packages,
+      haskell-packages-selector,
       extra-build-inputs ? [],
-      ...
+      extra-drv ? { },
     }:
     let
-      haskell-packages-selector = _: wanted-packages;
       ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
       drv-args = {
 
@@ -36,7 +35,7 @@ rec {
         meta = {
           inherit haskellPackages ghc;
         };
-      } // args;
+      } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
     in
       drv // {

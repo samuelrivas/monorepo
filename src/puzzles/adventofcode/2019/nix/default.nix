@@ -4,7 +4,7 @@
   stdenv,
 }:
 let
-  wanted-packages = with haskellPackages; [
+  haskell-packages-selector = p: with p; [
     ansi-terminal
     fingertree
     generic-lens
@@ -16,15 +16,15 @@ let
     unordered-containers
     writer-cps-mtl
   ];
-  haskell-packages-selector = _: wanted-packages;
-  ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
 in
 haskell-pkg {
 
   name = "adventofcode-2019";
   src = ./../src;
 
-  ADVENT_INPUT_DIR = ./../src/inputs;
+  extra-drv = {
+    ADVENT_INPUT_DIR = ./../src/inputs;
+  };
 
-  inherit wanted-packages;
+  inherit haskell-packages-selector;
 }

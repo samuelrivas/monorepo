@@ -107,7 +107,7 @@ let
     boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix { };
-    low-battery = callPackage ./../src/haskell/low-battery/nix { sandbox = false; };
+    low-battery = callPackage ./../src/haskell/low-battery/nix { };
 
     # Shell-scripts
     # =============
