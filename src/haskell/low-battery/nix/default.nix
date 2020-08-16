@@ -23,4 +23,4 @@ in (writeShellScriptBin "low-battery-notify" ''
      ${low-battery}/bin/low-battery-check
    '')
 
-// { sandbox = low-battery; }
+// { sandbox = low-battery.sandbox; }
