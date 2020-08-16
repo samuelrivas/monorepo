@@ -144,7 +144,6 @@ let
     # ======================
     adventofcode-2019-sandbox = callPackage ./../src/puzzles/adventofcode/2019/nix {
       inherit (pkgs-sam.pkgs-patched) haskellPackages;
-      sandbox = true;
     };
   };
 in
