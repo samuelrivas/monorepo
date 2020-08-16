@@ -8,17 +8,18 @@ rec {
 
   # Create a haskell package with haskell-mk included and enough meta to create
   # shell environments
-  haskell-pkg =
+  haskell-pkg = args@
     { haskellPackages ? pkgs.haskellPackages,
       name,
       src,
       wanted-packages,
       extra-build-inputs ? [],
+      ...
     }:
     let
       haskell-packages-selector = _: wanted-packages;
       ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
-      drv = pkgs.stdenv.mkDerivation rec {
+      drv-args = {
 
         inherit name src;
 
@@ -35,7 +36,8 @@ rec {
         meta = {
           inherit haskellPackages ghc;
         };
-      };
+      } // args;
+      drv = pkgs.stdenv.mkDerivation drv-args;
     in
       drv // {
         sandbox = haskell-shell drv;
