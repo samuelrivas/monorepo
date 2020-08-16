@@ -1,10 +1,10 @@
 {
+  add-sandbox,
   boost,
   cpplint,
   empty-builder,
   gdb,
   gcc,
-  sandbox,
   stdenv,
   strace,
   valgrind,
@@ -14,22 +14,19 @@ let
     gdb
     strace
   ];
-  sandbox-extras = if sandbox then {
-    builder = empty-builder;
-  } else { };
-in
-stdenv.mkDerivation (sandbox-extras // {
-  src = ./../src;
-  name = "monte-carlo";
-  buildInputs = [
-    boost
-    cpplint
-    gcc
-    valgrind
-  ] ++ (if sandbox then extra-sandbox else []);
+  drv = stdenv.mkDerivation {
+    src = ./../src;
+    name = "monte-carlo";
+    buildInputs = [
+      boost
+      cpplint
+      gcc
+      valgrind
+    ];
 
-  doCheck = true;
-  installPhase = ''
-    mkdir -p "$out/bin"
-  '';
-})
+    doCheck = true;
+    installPhase = ''
+      mkdir -p "$out/bin"
+    '';
+  };
+in add-sandbox extra-sandbox drv

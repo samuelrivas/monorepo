@@ -127,12 +127,7 @@ let
     # =========
     reservoir = callPackage ./../src/c++/reservoir/nix { };
 
-    monte-carlo = callPackage ./../src/c++/monte-carlo/nix {
-      sandbox = false;
-    };
-    monte-carlo-sandbox = callPackage ./../src/c++/monte-carlo/nix {
-      sandbox = true;
-    };
+    monte-carlo = callPackage ./../src/c++/monte-carlo/nix { };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
       inherit (pkgs-sam.pkgs-upstream) rapidcheck;
     };
