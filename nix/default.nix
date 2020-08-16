@@ -15,7 +15,9 @@ let
   pkgs = import ./nixpkgs.nix { inherit system; };
   pkgs-all = pkgs // pkgs-sam;
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
-  callPackage = pkgs.lib.callPackageWith (pkgs-all // builders);
+  derivation-helpers = import ./lib/derivation-helpers.nix;
+  callPackage = pkgs.lib.callPackageWith
+    (pkgs-all // builders // derivation-helpers);
   pkgs-sam = {
 
     # Library functions
@@ -123,12 +125,8 @@ let
 
     # C++ stuff
     # =========
-    reservoir = callPackage ./../src/c++/reservoir/nix {
-      sandbox = false;
-    };
-    reservoir-sandbox = callPackage ./../src/c++/reservoir/nix {
-      sandbox = true;
-    };
+    reservoir = callPackage ./../src/c++/reservoir/nix { };
+
     monte-carlo = callPackage ./../src/c++/monte-carlo/nix {
       sandbox = false;
     };

@@ -1,11 +1,12 @@
 {
-  boost,
+  add-sandbox,
   bc,
+  boost,
   cpplint,
   csvkit,
   empty-builder,
-  gdb,
   gcc,
+  gdb,
   sqlite,
   stdenv,
   strace,
@@ -30,7 +31,4 @@ let
 
     builder = empty-builder;
   };
-in drv // {
-  sandbox = drv // { buildInputs = drv.buildInputs ++ extra-sandbox; };
-}
-
+in add-sandbox extra-sandbox drv
