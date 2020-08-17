@@ -23,7 +23,7 @@ After that, `result` contains a link to the built package
 
 You can obviously install any of those packages in your environemnt by running
 
-    nix-env -i pkgs-sam.<package> -f nix
+    nix-env -iA pkgs-sam.<package> -f nix
 
 By convention, my derivations may include a `sandbox` value with a derivation
 that can be used to create a nix shell. That is, for a package `foo`, `nix-sell
