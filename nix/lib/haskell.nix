@@ -8,7 +8,7 @@ rec {
 
   # Create a haskell package with haskell-mk included and enough meta to create
   # shell environments
-  haskell-pkg = args@
+  haskell-pkg =
     { haskellPackages ? pkgs.haskellPackages,
       name,
       src,
