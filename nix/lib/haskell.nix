@@ -12,14 +12,13 @@ rec {
     { haskellPackages ? pkgs.haskellPackages,
       name,
       src,
-      wanted-packages,
+      haskell-packages-selector,
       extra-build-inputs ? [],
+      extra-drv ? { },
     }:
     let
-      haskell-packages-selector = _: wanted-packages;
       ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
-    in
-      pkgs.stdenv.mkDerivation rec {
+      drv-args = {
 
         inherit name src;
 
@@ -36,12 +35,19 @@ rec {
         meta = {
           inherit haskellPackages ghc;
         };
+      } // extra-drv;
+      drv = pkgs.stdenv.mkDerivation drv-args;
+    in
+      drv // {
+        sandbox = haskell-shell drv;
       };
 
-  # Use the package's meta to create a shell with a configured emacs and hoogle
+  # Use the package's meta to create a derivation that can be used to start a
+  # nix shell with a configured emacs and hoogle
   #
   # For this to work, haskell-drv need to expose ghc and haskellPackages in the
-  # `meta` argument of the derivation
+  # `meta` argument of the derivation. HAskell packages created with
+  # `haskell-pkg` create a suitable `meta` by default.
   haskell-shell = haskell-drv:
     haskell-drv.overrideAttrs (attrs:
 

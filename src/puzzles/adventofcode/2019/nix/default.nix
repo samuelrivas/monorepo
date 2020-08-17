@@ -1,11 +1,10 @@
 {
-  emacs-for-haskell,
+  haskell-pkg,
   haskellPackages,
-  sandbox ? false,
   stdenv,
-} :
+}:
 let
-  wanted-packages = with haskellPackages; [
+  haskell-packages-selector = p: with p; [
     ansi-terminal
     fingertree
     generic-lens
@@ -17,25 +16,15 @@ let
     unordered-containers
     writer-cps-mtl
   ];
-  haskell-packages-selector = _: wanted-packages;
-  ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
 in
-stdenv.mkDerivation rec {
+haskell-pkg {
 
   name = "adventofcode-2019";
   src = ./../src;
 
-  ADVENT_INPUT_DIR = ./../src/inputs;
+  extra-drv = {
+    ADVENT_INPUT_DIR = ./../src/inputs;
+  };
 
-  buildInputs = [
-    ghc
-  ]
-  ++ (if sandbox
-      then [(emacs-for-haskell ghc) haskellPackages.hoogle]
-      else []);
-
-  installPhase = ''
-    mkdir -p $out/bin
-    cp ../build/bin/* $out/bin
-  '';
+  inherit haskell-packages-selector;
 }

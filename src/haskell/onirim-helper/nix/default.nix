@@ -4,7 +4,7 @@
 }: haskell-pkg {
   name = "onirim-helper";
   src = ./../src;
-  wanted-packages = with haskellPackages; [
+  haskell-packages-selector = p: with p; [
     generic-lens
     lens
     multiset

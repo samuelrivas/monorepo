@@ -4,8 +4,8 @@
 }: haskell-pkg {
   name = "name-generator";
   src = ./../src;
-  wanted-packages = with haskellPackages; [
-    random-fu
+  haskell-packages-selector = p: [
+    p.random-fu
   ];
   inherit haskellPackages;
 }

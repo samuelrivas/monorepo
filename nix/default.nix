@@ -15,7 +15,9 @@ let
   pkgs = import ./nixpkgs.nix { inherit system; };
   pkgs-all = pkgs // pkgs-sam;
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
-  callPackage = pkgs.lib.callPackageWith (pkgs-all // builders);
+  derivation-helpers = import ./lib/derivation-helpers.nix;
+  callPackage = pkgs.lib.callPackageWith
+    (pkgs-all // builders // derivation-helpers);
   pkgs-sam = {
 
     # Library functions
@@ -105,7 +107,7 @@ let
     boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix { };
-    low-battery = callPackage ./../src/haskell/low-battery/nix { sandbox = false; };
+    low-battery = callPackage ./../src/haskell/low-battery/nix { };
 
     # Shell-scripts
     # =============
@@ -123,27 +125,13 @@ let
 
     # C++ stuff
     # =========
-    reservoir = callPackage ./../src/c++/reservoir/nix {
-      sandbox = false;
-    };
-    reservoir-sandbox = callPackage ./../src/c++/reservoir/nix {
-      sandbox = true;
-    };
-    monte-carlo = callPackage ./../src/c++/monte-carlo/nix {
-      sandbox = false;
-    };
-    monte-carlo-sandbox = callPackage ./../src/c++/monte-carlo/nix {
-      sandbox = true;
-    };
+    reservoir = callPackage ./../src/c++/reservoir/nix { };
+
+    monte-carlo = callPackage ./../src/c++/monte-carlo/nix { };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
       inherit (pkgs-sam.pkgs-upstream) rapidcheck;
     };
-    finndb = callPackage ./../src/c++/finndb/nix {
-      sandbox = false;
-    };
-    finndb-sandbox = callPackage ./../src/c++/finndb/nix {
-      sandbox = true;
-    };
+    finndb = callPackage ./../src/c++/finndb/nix { };
     graphlib = callPackage ./../src/c++/graphlib/nix { };
     rndlib = callPackage ./../src/c++/rndlib/nix { };
     asyncq = callPackage ./../src/c++/asyncq/nix { };
@@ -156,7 +144,6 @@ let
     # ======================
     adventofcode-2019-sandbox = callPackage ./../src/puzzles/adventofcode/2019/nix {
       inherit (pkgs-sam.pkgs-patched) haskellPackages;
-      sandbox = true;
     };
   };
 in

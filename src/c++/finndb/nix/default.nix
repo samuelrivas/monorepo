@@ -1,12 +1,12 @@
 {
-  boost,
+  add-sandbox,
   bc,
+  boost,
   cpplint,
   csvkit,
   empty-builder,
-  gdb,
   gcc,
-  sandbox,
+  gdb,
   sqlite,
   stdenv,
   strace,
@@ -18,20 +18,17 @@ let
     strace
     valgrind
   ];
-  sandbox-extras = if sandbox then {
-    builder = empty-builder;
-  } else { };
-in
-stdenv.mkDerivation (sandbox-extras // {
-  src = ./../src;
-  name = "finndb";
-  buildInputs = [
-    boost
-    cpplint
-    csvkit
-    gcc
-    sqlite
-  ] ++ (if sandbox then extra-sandbox else []);
+  drv = stdenv.mkDerivation {
+    src = ./../src;
+    name = "finndb";
+    buildInputs = [
+      boost
+      cpplint
+      csvkit
+      gcc
+      sqlite
+    ];
 
-  builder = empty-builder;
-})
+    builder = empty-builder;
+  };
+in add-sandbox extra-sandbox drv

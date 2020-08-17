@@ -25,6 +25,11 @@ You can obviously install any of those packages in your environemnt by running
 
     nix-env -i pkgs-sam.<package> -f nix
 
+By convention, my derivations may include a `sandbox` value with a derivation
+that can be used to create a nix shell. That is, for a package `foo`, `nix-sell
+foo.sandbox` drops you in de dev enviromnet for `foo`. `X.sandbox` value is
+typically the same as `X`, with some `buildInputs` added.
+
 ## Configuration
 
 Some packages can be configured, you can personalize some options by writing a

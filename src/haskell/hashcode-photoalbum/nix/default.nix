@@ -4,7 +4,7 @@
 }: haskell-pkg {
   name = "photoalbum";
   src = ./../src;
-  wanted-packages = with haskellPackages; [
+  haskell-packages-selector = p: with p; [
     multiset
     random-fu
   ];

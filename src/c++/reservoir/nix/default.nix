@@ -1,11 +1,11 @@
 {
+  add-sandbox,
   bc,
   cpplint,
   empty-builder,
   gdb,
   gcc,
   rndlib,
-  sandbox,
   sh-lib,
   stdenv,
   strace,
@@ -16,28 +16,25 @@ let
     gdb
     strace
   ];
-  sandbox-extras = if sandbox then {
-    builder = empty-builder;
-  } else { };
-in
-stdenv.mkDerivation (sandbox-extras // {
-  src = ./../src;
-  name = "reservoir";
-  buildInputs = [
-    bc
-    cpplint
-    gcc
-    rndlib
-    sh-lib
-    valgrind
-  ] ++ (if sandbox then extra-sandbox else []);
+  drv = stdenv.mkDerivation {
+    src = ./../src;
+    name = "reservoir";
+    buildInputs = [
+      bc
+      cpplint
+      gcc
+      rndlib
+      sh-lib
+      valgrind
+    ];
 
-  doCheck = true;
-  prePatch = ''
-    patchShebangs .
-  '';
-  installPhase = ''
-    mkdir -p "$out/bin"
-    cp ../build/install/bin/reservoir $out/bin
-  '';
-})
+    doCheck = true;
+    prePatch = ''
+      patchShebangs .
+    '';
+    installPhase = ''
+      mkdir -p "$out/bin"
+      cp ../build/install/bin/reservoir $out/bin
+    '';
+  };
+in add-sandbox extra-sandbox drv
