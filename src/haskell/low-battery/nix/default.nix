@@ -10,7 +10,7 @@ let
   binary = haskell-pkg {
     name = "low-battery";
     src = ./../src;
-    wanted-packages = with haskellPackages; [
+    haskell-packages-selector = p: with p; [
       HSH
       parsec
       generic-lens
