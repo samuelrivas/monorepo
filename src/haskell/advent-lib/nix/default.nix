@@ -8,4 +8,10 @@
     p.random-fu
   ];
   inherit haskellPackages;
+  extra-drv = {
+    installPhase = ''
+      make INSTALL-PATH=$out install
+    '';
+    isHaskellLibrary = true;
+  };
 }
