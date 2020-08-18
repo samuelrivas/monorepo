@@ -4,3 +4,14 @@ test:
 	ar cqs src/libHSadventlib.a src/System/IO/*.o
 	ghc --make src/MainTest.hs
 	ghc --make -dynamic src/MainTest.hs -o src/MainTest_dyn
+	src/MainTest
+	src/MainTest_dyn
+
+clean:
+	find . -name "*.hi" -delete
+	find . -name "*.o" -delete
+	find . -name "*.a" -delete
+	find . -name "*dyn*" -delete
+	find . -name "*.hi" -delete
+	find . -name "*.so" -delete
+	rm -f src/MainTest

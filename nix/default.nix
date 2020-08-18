@@ -108,6 +108,7 @@ let
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix { };
     low-battery = callPackage ./../src/haskell/low-battery/nix { };
+    advent-lib = callPackage ./../src/haskell/advent-lib/nix { };
 
     # Shell-scripts
     # =============
