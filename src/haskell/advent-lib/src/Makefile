@@ -1,10 +1,9 @@
-INSTALL-PATH := /please-set-install-path
 GHC-VERSION := 8.6.5
 ARCH = x86_64-linux
 LIB-NAME = adventlib
 LIB-VERSION = 1.0
 
-INSTALL-DIR := $(INSTALL-PATH)/lib/ghc-$(GHC-VERSION)
+INSTALL-DIR := $(PREFIX)/lib/ghc-$(GHC-VERSION)
 INSTALL-DIR-PACKAGE-CONF := $(INSTALL-DIR)/package.conf.d
 INSTALL-DIR-BINARIES := $(INSTALL-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
 INSTALL-DIR-INTERFACE := $(INSTALL-DIR-BINARIES)/$(LIB-NAME)-$(LIB-VERSION)
@@ -30,11 +29,14 @@ clean:
 	rm -f src/MainTest
 
 install:
+ifeq ($(PREFIX),)
+	$(error "PREFIX is not set, please set it with make PREFIX=<path>")
+endif
+
 	mkdir -p $(INSTALL-DIR-PACKAGE-CONF)
 	mkdir -p $(INSTALL-DIR-BINARIES)
 	mkdir -p $(INSTALL-DIR-INTERFACE)
 	cd src; find -name "*.*h?" | xargs tar cf - | tar x -C $(INSTALL-DIR-INTERFACE)
-	# cp adventlib.conf $(INSTALL-DIR-PACKAGE-CONF)
 	cp src/*.so $(INSTALL-DIR-BINARIES)
 	cp src/*.a $(INSTALL-DIR-INTERFACE)
 	sed -e 's|@@INSTALL-DIR-INTERFACE@@|$(INSTALL-DIR-INTERFACE)|;s|@@INSTALL-DIR-BINARIES@@|$(INSTALL-DIR-BINARIES)|' \

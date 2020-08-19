@@ -8,10 +8,14 @@
     p.random-fu
   ];
   inherit haskellPackages;
-  extra-drv = {
+
+  extra-drv = rec {
+    makeFlags = "PREFIX=$out";
     installPhase = ''
-      make INSTALL-PATH=$out install
+      echo       make ${makeFlags} install
+      make ${makeFlags} install
     '';
+    # Silently required by ghcWithPackages, for some reason
     isHaskellLibrary = true;
   };
 }
