@@ -1,3 +1,18 @@
+# Interface
+# =========
+
+# PREFIX must be set when installing
+
+PACKAGE-NAME := adventlib
+
+# Internal variables
+# ==================
+BUILD-DIR := ../build
+LIB-DIR := $(BUILD-DIR)/lib
+BIN-DIR := $(BUILD-DIR)/bin
+GEN-DIR := $(BUILD-DIR)/generated
+
+# TODO: Many of these must be generalised when improving this Makefile
 GHC-VERSION := 8.6.5
 ARCH = x86_64-linux
 LIB-NAME = adventlib
@@ -8,8 +23,26 @@ INSTALL-DIR-PACKAGE-CONF := $(INSTALL-DIR)/package.conf.d
 INSTALL-DIR-BINARIES := $(INSTALL-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
 INSTALL-DIR-INTERFACE := $(INSTALL-DIR-BINARIES)/$(LIB-NAME)-$(LIB-VERSION)
 
+# Targets
+# =======
+$(LIB-DIR):
+	mkdir -p $@
+
+$(BIN-DIR):
+	mkdir -p $@
+
+$(GEN-DIR):
+	mkdir -p $@
+
+$(GEN-DIR)/$(PACKAGE-NAME).conf: templates/$(PACKAGE-NAME).conf.template | $(GEN-DIR)
+	sed -e "s|@@INSTALL-DIR-INTERFACE@@|$(INSTALL-DIR-INTERFACE)|; \
+		s|@@INSTALL-DIR-BINARIES@@|$(INSTALL-DIR-BINARIES)|" \
+	< $< > $@
+
+.PHONY: all
 all: test
 
+.PHONY: test
 test:
 	cd src; ghc --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
 	cd src; ghc -c --make -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
@@ -28,6 +61,10 @@ clean:
 	find . -name "*.so" -delete
 	rm -f src/MainTest
 
+
+
+
+.PHONY: install
 install:
 ifeq ($(PREFIX),)
 	$(error "PREFIX is not set, please set it with make PREFIX=<path>")
