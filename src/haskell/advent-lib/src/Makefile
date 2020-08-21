@@ -15,40 +15,36 @@ ARCH = x86_64-linux
 
 BUILD-DIR := ../build
 PREFIX := $(BUILD-DIR)
-BIN-DIR := $(BUILD-DIR)/bin
-GEN-DIR := $(BUILD-DIR)/generated
-INSTALL-DIR := $(PREFIX)/install/lib/ghc-$(GHC-VERSION)
+PACKAGE-DIR := $(PREFIX)/lib/ghc-$(GHC-VERSION)
 
-INSTALL-DIR-PACKAGE-CONF := $(INSTALL-DIR)/package.conf.d
-INSTALL-DIR-SO := $(INSTALL-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
-INSTALL-DIR-STATIC := $(INSTALL-DIR-SO)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
+PACKAGE-CONF-DIR := $(PACKAGE-DIR)/package.conf.d
+DYNAMIC-LIB-DIR := $(PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
+STATIC-LIB-DIR := $(PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
 
-PACKAGE-CONF := $(INSTALL-DIR-PACKAGE-CONF)/$(PACKAGE-NAME).conf
+PACKAGE-CONF := $(PACKAGE-CONF-DIR)/$(PACKAGE-NAME).conf
 
 # Targets
 # =======
-$(BIN-DIR) \
-$(GEN-DIR) \
-$(INSTALL-DIR) \
-$(INSTALL-DIR-PACKAGE-CONF) \
-$(INSTALL-DIR-SO) \
-$(INSTALL-DIR-STATIC):
+$(PACKAGE-DIR) \
+$(PACKAGE-CONF-DIR) \
+$(DYNAMIC-LIB-DIR) \
+$(STATIC-LIB-DIR):
 	mkdir -p $@
 
 .PHONY: all
 all: lib $(PACKAGE-CONF)
 
-$(PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template | $(INSTALL-DIR-PACKAGE-CONF) $(INSTALL-DIR-STATIC) $(INSTALL-DIR-SO)
-	sed -e "s|@@INSTALL-DIR-INTERFACE@@|$(realpath $(INSTALL-DIR-STATIC))|; \
-		s|@@INSTALL-DIR-BINARIES@@|$(realpath $(INSTALL-DIR-SO))|" \
+$(PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template | $(PACKAGE-CONF-DIR) $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
+	sed -e "s|@@INSTALL-DIR-INTERFACE@@|$(realpath $(STATIC-LIB-DIR))|; \
+		s|@@INSTALL-DIR-BINARIES@@|$(realpath $(DYNAMIC-LIB-DIR))|" \
 	< $< > $@
 
 .PHONY: lib
-lib: | $(INSTALL-DIR-STATIC)
-	cd src; ghc -outputdir $(realpath $(INSTALL-DIR-STATIC)) --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
-	cd src; ghc -c --make -outputdir $(realpath $(INSTALL-DIR-STATIC)) -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
-	mv src/*.so $(INSTALL-DIR-SO)
-	ar cqs $(INSTALL-DIR-STATIC)/libHSadventlib.a $(INSTALL-DIR-STATIC)/System/IO/*.o
+lib: | $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
+	cd src; ghc -outputdir $(realpath $(STATIC-LIB-DIR)) --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
+	cd src; ghc -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
+	mv src/*.so $(DYNAMIC-LIB-DIR)
+	ar cqs $(STATIC-LIB-DIR)/libHSadventlib.a $(STATIC-LIB-DIR)/System/IO/*.o
 
 .PHONY: test
 test:
