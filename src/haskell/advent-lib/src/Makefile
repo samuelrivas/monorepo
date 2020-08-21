@@ -7,7 +7,8 @@ PACKAGE-NAME := adventlib
 
 # Internal variables
 # ==================
-BUILD-DIR := ../build
+
+BUILD-DIR := $(realpath ..)/build
 LIB-DIR := $(BUILD-DIR)/lib
 BIN-DIR := $(BUILD-DIR)/bin
 GEN-DIR := $(BUILD-DIR)/generated
@@ -40,19 +41,24 @@ $(GEN-DIR)/$(PACKAGE-NAME).conf: templates/$(PACKAGE-NAME).conf.template | $(GEN
 	< $< > $@
 
 .PHONY: all
-all: test
+all: $(GEN-DIR)/$(PACKAGE-NAME).conf lib
+
+.PHONY: lib
+lib: | $(LIB-DIR)
+	cd src; ghc -outputdir $(BUILD-DIR) --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
+	cd src; ghc -c --make -outputdir $(BUILD-DIR) -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
+	mv src/*.so $(LIB-DIR)
+	ar cqs $(BUILD-DIR)/libHSadventlib.a $(BUILD-DIR)/System/IO/*.o
 
 .PHONY: test
 test:
-	cd src; ghc --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
-	cd src; ghc -c --make -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
-	ar cqs src/libHSadventlib.a src/System/IO/*.o
 	# ghc --make src/MainTest.hs
 	# ghc --make -dynamic src/MainTest.hs -o src/MainTest_dyn
 	# src/MainTest
 	# src/MainTest_dyn
 
 clean:
+	rm -rf $(BUILD-DIR)
 	find . -name "*.hi" -delete
 	find . -name "*.o" -delete
 	find . -name "*.a" -delete
@@ -62,7 +68,13 @@ clean:
 	rm -f src/MainTest
 
 
-
+.PHONY: install-good
+install-good:
+ifeq ($(PREFIX),)
+	$(error "PREFIX is not set, please set it with make PREFIX=<path>")
+endif
+	mkdir -p $(PREFIX);
+	cp -r 
 
 .PHONY: install
 install:
@@ -73,11 +85,10 @@ endif
 	mkdir -p $(INSTALL-DIR-PACKAGE-CONF)
 	mkdir -p $(INSTALL-DIR-BINARIES)
 	mkdir -p $(INSTALL-DIR-INTERFACE)
-	cd src; find -name "*.*h?" | xargs tar cf - | tar x -C $(INSTALL-DIR-INTERFACE)
-	cp src/*.so $(INSTALL-DIR-BINARIES)
-	cp src/*.a $(INSTALL-DIR-INTERFACE)
-	sed -e 's|@@INSTALL-DIR-INTERFACE@@|$(INSTALL-DIR-INTERFACE)|;s|@@INSTALL-DIR-BINARIES@@|$(INSTALL-DIR-BINARIES)|' \
-	< adventlib.conf.template > $(INSTALL-DIR-PACKAGE-CONF)/adventlib.conf
+	cd $(BUILD-DIR); find -name "*.*hi" | xargs tar cf - | tar x -C $(INSTALL-DIR-INTERFACE)
+	cp $(LIB-DIR)/*.so $(INSTALL-DIR-BINARIES)
+	cp $(BUILD-DIR)/*.a $(INSTALL-DIR-INTERFACE)
+	cp $(GEN-DIR)/$(PACKAGE-NAME).conf $(INSTALL-DIR-PACKAGE-CONF)/$(PACKAGE-NAME).conf
 
 install-clean:
 	rm -r $(INSTALL-PATH)/*
