@@ -1,54 +1,54 @@
 # Interface
 # =========
 
-# PREFIX must be set when installing
+# PREFIX can be set to install in a different place. By default we install in
+# $(BUILD-DIR)/install
 
 PACKAGE-NAME := adventlib
+PACKAGE-VERSION := 1.0
 
 # Internal variables
 # ==================
-
-BUILD-DIR := $(realpath ..)/build
-LIB-DIR := $(BUILD-DIR)/lib
-BIN-DIR := $(BUILD-DIR)/bin
-GEN-DIR := $(BUILD-DIR)/generated
-
 # TODO: Many of these must be generalised when improving this Makefile
 GHC-VERSION := 8.6.5
 ARCH = x86_64-linux
-LIB-NAME = adventlib
-LIB-VERSION = 1.0
 
-INSTALL-DIR := $(PREFIX)/lib/ghc-$(GHC-VERSION)
+BUILD-DIR := ../build
+PREFIX := $(BUILD-DIR)
+BIN-DIR := $(BUILD-DIR)/bin
+GEN-DIR := $(BUILD-DIR)/generated
+INSTALL-DIR := $(PREFIX)/install/lib/ghc-$(GHC-VERSION)
+
 INSTALL-DIR-PACKAGE-CONF := $(INSTALL-DIR)/package.conf.d
-INSTALL-DIR-BINARIES := $(INSTALL-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
-INSTALL-DIR-INTERFACE := $(INSTALL-DIR-BINARIES)/$(LIB-NAME)-$(LIB-VERSION)
+INSTALL-DIR-SO := $(INSTALL-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
+INSTALL-DIR-STATIC := $(INSTALL-DIR-SO)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
+
+PACKAGE-CONF := $(INSTALL-DIR-PACKAGE-CONF)/$(PACKAGE-NAME).conf
 
 # Targets
 # =======
-$(LIB-DIR):
+$(BIN-DIR) \
+$(GEN-DIR) \
+$(INSTALL-DIR) \
+$(INSTALL-DIR-PACKAGE-CONF) \
+$(INSTALL-DIR-SO) \
+$(INSTALL-DIR-STATIC):
 	mkdir -p $@
-
-$(BIN-DIR):
-	mkdir -p $@
-
-$(GEN-DIR):
-	mkdir -p $@
-
-$(GEN-DIR)/$(PACKAGE-NAME).conf: templates/$(PACKAGE-NAME).conf.template | $(GEN-DIR)
-	sed -e "s|@@INSTALL-DIR-INTERFACE@@|$(INSTALL-DIR-INTERFACE)|; \
-		s|@@INSTALL-DIR-BINARIES@@|$(INSTALL-DIR-BINARIES)|" \
-	< $< > $@
 
 .PHONY: all
-all: $(GEN-DIR)/$(PACKAGE-NAME).conf lib
+all: lib $(PACKAGE-CONF)
+
+$(PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template | $(INSTALL-DIR-PACKAGE-CONF) $(INSTALL-DIR-STATIC) $(INSTALL-DIR-SO)
+	sed -e "s|@@INSTALL-DIR-INTERFACE@@|$(realpath $(INSTALL-DIR-STATIC))|; \
+		s|@@INSTALL-DIR-BINARIES@@|$(realpath $(INSTALL-DIR-SO))|" \
+	< $< > $@
 
 .PHONY: lib
-lib: | $(LIB-DIR)
-	cd src; ghc -outputdir $(BUILD-DIR) --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
-	cd src; ghc -c --make -outputdir $(BUILD-DIR) -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
-	mv src/*.so $(LIB-DIR)
-	ar cqs $(BUILD-DIR)/libHSadventlib.a $(BUILD-DIR)/System/IO/*.o
+lib: | $(INSTALL-DIR-STATIC)
+	cd src; ghc -outputdir $(realpath $(INSTALL-DIR-STATIC)) --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
+	cd src; ghc -c --make -outputdir $(realpath $(INSTALL-DIR-STATIC)) -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
+	mv src/*.so $(INSTALL-DIR-SO)
+	ar cqs $(INSTALL-DIR-STATIC)/libHSadventlib.a $(INSTALL-DIR-STATIC)/System/IO/*.o
 
 .PHONY: test
 test:
@@ -57,31 +57,12 @@ test:
 	# src/MainTest
 	# src/MainTest_dyn
 
+.PHONY: clean
 clean:
 	rm -rf $(BUILD-DIR)
-	find . -name "*.hi" -delete
-	find . -name "*.o" -delete
-	find . -name "*.a" -delete
-	find . -name "*dyn*" -delete
-	find . -name "*.hi" -delete
-	find . -name "*.so" -delete
-	rm -f src/MainTest
-
-
-.PHONY: install-good
-install-good:
-ifeq ($(PREFIX),)
-	$(error "PREFIX is not set, please set it with make PREFIX=<path>")
-endif
-	mkdir -p $(PREFIX);
-	cp -r 
 
 .PHONY: install
-install:
-ifeq ($(PREFIX),)
-	$(error "PREFIX is not set, please set it with make PREFIX=<path>")
-endif
-
+install: lib $(PACKAGE-CONF)
 	mkdir -p $(INSTALL-DIR-PACKAGE-CONF)
 	mkdir -p $(INSTALL-DIR-BINARIES)
 	mkdir -p $(INSTALL-DIR-INTERFACE)
