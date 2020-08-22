@@ -14,19 +14,26 @@ GHC-VERSION := 8.6.5
 ARCH = x86_64-linux
 
 BUILD-DIR := ../build
-PREFIX := $(BUILD-DIR)
-PACKAGE-DIR := $(PREFIX)/lib/ghc-$(GHC-VERSION)
+INSTALL-DIR = $(PREFIX)
+PACKAGE-DIR := $(BUILD-DIR)/out/lib/ghc-$(GHC-VERSION)
+INSTALL-PACKAGE-DIR := $(INSTALL-DIR)/lib/ghc-$(GHC-VERSION)
 
 PACKAGE-CONF-DIR := $(PACKAGE-DIR)/package.conf.d
+INSTALL-PACKAGE-CONF-DIR := $(INSTALL-PACKAGE-DIR)/package.conf.d
 DYNAMIC-LIB-DIR := $(PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
 STATIC-LIB-DIR := $(PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
+INSTALLED-DYNAMIC-LIB-DIR := $(INSTALL-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
+INSTALLED-STATIC-LIB-DIR := $(INSTALL-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
 
 PACKAGE-CONF := $(PACKAGE-CONF-DIR)/$(PACKAGE-NAME).conf
+INSTALLED-PACKAGE-CONF := $(INSTALL-PACKAGE-CONF-DIR)/$(PACKAGE-NAME).conf
 
 # Targets
 # =======
 $(PACKAGE-DIR) \
+$(INSTALL-DIR) \
 $(PACKAGE-CONF-DIR) \
+$(INSTALL-PACKAGE-CONF-DIR) \
 $(DYNAMIC-LIB-DIR) \
 $(STATIC-LIB-DIR):
 	mkdir -p $@
@@ -37,6 +44,11 @@ all: lib $(PACKAGE-CONF)
 $(PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template | $(PACKAGE-CONF-DIR) $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
 	sed -e "s|@@INSTALL-DIR-INTERFACE@@|$(realpath $(STATIC-LIB-DIR))|; \
 		s|@@INSTALL-DIR-BINARIES@@|$(realpath $(DYNAMIC-LIB-DIR))|" \
+	< $< > $@
+
+$(INSTALLED-PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template | $(PACKAGE-CONF-DIR) $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
+	sed -e "s|@@INSTALL-DIR-INTERFACE@@|$(realpath $(INSTALLED-STATIC-LIB-DIR))|; \
+		s|@@INSTALL-DIR-BINARIES@@|$(realpath $(INSTALLED-DYNAMIC-LIB-DIR))|" \
 	< $< > $@
 
 .PHONY: lib
@@ -58,14 +70,7 @@ clean:
 	rm -rf $(BUILD-DIR)
 
 .PHONY: install
-install: lib $(PACKAGE-CONF)
-	mkdir -p $(INSTALL-DIR-PACKAGE-CONF)
-	mkdir -p $(INSTALL-DIR-BINARIES)
-	mkdir -p $(INSTALL-DIR-INTERFACE)
-	cd $(BUILD-DIR); find -name "*.*hi" | xargs tar cf - | tar x -C $(INSTALL-DIR-INTERFACE)
-	cp $(LIB-DIR)/*.so $(INSTALL-DIR-BINARIES)
-	cp $(BUILD-DIR)/*.a $(INSTALL-DIR-INTERFACE)
-	cp $(GEN-DIR)/$(PACKAGE-NAME).conf $(INSTALL-DIR-PACKAGE-CONF)/$(PACKAGE-NAME).conf
-
+install: lib
+	cd $(BUILD-DIR)/out; tar c --exclude "*.o" --exclude "*.dyn_o" * | tar x -C $(INSTALL-DIR)
 install-clean:
 	rm -r $(INSTALL-PATH)/*
