@@ -6,9 +6,9 @@ exposed: True
 exposed-modules:
     System.IO.Advent
     System.IO.Test
-import-dirs: @@INSTALL-DIR-INTERFACE@@
-library-dirs: @@INSTALL-DIR-INTERFACE@@
-dynamic-library-dirs: @@INSTALL-DIR-BINARIES@@
+import-dirs: @@IMPORT-DIR@@
+library-dirs: @@STATIC-LIB-DIR@@
+dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
 hs-libraries: HSadventlib
 depends:
     base-4.12.0.0

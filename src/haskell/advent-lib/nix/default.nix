@@ -12,7 +12,6 @@
   extra-drv = rec {
     makeFlags = "PREFIX=$out";
     installPhase = ''
-      echo       make ${makeFlags} install
       make ${makeFlags} install
     '';
     # Silently required by ghcWithPackages, for some reason
