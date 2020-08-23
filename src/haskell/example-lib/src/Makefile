@@ -4,7 +4,7 @@
 # PREFIX can be set to install in a different place. By default we install in
 # $(BUILD-DIR)/install
 
-PACKAGE-NAME := adventlib
+PACKAGE-NAME := example
 PACKAGE-VERSION := 1.0
 
 # Internal variables
@@ -46,10 +46,10 @@ $(PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template | $(PACKAGE-CONF-DIR) $
 
 .PHONY: compile
 compile: | $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
-	cd src; ghc -outputdir $(realpath $(STATIC-LIB-DIR)) --make -dynamic -shared -fPIC -package-name adventlib System/IO/Advent.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHSadventlib-ghc8.6.5.so
-	cd src; ghc -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name adventlib System/IO/Advent.hs System/IO/Test.hs
+	cd src; ghc -outputdir $(realpath $(STATIC-LIB-DIR)) --make -dynamic -shared -fPIC -package-name $(PACKAGE-NAME) System/IO/Example.hs System/IO/Test.hs -osuf dyn_o -hisuf dyn_hi -o libHS$(PACKAGE-NAME)-ghc$(GHC-VERSION).so
+	cd src; ghc -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name $(PACKAGE-NAME) System/IO/Example.hs System/IO/Test.hs
 	mv src/*.so $(DYNAMIC-LIB-DIR)
-	ar cqs $(STATIC-LIB-DIR)/libHSadventlib.a $(STATIC-LIB-DIR)/System/IO/*.o
+	ar cqs $(STATIC-LIB-DIR)/libHS$(PACKAGE-NAME).a $(STATIC-LIB-DIR)/System/IO/*.o
 
 .PHONY: test
 test:
