@@ -127,7 +127,6 @@ let
     # C++ stuff
     # =========
     reservoir = callPackage ./../src/c++/reservoir/nix { };
-
     monte-carlo = callPackage ./../src/c++/monte-carlo/nix { };
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
       inherit (pkgs-sam.pkgs-upstream) rapidcheck;
@@ -136,6 +135,7 @@ let
     graphlib = callPackage ./../src/c++/graphlib/nix { };
     rndlib = callPackage ./../src/c++/rndlib/nix { };
     asyncq = callPackage ./../src/c++/asyncq/nix { };
+    simple-cache = callPackage ./../src/c++/simple-cache/nix { };
 
     # C stuff
     # =======
