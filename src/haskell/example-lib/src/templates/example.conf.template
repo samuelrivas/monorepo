@@ -1,0 +1,14 @@
+name: example
+version: 1.0
+id: example
+key: example
+exposed: True
+exposed-modules:
+    System.IO.Example
+    System.IO.Test
+import-dirs: @@IMPORT-DIR@@
+library-dirs: @@STATIC-LIB-DIR@@
+dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
+hs-libraries: HSexample
+depends:
+    base-4.12.0.0
