@@ -1,3 +1,7 @@
+/* Copyright 2020 samuelrivas@gmail.com
+ *
+ * Test the SCache object
+ */
 #include <rapidcheck.h>
 
 #include <vector>

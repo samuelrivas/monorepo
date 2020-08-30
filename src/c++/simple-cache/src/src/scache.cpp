@@ -38,10 +38,10 @@ class SCache {
     std::greater<Queue_frame>
     > ages;
 
-public:
-  explicit SCache() { };
+ public:
+  SCache() { }
 
-  // TODO flush when content has reached age
+  // TODO(Samuel) flush when content has reached age
   void insert(const K k, const V v, Age age) {
     cache[k] = { v, age };
     ages.push({ age, k });
@@ -74,7 +74,7 @@ public:
     }
   }
 };
-}
+}  // namespace sam
 
 using sam::SCache;
 
