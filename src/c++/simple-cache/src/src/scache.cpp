@@ -48,8 +48,8 @@ public:
   }
 
   // Throws if k does not exist
-  const V& lookup(K k) const {
-    return cache.at(k).first;
+  const pair<V, K>& lookup(K k) const {
+    return cache.at(k);
   }
 
   // Deletes all entries younger than age
@@ -91,9 +91,9 @@ int main() {
   // cache.insert(10, 2, 0);
   // cache.insert(30, 3, 0);
 
-  cout << cache.lookup(10) << endl;
-  cout << cache.lookup(20) << endl;
-  cout << cache.lookup(30) << endl;
+  cout << cache.lookup(10).first << endl;
+  cout << cache.lookup(20).first << endl;
+  cout << cache.lookup(30).first << endl;
 
   cout << "flushing 3" << endl;
   cache.flush(3);
