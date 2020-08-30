@@ -2,48 +2,63 @@ build-dir := ../build
 work-dir := $(build-dir)/work
 install-dir := $(build-dir)/install
 bin-dir := $(install-dir)/bin
-default-args :=
+
+sources := $(wildcard src/*.cpp)
+source-files := $(notdir $(sources)) $(notdir $(test-sources))
+target-files := $(source-files:.cpp=)
+cpplint-targets := $(addprefix cpplint-,$(target-files))
+bin-targets := $(addprefix $(bin-dir)/,$(target-files))
+valgrind-targets := $(addprefix valgrind-,$(target-files))
+run-targets := $(addprefix run-,$(target-files))
+strace-targets := $(addprefix strace-,$(target-files))
 
 CPPARGS := -Wall -Wextra -Werror -std=c++11 -ggdb3 -fno-exceptions -O3
 LDFLAGS :=
 
 .PHONY: all
-all: $(bin-dir)/scache
+all: $(bin-targets)
 
-$(work-dir) $(install-dir) $(bin-dir):
+$(work-dir) $(bin-dir) $(lib-dir):
 	mkdir -p $@
 
-$(work-dir)/scache.o: src/scache.cpp | $(work-dir)
-	g++ $(CPPARGS) -c -o $@ $^
+.PHONY: $(valgrind-targets)
+$(valgrind-targets): valgrind-%: $(bin-dir)/%
+	valgrind --leak-check=full --error-exitcode=1 $^
 
-$(bin-dir)/scache: $(work-dir)/scache.o | $(bin-dir)
-	g++ -o $@ $^ $(LDFLAGS)
+.PHONY: $(strace-targets)
+$(strace-targets): strace-%: $(bin-dir)/%
+	strace $^ > /tmp/out
 
-.PHONY: valgrind
-valgrind: $(bin-dir)/scache
-	valgrind --leak-check=full --error-exitcode=1 $^ $(default-args)
+.PHONY: $(run-targets)
+$(run-targets): run-%: $(bin-dir)/%
+	$^
 
-.PHONY: strace
-strace: $(bin-dir)/scache
-	strace $^ $(default-args) > /tmp/out
+.PHONY: $(cpplint-targets)
+cpplint: $(cpplint-targets)
 
-.PHONY: run
-run: $(bin-dir)/scache
-	$^ $(default-args)
+.PHONY: $(cpplint-targets)
+$(cpplint-targets): cpplint-%: $(work-dir)/%.cpplint
 
-.PHONY: cpplint
-cpplint: $(work-dir)/cpplint-report
-
-$(work-dir)/cpplint-report: src/scache.cpp | $(work-dir)
-	cpplint $^ 2>&1 | tee $(work-dir)/cpplint-report
-
-.PHONY: test
-test: $(bin-dir)/scache
-	test/test.sh $^
+$(work-dir)/%.cpplint: src/%.cpp | $(work-dir)
+	@echo cpplint $^
+	@cpplint --quiet $^ 2>&1 | tee $@
 
 .PHONY: check
-check: cpplint valgrind test
+check: cpplint $(valgrind-targets)
 
 .PHONY: clean
 clean:
 	rm -r $(build-dir)
+
+$(work-dir)/%.o: src/%.cpp | $(work-dir)
+	g++ $(CPPARGS) -c -o $@ $(filter-out %.hpp, $^)
+
+$(work-dir)/%.o: src/lib/%.cpp src/lib/%.hpp | $(work-dir)
+	g++ $(CPPARGS) -c -o $@ $(filter-out %.hpp, $^)
+
+$(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
+	g++ $(CPPARGS) -o $@ $^ $(LDFLAGS)
+
+## Target specific flags
+$(bin-dir)/scache-test: LDFLAGS := $(LDFLAGS) -lrapidcheck
+$(bin-dir)/scache-test: CPPARGS := $(CPPARGS) -fexceptions
