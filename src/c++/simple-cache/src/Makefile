@@ -62,3 +62,5 @@ $(bin-dir)/%: $(work-dir)/%.o | $(bin-dir)
 ## Target specific flags
 $(bin-dir)/scache-test: LDFLAGS := $(LDFLAGS) -lrapidcheck
 $(bin-dir)/scache-test: CPPARGS := $(CPPARGS) -fexceptions
+$(bin-dir)/http-server: LDFLAGS := $(LDFLAGS) -lPocoNet -lPocoUtil -lPocoFoundation
+$(bin-dir)/http-server: CPPARGS := $(CPPARGS) -fexceptions

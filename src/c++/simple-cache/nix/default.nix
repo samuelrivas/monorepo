@@ -3,6 +3,7 @@
   cpplint,
   gdb,
   gcc,
+  poco,
   rapidcheck,
   stdenv,
   strace,
@@ -19,6 +20,7 @@ let
     buildInputs = [
       cpplint
       gcc
+      poco
       rapidcheck
       valgrind
     ];
