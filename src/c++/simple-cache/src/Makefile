@@ -12,7 +12,7 @@ valgrind-targets := $(addprefix valgrind-,$(target-files))
 run-targets := $(addprefix run-,$(target-files))
 strace-targets := $(addprefix strace-,$(target-files))
 
-CPPARGS := -Wall -Wextra -Werror -std=c++11 -ggdb3 -fno-exceptions -O3
+CPPARGS := -Wall -Wextra -Werror -std=c++17 -ggdb3 -fno-exceptions -O3
 LDFLAGS :=
 
 .PHONY: all
