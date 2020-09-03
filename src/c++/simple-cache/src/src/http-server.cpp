@@ -60,6 +60,8 @@ class ScacheErrorHandler : public ErrorHandler {
   }
 };
 
+// Functions called by this can modify resp and write to the output stream, this
+// function is responsible for flushing the output and sending the request
 class ScacheRequestHandler : public HTTPRequestHandler {
  public:
   virtual void handleRequest(HTTPServerRequest &req, HTTPServerResponse &resp) {
@@ -82,30 +84,23 @@ class ScacheRequestHandler : public HTTPRequestHandler {
 
     switch (method.value()) {
     case Method::Get:
-      handleGet(req, resp);
+      handleGet(key.value(), req, resp);
       break;
     case Method::Post:
       handlePost(key.value(), req, resp);
       break;
     }
 
-    // TODO(Samuel) Remove this
-    ostream& out = resp.send();
-    out << "<h1>Hello world!</h1>"
-        << "<p>Host: "   << req.getHost()   << "</p>"
-        << "<p>Method: " << req.getMethod() << "</p>"
-        << "<p>URI: "    << req.getURI()    << "</p>";
-    out.flush();
-
-    cerr << "Response sent for URI=" << req.getURI() << endl;
-
+    resp.send().flush();
   }
 
  private:
   void handlePost(const string& key,
                   HTTPServerRequest &req,
                   HTTPServerResponse &resp) {
+
     optional<vector<byte>> body = readBody(req);
+
     if (! body.has_value()) {
       resp.setStatusAndReason(HTTPResponse::HTTP_BAD_REQUEST,
                               "You must send a body when POSTing");
@@ -116,11 +111,19 @@ class ScacheRequestHandler : public HTTPRequestHandler {
     }
   }
 
-  void handleGet(HTTPServerRequest &req, HTTPServerResponse &resp) {
+  void handleGet(const string& key,
+                 HTTPServerRequest &req,
+                 HTTPServerResponse &resp) {
+
     (void) req;
-    cerr << "Handling get" << endl;
-    resp.setStatus(HTTPResponse::HTTP_OK);
+
+    cerr << "Lookup " << key << endl;
+
+    resp.setStatusAndReason(HTTPResponse::HTTP_NOT_FOUND);
     resp.setContentType("application/octet-stream");
+
+    ostream& out = resp.send();
+    out << "Some binary blob";
   }
 
   optional<Method> parseMethod(const HTTPServerRequest &req) const {
