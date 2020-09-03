@@ -22,6 +22,8 @@ using std::ostream;
 using std::nullopt;
 using std::string;
 using std::vector;
+using std::istream;
+using std::byte;
 
 using Poco::Net::HTTPRequestHandler;
 using Poco::Net::HTTPRequestHandlerFactory;
@@ -83,7 +85,7 @@ class ScacheRequestHandler : public HTTPRequestHandler {
       handleGet(req, resp);
       break;
     case Method::Post:
-      handlePost(req, resp);
+      handlePost(key.value(), req, resp);
       break;
     }
 
@@ -100,23 +102,18 @@ class ScacheRequestHandler : public HTTPRequestHandler {
   }
 
  private:
-  void handlePost(HTTPServerRequest &req, HTTPServerResponse &resp) {
-    vector<string> path;
-    URI(req.getURI()).getPathSegments(path);
-
-    optional<string> key = parseKey(req);
-    cerr << "optional has " << key.value_or("EMPTY") << endl;
-
-    if (path.size() != 1) {
+  void handlePost(const string& key,
+                  HTTPServerRequest &req,
+                  HTTPServerResponse &resp) {
+    optional<vector<byte>> body = readBody(req);
+    if (! body.has_value()) {
       resp.setStatusAndReason(HTTPResponse::HTTP_BAD_REQUEST,
-                              "Path must have a single segment");
-      return;
+                              "You must send a body when POSTing");
+    } else {
+      resp.setStatus(HTTPResponse::HTTP_OK);
+      cerr << "New value for '" << key << "', "
+           << body.value().size() << " bytes" << endl;
     }
-
-    cerr << "Store key " << path[0] << endl;
-
-    resp.setStatus(HTTPResponse::HTTP_OK);
-    resp.setContentType("application/octet-stream");
   }
 
   void handleGet(HTTPServerRequest &req, HTTPServerResponse &resp) {
@@ -135,6 +132,27 @@ class ScacheRequestHandler : public HTTPRequestHandler {
     } else {
       return nullopt;
     }
+  }
+
+  optional<vector<byte>> readBody(HTTPServerRequest &req) {
+    int length = req.getContentLength();
+
+    if (length < 0) {
+      return nullopt;
+    }
+
+    //TODO(Samuel) add a limit here
+    vector<byte> bytes(length);
+    req.stream().read(reinterpret_cast<char*>(bytes.data()), length);
+
+    //Just in case something failed
+    if (bytes.size() != static_cast<size_t>(length)) {
+      cerr << "ERROR: could not read " << length
+           << " bytes from request body" << endl;
+      return nullopt;
+    }
+    cerr << "Read " << length << " bytes from request body" << endl;
+    return bytes;
   }
 
   // If the request path is of type `/keyname`, return `keyname`. Otherwise
