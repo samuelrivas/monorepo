@@ -8,6 +8,7 @@
 #ifndef __SCACHE_HPP__
 #define __SCACHE_HPP__
 
+#include <iostream>
 #include <queue>
 #include <string>
 #include <unordered_map>
@@ -15,15 +16,18 @@
 
 using std::cerr;
 using std::endl;
-using std::unordered_map;
-using std::priority_queue;
 using std::pair;
+using std::priority_queue;
+using std::unordered_map;
 
 namespace sam {
 
 template <typename K, typename V>
 class SCache {
+ public:
   using Timestamp = int;
+
+ private:
   using Queue_frame = pair<Timestamp, K>;
 
   // Key to (Value, timestamp) map.
@@ -49,7 +53,7 @@ class SCache {
 
   // Throws if k does not exist
   // TODO(samuel) provide a better interface for this
-  const pair<V, K>& lookup(K k) const {
+  const pair<V, Timestamp>& lookup(const K& k) const {
     return cache.at(k);
   }
 

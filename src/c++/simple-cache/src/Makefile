@@ -64,3 +64,5 @@ $(bin-dir)/scache-test: LDFLAGS := $(LDFLAGS) -lrapidcheck
 $(bin-dir)/scache-test: CPPARGS := $(CPPARGS) -fexceptions
 $(bin-dir)/http-server: LDFLAGS := $(LDFLAGS) -lPocoNet -lPocoUtil -lPocoFoundation
 $(bin-dir)/http-server: CPPARGS := $(CPPARGS) -fexceptions
+$(bin-dir)/shared-cache: CPPARGS := $(CPPARGS) -fexceptions
+$(bin-dir)/shared-cache: LDFLAGS := $(LDFLAGS) -lPocoNet -lPocoUtil -lPocoFoundation -lpthread
