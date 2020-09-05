@@ -1,3 +1,23 @@
+/* Copyright 2020 samuelrivas@gmail.com
+ *
+ * Simple HTTP server to implement in memory key value store.
+ *
+ * POSTing to /key, stores the body as value for key
+ *
+ * GETting /key, returns the value for key if it was previously stored, or 404
+ * if not.
+ *
+ * Values can be modified by posting to an existing key.
+ *
+ * Pending:
+ *
+ * TODO(Samuel) Expire keys. We need to store the current system type as age
+ * when writing a new value, and expire all keys stored earlier than age - 30
+ * minutes. We also need to filter out old values when getting.
+ *
+ * TODO(Samuel) Logging needs to lock the output stream. I am not doing it now
+ * for simplicity, but with load the log gets garbled.
+ */
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/HTTPServer.h>
 #include <Poco/Net/HTTPRequestHandler.h>
@@ -14,11 +34,16 @@
 #include <vector>
 #include <cassert>
 #include <optional>
+#include <utility>
+
+#include "scache.hpp"
+#include "shared-cache.hpp"
 
 using std::cerr;
 using std::endl;
 using std::optional;
 using std::ostream;
+using std::move;
 using std::nullopt;
 using std::string;
 using std::vector;
@@ -37,6 +62,11 @@ using Poco::Util::ServerApplication;
 using Poco::URI;
 using Poco::ErrorHandler;
 using Poco::Exception;
+
+using K = string;
+using V = vector<byte>;
+using Timestamp = typename sam::SCache<K, V>::Timestamp;
+using Cache = sam::SharedCache<K, V>;
 
 enum class Method {
   Get,
@@ -60,10 +90,17 @@ class ScacheErrorHandler : public ErrorHandler {
   }
 };
 
-// Functions called by this can modify resp and write to the output stream, this
-// function is responsible for flushing the output and sending the request
 class ScacheRequestHandler : public HTTPRequestHandler {
+ private:
+  Cache* cache;
+
  public:
+  ScacheRequestHandler(Cache* _cache) :
+    cache { _cache }
+  {};
+
+  // Handlers called by this may, but don't need to, send the response. If they
+  // don't rend the response, this function will send it with an empty body.
   virtual void handleRequest(HTTPServerRequest &req, HTTPServerResponse &resp) {
 
     optional<Method> method = parseMethod(req);
@@ -84,20 +121,23 @@ class ScacheRequestHandler : public HTTPRequestHandler {
 
     switch (method.value()) {
     case Method::Get:
-      handleGet(key.value(), req, resp);
+      handleGet(key.value(), req, resp, cache);
       break;
     case Method::Post:
-      handlePost(key.value(), req, resp);
+      handlePost(key.value(), req, resp, cache);
       break;
     }
 
-    resp.send().flush();
+    if (! resp.sent()) {
+      resp.send().flush();
+    }
   }
 
  private:
   void handlePost(const string& key,
                   HTTPServerRequest &req,
-                  HTTPServerResponse &resp) {
+                  HTTPServerResponse &resp,
+                  Cache* cache) {
 
     optional<vector<byte>> body = readBody(req);
 
@@ -108,22 +148,26 @@ class ScacheRequestHandler : public HTTPRequestHandler {
       resp.setStatus(HTTPResponse::HTTP_OK);
       cerr << "New value for '" << key << "', "
            << body.value().size() << " bytes" << endl;
+      cache -> insert(key, move(body.value()), 0);
     }
   }
 
   void handleGet(const string& key,
                  HTTPServerRequest &req,
-                 HTTPServerResponse &resp) {
-
+                 HTTPServerResponse &resp,
+                 Cache *cache) {
     (void) req;
 
-    cerr << "Lookup " << key << endl;
+    pair<V, Timestamp> value = cache -> lookup(key);
+    size_t length = value.first.size();
+    cerr << "Lookup '" << key << "': " << length << " bytes" << endl;
 
     resp.setStatusAndReason(HTTPResponse::HTTP_NOT_FOUND);
     resp.setContentType("application/octet-stream");
 
     ostream& out = resp.send();
-    out << "Some binary blob";
+    out.write(reinterpret_cast<char*>(value.first.data()), length);
+    out.flush();
   }
 
   optional<Method> parseMethod(const HTTPServerRequest &req) const {
@@ -177,16 +221,24 @@ class ScacheRequestHandler : public HTTPRequestHandler {
 };
 
 class ScacheRequestHandlerFactory : public HTTPRequestHandlerFactory {
+ private:
+  Cache* cache;
  public:
+  ScacheRequestHandlerFactory(Cache* _cache) :
+    cache { _cache }
+  {};
+
   virtual HTTPRequestHandler* createRequestHandler(const HTTPServerRequest &) {
-    return new ScacheRequestHandler;
+    return new ScacheRequestHandler(cache);
   }
 };
 
 class ScacheServerApp : public ServerApplication {
+ private:
+  Cache cache;
  protected:
   int main(const vector<string> &) {
-    HTTPServer server(new ScacheRequestHandlerFactory,
+    HTTPServer server(new ScacheRequestHandlerFactory(&cache),
                       ServerSocket(8080),
                       new HTTPServerParams);
 
