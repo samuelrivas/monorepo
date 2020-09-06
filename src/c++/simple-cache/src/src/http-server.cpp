@@ -7,12 +7,10 @@
  * GETting /key, returns the value for key if it was previously stored, or 404
  * if not.
  *
- * Values can be modified by posting to an existing key.
+ * Values can be modified by posting to an existing key. Modifying a value
+ * sets up a new expiration counter for it.
  *
  * Pending:
- *
- * TODO(Samuel) filter out expired keys on read. Since we are not flushing on
- * reads to avoid lock contention, we can hit stale entries.
  *
  * TODO(Samuel) Logging needs to lock the output stream. I am not doing it now
  * for simplicity, but with load the log gets garbled.
@@ -177,10 +175,16 @@ class ScacheRequestHandler : public HTTPRequestHandler {
                  Cache *cache) {
     (void) req;
 
+    // TODO(Samuel) This is duplicated here and in POST
+    int purge_age = max(0, get_age_in_seconds() - EXPIRATION_SECONDS);
     optional<pair<const V&, Timestamp>> optional_value = cache -> lookup(key);
-    cerr << "Lookup '" << key << "'" << endl;
+    cerr << "Lookup '" << key << "', purged at " << purge_age << endl;
 
-    if (optional_value.has_value()) {
+    // We only expire values when writing, so reads may hit expired
+    // entries. The server needs to filter them out and return 404 for those
+    // cases.
+    if (optional_value.has_value()
+        && optional_value.value().second >= purge_age) {
       const V& value = optional_value.value().first;
       size_t length = value.size();
 
@@ -194,7 +198,11 @@ class ScacheRequestHandler : public HTTPRequestHandler {
       out.write(reinterpret_cast<const char*>(value.data()), length);
       out.flush();
     } else {
-      cerr << "Not found '" << key << "'" << endl;
+      cerr << (optional_value.has_value()
+               ? "Expired '"
+               : "Not found '")
+           << key << "'" << endl;
+
       resp.setStatusAndReason(HTTPResponse::HTTP_NOT_FOUND);
       finishRequest(resp);
     }
