@@ -158,16 +158,27 @@ class ScacheRequestHandler : public HTTPRequestHandler {
                  Cache *cache) {
     (void) req;
 
-    pair<V, Timestamp> value = cache -> lookup(key);
-    size_t length = value.first.size();
-    cerr << "Lookup '" << key << "': " << length << " bytes" << endl;
+    optional<pair<const V&, Timestamp>> optional_value = cache -> lookup(key);
+    cerr << "Lookup '" << key << "'" << endl;
 
-    resp.setStatusAndReason(HTTPResponse::HTTP_NOT_FOUND);
-    resp.setContentType("application/octet-stream");
+    if (optional_value.has_value()) {
+      const V& value = optional_value.value().first;
+      size_t length = value.size();
 
-    ostream& out = resp.send();
-    out.write(reinterpret_cast<char*>(value.first.data()), length);
-    out.flush();
+      cerr << "Found " << length << " bytes value for '"
+           << key << "'" << endl;
+
+      resp.setStatusAndReason(HTTPResponse::HTTP_OK);
+      resp.setContentType("application/octet-stream");
+      ostream& out = resp.send();
+
+      out.write(reinterpret_cast<const char*>(value.data()), length);
+      out.flush();
+    } else {
+      cerr << "Not found '" << key << "'" << endl;
+      resp.setStatusAndReason(HTTPResponse::HTTP_NOT_FOUND);
+      finishRequest(resp);
+    }
   }
 
   optional<Method> parseMethod(const HTTPServerRequest &req) const {

@@ -37,9 +37,13 @@ int main() {
   // cache.insert(10, 2, 0);
   // cache.insert(30, 3, 0);
 
-  cout << cache.lookup(10).first << endl;
-  cout << cache.lookup(20).first << endl;
-  cout << cache.lookup(30).first << endl;
+  cout << cache.lookup(10).value().first << endl;
+  cout << cache.lookup(20).value().first << endl;
+  cout << cache.lookup(30).value().first << endl;
+
+  if (cache.lookup(40).has_value()) {
+    cout << "40 should not have value, WAAAT" << endl;
+  }
 
   cout << "flushing 3" << endl;
   cache.flush(3);

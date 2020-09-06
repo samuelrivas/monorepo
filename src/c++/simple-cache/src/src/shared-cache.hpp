@@ -5,19 +5,21 @@
  * point in time.
  *
  * I am intentionally not making this a subclass of SCache, to avoid the burden
- * to make SCache extendable.
+ * of making SCache extendable.
  */
 #ifndef __SHARED_CACHE_HPP__
 #define __SHARED_CACHE_HPP__
 
 #include <shared_mutex>
 #include <mutex>
+#include <optional>
 
 #include "scache.hpp"
 
 using std::shared_mutex;
 using std::shared_lock;
 using std::unique_lock;
+using std::optional;
 
 namespace sam {
 template <typename K, typename V>
@@ -35,9 +37,7 @@ class SharedCache {
     cache.insert(k, v, timestamp);
   }
 
-  // Throws if k does not exist
-  // TODO(samuel) provide a better interface for this
-  const pair<V, Timestamp>& lookup(const K& k) {
+  optional<pair<const V&, Timestamp>> lookup(const K& k) {
     shared_lock lock(mutex);
     return cache.lookup(k);
   }

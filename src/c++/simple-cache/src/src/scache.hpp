@@ -13,12 +13,15 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <optional>
 
 using std::cerr;
 using std::endl;
 using std::pair;
 using std::priority_queue;
 using std::unordered_map;
+using std::optional;
+using std::nullopt;
 
 namespace sam {
 
@@ -51,10 +54,14 @@ class SCache {
     timestamps.push({ timestamp, k });
   }
 
-  // Throws if k does not exist
-  // TODO(samuel) provide a better interface for this
-  const pair<V, Timestamp>& lookup(const K& k) const {
-    return cache.at(k);
+  optional<pair<const V&, Timestamp>> lookup(const K& k) const {
+    auto it = cache.find(k);
+
+    if (it == cache.end()) {
+      return nullopt;
+    } else {
+      return it -> second;
+    }
   }
 
   // Deletes all entries with a timestamp earlier than the one provided in the
