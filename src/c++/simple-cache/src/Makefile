@@ -2,10 +2,12 @@ build-dir := ../build
 work-dir := $(build-dir)/work
 install-dir := $(build-dir)/install
 bin-dir := $(install-dir)/bin
+deps-dir := $(work-dir)/deps
 
 sources := $(wildcard src/*.cpp)
 source-files := $(notdir $(sources)) $(notdir $(test-sources))
 target-files := $(source-files:.cpp=)
+dep-files := $(addprefix $(deps-dir)/,$(source-files:.cpp=.d))
 cpplint-targets := $(addprefix cpplint-,$(target-files))
 bin-targets := $(addprefix $(bin-dir)/,$(target-files))
 valgrind-targets := $(addprefix valgrind-,$(target-files))
@@ -18,7 +20,7 @@ LDFLAGS :=
 .PHONY: all
 all: $(bin-targets)
 
-$(work-dir) $(bin-dir) $(lib-dir):
+$(work-dir) $(bin-dir) $(lib-dir) $(deps-dir):
 	mkdir -p $@
 
 .PHONY: $(valgrind-targets)
@@ -53,6 +55,9 @@ clean:
 $(work-dir)/%.o: src/%.cpp | $(work-dir)
 	g++ $(CPPARGS) -c -o $@ $(filter-out %.hpp, $^)
 
+$(deps-dir)/%.d: src/%.cpp | $(deps-dir)
+	g++ $(CPPARGS) -MM -MF $@ -MT $(work-dir)/$*.o $^
+
 $(work-dir)/%.o: src/lib/%.cpp src/lib/%.hpp | $(work-dir)
 	g++ $(CPPARGS) -c -o $@ $(filter-out %.hpp, $^)
 
@@ -66,3 +71,6 @@ $(bin-dir)/http-server: LDFLAGS := $(LDFLAGS) -lPocoNet -lPocoUtil -lPocoFoundat
 $(bin-dir)/http-server: CPPARGS := $(CPPARGS) -fexceptions
 $(bin-dir)/shared-cache: CPPARGS := $(CPPARGS) -fexceptions
 $(bin-dir)/shared-cache: LDFLAGS := $(LDFLAGS) -lPocoNet -lPocoUtil -lPocoFoundation -lpthread
+
+## Include deps
+include $(dep-files)
