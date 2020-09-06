@@ -11,45 +11,53 @@
  *
  * Pending:
  *
- * TODO(Samuel) Expire keys. We need to store the current system type as age
- * when writing a new value, and expire all keys stored earlier than age - 30
- * minutes. We also need to filter out old values when getting.
+ * TODO(Samuel) filter out expired keys on read. Since we are not flushing on
+ * reads to avoid lock contention, we can hit stale entries.
  *
  * TODO(Samuel) Logging needs to lock the output stream. I am not doing it now
  * for simplicity, but with load the log gets garbled.
  */
-#include <Poco/Net/ServerSocket.h>
-#include <Poco/Net/HTTPServer.h>
+#include <Poco/ErrorHandler.h>
 #include <Poco/Net/HTTPRequestHandler.h>
 #include <Poco/Net/HTTPRequestHandlerFactory.h>
 #include <Poco/Net/HTTPResponse.h>
+#include <Poco/Net/HTTPServer.h>
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
-#include <Poco/Util/ServerApplication.h>
+#include <Poco/Net/ServerSocket.h>
 #include <Poco/URI.h>
-#include <Poco/ErrorHandler.h>
+#include <Poco/Util/ServerApplication.h>
 
-#include <iostream>
-#include <string>
-#include <vector>
+#include <algorithm>
 #include <cassert>
+#include <chrono>
+#include <iostream>
 #include <optional>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "scache.hpp"
 #include "shared-cache.hpp"
 
+using std::byte;
 using std::cerr;
+using std::chrono::duration_cast;
+using std::chrono::seconds;
+using std::chrono::system_clock;
+using std::chrono::time_point;
 using std::endl;
-using std::optional;
-using std::ostream;
+using std::istream;
+using std::max;
 using std::move;
 using std::nullopt;
+using std::optional;
+using std::ostream;
 using std::string;
 using std::vector;
-using std::istream;
-using std::byte;
 
+using Poco::ErrorHandler;
+using Poco::Exception;
 using Poco::Net::HTTPRequestHandler;
 using Poco::Net::HTTPRequestHandlerFactory;
 using Poco::Net::HTTPResponse;
@@ -58,10 +66,8 @@ using Poco::Net::HTTPServerParams;
 using Poco::Net::HTTPServerRequest;
 using Poco::Net::HTTPServerResponse;
 using Poco::Net::ServerSocket;
-using Poco::Util::ServerApplication;
 using Poco::URI;
-using Poco::ErrorHandler;
-using Poco::Exception;
+using Poco::Util::ServerApplication;
 
 using K = string;
 using V = vector<byte>;
@@ -72,6 +78,9 @@ enum class Method {
   Get,
   Post
 };
+
+// This must be 30 * 60, but setting it shorter for testing purposes
+constexpr int EXPIRATION_SECONDS = 20;
 
 // The default error handler silently fails. This one is not awesome, but better
 // than nothing
@@ -93,10 +102,13 @@ class ScacheErrorHandler : public ErrorHandler {
 class ScacheRequestHandler : public HTTPRequestHandler {
  private:
   Cache* cache;
+  const time_point<system_clock>& origin_time;
 
  public:
-  ScacheRequestHandler(Cache* _cache) :
-    cache { _cache }
+  ScacheRequestHandler(Cache* _cache,
+                       const time_point<system_clock>& _origin_time) :
+    cache { _cache },
+    origin_time { _origin_time }
   {};
 
   // Handlers called by this may, but don't need to, send the response. If they
@@ -144,11 +156,18 @@ class ScacheRequestHandler : public HTTPRequestHandler {
     if (! body.has_value()) {
       resp.setStatusAndReason(HTTPResponse::HTTP_BAD_REQUEST,
                               "You must send a body when POSTing");
+      finishRequest(resp);
     } else {
+      int age = get_age_in_seconds();
+      int purge_age = max(0, age - EXPIRATION_SECONDS);
+
+      cerr << "At second " << age << ", new value for '" << key << "', "
+           << body.value().size() << " bytes" << endl
+           << "Purging values younger than " << purge_age << endl;
+
       resp.setStatus(HTTPResponse::HTTP_OK);
-      cerr << "New value for '" << key << "', "
-           << body.value().size() << " bytes" << endl;
-      cache -> insert(key, move(body.value()), 0);
+      cache -> insert_and_flush(key, move(body.value()), age, purge_age);
+      finishRequest(resp);
     }
   }
 
@@ -229,32 +248,49 @@ class ScacheRequestHandler : public HTTPRequestHandler {
   void finishRequest(HTTPServerResponse &resp) {
     resp.send().flush();
   }
+
+  // Return the amount of seconds elapsed since the server started
+  int get_age_in_seconds() const {
+    time_point<system_clock> insert_time = system_clock::now();
+    return duration_cast<seconds>(insert_time - origin_time).count();
+  }
 };
 
 class ScacheRequestHandlerFactory : public HTTPRequestHandlerFactory {
  private:
   Cache* cache;
+  const time_point<system_clock>& origin_time;
  public:
-  ScacheRequestHandlerFactory(Cache* _cache) :
-    cache { _cache }
+  ScacheRequestHandlerFactory(Cache* _cache,
+                              const time_point<system_clock>& _origin_time) :
+    cache { _cache },
+    origin_time { _origin_time }
   {};
 
   virtual HTTPRequestHandler* createRequestHandler(const HTTPServerRequest &) {
-    return new ScacheRequestHandler(cache);
+    return new ScacheRequestHandler(cache, origin_time);
   }
 };
 
 class ScacheServerApp : public ServerApplication {
  private:
   Cache cache;
+
  protected:
   int main(const vector<string> &) {
-    HTTPServer server(new ScacheRequestHandlerFactory(&cache),
+    time_point<system_clock> origin_time = system_clock::now();
+    HTTPServer server(new ScacheRequestHandlerFactory(&cache, origin_time),
                       ServerSocket(8080),
                       new HTTPServerParams);
 
+
+    auto seconds_from_epoch =
+      duration_cast<seconds>(origin_time.time_since_epoch());
+
     server.start();
-    cerr << "Scache server started" << endl;
+    cerr << "Scache server started at second "
+         << seconds_from_epoch.count() << endl;
+
     waitForTerminationRequest();
     cerr << "Scache server shutting down" << endl;
     server.stop();
@@ -267,6 +303,5 @@ int main(int argc, char* argv[]) {
   ScacheServerApp app;
   ScacheErrorHandler errorHandler;
   Poco::ErrorHandler::set(&errorHandler);
-
   return app.run(argc, argv);
 }
