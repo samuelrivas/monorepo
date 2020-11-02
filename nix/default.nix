@@ -75,6 +75,7 @@ let
           helm-ls-git
           helm-org
           htmlize
+          markdown-mode
           nix-mode
           projectile
           scalaMode2

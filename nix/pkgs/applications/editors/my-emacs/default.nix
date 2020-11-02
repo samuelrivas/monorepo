@@ -28,6 +28,7 @@
   helm-org,
   hlint,
   htmlize,
+  markdown-mode,
   merlin,
   nix-mode,
   ocp-indent,
@@ -66,6 +67,7 @@ let
     helm-ls-git
     helm-org
     htmlize
+    markdown-mode
     nix-mode
     projectile
     silver-searcher
