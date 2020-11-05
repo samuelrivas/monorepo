@@ -19,7 +19,7 @@ let
 in
 haskell-pkg {
 
-  name = "adventofcode-2019";
+  name = "adventofcode-2020";
   src = ./../src;
 
   extra-drv = {

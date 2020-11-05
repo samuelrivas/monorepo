@@ -147,6 +147,9 @@ let
     adventofcode-2019-sandbox = callPackage ./../src/puzzles/adventofcode/2019/nix {
       inherit (pkgs-sam.pkgs-patched) haskellPackages;
     };
+    adventofcode-2020 = callPackage ./../src/puzzles/adventofcode/2020/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
+    };
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our
