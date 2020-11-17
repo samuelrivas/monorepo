@@ -2,10 +2,10 @@
   haskell-pkg,
   haskellPackages,
 }: haskell-pkg {
-  name = "examplelib";
+  name = "adventlib";
   src = ./../src;
   haskell-packages-selector = p: [
-    p.random-fu
+    p.unliftio
   ];
   inherit haskellPackages;
 
