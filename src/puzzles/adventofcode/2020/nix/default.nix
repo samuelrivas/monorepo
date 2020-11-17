@@ -26,6 +26,9 @@ haskell-pkg {
 
   extra-drv = {
     ADVENT_INPUT_DIR = ./../src/inputs;
+    shellHook = ''
+      export ADVENT_INPUT_DIR=inputs
+    '';
   };
 
   inherit haskell-packages-selector;
