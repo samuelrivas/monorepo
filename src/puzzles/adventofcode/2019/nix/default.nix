@@ -1,10 +1,12 @@
 {
+  adventlib,
   haskell-pkg,
   haskellPackages,
   stdenv,
 }:
 let
   haskell-packages-selector = p: with p; [
+    adventlib
     ansi-terminal
     fingertree
     generic-lens
