@@ -5,6 +5,7 @@
   name = "adventlib";
   src = ./../src;
   haskell-packages-selector = p: [
+    p.lens
     p.unliftio
   ];
   inherit haskellPackages;
