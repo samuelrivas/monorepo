@@ -21,6 +21,7 @@ import           Control.Applicative     ((<|>))
 import           Control.Lens            (at, both, ix, productOf, set, view,
                                           views, _1, _2)
 import           Control.Monad.IO.Class  (liftIO)
+import           Data.Bidim              (Coord, plus, showBidim)
 import           Data.Foldable           (foldl')
 import           Data.Functor.Identity   (runIdentity)
 import           Data.List               (find, maximumBy, sort, tails, unfoldr)
@@ -30,16 +31,19 @@ import           Data.Text               (Text, pack, splitOn, unpack)
 import           Data.Text.IO            (putStr, putStrLn)
 import           System.Console.Readline (readline)
 
-import           Advent.Day17.Bidim
 import           Advent.Day17.Intcode
 import           System.IO.Advent        (getInput)
 
 type Scaffold = Map Coord Char
 
-data Direction = Up | Down | Left | Right
-  deriving Show
-data Move = Advance | Rotate Bool -- sloppy, but false is left and true is right
-  deriving Show
+data Direction = Up
+    | Down
+    | Left
+    | Right
+    deriving Show
+data Move = Advance
+    | Rotate Bool
+    deriving Show
 
 nextCoord :: Direction -> Coord -> Coord
 nextCoord Up    = plus (0, -1)
@@ -187,7 +191,7 @@ main = do
   code <- readInput
   let scaffold = readScaffold code
 
-  putStrLn $ showBindim formatMap scaffold
+  putStrLn $ showBidim formatMap scaffold
 
   putStrLn $ "Solution 1: " <> show (solution1 scaffold)
   putStrLn $ "Solution 2: (not done :( )"
