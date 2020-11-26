@@ -21,32 +21,34 @@ module Advent.Day18.Internal (
   toMemory
   ) where
 
-import           Control.Lens       (ix, preview)
-import           Data.Hashable      (Hashable)
-import           Data.HashSet       (HashSet, empty)
-import           Data.Maybe         (fromJust)
-import           GHC.Generics       (Generic)
+import           Control.Lens  (ix, preview)
+import           Data.Bidim    (Bidim, Coord)
+import           Data.Hashable (Hashable)
+import           Data.HashSet  (HashSet, empty)
+import           Data.Maybe    (fromJust)
+import           GHC.Generics  (Generic)
 
-import           Advent.Day18.Bidim
 
 type MazeContext = Bidim Char
 
-data MazeNode = MazeNode {
-  pos     :: [Coord],
-  robotIx :: Int,
-  path    :: [[Coord]],
-  keys    :: HashSet Char,
-  c       :: Int,
-  h       :: Int
-  } deriving stock (Eq, Generic, Show)
+data MazeNode = MazeNode
+    { pos     :: [Coord]
+    , robotIx :: Int
+    , path    :: [[Coord]]
+    , keys    :: HashSet Char
+    , c       :: Int
+    , h       :: Int
+    }
+    deriving stock (Eq, Generic, Show)
 
 instance Hashable MazeNode
 
-data MazeMemory = MazeMemory {
-  robotIx :: Int,
-  pos     :: Coord,
-  keys    :: HashSet Char
-  } deriving stock (Eq, Generic, Show)
+data MazeMemory = MazeMemory
+    { robotIx :: Int
+    , pos     :: Coord
+    , keys    :: HashSet Char
+    }
+    deriving stock (Eq, Generic, Show)
 
 instance Hashable MazeMemory
 
