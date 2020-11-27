@@ -27,6 +27,7 @@ import           Prelude
 import           Control.Lens                  (assign, modifying, uses, view)
 import           Control.Monad.Fail            (MonadFail)
 import           Control.Monad.IO.Class        (MonadIO)
+import           Control.Monad.MonadSearch     (MonadSearch (..), search)
 import           Control.Monad.Reader          (Reader, runReader)
 import           Control.Monad.RWS.CPS         (MonadReader, MonadState,
                                                 MonadWriter, RWST, runRWST)
@@ -37,7 +38,6 @@ import qualified Data.HashSet                  as HashSet
 import qualified Data.PriorityQueue.FingerTree as PQueue
 
 import           Advent.Day18.AstarInternal
-import           Advent.Day18.MonadSearch
 
 newtype AstarT node nodeMem pc w m a = AstarT {
   unAstarT :: RWST (AstarConfig node nodeMem  pc) w (AstarContext node nodeMem) m a

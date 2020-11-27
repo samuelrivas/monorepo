@@ -1,17 +1,7 @@
--- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
--- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
--- {-# OPTIONS_GHC -fno-warn-orphans #-}
-
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
 
-module Advent.Day18.MonadSearch (
+module Control.Monad.MonadSearch (
   MonadSearch (..),
   search,
   step

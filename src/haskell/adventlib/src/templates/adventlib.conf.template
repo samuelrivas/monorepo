@@ -4,8 +4,9 @@ id: adventlib
 key: adventlib
 exposed: True
 exposed-modules:
-    System.IO.Advent
+    Control.Monad.MonadSearch
     Data.Bidim
+    System.IO.Advent
 import-dirs: @@IMPORT-DIR@@
 library-dirs: @@STATIC-LIB-DIR@@
 dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
