@@ -1,18 +1,11 @@
--- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
--- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
--- {-# OPTIONS_GHC -fno-warn-orphans #-}
-
 {-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
 
-module Advent.Day18.Astar (
+module Control.Monad.MonadSearch.Astar (
   AstarConfig,
   AstarT,
   mkConfig,
@@ -24,20 +17,24 @@ module Advent.Day18.Astar (
 
 import           Prelude
 
-import           Control.Lens                  (assign, modifying, uses, view)
-import           Control.Monad.Fail            (MonadFail)
-import           Control.Monad.IO.Class        (MonadIO)
-import           Control.Monad.MonadSearch     (MonadSearch (..), search)
-import           Control.Monad.Reader          (Reader, runReader)
-import           Control.Monad.RWS.CPS         (MonadReader, MonadState,
-                                                MonadWriter, RWST, runRWST)
-import           Control.Monad.Trans.Class     (MonadTrans)
-import           Data.Generics.Labels          ()
-import           Data.Hashable                 (Hashable)
-import qualified Data.HashSet                  as HashSet
-import qualified Data.PriorityQueue.FingerTree as PQueue
+import           Control.Lens                            (assign, modifying,
+                                                          uses, view)
+import           Control.Monad.Fail                      (MonadFail)
+import           Control.Monad.IO.Class                  (MonadIO)
+import           Control.Monad.MonadSearch               (MonadSearch (..),
+                                                          search)
+import           Control.Monad.Reader                    (Reader, runReader)
+import           Control.Monad.RWS.CPS                   (MonadReader,
+                                                          MonadState,
+                                                          MonadWriter, RWST,
+                                                          runRWST)
+import           Control.Monad.Trans.Class               (MonadTrans)
+import           Data.Generics.Labels                    ()
+import           Data.Hashable                           (Hashable)
+import qualified Data.HashSet                            as HashSet
+import qualified Data.PriorityQueue.FingerTree           as PQueue
 
-import           Advent.Day18.AstarInternal
+import           Control.Monad.MonadSearch.AstarInternal
 
 newtype AstarT node nodeMem pc w m a = AstarT {
   unAstarT :: RWST (AstarConfig node nodeMem  pc) w (AstarContext node nodeMem) m a

@@ -5,8 +5,12 @@
   name = "adventlib";
   src = ./../src;
   haskell-packages-selector = p: [
+    p.fingertree
+    p.generic-lens
     p.lens
     p.unliftio
+    p.writer-cps-mtl
+
   ];
   inherit haskellPackages;
 

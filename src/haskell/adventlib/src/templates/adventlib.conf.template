@@ -5,6 +5,7 @@ key: adventlib
 exposed: True
 exposed-modules:
     Control.Monad.MonadSearch
+    Control.Monad.MonadSearch.Astar
     Data.Bidim
     System.IO.Advent
 import-dirs: @@IMPORT-DIR@@
