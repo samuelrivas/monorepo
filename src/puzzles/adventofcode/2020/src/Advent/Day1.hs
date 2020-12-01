@@ -31,9 +31,6 @@ read = Prelude.read . unpack
 getInput :: IO [Int]
 getInput =  fmap read . init . splitOn "\n" <$> IOAdvent.getInput "1"
 
-pairs :: [Int] -> [(Int, Int)]
-pairs l = zip l l
-
 -- TODO: Generalise to traversable
 combinations :: Int -> [a] -> [[a]]
 combinations 0 _  = return []
