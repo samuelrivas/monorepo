@@ -11,10 +11,11 @@ import           Prelude          hiding (putStrLn, read)
 import qualified Prelude
 
 import           Data.List        (find, tails)
+import           Data.Maybe       (fromJust)
 import           Data.Text        (Text, splitOn, unpack)
 import           Data.Text.IO     (putStrLn)
 
-import           System.IO.Advent as IOAdvent
+import qualified System.IO.Advent as IOAdvent
 
 targetValue :: Int
 targetValue = 2020
@@ -52,5 +53,10 @@ solve2 = fmap product <$> find ((== targetValue) . sum) . combinations 3
 main :: IO ()
 main =
   do
-    putStrLn "NA"
-    putStrLn "NA"
+    input <- getInput
+    let
+      sol1 = fromJust . solve1 $ input
+      sol2 = fromJust . solve2 $ input
+
+    print sol1
+    print sol2
