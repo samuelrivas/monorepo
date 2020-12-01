@@ -77,6 +77,7 @@ let
           htmlize
           markdown-mode
           nix-mode
+          plantuml
           projectile
           scalaMode2
           terraform-mode
