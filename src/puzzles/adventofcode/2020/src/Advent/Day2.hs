@@ -10,11 +10,12 @@ module Advent.Day2 where
 import           Prelude          hiding (lines, putStrLn, read)
 import qualified Prelude
 
-import           Data.Text        (Text, count, lines, splitOn, unpack)
+import           Control.Lens     (ix, preview)
+import           Data.Maybe       (fromJust)
+import           Data.Text        (Text, count, lines, singleton, splitOn,
+                                   unpack)
 import qualified Data.Text        as Text
-
 import           Data.Text.IO     (putStrLn)
-
 import qualified System.IO.Advent as IOAdvent
 
 -- TODO: Move read :: Text -> a to our own prelude
@@ -46,10 +47,24 @@ valid (lo, hi, letter) password =
   let n = count letter password
   in (n >= lo) && (n <= hi)
 
+xor :: Bool -> Bool -> Bool
+xor True True   = False
+xor False False = False
+xor _ _         = True
+
+valid2 :: Spec -> Text -> Bool
+valid2 (lo, hi, letter) password =
+  fromJust $ do
+    first  <- singleton <$> preview (ix (lo - 1)) password
+    second <- singleton <$> preview (ix (hi - 1)) password
+    return $ (first == letter) `xor` (second == letter)
+
 main :: IO ()
 main = do
   input <- getInput
   let
     validPasswords = filter (uncurry valid) $ parseLine <$> lines input
+    validPasswords2 = filter (uncurry valid2) $ parseLine <$> lines input
 
   print $ length validPasswords
+  print $ length validPasswords2
