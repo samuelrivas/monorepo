@@ -27,7 +27,8 @@ example = [1721, 979, 366, 299, 675, 1456]
 read :: Read a => Text -> a
 read = Prelude.read . unpack
 
--- TODO :: Move splitOn read to Advent
+-- TODO: Move splitOn read to Advent
+-- TODO: Remove the `init` hack
 getInput :: IO [Int]
 getInput =  fmap read . init . splitOn "\n" <$> IOAdvent.getInput "1"
 
