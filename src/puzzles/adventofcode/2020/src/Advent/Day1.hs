@@ -1,20 +1,20 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Advent.Day1 where
 
-import           Prelude          hiding (putStrLn, read)
-import qualified Prelude
+import           Advent.Perlude
 
 import           Data.List        (find, tails)
 import           Data.Maybe       (fromJust)
-import           Data.Text        (Text, splitOn, unpack)
-import           Data.Text.IO     (putStrLn)
+import           Data.Text        (splitOn)
 
+import           Advent.Templib
 import qualified System.IO.Advent as IOAdvent
 
 targetValue :: Int
@@ -23,14 +23,12 @@ targetValue = 2020
 example :: [Int]
 example = [1721, 979, 366, 299, 675, 1456]
 
--- TODO: Move read :: Text -> a to our own prelude
-read :: Read a => Text -> a
-read = Prelude.read . unpack
+getInput :: IO Text
+getInput =  IOAdvent.getInput "1"
 
--- TODO: Move splitOn read to Advent
 -- TODO: Remove the `init` hack
-getInput :: IO [Int]
-getInput =  fmap read . init . splitOn "\n" <$> IOAdvent.getInput "1"
+parse :: Text -> [Int]
+parse = fmap read . init . splitOn "\n"
 
 -- TODO: Generalise to traversable
 combinations :: Int -> [a] -> [[a]]
@@ -50,11 +48,6 @@ solve2 = fmap product <$> find ((== targetValue) . sum) . combinations 3
 
 main :: IO ()
 main =
-  do
-    input <- getInput
-    let
-      sol1 = fromJust . solve1 $ input
-      sol2 = fromJust . solve2 $ input
-
-    print sol1
-    print sol2
+  getInput >>= solutions
+    (fromJust . solve1 . parse)
+    (fromJust . solve2 . parse)
