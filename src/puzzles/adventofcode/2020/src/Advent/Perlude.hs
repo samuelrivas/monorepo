@@ -21,17 +21,17 @@ module Advent.Perlude (
   interact,
   readFile,
   print,
-  Text,
+  module Data.Text,
   module Prelude,
-  module Control.Monad.IO.Class
+  module Control.Monad.IO.Class,
   ) where
 
 import           Control.Monad.IO.Class
-import           Data.Text              (Text, pack, unpack)
+import           Data.Text              (Text, pack, unpack, lines)
 import qualified Data.Text.IO           as TextIO
 import           Prelude                hiding (appendFile, getContents,
                                          getLine, interact, print, putStr,
-                                         putStrLn, read, readFile, show,
+                                         putStrLn, read, readFile, show, lines,
                                          writeFile)
 import qualified Prelude
 
