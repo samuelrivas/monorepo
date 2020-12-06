@@ -1,24 +1,70 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE FunctionalDependencies     #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE OverloadedLabels           #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 
 -- TODO: Move this to Adventlib, these are here so that we don't need to keep
 -- recompiling adventlib while experimenting
 
 module Advent.Templib (
-  solutions
+  solutions,
+  parsed,
+  runAdventT,
+  runAdvent,
+  AdventContext,
+  Advent,
+  MonadAdvent,
+  AdventT (..)
   ) where
 
-import Advent.Perlude
+import           Advent.Perlude
+import           Control.Lens               (view)
+import           Control.Monad.Reader       (MonadReader)
+import           Control.Monad.Trans.Class  (MonadTrans)
+import           Control.Monad.Trans.Reader (ReaderT, runReaderT)
+import           Data.Functor.Identity      (Identity, runIdentity)
+import           Data.Generics.Labels       ()
 
--- TODO: Monadify. The input should be in a MonadRead with the input, and an
--- arbitrary term in case we can share data between the solvers
+import           Advent.Templib.Internal
+
+-- Typeclass to encapsulate Advent problems.
 --
--- solvers can also run in a kind of MonadLog to be able to report, or directly in the un restricted MonadIO
-solutions :: MonadIO m => Show a => Show b => (Text -> a) -> (Text -> b) -> Text -> m ()
-solutions solver1 solver2 input = do
+-- Functions running in this monad have access to the parsed input
+class Monad m =>  MonadAdvent c m | m -> c where
+  input :: m c
+
+-- Monad Transformer to add MonadAdvent functionality to any monad
+newtype AdventT c m a = AdventT { unAdventT :: ReaderT (AdventContext c) m a }
+  deriving newtype (Functor, Applicative, Monad, MonadReader (AdventContext c),
+                    MonadTrans, MonadIO)
+
+instance Monad m => MonadAdvent c (AdventT c m) where
+   input = AdventT $ view #input
+
+-- Unwrap AdventT to return the transformed monad
+runAdventT :: AdventT c m a -> c -> m a
+runAdventT x c = runReaderT (unAdventT x) (AdventContext c)
+
+-- Simple monad to MonadAdvent functionality
+type Advent c = AdventT c Identity
+
+-- Run an Advent computation
+runAdvent :: Advent c a -> c -> a
+runAdvent x = runIdentity . runAdventT x
+
+-- Given the solutions for part 1 and 2, print them
+solutions ::
+  MonadIO m => MonadAdvent c m => Show a => Show b =>
+  m a -> m b -> m ()
+solutions sol1 sol2 = do
   putStr "Solution 1: "
-  print $ solver1 input
+  sol1 >>= print
 
   putStr "Solution 2: "
-  print $ solver2 input
-
+  sol2 >>= print
