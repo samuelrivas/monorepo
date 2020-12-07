@@ -14,7 +14,7 @@
 
 module Advent.Templib (
   solutions,
-  parsed,
+  input,
   runAdventT,
   runAdvent,
   AdventContext,

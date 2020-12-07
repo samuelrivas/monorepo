@@ -46,21 +46,15 @@ solve1 = fmap product <$> find ((== targetValue) . sum) . combinations 2
 solve2 :: [Int] -> Maybe Int
 solve2 = fmap product <$> find ((== targetValue) . sum) . combinations 3
 
-solve1' :: MonadAdvent [Int] m => m (Maybe Int)
+solve1' :: MonadAdvent [Int] m => m Int
 solve1' = do
-  p <- parsed
-  return $ fmap product <$> find ((== targetValue) . sum) . combinations 2 $ p
+  p <- input
+  return $ fromJust . fmap product <$> find ((== targetValue) . sum) . combinations 2 $ p
 
-solve2' :: MonadAdvent [Int] m => m (Maybe Int)
+solve2' :: MonadAdvent [Int] m => m Int
 solve2' = do
-  p <- parsed
-  return $ fmap product <$> find ((== targetValue) . sum) . combinations 3 $ p
-
--- main :: IO ()
--- main =
---   getInput >>= solutions
---     (fromJust . solve1 . parse)
---     (fromJust . solve2 . parse)
+  p <- input
+  return $ fromJust . fmap product <$> find ((== targetValue) . sum) . combinations 3 $ p
 
 main :: IO ()
 main = do
