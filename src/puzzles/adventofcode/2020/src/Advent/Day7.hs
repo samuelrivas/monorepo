@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Advent.Day7 where
 
@@ -50,10 +51,24 @@ splitRules :: Text -> Maybe [(Text, Text)]
 splitRules = traverse (toTuple . splitOn " bags contain ") . lines
 
 parseBody :: Text -> [(Int, Text)]
-parseBody "no other babs" = []
+parseBody "no other bags." = []
+parseBody t =
+  parseBagSpec <$> (splitOn ", " . dropEnd 1 $ t)
 
-parser =
-    undefined
+parseBagSpec :: Text -> (Int, Text)
+parseBagSpec spec =
+  let
+    (amount, colour) = Text.break (== ' ') spec
+  in
+    -- TODO: This is horrible, I really need to start using parsec for these
+    -- things or at least regexes
+    (read amount, Text.dropEnd 1 . Text.dropWhileEnd (/= ' ' ) $ colour)
+
+-- Each rule is encoded as (container colour, [(amount, contained colour)])
+parse :: Text -> Maybe [(Text, [(Int, Text)])]
+parse text = do
+  rawRules <- splitRules text
+  return $ over _2 parseBody <$> rawRules
 
 getInput :: IO Text
 getInput = IOAdvent.getInput "7"
