@@ -85,7 +85,9 @@ step st =
   in flip runOp st <$> preview (#code . ix pc) st
 
 unfold :: VMState -> [VMState]
-unfold st = st : (unfold . fromJust . step $ st)
+unfold st = case step st of
+  Just next -> st : unfold next
+  Nothing   -> [st]
 
 findRepeated :: Set Int -> [VMState] -> Maybe VMState
 findRepeated seen states = do
@@ -96,6 +98,23 @@ findRepeated seen states = do
   if Set.member (view #pc next) seen
     then Just current
     else findRepeated (Set.insert (view #pc current) seen) left
+
+mutate :: Op -> Op
+mutate (Nop x) = Jmp x
+mutate (Jmp x) = Nop x
+mutate x       = x
+
+allMutations :: [Op] -> [[Op]]
+allMutations []    = []
+allMutations (h:t) = (mutate h : t) : ((h :) <$> allMutations t)
+
+solution2 input =
+  let
+    mutations = fromJust $ allMutations <$> parse input
+    repeated = findRepeated Set.empty . unfold . mkState <$> mutations
+  in
+    zip repeated (mkState <$> mutations)
+
 main :: IO ()
 main = do
   input <- getInput
@@ -104,5 +123,6 @@ main = do
   putStr "Solution 1: "
   print $ view #acc . fromJust . findRepeated Set.empty . unfold . mkState . fromJust . parse $ input
 
+  -- TODO: UGH!
   putStr "Solution 2: "
-  print $ "NA"
+  print $ view #acc . last . unfold $ view _2 . fromJust $ find ((== Nothing) . view _1) $ solution2 input
