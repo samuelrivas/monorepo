@@ -12,6 +12,7 @@ let
     generic-lens
     lens
     monad-loops
+    multiset
     readline
     regex-pcre
     unliftio
