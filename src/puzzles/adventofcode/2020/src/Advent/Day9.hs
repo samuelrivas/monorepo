@@ -14,7 +14,8 @@ import           Control.Lens     (at, both, each, foldlOf, over, view, _2)
 import           Control.Monad    (fmap, guard)
 import           Data.IntMultiSet (IntMultiSet)
 import qualified Data.IntMultiSet as IntMultiSet
-import           Data.List        (filter, find, splitAt, tails, take)
+import           Data.List        (filter, find, maximum, minimum, splitAt,
+                                   tails, take)
 import           Data.Map         (Map)
 import qualified Data.Map         as Map
 import           Data.Maybe       (fromJust, isJust)
@@ -60,12 +61,32 @@ findNumber :: Int -> [Int] -> Maybe Int
 findNumber preambleSize =
   fmap last . find (not . validateChunk) . chunkize (preambleSize + 1)
 
+hasPrefix :: Int -> [Int] -> Maybe [Int]
+hasPrefix 0 _ = Just []
+hasPrefix _ [] = Nothing
+hasPrefix n (h:t) =
+  if n < 0 then Nothing
+  else (h:) <$> hasPrefix (n  - h) t
+
+findSequence :: Int -> [Int] -> Maybe [Int]
+findSequence _ [] = Nothing
+findSequence target l =
+  case hasPrefix target l of
+    Nothing -> findSequence target $ tail l
+    Just s  -> Just s
+
+solution2 :: Int -> [Int] -> Maybe Int
+solution2 preambleSize input = do
+  target <- findNumber preambleSize input
+  match <- findSequence target input
+  pure $ maximum match + minimum match
+
 main :: IO ()
 main = do
   input <- parse <$> getInput
 
   putStr "Solution 1: "
-  print $ findNumber 25 input
+  print . fromJust $ findNumber 25 input
 
   putStr "Solution 2: "
-  print $ "NA"
+  print . fromJust . solution2 25 $ input
