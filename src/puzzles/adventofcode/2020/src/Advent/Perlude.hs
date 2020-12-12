@@ -32,7 +32,7 @@ import qualified Data.Text.IO           as TextIO
 import           Prelude                hiding (appendFile, getContents,
                                          getLine, interact, print, putStr,
                                          putStrLn, read, readFile, show, lines,
-                                         writeFile)
+                                         writeFile, lines)
 import qualified Prelude
 
 read :: Read a => Text -> a

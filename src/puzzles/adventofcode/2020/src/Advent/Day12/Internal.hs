@@ -17,10 +17,10 @@ import           Data.Bidim     (Coord)
 import           GHC.Generics   (Generic)
 
 data Direction = N
+    | E
     | S
     | W
-    | E
-    deriving stock (Show, Eq)
+    deriving stock (Show, Eq, Enum)
 
  -- True is clockwise
 data Action = F
