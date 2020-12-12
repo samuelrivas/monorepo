@@ -30,8 +30,8 @@ import qualified System.IO.Advent         as IOAdvent
 import qualified Text.Read                as Read
 
 import           Advent.Day12.Internal    (Action (..), Direction (..),
-                                           Instruction, Ship, mkInstruction,
-                                           mkShip)
+                                           Instruction, Ship, Ship2,
+                                           mkInstruction, mkShip, mkShip2)
 
 -- TODO: This is part of the most recent base (for String), make it for Text in
 -- our prelude
@@ -78,13 +78,18 @@ parse = traverse parseInstruction . Text.lines
 
 step :: MonadState Ship m => Instruction -> m ()
 step instruction =
-  let
-    amount = view #amount instruction
-  in
-    case view #action instruction of
+  let amount = view #amount instruction
+  in case view #action instruction of
       F           -> moveForward amount
       T clockwise -> turn clockwise amount
       M direction -> move direction amount
+step2 :: MonadState Ship2 m => Instruction -> m ()
+step2 instruction =
+  let amount = view #amount instruction
+  in case view #action instruction of
+    F           -> moveToViewpoint amount
+    T clockwise -> turnViewpoint clockwise amount
+    M direction -> moveViewpoint direction amount
 
 moveForward :: MonadState Ship m => Int -> m ()
 moveForward amount = do
@@ -104,8 +109,8 @@ newPosition direction amount position =
   case direction of
     N -> (0, amount)
     S -> (0, -amount)
-    W -> (amount, 0)
-    E -> (-amount, 0)
+    W -> (-amount, 0)
+    E -> (amount, 0)
 
 -- TODO: Something like this would live in Bidim
 newDirection :: Bool -> Int -> Direction -> Direction
@@ -119,10 +124,45 @@ toSteps 180 = 2
 toSteps 270 = 3
 toSteps _   = undefined
 
+moveToViewpoint :: MonadState Ship2 m => Int -> m ()
+moveToViewpoint amount = do
+  viewpoint <- use #viewpoint
+  modifying #position $ plus (over both (* amount) viewpoint)
+
+turnViewpoint :: MonadState Ship2 m => Bool -> Int -> m ()
+turnViewpoint clockwise = modifying #viewpoint . rotateCoord clockwise
+
+-- TODO: Avoid the undefined using a proper type instead of Int
+-- TODO: generalise this in Bidim
+rotateCoord :: Bool -> Int -> Coord -> Coord
+rotateCoord True 90  = rotate90
+rotateCoord True 180 = rotate90 . rotate90
+rotateCoord True 270 = rotate90 . rotate90 . rotate90
+rotateCoord False n  = rotateCoord True (360 - n)
+rotateCoord _ _      = undefined
+
+moveViewpoint :: MonadState Ship2 m => Direction -> Int -> m ()
+moveViewpoint direction = modifying #viewpoint . newPosition direction
+
+-- TODO: Generalise this in bidim. Rotating coord (x, y) counterclockwise is
+--
+-- [cos -sin  [x
+--  sin  cos]  y]
+rotate90 :: Coord -> Coord
+rotate90 (x, y) = (y, -x)
+
 solution1 :: [Instruction] -> Int
 solution1 instructions =
   let
     endState = execState (traverse_ step instructions) mkShip
+    (x, y) = view #position endState
+  in
+    abs x + abs y
+
+solution2 :: [Instruction] -> Int
+solution2 instructions =
+  let
+    endState = execState (traverse_ step2 instructions) mkShip2
     (x, y) = view #position endState
   in
     abs x + abs y
@@ -135,4 +175,4 @@ main = do
   print $ solution1 input
 
   putStr "Solution 2: "
-  print $ "NA"
+  print $ solution2 input

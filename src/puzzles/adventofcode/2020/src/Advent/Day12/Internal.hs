@@ -1,13 +1,17 @@
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+
 
 module Advent.Day12.Internal (
   Ship (Ship),
+  Ship2 (Ship2),
   Direction (..),
   Action (..),
   Instruction (Instruction),
   mkShip,
+  mkShip2,
   mkInstruction
   ) where
 
@@ -34,6 +38,12 @@ data Ship = Ship
     }
     deriving stock (Show, Eq, Generic)
 
+data Ship2 = Ship2
+    { position  :: Coord
+    , viewpoint :: Coord
+    }
+    deriving stock (Show, Eq, Generic)
+
 data Instruction = Instruction
     { action :: Action
     , amount :: Int
@@ -42,6 +52,9 @@ data Instruction = Instruction
 
 mkShip :: Ship
 mkShip = Ship (0, 0) E
+
+mkShip2 :: Ship2
+mkShip2 = Ship2 (0, 0) (10, 1)
 
 mkInstruction :: Action -> Int -> Instruction
 mkInstruction = Instruction
