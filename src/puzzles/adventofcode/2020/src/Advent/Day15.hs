@@ -54,5 +54,6 @@ main = do
   putStr "Solution 1: "
   print $ solve input  2020
 
+  -- TODO: Optimise
   putStr "Solution 2: "
   print $ solve input 30000000
