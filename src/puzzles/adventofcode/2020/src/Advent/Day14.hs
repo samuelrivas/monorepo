@@ -46,8 +46,8 @@ parseInstruction [mem, value] =
   let
     pos = read . Text.dropAround (not . isDigit) $ mem
     val = read value
-  in
-    Mem pos val
+
+  in Mem pos val
 parseInstruction _ = undefined
 
 step :: ComputerState -> Instruction -> ComputerState
@@ -56,8 +56,8 @@ step st (Mem addr value) =
   let
     mask = view #mask st
     newValue = applyMask mask value
-  in
-    over #memory (Map.insert addr newValue) st
+
+  in over #memory (Map.insert addr newValue) st
 
 applyMask :: Text -> Int -> Int
 applyMask mask value =
@@ -68,8 +68,8 @@ applyMask mask value =
         '1' -> (pos + 1, num `setBit` pos)
         '0' -> (pos + 1, num `clearBit` pos)
         _   -> undefined
-  in
-    view _2 $ Text.foldr f (0, value) mask
+
+  in view _2 $ Text.foldr f (0, value) mask
 
 -- TODO: this feels convoluted, there must be a better monadic approach
 --
@@ -79,46 +79,37 @@ applyMask mask value =
 -- want
 applyAddrMask :: Text -> Int -> [Int]
 applyAddrMask mask value =
-  let
-    f char (pos, addrs) = (pos + 1, addrs >>= applyAddrMaskBit char pos)
-  in
-    view _2 $ Text.foldr f (0, [value]) mask
+  let f char (pos, addrs) = (pos + 1, addrs >>= applyAddrMaskBit char pos)
+  in view _2 $ Text.foldr f (0, [value]) mask
 
 step2 :: ComputerState -> Instruction -> ComputerState
-step2 st (Mask mask)      = set #mask mask st
+step2 st (Mask mask)      = step st (Mask mask)
 step2 st (Mem addr value) =
   let
     mask = view #mask st
     addrs = applyAddrMask mask addr
-    newMemory = foldl' (\memory addr' -> Map.insert addr' value memory) (view #memory st) addrs  in
-    set #memory newMemory st
+    newMemory = foldl'
+      (\memory addr' -> Map.insert addr' value memory)
+      (view #memory st)
+      addrs
 
+  in set #memory newMemory st
 
--- TODO: use Data.Bits instead of Ints for this
 applyAddrMaskBit :: Char -> Int -> Int -> [Int]
 applyAddrMaskBit '1' pos value  = [value `setBit` pos]
 applyAddrMaskBit '0' _pos value = [value]
 applyAddrMaskBit 'X' pos value  = [value `setBit` pos, value `clearBit` pos]
 applyAddrMaskBit _ _ _          = undefined
 
-run :: ComputerState -> [Instruction] -> ComputerState
-run = foldl' step
-
-run2 :: ComputerState -> [Instruction] -> ComputerState
-run2 = foldl' step2
-
-solve :: [Instruction] -> Int
-solve = Map.foldl' (+) 0 . view #memory . run mkComputerState
-
-solve2 :: [Instruction] -> Int
-solve2 = Map.foldl' (+) 0 . view #memory . run2 mkComputerState
+solve :: (ComputerState -> Instruction -> ComputerState) -> [Instruction] -> Int
+solve stepper = Map.foldl' (+) 0 . view #memory . foldl' stepper mkComputerState
 
 main :: IO ()
 main = do
   input <- parse <$> getInput
 
   putStr "Solution 1: "
-  print $ solve input
+  print $ solve step input
 
   putStr "Solution 2: "
-  print $ solve2 input
+  print $ solve step2 input
