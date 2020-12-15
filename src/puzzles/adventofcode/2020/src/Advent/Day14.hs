@@ -71,11 +71,47 @@ applyMask mask value =
   in
     view _2 $ Text.foldr f (0, value) mask
 
+-- TODO: this feels convoluted, there must be a better monadic approach
+--
+-- In any case, this is using the Monad instance for list, which is used to
+-- represent non-determinism. The interpretation of binding a function is that
+-- the function returns a list of possible results, which is exactly of what we
+-- want
+applyAddrMask :: Text -> Int -> [Int]
+applyAddrMask mask value =
+  let
+    f char (pos, addrs) = (pos + 1, addrs >>= applyAddrMaskBit char pos)
+  in
+    view _2 $ Text.foldr f (0, [value]) mask
+
+step2 :: ComputerState -> Instruction -> ComputerState
+step2 st (Mask mask)      = set #mask mask st
+step2 st (Mem addr value) =
+  let
+    mask = view #mask st
+    addrs = applyAddrMask mask addr
+    newMemory = foldl' (\memory addr' -> Map.insert addr' value memory) (view #memory st) addrs  in
+    set #memory newMemory st
+
+
+-- TODO: use Data.Bits instead of Ints for this
+applyAddrMaskBit :: Char -> Int -> Int -> [Int]
+applyAddrMaskBit '1' pos value  = [value `setBit` pos]
+applyAddrMaskBit '0' _pos value = [value]
+applyAddrMaskBit 'X' pos value  = [value `setBit` pos, value `clearBit` pos]
+applyAddrMaskBit _ _ _          = undefined
+
 run :: ComputerState -> [Instruction] -> ComputerState
 run = foldl' step
 
+run2 :: ComputerState -> [Instruction] -> ComputerState
+run2 = foldl' step2
+
 solve :: [Instruction] -> Int
 solve = Map.foldl' (+) 0 . view #memory . run mkComputerState
+
+solve2 :: [Instruction] -> Int
+solve2 = Map.foldl' (+) 0 . view #memory . run2 mkComputerState
 
 main :: IO ()
 main = do
@@ -85,4 +121,4 @@ main = do
   print $ solve input
 
   putStr "Solution 2: "
-  print $ "NA"
+  print $ solve2 input
