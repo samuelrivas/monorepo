@@ -55,5 +55,9 @@ main = do
   print $ solve input  2020
 
   -- TODO: Optimise
+
+  -- This may be also a good case for some extra visibility monad, like
+  -- MonadSample or somethign that allows us to run long computations but see
+  -- what is going on
   putStr "Solution 2: "
   print $ solve input 30000000
