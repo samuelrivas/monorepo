@@ -10,22 +10,22 @@ module Advent.Day16 where
 
 import           Advent.Perlude
 
-import           Control.Lens              (at, both, each, foldlOf, over,
-                                            traverse, view, _2)
-import           Control.Monad.Fail        (MonadFail)
-import           Control.Monad.Trans       (lift)
-import           Control.Monad.Trans.Maybe
-import           Data.List                 (find, foldl', sort, unfoldr)
-import           Data.Map                  (Map)
-import qualified Data.Map                  as Map
-import           Data.Maybe                (fromJust, isJust)
-import           Data.Set                  (Set)
-import qualified Data.Set                  as Set
-import qualified Data.Text                 as Text
-import qualified System.IO.Advent          as IOAdvent
-import qualified Text.Read                 as Read
+import           Control.Lens          (at, both, each, foldlOf, over, traverse,
+                                        view, _1, _2)
+import           Control.Monad.Fail    (MonadFail)
+import           Data.Generics.Labels  ()
+import           Data.List             (find, foldl', intersect, sort,
+                                        transpose, unfoldr)
+import qualified Data.Text             as Text
+import qualified System.IO.Advent      as IOAdvent
+import qualified Text.Read             as Read
 
-import           Advent.Day16.Internal     (Rule, mkRule)
+import           Advent.Day16.Internal (Rule, mkRule)
+
+-- TODO: this may be easier by using parsec and parsing into what the solution
+-- needs, rather than parsing into a more generic representation of the
+-- input. For example, we don't care about our ticket or the field names for
+-- part 1, but we spent time parsing them
 
 -- TODO: This is part of the most recent base (for String), make it for Text in
 -- our prelude
@@ -52,6 +52,22 @@ example = "class: 1-3 or 5-7\n\
           \55,2,20\n\
           \38,6,12\n"
 
+example2 :: Text
+example2 = "class: 0-1 or 4-19\n\
+           \row: 0-5 or 8-19\n\
+           \seat: 0-13 or 16-19\n\
+           \\n\
+           \your ticket:\n\
+           \11,12,13\n\
+           \\n\
+           \nearby tickets:\n\
+           \3,9,18\n\
+           \15,1,5\n\
+           \5,14,9\n"
+
+getInput :: IO Text
+getInput = IOAdvent.getInput "16"
+
 parse :: MonadFail m => Text -> m ([Rule], [Int], [[Int]])
 parse input = do
   [rulesText, ticketText, othersText]
@@ -75,26 +91,92 @@ parseOthers text = liftMaybe $ do
     textTickets <- Text.stripPrefix "nearby tickets:\n" text
     traverse (traverse readMaybe . Text.splitOn ",") $ Text.splitOn "\n" textTickets
 
-getInput :: IO Text
-getInput = IOAdvent.getInput "16"
-
 parseRule :: MonadFail m => Text -> m Rule
 parseRule text = do
   [name, ranges] <- pure . Text.splitOn ": " $ text
-  [l, h] <- pure . Text.splitOn " or " $ ranges
-  mkRule name <$> parseRange l <*> parseRange h
+  textRanges <- pure . Text.splitOn " or " $ ranges
+  mkRule name <$> traverse parseRange textRanges
 
 parseRange :: MonadFail m => Text -> m (Int, Int)
 parseRange text = do
   [lo, hi] <- pure . fmap read . Text.splitOn "-" $ text
   pure (lo, hi)
 
+validField :: [(Int, Int)] -> Int -> Bool
+validField rules value = any (\(lo, hi) -> (lo <= value) && (value <= hi)) rules
+
+inInterval :: Int -> (Int, Int) -> Bool
+inInterval value (lo, hi) = (lo <= value) && (value <= hi)
+
+matchRule :: Int -> Rule -> Bool
+matchRule value = any (inInterval value) . view #ranges
+
+allRanges :: [Rule] -> [(Int, Int)]
+allRanges = concatMap (view #ranges)
+
+filterInvalid :: [Rule] -> [[Int]] -> [[Int]]
+filterInvalid rules =
+  let
+    isValid = validField . concatMap (view #ranges) $ rules
+  in
+    filter $ and . fmap isValid
+
+solve1 :: ([Rule], a, [[Int]]) -> Int
+solve1 (rules, _, others) =
+  let
+    ranges = allRanges rules
+  in
+    sum . concat $ filter (not . validField ranges) <$> others
+
+-- For a given value, find all valid field names
+validNames :: Int -> [Rule] -> [Text]
+validNames value = fmap (view #name) <$> filter (matchRule value)
+
+-- For a list of values, find all possible names that apply to all of them
+findNames :: [Int] -> [Rule] -> [Text]
+findNames values rules =
+  let
+    (h:t) = flip validNames rules <$> values
+  in
+    foldl' intersect h t
+
+-- Find all possible names for each field
+getConstrains :: [Rule] -> [[Int]] -> [[Text]]
+getConstrains rules others =
+  flip findNames rules
+  <$> transpose (filterInvalid rules others)
+
+-- TODO: We can likely generalise this. For example, we could've found the order
+-- using toposort, which would work in more cases than sorting by the number of
+-- available options
+solveConstrains :: [[Text]] -> [(Int, Text)]
+solveConstrains constrains =
+  let
+    ixedConstrains :: [(Int, [Text], Int)] =
+      sort $ zip3 (length <$> constrains) constrains [0..]
+
+    f (decided, sol) (_, candidates, pos) =
+      let [name] = filter (`notElem` decided) candidates
+      in (name:decided, (pos, name):sol)
+    (_, names) = foldl' f ([], []) ixedConstrains
+  in
+    names
+
+solve2 :: ([Rule], [Int], [[Int]]) -> Int
+solve2 (rules, ticket, others) =
+  let
+    fields = solveConstrains . getConstrains rules $ others
+    departureFields = filter (Text.isPrefixOf "departure" . view _2) fields
+    indices = view _1 <$> departureFields
+  in
+    product $ (ticket !!) <$> indices
+
 main :: IO ()
 main = do
-  input <- getInput
+  input <- getInput >>= parse
 
   putStr "Solution 1: "
-  print $ "NA"
+  print $ solve1 input
 
   putStr "Solution 2: "
-  print $ "NA"
+  print $ solve2 input
