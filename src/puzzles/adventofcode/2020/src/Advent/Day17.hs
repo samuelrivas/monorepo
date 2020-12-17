@@ -224,12 +224,16 @@ getInput = IOAdvent.getInput "17"
 solve1 :: Cells -> Int
 solve1 = evalState (replicateM_ 6 step >> getActive)
 
+solve2 :: Cells4 -> Int
+solve2 = evalState (replicateM_ 6 step4 >> getActive4)
+
 main :: IO ()
 main = do
   input <- parse <$> getInput
+  input4 <- parse4 <$> getInput
 
   putStr "Solution 1: "
   print . solve1 $ input
 
   putStr "Solution 2: "
-  print $ "NA"
+  print . solve2 $ input4
