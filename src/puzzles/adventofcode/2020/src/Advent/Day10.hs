@@ -15,8 +15,9 @@ import           Control.Monad    (guard)
 import           Data.List        (find, foldl', sort, tails, unfoldr)
 import           Data.Map         (Map)
 import qualified Data.Map         as Map
+import           Data.Matrix      (Matrix, getElem, matrix, ncols)
 import           Data.Maybe       (fromJust, isJust)
-import           Data.Set         (Set)
+import           Data.Set         (Set, member)
 import qualified Data.Set         as Set
 import qualified Data.Text        as Text
 import qualified System.IO.Advent as IOAdvent
@@ -45,37 +46,33 @@ solution1 l =
   in
     ones * (threes + 1) -- Adding the built-in adapter here
 
--- must run on sorted lists, current starts at initial joltage (0) This groups
--- the possible adapters at every step, taking the latest adapter from the
--- previous step
-options :: Int -> [Int] -> [[Int]]
-options _ [] = []
-options current l =
-  let (candidates, rest) = span (< (current + 4)) l
-  in case candidates of
-    [] -> []
-    _  -> candidates : options (last candidates) rest
-
-
-toMultiplier :: [Int] -> Int
-toMultiplier [_]       = 1
-toMultiplier [_, _]    = 2
-toMultiplier [_, _, _] = 4
-toMultiplier _         = undefined
-
--- On sorted lists, x smaller than head
--- which adapter list to check next
-next :: Int -> [Int] -> [[Int]]
-next x = takeWhile ((<= x + 3) . head) . filter ((>= 2) . length) . tails
-
-countSolutions :: [Int] -> Int
-countSolutions [] = 1
-countSolutions (h:t) =
+toAdjMatrix :: [Int] -> Matrix Int
+toAdjMatrix adapterList =
   let
-    possible = next h t
-  in
-    if null possible then 1
-    else sum $ countSolutions <$>possible
+    finalAdapter = maximum adapterList + 3
+    adapters = Set.fromList (0 : finalAdapter : adapterList)
+    adjacent (x', y') =  -- adapt from zero indexing to 1 indexing
+      let
+        x = x' - 1
+        y = y' - 1
+      in
+           (x `member` adapters)
+        && (y `member` adapters)
+        && (y - x `elem` [1..3])
+
+  in matrix (finalAdapter + 1) (finalAdapter + 1) (fromEnum . adjacent)
+
+-- TODO: We are building a graph of connectable adaptors and counting all paths
+-- af any lenght that connect the first to the last. There is a more direct way
+-- to solve this that just requires an array and n^2 calculations
+solution2 :: [Int] -> Int
+solution2 l =
+  let
+    m = toAdjMatrix l
+    size = ncols m
+    nPaths = getElem 1 size . (m ^) <$> [1..size]
+
+  in sum nPaths
 
 main :: IO ()
 main = do
@@ -85,4 +82,4 @@ main = do
   print . solution1 $ input
 
   putStr "Solution 2: "
-  print $ "NA"
+  print . solution2 $ input

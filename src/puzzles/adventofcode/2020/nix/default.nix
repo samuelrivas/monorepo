@@ -11,6 +11,7 @@ let
     fingertree
     generic-lens
     lens
+    matrix
     monad-loops
     multiset
     readline
