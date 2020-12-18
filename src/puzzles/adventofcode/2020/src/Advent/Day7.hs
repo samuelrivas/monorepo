@@ -86,6 +86,8 @@ toAssocs (outer, inner) =
 toGraph :: [(Text, [(Int, Text)])] -> Map Text [Text]
 toGraph rules = Map.unionsWith (++) $ Map.fromListWith (++) . toAssocs <$> rules
 
+-- TODO: This is a very ugly way to get all reachable nodes. And it will hang if
+-- there are cycles
 reachable :: Map Text [Text] -> Set Text -> Set Text
 reachable graph acc =
   if Set.null acc then Set.empty
@@ -97,12 +99,16 @@ reachable graph acc =
     in
       Set.union fromNode (reachable graph newAcc)
 
+solution1 :: Map Text [Text] -> Int
+solution1 graph =
+  Set.size . reachable graph . Set.fromList $ ["shiny gold"]
+
 main :: IO ()
 main = do
-  input <- getInput
+  input <- toGraph . fromJust . parse <$> getInput
 
   putStr "Solution 1: "
-  print $ "foo"
+  print . solution1 $ input
 
   putStr "Solution 2: "
   print $ "foo"
