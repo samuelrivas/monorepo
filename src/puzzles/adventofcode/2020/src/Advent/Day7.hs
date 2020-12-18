@@ -11,7 +11,7 @@ module Advent.Day7 where
 import           Prelude          hiding (lines, putStr, putStrLn, read, show)
 import qualified Prelude
 
-import           Control.Lens     (at, both, each, foldlOf, over, view, _2)
+import           Control.Lens     (at, both, each, foldlOf, non, over, view, _2)
 import           Control.Monad    (guard)
 import           Data.Graph       (Graph, Vertex, graphFromEdges)
 import           Data.List        (find, foldl', sort, unfoldr)
@@ -86,6 +86,16 @@ toAssocs (outer, inner) =
 toGraph :: [(Text, [(Int, Text)])] -> Map Text [Text]
 toGraph rules = Map.unionsWith (++) $ Map.fromListWith (++) . toAssocs <$> rules
 
+reachable :: Map Text [Text] -> Set Text -> Set Text
+reachable graph acc =
+  if Set.null acc then Set.empty
+  else
+    let
+      node = Set.elemAt 0 acc
+      fromNode = Set.fromList $ view (at node . non []) graph
+      newAcc = Set.union (Set.delete node acc) fromNode
+    in
+      Set.union fromNode (reachable graph newAcc)
 
 main :: IO ()
 main = do
