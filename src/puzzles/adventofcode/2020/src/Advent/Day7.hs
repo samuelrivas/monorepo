@@ -99,16 +99,27 @@ reachable graph acc =
     in
       Set.union fromNode (reachable graph newAcc)
 
+bagsInside :: Text -> [(Text, [(Int, Text)])] -> Int
+bagsInside colour rules =
+  let
+    ruleMap = Map.fromList rules
+    next = view (at colour . non []) ruleMap
+    f acc (n, colour') = acc + n + n * bagsInside colour' rules
+  in
+    foldl' f 0 next
+
 solution1 :: Map Text [Text] -> Int
-solution1 graph =
-  Set.size . reachable graph . Set.fromList $ ["shiny gold"]
+solution1 graph = Set.size . reachable graph . Set.fromList $ ["shiny gold"]
+
+solution2 :: [(Text, [(Int, Text)])] -> Int
+solution2 = bagsInside "shiny gold"
 
 main :: IO ()
 main = do
-  input <- toGraph . fromJust . parse <$> getInput
+  input <- fromJust . parse <$> getInput
 
   putStr "Solution 1: "
-  print . solution1 $ input
+  print . solution1 . toGraph $ input
 
   putStr "Solution 2: "
-  print $ "foo"
+  print . solution2 $ input
