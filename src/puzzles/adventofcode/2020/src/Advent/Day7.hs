@@ -13,6 +13,7 @@ import qualified Prelude
 
 import           Control.Lens     (at, both, each, foldlOf, over, view, _2)
 import           Control.Monad    (guard)
+import           Data.Graph       (Graph, Vertex, graphFromEdges)
 import           Data.List        (find, foldl', sort, unfoldr)
 import           Data.Map         (Map, assocs, keysSet)
 import qualified Data.Map         as Map
@@ -27,6 +28,10 @@ import qualified Data.Text        as Text
 import           Data.Text.IO     (putStr, putStrLn)
 import qualified System.IO.Advent as IOAdvent
 import qualified Text.Read        as Read
+
+-- TODO: We need a better graph abstraction. Using a map like here seems to be
+-- more convenient than Data.Graph, but then we need to implement all
+-- interesting algorithms ourselves. There is surely an alternative ready to use
 
 -- TODO: Move read :: Text -> a to our own prelude
 read :: Read a => Text -> a
@@ -62,7 +67,7 @@ parseBagSpec spec =
   in
     -- TODO: This is horrible, I really need to start using parsec for these
     -- things or at least regexes
-    (read amount, Text.dropEnd 1 . Text.dropWhileEnd (/= ' ' ) $ colour)
+    (read amount, Text.strip . Text.dropEnd 1 . Text.dropWhileEnd (/= ' ' ) $ colour)
 
 -- Each rule is encoded as (container colour, [(amount, contained colour)])
 parse :: Text -> Maybe [(Text, [(Int, Text)])]
@@ -72,6 +77,15 @@ parse text = do
 
 getInput :: IO Text
 getInput = IOAdvent.getInput "7"
+
+toAssocs :: (Text, [(Int, Text)]) -> [(Text, [Text])]
+toAssocs (outer, inner) =
+  let toAssoc (_, colour) = (colour, [outer])
+  in toAssoc <$> inner
+
+toGraph :: [(Text, [(Int, Text)])] -> Map Text [Text]
+toGraph rules = Map.unionsWith (++) $ Map.fromListWith (++) . toAssocs <$> rules
+
 
 main :: IO ()
 main = do
