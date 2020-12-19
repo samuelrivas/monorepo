@@ -15,7 +15,8 @@ let
     monad-loops
     multiset
     readline
-    regex-pcre
+    regex-tdfa
+    regex-tdfa-text
     unliftio
     unordered-containers
     writer-cps-mtl
