@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-ghci -XNoImplicitPrelude \
-     -XOverloadedStrings \
-     -XOverloadedLabels  \
-     -XFlexibleContexts  \
+ghci -XNoImplicitPrelude   \
+     -XOverloadedStrings   \
+     -XOverloadedLabels    \
+     -XFlexibleContexts    \
+     -XScopedTypeVariables \
      -XTupleSections
