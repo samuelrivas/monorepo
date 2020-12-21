@@ -11,26 +11,25 @@ module Advent.Day21 where
 
 import           Advent.Perlude
 
-import           Control.Lens        (at, both, each, foldlOf, non, over,
-                                      preview, view, _1, _2, _head)
-import           Control.Monad       (guard)
-import           Control.Monad.State (MonadState)
-import           Data.Hashable       (Hashable)
-import           Data.HashSet        (HashSet)
-import qualified Data.HashSet        as HashSet
-import           Data.List           (find, foldl', sort, unfoldr)
-import           Data.Map.Strict     (Map)
-import qualified Data.Map.Strict     as Map
-import           Data.Maybe          (catMaybes)
-import           Data.Maybe          (fromJust, isJust)
-import qualified Data.Text           as Text
-import qualified System.IO.Advent    as IOAdvent
+import           Control.Lens         (at, both, each, foldlOf, non, over,
+                                       preview, view, _1, _2, _head)
+import           Control.Monad.Loops  (whileJust)
+import           Control.Monad.Reader (MonadReader, Reader, ask, runReader)
+import           Control.Monad.State  (MonadState, StateT, evalStateT, get,
+                                       modify)
+import           Data.Hashable        (Hashable)
+import           Data.HashSet         (HashSet)
+import qualified Data.HashSet         as HashSet
+import           Data.List            (foldl', sort)
+import qualified Data.Map.Strict      as Map
+import           Data.Maybe           (catMaybes, fromJust)
+import qualified Data.Text            as Text
+import qualified System.IO.Advent     as IOAdvent
 
--- example = [
---   (["mxmxvkd", "kfcds", "sqjhc", "nhms"], ["dairy", "fish"]),
---   (["trh", "fvjkl", "sbzzf", "mxmxvkd"], ["contains", "dairy"]),
---   (["sqjhc", "fvjkl"], ["soy"]),
---   (["sqjhc", "mxmxvkd", "sbzzf"], ["fish"])]
+-- TODO: we are using two parsers here, which is messy and confusing. Fix that
+
+getInput :: IO Text
+getInput = IOAdvent.getInput "21"
 
 example :: Text
 example = "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)\n\
@@ -38,6 +37,15 @@ example = "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)\n\
           \sqjhc fvjkl (contains soy)\n\
           \sqjhc mxmxvkd sbzzf (contains fish)\n"
 
+parseIngredients :: Text -> [Text]
+parseIngredients text =
+  let
+    (ingredientsText, _allergensText) =
+      over both Text.strip $ Text.breakOn "(" text
+
+  in Text.words ingredientsText
+
+-- Produces a map allegen -> [Ingredients]
 parseFood :: Text -> [(Text, [Text])]
 parseFood text =
   let
@@ -58,6 +66,15 @@ parseFood text =
 -- (allergen -> [possible ingredient]
 parse :: Text -> [(Text, [Text])]
 parse = concatMap parseFood . Text.lines
+
+toSets ::  [(Text, [Text])] -> [(Text, [HashSet Text])]
+toSets =   Map.toList
+         . Map.fromListWith (++)
+         . fmap (over _2 ((:[]) . HashSet.fromList))
+
+-- Get all the ingredients concatenated (to count for part 1)
+allIngredientList :: Text -> [Text]
+allIngredientList = concatMap parseIngredients . Text.lines
 
 -- TODO: move to utils
 intersections :: Eq a => Hashable a => [HashSet a] -> HashSet a
@@ -86,15 +103,54 @@ deductNext knownIngredients l =
   in
     preview _head $ catMaybes (deduction <$> l)
 
-getInput :: IO Text
-getInput = IOAdvent.getInput "21"
+allergenSet :: [(Text, [HashSet Text])] -> HashSet Text
+allergenSet = HashSet.fromList . fmap (view _1)
+
+findNext ::
+  MonadState (HashSet Text) m => MonadReader [(Text, [HashSet Text])] m =>
+  m (Maybe (Text, Text))
+findNext = do
+  known <- get
+  menus <- ask
+  case deductNext known menus of
+    Nothing -> pure Nothing
+    Just (allergen, ingredient) -> do
+      modify $ HashSet.insert ingredient
+      pure $ Just (allergen, ingredient)
+
+deductAll :: MonadState (HashSet Text) m => MonadReader [(Text, [HashSet Text])] m =>
+  m [(Text, Text)]
+deductAll = whileJust findNext pure
+
+run ::
+     [(Text, [HashSet Text])]
+  -> StateT (HashSet Text) (Reader [(Text, [HashSet Text])]) a
+  -> a
+run menu x = runReader (evalStateT x HashSet.empty) menu
+
+solution1 :: Text -> Int
+solution1 text =
+  let
+    menu = toSets . parse $ text
+    deduced = run menu deductAll
+    allIngredients = allIngredientList text
+  in
+    length $ filter (not . (`elem` (view _2 <$> deduced))) allIngredients
+
+solution2 :: Text -> Text
+solution2 text =
+  let
+    menu = toSets . parse $ text
+    deduced = run menu deductAll
+  in
+    Text.intercalate "," . fmap (view _2) . sort $ deduced
 
 main :: IO ()
 main = do
   input <- getInput
 
   putStr "Solution 1: "
-  print $ "NA"
+  print . solution1 $ input
 
   putStr "Solution 2: "
-  print $ "NA"
+  putStrLn . solution2 $ input
