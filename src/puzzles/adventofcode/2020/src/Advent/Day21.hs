@@ -26,11 +26,38 @@ import           Data.Maybe          (fromJust, isJust)
 import qualified Data.Text           as Text
 import qualified System.IO.Advent    as IOAdvent
 
-example = [
-  (["mxmxvkd", "kfcds", "sqjhc", "nhms"], ["dairy", "fish"]),
-  (["trh", "fvjkl", "sbzzf", "mxmxvkd"], ["contains", "dairy"]),
-  (["sqjhc", "fvjkl"], ["soy"]),
-  (["sqjhc", "mxmxvkd", "sbzzf"], ["fish"])]
+-- example = [
+--   (["mxmxvkd", "kfcds", "sqjhc", "nhms"], ["dairy", "fish"]),
+--   (["trh", "fvjkl", "sbzzf", "mxmxvkd"], ["contains", "dairy"]),
+--   (["sqjhc", "fvjkl"], ["soy"]),
+--   (["sqjhc", "mxmxvkd", "sbzzf"], ["fish"])]
+
+example :: Text
+example = "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)\n\
+          \trh fvjkl sbzzf mxmxvkd (contains dairy)\n\
+          \sqjhc fvjkl (contains soy)\n\
+          \sqjhc mxmxvkd sbzzf (contains fish)\n"
+
+parseFood :: Text -> [(Text, [Text])]
+parseFood text =
+  let
+    (ingredientsText, allergensText) =
+      over both Text.strip $ Text.breakOn "(" text
+
+    ingredients = Text.words ingredientsText
+
+    allergens =
+        Text.splitOn ", "
+      . fromJust . Text.stripPrefix "contains "
+      . Text.dropAround (`elem`  ['(', ')'])
+      $ allergensText
+  in do
+    allergen <- allergens
+    pure (allergen, ingredients)
+
+-- (allergen -> [possible ingredient]
+parse :: Text -> [(Text, [Text])]
+parse = concatMap parseFood . Text.lines
 
 -- TODO: move to utils
 intersections :: Eq a => Hashable a => [HashSet a] -> HashSet a

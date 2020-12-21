@@ -15,6 +15,7 @@ import qualified Advent.Day18
 import qualified Advent.Day19
 import qualified Advent.Day2
 import qualified Advent.Day20
+import qualified Advent.Day21
 import qualified Advent.Day3
 import qualified Advent.Day4
 import qualified Advent.Day5
@@ -51,7 +52,8 @@ dispatcher =
    ("17", Advent.Day17.main),
    ("18", Advent.Day18.main),
    ("19", Advent.Day19.main),
-   ("20", Advent.Day20.main)
+   ("20", Advent.Day20.main),
+   ("21", Advent.Day20.main)
   ]
 
 dispatch :: [String] -> Maybe [IO ()]
