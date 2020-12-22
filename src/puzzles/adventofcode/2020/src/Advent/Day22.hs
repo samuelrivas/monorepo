@@ -91,23 +91,34 @@ isCycle = do
   d2 <- use #deck2
   uses #rounds $ HashSet.member (d1, d2)
 
-recursiveStep :: MonadState Game m => m (Maybe Bool)
+recursiveStep :: MonadIO m => MonadState Game m => m (Maybe Bool)
 recursiveStep =
   ifM isCycle (pure $ Just True) $ do
     d1 <- use #deck1
     d2 <- use #deck2
+
+    -- putStrLn "Current state:\n"
+    -- print d1
+    -- print d2
+
     modifying #rounds $ HashSet.insert (d1, d2)
     case (d1, d2) of
       ([], _) -> pure $ Just False
       (_, []) -> pure $ Just True
-      (h1:t1, h2:t2) ->
-        let
-          p1Winner =
-            if (h1 < length t1) && (h2 < length t2)
-            then playRecursiveGame (take h1 t1) (take h2 t2)
-            else h1 > h2
-        in
-          if p1Winner
+      (h1:t1, h2:t2) -> do
+        p1Winner <-
+          if (h1 <= length t1) && (h2 <= length t2)
+          then do
+
+            -- putStrLn "recursing with:\n"
+            -- putStrLn "===============\n"
+            -- print (take h1 t1)
+            -- print (take h2 t2)
+
+            playRecursiveGame (take h1 t1) (take h2 t2)
+          else pure $ h1 > h2
+
+        if p1Winner
           then do
               modifying #deck1 $ tail . (++ [h1, h2])
               modifying #deck2 tail
@@ -117,10 +128,10 @@ recursiveStep =
               modifying #deck2 $ tail . (++ [h2, h1])
               pure Nothing
 
-playRecursiveGame :: [Int] -> [Int] -> Bool
-playRecursiveGame d1 d2 = evalState runRecursiveGame $ mkGame d1 d2
+playRecursiveGame :: MonadIO m => [Int] -> [Int] -> m Bool
+playRecursiveGame d1 d2 = evalStateT runRecursiveGame $ mkGame d1 d2
 
-runRecursiveGame :: MonadState Game m => m Bool
+runRecursiveGame :: MonadIO m => MonadState Game m => m Bool
 runRecursiveGame =  untilJust recursiveStep
 
 solution1 :: Text -> Int
@@ -132,6 +143,14 @@ solution1 text =
   in
     sum . zipWith (*) [1..] $ reverse winnerDeck
 
+solution2 :: Text -> IO Int
+solution2 text = do
+  (winner, st) <- runStateT runRecursiveGame (parse text)
+  let
+    winnerDeck = if winner then #deck1 else #deck2
+
+  pure $ sum . zipWith (*) [1..] $ reverse (view winnerDeck st)
+
 main :: IO ()
 main = do
   input <- getInput
@@ -140,4 +159,5 @@ main = do
   print . solution1 $ input
 
   putStr "Solution 2: "
-  print $ "NA"
+  sol2 <- solution2 input
+  print sol2
