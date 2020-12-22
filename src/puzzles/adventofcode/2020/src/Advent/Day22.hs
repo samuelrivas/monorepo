@@ -14,6 +14,7 @@ import           Control.Lens              (at, both, each, foldlOf, modifying,
                                             non, over, preuse, use, view, _1,
                                             _2, _head)
 import           Control.Monad             (guard)
+import           Control.Monad.Loops       (iterateUntil)
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import           Data.Generics.Labels      ()
@@ -65,20 +66,34 @@ step = do
     Nothing -> pure True
     Just (h1, h2)
       | h1 > h2 -> do
+          modifying #deck1 $ tail . (++ [h1, h2])
           modifying #deck2 tail
-          modifying #deck1 (++ [h2])
           pure False
       | otherwise -> do
           modifying #deck1 tail
-          modifying #deck2 (++ [h1])
+          modifying #deck2 $ tail . (++ [h2, h1])
           pure False
+
+runGame :: MonadState Game m => m ([Int], [Int])
+runGame = do
+  _ <- iterateUntil id step
+  (,) <$> use #deck1 <*> use #deck2
+
+solution1 :: Text -> Int
+solution1 text =
+  let
+    initialState = parse text
+    (p1, p2) = evalState runGame initialState
+    winnerDeck = if null p1 then p2 else p1
+  in
+    sum . zipWith (*) [1..] $ reverse winnerDeck
 
 main :: IO ()
 main = do
   input <- getInput
 
   putStr "Solution 1: "
-  print $ "NA"
+  print . solution1 $ input
 
   putStr "Solution 2: "
   print $ "NA"
