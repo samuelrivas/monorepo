@@ -27,7 +27,8 @@ import qualified Data.Text            as Text
 import qualified System.IO.Advent     as IOAdvent
 
 -- TODO: we are using two parsers here, which is messy and confusing. Fix that
-
+-- TODO: generalise this. Many problems are similar to this, see day 16 for
+-- exampe
 getInput :: IO Text
 getInput = IOAdvent.getInput "21"
 
