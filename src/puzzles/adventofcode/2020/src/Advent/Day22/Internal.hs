@@ -12,16 +12,18 @@ import           Advent.Perlude
 import qualified Prelude        (Show, show)
 
 import           Data.Foldable  (fold)
+import           Data.HashSet   (HashSet, empty)
 import           GHC.Generics   (Generic)
 
 data Game = Game
-    { deck1 :: [Int]
-    , deck2 :: [Int]
+    { rounds :: HashSet ([Int], [Int])
+    , deck1  :: [Int]
+    , deck2  :: [Int]
     }
     deriving stock (Generic, Eq)
 
 mkGame :: [Int] -> [Int] -> Game
-mkGame = Game
+mkGame = Game empty
 
 instance Prelude.Show Game where
   show g =

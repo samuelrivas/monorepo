@@ -11,23 +11,29 @@ module Advent.Day22 where
 import           Advent.Perlude
 
 import           Control.Lens              (at, both, each, foldlOf, modifying,
-                                            non, over, preuse, use, view, _1,
-                                            _2, _head)
+                                            non, over, preuse, use, uses, view,
+                                            _1, _2, _head)
 import           Control.Monad             (guard)
-import           Control.Monad.Loops       (iterateUntil)
+import           Control.Monad.Loops       (iterateUntil, untilJust)
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import           Data.Generics.Labels      ()
+import           Data.HashSet              (HashSet)
+import qualified Data.HashSet              as HashSet
 import           Data.List                 (find, foldl', sort, unfoldr)
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromJust, isJust)
-import           Data.Set                  (Set)
-import qualified Data.Set                  as Set
 import qualified Data.Text                 as Text
 import qualified System.IO.Advent          as IOAdvent
 
 import           Advent.Day22.Internal
+
+-- TODO: put this somewhere (or import one of the many libs that define it
+ifM :: Monad m => m Bool -> m a -> m a -> m a
+ifM condM a b = do
+  cond <- condM
+  if cond then a else b
 
 example :: Text
 example =
@@ -51,7 +57,7 @@ getInput = IOAdvent.getInput "22"
 parse :: Text -> Game
 parse text =
   let (p1, p2) = over both Text.strip $ Text.breakOn "\n\n" text
-  in Game (parsePlayer p1) (parsePlayer p2)
+  in mkGame (parsePlayer p1) (parsePlayer p2)
 
 parsePlayer :: Text -> [Int]
 parsePlayer = fmap read . tail . Text.lines
@@ -78,6 +84,44 @@ runGame :: MonadState Game m => m ([Int], [Int])
 runGame = do
   _ <- iterateUntil id step
   (,) <$> use #deck1 <*> use #deck2
+
+isCycle :: MonadState Game m => m Bool
+isCycle = do
+  d1 <- use #deck1
+  d2 <- use #deck2
+  uses #rounds $ HashSet.member (d1, d2)
+
+recursiveStep :: MonadState Game m => m (Maybe Bool)
+recursiveStep =
+  ifM isCycle (pure $ Just True) $ do
+    d1 <- use #deck1
+    d2 <- use #deck2
+    modifying #rounds $ HashSet.insert (d1, d2)
+    case (d1, d2) of
+      ([], _) -> pure $ Just False
+      (_, []) -> pure $ Just True
+      (h1:t1, h2:t2) ->
+        let
+          p1Winner =
+            if (h1 < length t1) && (h2 < length t2)
+            then playRecursiveGame (take h1 t1) (take h2 t2)
+            else h1 > h2
+        in
+          if p1Winner
+          then do
+              modifying #deck1 $ tail . (++ [h1, h2])
+              modifying #deck2 tail
+              pure Nothing
+          else do
+              modifying #deck1 tail
+              modifying #deck2 $ tail . (++ [h2, h1])
+              pure Nothing
+
+playRecursiveGame :: [Int] -> [Int] -> Bool
+playRecursiveGame d1 d2 = evalState runRecursiveGame $ mkGame d1 d2
+
+runRecursiveGame :: MonadState Game m => m Bool
+runRecursiveGame =  untilJust recursiveStep
 
 solution1 :: Text -> Int
 solution1 text =
