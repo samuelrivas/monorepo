@@ -28,6 +28,6 @@ instance Prelude.Show Game where
     fold [
     "\nPlayer 1: ",
     Prelude.show (deck1 g),
-    "\nPlayer 2:",
+    "\nPlayer 2: ",
     Prelude.show (deck2 g),
     "\n"]
