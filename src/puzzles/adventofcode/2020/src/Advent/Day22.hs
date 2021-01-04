@@ -107,6 +107,9 @@ recursiveStep =
       (_, []) -> pure $ Just True
       (h1:t1, h2:t2) -> do
         p1Winner <-
+          -- TODO: I got this wrong by putting < instead of <=. But I failed to
+          -- debug it. Practice a bit more with the debugger here
+
           if (h1 <= length t1) && (h2 <= length t2)
           then do
 

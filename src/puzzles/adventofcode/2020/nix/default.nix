@@ -8,6 +8,7 @@ let
   haskell-packages-selector = p: with p; [
     adventlib
     ansi-terminal
+    deque
     fingertree
     generic-lens
     lens
