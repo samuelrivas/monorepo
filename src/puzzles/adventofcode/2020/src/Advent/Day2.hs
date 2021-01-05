@@ -7,16 +7,23 @@
 
 module Advent.Day2 where
 
-import           Prelude          hiding (lines, putStrLn, read)
+import           Prelude               hiding (lines, putStrLn, read)
 import qualified Prelude
 
-import           Control.Lens     (ix, preview)
-import           Data.Maybe       (fromJust)
-import           Data.Text        (Text, count, lines, singleton, splitOn,
-                                   unpack)
-import qualified Data.Text        as Text
-import           Data.Text.IO     (putStrLn)
-import qualified System.IO.Advent as IOAdvent
+import           Control.Lens          (ix, preview)
+import           Data.Maybe            (fromJust)
+import           Data.Text             (Text, count, lines, singleton, splitOn,
+                                        unpack)
+import qualified Data.Text             as Text
+import           Data.Text.IO          (putStrLn)
+import qualified System.IO.Advent      as IOAdvent
+import           Text.Parsec           (Parsec, anyChar, char, digit, endOfLine,
+                                        eof, many, noneOf, sepBy, sepEndBy,
+                                        string, (<|>))
+import           Text.Parsec.Text      (Parser)
+
+import           Advent.Templib.Bool   (xor)
+import           Advent.Templib.Parsec (digitsAsNum, parse, unsafeParse)
 
 -- TODO: Move read :: Text -> a to our own prelude
 read :: Read a => Text -> a
@@ -30,29 +37,37 @@ example = "1-3 a: abcde\n\
 getInput :: IO Text
 getInput = IOAdvent.getInput "2"
 
-type Spec = (Int, Int, Text)
+-- (Min, Max, Character)
+type Policy = (Int, Int, Text)
 
--- TODO: Write an actual parser here with parsec
-parseLine :: Text -> (Spec, Text)
-parseLine line =
-  let
-    [spec, password] = splitOn ": " line
-    [range, letter] = splitOn " " spec
-    [lowBound, highBound] = read <$> splitOn "-" range
+-- (Policy, Password)
+type Entry = (Policy, Text)
 
-  in ((lowBound, highBound, letter), password)
+parser :: Parser [Entry]
+parser = parseEntry `sepEndBy` endOfLine
 
-valid :: Spec -> Text -> Bool
+parseEntry :: Parser Entry
+parseEntry = do
+  policy <- parsePolicy
+  _ <- string ": "
+  password <- Text.pack <$> many (noneOf "\n")
+  pure (policy, password)
+
+parsePolicy :: Parser Policy
+parsePolicy = do
+  low <- digitsAsNum
+  _ <- char '-'
+  high <- digitsAsNum
+  _ <- char ' '
+  character <- Text.singleton <$> anyChar
+  pure (low, high, character)
+
+valid :: Policy -> Text -> Bool
 valid (lo, hi, letter) password =
   let n = count letter password
   in (n >= lo) && (n <= hi)
 
-xor :: Bool -> Bool -> Bool
-xor True True   = False
-xor False False = False
-xor _ _         = True
-
-valid2 :: Spec -> Text -> Bool
+valid2 :: Policy -> Text -> Bool
 valid2 (lo, hi, letter) password =
   fromJust $ do
     first  <- singleton <$> preview (ix (lo - 1)) password
@@ -61,10 +76,6 @@ valid2 (lo, hi, letter) password =
 
 main :: IO ()
 main = do
-  input <- getInput
-  let
-    validPasswords = filter (uncurry valid) $ parseLine <$> lines input
-    validPasswords2 = filter (uncurry valid2) $ parseLine <$> lines input
-
-  print $ length validPasswords
-  print $ length validPasswords2
+  entries <- getInput >>= unsafeParse parser
+  print . length . filter (uncurry valid) $ entries
+  print . length . filter (uncurry valid2) $ entries
