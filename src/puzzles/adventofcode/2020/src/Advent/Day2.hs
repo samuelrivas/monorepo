@@ -1,33 +1,26 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Advent.Day2 where
 
-import           Prelude               hiding (lines, putStrLn, read)
-import qualified Prelude
+
+import           Advent.Perlude
 
 import           Control.Lens          (ix, preview)
 import           Data.Maybe            (fromJust)
-import           Data.Text             (Text, count, lines, singleton, splitOn,
-                                        unpack)
+import           Data.Text             (Text, count, singleton)
 import qualified Data.Text             as Text
-import           Data.Text.IO          (putStrLn)
 import qualified System.IO.Advent      as IOAdvent
-import           Text.Parsec           (Parsec, anyChar, char, digit, endOfLine,
-                                        eof, many, noneOf, sepBy, sepEndBy,
-                                        string, (<|>))
+import           Text.Parsec           (anyChar, char, endOfLine, many, noneOf,
+                                        sepEndBy, string)
 import           Text.Parsec.Text      (Parser)
 
 import           Advent.Templib.Bool   (xor)
-import           Advent.Templib.Parsec (digitsAsNum, parse, unsafeParse)
-
--- TODO: Move read :: Text -> a to our own prelude
-read :: Read a => Text -> a
-read = Prelude.read . unpack
+import           Advent.Templib.Parsec (digitsAsNum, unsafeParse)
 
 example :: Text
 example = "1-3 a: abcde\n\
@@ -48,19 +41,16 @@ parser = parseEntry `sepEndBy` endOfLine
 
 parseEntry :: Parser Entry
 parseEntry = do
-  policy <- parsePolicy
-  _ <- string ": "
+  policy <- parsePolicy <* string ": "
   password <- Text.pack <$> many (noneOf "\n")
   pure (policy, password)
 
 parsePolicy :: Parser Policy
-parsePolicy = do
-  low <- digitsAsNum
-  _ <- char '-'
-  high <- digitsAsNum
-  _ <- char ' '
-  character <- Text.singleton <$> anyChar
-  pure (low, high, character)
+parsePolicy =
+      (,,)
+  <$> (digitsAsNum <* char '-')
+  <*> (digitsAsNum <* char ' ')
+  <*> (Text.singleton <$> anyChar)
 
 valid :: Policy -> Text -> Bool
 valid (lo, hi, letter) password =
