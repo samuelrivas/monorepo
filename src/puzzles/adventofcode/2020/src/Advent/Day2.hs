@@ -20,7 +20,7 @@ import           Text.Parsec           (anyChar, char, endOfLine, many, noneOf,
 import           Text.Parsec.Text      (Parser)
 
 import           Advent.Templib.Bool   (xor)
-import           Advent.Templib.Parsec (digitsAsNum, unsafeParse)
+import           Advent.Templib.Parsec (digitsAsNum, textUntil, unsafeParse)
 
 example :: Text
 example = "1-3 a: abcde\n\
@@ -40,10 +40,10 @@ parser :: Parser [Entry]
 parser = parseEntry `sepEndBy` endOfLine
 
 parseEntry :: Parser Entry
-parseEntry = do
-  policy <- parsePolicy <* string ": "
-  password <- Text.pack <$> many (noneOf "\n")
-  pure (policy, password)
+parseEntry =
+      (,)
+  <$> (parsePolicy <* string ": ")
+  <*> textUntil (string "\n")
 
 parsePolicy :: Parser Policy
 parsePolicy =

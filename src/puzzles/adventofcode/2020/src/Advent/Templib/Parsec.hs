@@ -1,13 +1,11 @@
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE FunctionalDependencies     #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedLabels      #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 -- TODO: Move this to a lib, these are here so that we don't need to keep
 -- recompiling adventlib while experimenting
@@ -17,6 +15,7 @@
 module Advent.Templib.Parsec (
   digitAsNum,
   digitsAsNum,
+  textUntil,
   parse,
   unsafeParse
   ) where
@@ -27,7 +26,9 @@ import qualified Prelude
 import           Control.Monad.Fail (MonadFail)
 import           Data.Char          (digitToInt)
 import           Data.Foldable      (foldl')
-import           Text.Parsec        (ParseError, digit, many1)
+import           Data.Text          (Text, pack)
+import           Text.Parsec        (ParseError, anyChar, digit, lookAhead,
+                                     many1, manyTill)
 import qualified Text.Parsec        as Parsec
 import           Text.Parsec.Text   (Parser)
 
@@ -38,6 +39,10 @@ digitAsNum = fromIntegral . digitToInt <$> digit
 -- Parse consecutive digits and return them as a Num value
 digitsAsNum :: Num n => Parser n
 digitsAsNum = foldl' (\acc n -> acc * 10 + n) 0 <$> many1 digitAsNum
+
+-- Return the characters until p succeeds, as text. Doesn't consume p
+textUntil :: Parser a -> Parser Text
+textUntil terminator = pack <$> manyTill anyChar (lookAhead terminator)
 
 -- Run a parser over a Text. Returns 'Left' if the parser fails
 parse :: Parser a -> Text -> Either ParseError a
