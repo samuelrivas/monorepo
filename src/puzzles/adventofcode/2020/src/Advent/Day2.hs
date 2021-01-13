@@ -15,8 +15,8 @@ import           Data.Maybe            (fromJust)
 import           Data.Text             (Text, count, singleton)
 import qualified Data.Text             as Text
 import qualified System.IO.Advent      as IOAdvent
-import           Text.Parsec           (anyChar, char, endOfLine, many, noneOf,
-                                        sepEndBy, string)
+import           Text.Parsec           (anyChar, char, endOfLine, sepEndBy,
+                                        string)
 import           Text.Parsec.Text      (Parser)
 
 import           Advent.Templib.Bool   (xor)

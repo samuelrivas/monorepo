@@ -92,4 +92,3 @@ main = do
   bidim <- fromText <$> getInput
   print $ countTrees bidim 1
   print . product $ countTrees bidim <$> [1..5]
-

@@ -1,38 +1,35 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Advent.Day4 where
 
-import           Prelude          hiding (putStr, putStrLn, show)
-import qualified Prelude
+import           Advent.Perlude
 
-import           Control.Lens     (at, view, _2)
-import           Control.Monad    (guard)
-import           Data.List        (unfoldr)
-import           Data.Map         (Map, assocs, keysSet)
-import qualified Data.Map         as Map
-import           Data.Maybe       (fromJust)
-import           Data.Maybe       (isJust)
-import           Data.Set         (Set, difference, member)
-import qualified Data.Set         as Set
-import           Data.Text        (Text, count, dropEnd, lines, pack, replace,
-                                   singleton, splitOn, stripEnd, takeEnd,
-                                   unpack)
-import qualified Data.Text        as Text
-import           Data.Text.IO     (putStr, putStrLn)
-import qualified System.IO.Advent as IOAdvent
-import qualified Text.Read        as Read
+import           Control.Lens          (at, view, _2)
+import           Control.Monad         (guard)
+import           Data.List             (unfoldr)
+import           Data.Map              (Map, assocs, keysSet)
+import qualified Data.Map              as Map
+import           Data.Maybe            (fromJust, isJust)
+import           Data.Set              (Set, difference, member)
+import qualified Data.Set              as Set
+import           Data.Text             (Text, count, dropEnd, lines, pack,
+                                        replace, singleton, splitOn, stripEnd,
+                                        takeEnd, unpack)
+import qualified Data.Text             as Text
+import qualified System.IO.Advent      as IOAdvent
+import           Text.Parsec           hiding (getInput)
+-- TODO: Close
+import           Text.Parsec.Text
+import qualified Text.Read             as Read
 
--- TODO: Move read :: Text -> a to our own prelude
-read :: Read a => Text -> a
-read = Prelude.read . unpack
-
-show :: Show a => a -> Text
-show = pack . Prelude.show
+-- TODO: Close
+import           Advent.Templib.Parsec
 
 exampleInvalid :: Text
 exampleInvalid = "eyr:1972 cid:100\n\
@@ -66,24 +63,24 @@ exampleValid = "pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980\n\
 getInput :: IO Text
 getInput = IOAdvent.getInput "4"
 
-passportEntries :: Text -> [[Text]]
-passportEntries = fmap (splitOn " " . replace "\n" " ") . splitOn "\n\n" . stripEnd
-
-parseEntry :: Text -> (Text, Text)
-parseEntry text =
-  let [k, v] = splitOn ":" text
-  in (k, v)
-
 type Passport = Map Text Text
 
-parsePassport :: [Text] -> Passport
-parsePassport = Map.fromList . fmap parseEntry
-
 formatPassport :: Passport -> Text
-formatPassport passport =
+formatPassport pass =
   let formatEntry (k,v) = show k <> ": " <> show v
   in
-    Text.unlines $ formatEntry <$> Map.assocs passport
+    Text.unlines $ formatEntry <$> Map.assocs pass
+
+parser :: Parser [Passport]
+parser = parsePassport `sepBy` char '\n'
+
+parsePassport :: Parser Passport
+parsePassport = Map.fromList <$> many parseEntry
+
+parseEntry :: Parser (Text, Text)
+parseEntry = (,)
+  <$> (text letter <* char ':')
+  <*> (text (noneOf " \n") <* space)
 
 -- Ignoring cid here
 mandatoryKeys :: Set Text
@@ -143,12 +140,10 @@ hasValidFields passport = all (uncurry validateField) $ assocs passport
 
 main :: IO ()
 main = do
-  input <- getInput
+  passports <- getInput >>= unsafeParse parser
 
   putStr "Solution 1: "
-  print . length . filter hasMandatoryKeys . fmap parsePassport . passportEntries $ input
+  print . length . filter hasMandatoryKeys $ passports
 
   putStr "Solution 2: "
-  print . length . filter hasValidFields . filter hasMandatoryKeys . fmap parsePassport . passportEntries $ input
-
-  -- putStr <$> Text.unlines . fmap formatPassport . filter hasValidFields . fmap parsePassport . passportEntries $ input
+  print . length . filter hasValidFields . filter hasMandatoryKeys $ passports

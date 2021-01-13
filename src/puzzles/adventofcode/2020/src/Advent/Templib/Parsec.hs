@@ -16,6 +16,7 @@ module Advent.Templib.Parsec (
   digitAsNum,
   digitsAsNum,
   textUntil,
+  text,
   parse,
   unsafeParse
   ) where
@@ -28,7 +29,7 @@ import           Data.Char          (digitToInt)
 import           Data.Foldable      (foldl')
 import           Data.Text          (Text, pack)
 import           Text.Parsec        (ParseError, anyChar, digit, lookAhead,
-                                     many1, manyTill)
+                                     many, many1, manyTill)
 import qualified Text.Parsec        as Parsec
 import           Text.Parsec.Text   (Parser)
 
@@ -41,8 +42,18 @@ digitsAsNum :: Num n => Parser n
 digitsAsNum = foldl' (\acc n -> acc * 10 + n) 0 <$> many1 digitAsNum
 
 -- Return the characters until p succeeds, as text. Doesn't consume p
+
+-- TODO: I think this parser is probably not a good idea. Try to remove it
+-- before promoting to common lib. What I don't like is that it leaves the
+-- separator as not consumes, which goes against the principle of consuming all
+-- you parse rather than expecting "external" separators. This makes this parser
+-- more difficult to compose with other parsers following that principle
 textUntil :: Parser a -> Parser Text
 textUntil terminator = pack <$> manyTill anyChar (lookAhead terminator)
+
+-- Consumes characters into a Text until the character parser fails
+text :: Parser Char -> Parser Text
+text = fmap pack . many
 
 -- Run a parser over a Text. Returns 'Left' if the parser fails
 parse :: Parser a -> Text -> Either ParseError a
