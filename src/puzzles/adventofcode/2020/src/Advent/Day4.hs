@@ -10,26 +10,21 @@ module Advent.Day4 where
 
 import           Advent.Perlude
 
-import           Control.Lens          (at, view, _2)
 import           Control.Monad         (guard)
-import           Data.List             (unfoldr)
 import           Data.Map              (Map, assocs, keysSet)
 import qualified Data.Map              as Map
-import           Data.Maybe            (fromJust, isJust)
+import           Data.Maybe            (isJust)
 import           Data.Set              (Set, difference, member)
 import qualified Data.Set              as Set
-import           Data.Text             (Text, count, dropEnd, lines, pack,
-                                        replace, singleton, splitOn, stripEnd,
-                                        takeEnd, unpack)
+import           Data.Text             (Text, dropEnd, takeEnd, unpack)
 import qualified Data.Text             as Text
 import qualified System.IO.Advent      as IOAdvent
-import           Text.Parsec           hiding (getInput)
--- TODO: Close
-import           Text.Parsec.Text
+import           Text.Parsec           (char, letter, noneOf, oneOf, sepBy,
+                                        sepEndBy)
+import           Text.Parsec.Text      (Parser)
 import qualified Text.Read             as Read
 
--- TODO: Close
-import           Advent.Templib.Parsec
+import           Advent.Templib.Parsec (text, unsafeParseAll)
 
 exampleInvalid :: Text
 exampleInvalid = "eyr:1972 cid:100\n\
@@ -103,35 +98,35 @@ hasMandatoryKeys :: Passport -> Bool
 hasMandatoryKeys passport = null $ difference mandatoryKeys (keysSet passport)
 
 validateField :: Text -> Text -> Bool
-validateField "byr" text = isJust $ do
-  n :: Int <- readMaybe text
+validateField "byr" t = isJust $ do
+  n :: Int <- readMaybe t
   guard $ (n >= 1920) && (n <= 2002)
-validateField "iyr" text = isJust $ do
-  n :: Int <- readMaybe text
+validateField "iyr" t = isJust $ do
+  n :: Int <- readMaybe t
   guard $ (n >= 2010) && (n <= 2020)
-validateField "eyr" text = isJust $ do
-  n :: Int <- readMaybe text
+validateField "eyr" t = isJust $ do
+  n :: Int <- readMaybe t
   guard $ (n >= 2020) && (n <= 2030)
-validateField "hgt" text =
-  let units = takeEnd 2 text
+validateField "hgt" t =
+  let units = takeEnd 2 t
   in isJust $ do
-    n :: Int <- readMaybe $ dropEnd 2 text
+    n :: Int <- readMaybe $ dropEnd 2 t
     case units of
       "cm" -> guard $ (n >= 150) && (n <= 193)
       "in" -> guard $ (n >= 59) && (n <= 76)
       _    -> Nothing
-validateField "hcl" text =
+validateField "hcl" t =
   let validChars = Set.fromList $ ['0'..'9'] ++ ['a'..'f']
   in isJust $ do
-    guard $ Text.length text == 7
-    guard $ Text.take 1 text == "#"
-    guard . Text.all (`member` validChars) . Text.drop 1 $ text
-validateField "ecl" text =
+    guard $ Text.length t == 7
+    guard $ Text.take 1 t == "#"
+    guard . Text.all (`member` validChars) . Text.drop 1 $ t
+validateField "ecl" t =
   let validCls = Set.fromList ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
-  in member text validCls
-validateField "pid" text =
+  in member t validCls
+validateField "pid" t =
   let validChars = Set.fromList ['0'..'9']
-  in Text.length text == 9 && Text.all (`member` validChars) text
+  in Text.length t == 9 && Text.all (`member` validChars) t
 validateField "cid" _ = True
 validateField _ _ = False
 
