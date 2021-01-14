@@ -15,12 +15,12 @@ import           Data.Maybe            (fromJust)
 import           Data.Text             (Text, count, singleton)
 import qualified Data.Text             as Text
 import qualified System.IO.Advent      as IOAdvent
-import           Text.Parsec           (anyChar, char, endOfLine, sepEndBy,
-                                        string)
+import           Text.Parsec           (anyChar, char, endOfLine, noneOf,
+                                        sepEndBy, string)
 import           Text.Parsec.Text      (Parser)
 
 import           Advent.Templib.Bool   (xor)
-import           Advent.Templib.Parsec (digitsAsNum, textUntil, unsafeParse)
+import           Advent.Templib.Parsec (digitsAsNum, text, unsafeParseAll)
 
 example :: Text
 example = "1-3 a: abcde\n\
@@ -43,7 +43,7 @@ parseEntry :: Parser Entry
 parseEntry =
       (,)
   <$> (parsePolicy <* string ": ")
-  <*> textUntil (string "\n")
+  <*> text (noneOf "\n")
 
 parsePolicy :: Parser Policy
 parsePolicy =
@@ -66,6 +66,6 @@ valid2 (lo, hi, letter) password =
 
 main :: IO ()
 main = do
-  entries <- getInput >>= unsafeParse parser
+  entries <- getInput >>= unsafeParseAll parser
   print . length . filter (uncurry valid) $ entries
   print . length . filter (uncurry valid2) $ entries
