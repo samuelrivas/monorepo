@@ -75,12 +75,12 @@ parser :: Parser [Passport]
 parser = parsePassport `sepBy` char '\n'
 
 parsePassport :: Parser Passport
-parsePassport = Map.fromList <$> many parseEntry
+parsePassport = Map.fromList <$> parseEntry `sepEndBy` oneOf " \n"
 
 parseEntry :: Parser (Text, Text)
 parseEntry = (,)
   <$> (text letter <* char ':')
-  <*> (text (noneOf " \n") <* space)
+  <*> text (noneOf " \n")
 
 -- Ignoring cid here
 mandatoryKeys :: Set Text
@@ -140,7 +140,7 @@ hasValidFields passport = all (uncurry validateField) $ assocs passport
 
 main :: IO ()
 main = do
-  passports <- getInput >>= unsafeParse parser
+  passports <- getInput >>= unsafeParseAll parser
 
   putStr "Solution 1: "
   print . length . filter hasMandatoryKeys $ passports
