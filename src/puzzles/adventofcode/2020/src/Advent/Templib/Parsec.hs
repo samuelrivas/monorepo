@@ -18,7 +18,10 @@ module Advent.Templib.Parsec (
   textUntil,
   text,
   parse,
-  unsafeParse
+  parsePart,
+  unsafeParse,
+  parseAll,
+  unsafeParseAll
   ) where
 
 import           Advent.Perlude
@@ -28,8 +31,8 @@ import           Control.Monad.Fail (MonadFail)
 import           Data.Char          (digitToInt)
 import           Data.Foldable      (foldl')
 import           Data.Text          (Text, pack)
-import           Text.Parsec        (ParseError, anyChar, digit, lookAhead,
-                                     many, many1, manyTill)
+import           Text.Parsec        (ParseError, anyChar, digit, eof, getInput,
+                                     lookAhead, many, many1, manyTill)
 import qualified Text.Parsec        as Parsec
 import           Text.Parsec.Text   (Parser)
 
@@ -48,6 +51,8 @@ digitsAsNum = foldl' (\acc n -> acc * 10 + n) 0 <$> many1 digitAsNum
 -- separator as not consumes, which goes against the principle of consuming all
 -- you parse rather than expecting "external" separators. This makes this parser
 -- more difficult to compose with other parsers following that principle
+
+{-# DEPRECATED textUntil "Don't use this, use text with a parser that doesn't consume the terminator instead" #-}
 textUntil :: Parser a -> Parser Text
 textUntil terminator = pack <$> manyTill anyChar (lookAhead terminator)
 
@@ -59,6 +64,16 @@ text = fmap pack . many
 parse :: Parser a -> Text -> Either ParseError a
 parse = flip Parsec.parse "Advent.Templib.Parsec.parse"
 
+-- Run a parser over a Text, expecting it to consume all the input. Returns
+-- 'Left' if the parser fails.
+parseAll :: Parser a -> Text -> Either ParseError a
+parseAll p = parse $ p <* eof
+
+-- Run a parser over a Text, returning the parsed data and the text that the
+-- parser didn't consume
+parsePart :: Parser a -> Text -> Either ParseError (a, Text)
+parsePart p = parse $ (,) <$> p <*> getInput
+
 -- Run a parser over a Text. Fails if the parser fails
 unsafeParse :: MonadFail m => Parser a -> Text -> m a
 unsafeParse p t =
@@ -66,3 +81,8 @@ unsafeParse p t =
   in case result of
     Right a  -> pure a
     Left err -> fail . Prelude.show $ err
+
+-- Run a parser over a Text, expecting it to consume all the input. Fails if the
+-- parser fails
+unsafeParseAll :: MonadFail m => Parser a -> Text -> m a
+unsafeParseAll p = unsafeParse $ p <* eof
