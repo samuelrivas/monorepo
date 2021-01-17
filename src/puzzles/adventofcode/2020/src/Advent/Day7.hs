@@ -11,25 +11,36 @@ module Advent.Day7 where
 
 import           Advent.Perlude
 
-import           Control.Lens     (at, both, each, foldlOf, non, over, view, _2)
-import           Control.Monad    (guard)
-import           Data.Graph       (Graph, Vertex, graphFromEdges)
-import           Data.List        (find, foldl', sort, unfoldr)
-import           Data.Map         (Map, assocs, keysSet)
-import qualified Data.Map         as Map
-import           Data.Maybe       (fromJust)
-import           Data.Maybe       (isJust)
-import           Data.Set         (Set, difference, member)
-import qualified Data.Set         as Set
-import           Data.Text        (Text, count, dropEnd, lines, pack, replace,
-                                   singleton, splitOn, stripEnd, takeEnd,
-                                   unpack)
-import qualified Data.Text        as Text
-import qualified System.IO.Advent as IOAdvent
-import qualified Text.Read        as Read
+import           Control.Lens          (at, both, each, foldlOf, non, over,
+                                        view, _2)
+import           Control.Monad         (guard)
+import           Data.Foldable         (fold)
+import           Data.Functor          (($>))
+import           Data.Graph            (Graph, Vertex, graphFromEdges)
+import           Data.List             (find, foldl', sort, unfoldr)
+import           Data.Map              (Map, assocs, keysSet)
+import qualified Data.Map              as Map
+import           Data.Maybe            (fromJust)
+import           Data.Maybe            (isJust)
+import           Data.Set              (Set, difference, member)
+import qualified Data.Set              as Set
+import           Data.Text             (Text, count, dropEnd, lines, pack,
+                                        replace, singleton, splitOn, stripEnd,
+                                        takeEnd, unpack)
+import qualified Data.Text             as Text
+import qualified System.IO.Advent      as IOAdvent
+import           Text.Parsec.Text      (Parser)
+import qualified Text.Read             as Read
+
+-- TODO: Close
+import           Advent.Templib.Parsec hiding (parse)
+import           Text.Parsec           hiding (getInput, parse)
 
 
-import           Advent.Templib   (Day (..), getInput')
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
+
+day :: Day
+day = D7
 
 -- TODO: We need a better graph abstraction. Using a map like here seems to be
 -- more convenient than Data.Graph, but then we need to implement all
@@ -46,35 +57,36 @@ example = "light red bags contain 1 bright white bag, 2 muted yellow bags.\n\
           \faded blue bags contain no other bags.\n\
           \dotted black bags contain no other bags.\n"
 
-toTuple :: [a] -> Maybe (a, a)
-toTuple [a, b] = Just (a, b)
-toTuple _      = Nothing
-
-splitRules :: Text -> Maybe [(Text, Text)]
-splitRules = traverse (toTuple . splitOn " bags contain ") . lines
-
-parseBody :: Text -> [(Int, Text)]
-parseBody "no other bags." = []
-parseBody t =
-  parseBagSpec <$> (splitOn ", " . dropEnd 1 $ t)
-
-parseBagSpec :: Text -> (Int, Text)
-parseBagSpec spec =
-  let
-    (amount, colour) = Text.break (== ' ') spec
-  in
-    -- TODO: This is horrible, I really need to start using parsec for these
-    -- things or at least regexes
-    (read amount, Text.strip . Text.dropEnd 1 . Text.dropWhileEnd (/= ' ' ) $ colour)
-
 -- Each rule is encoded as (container colour, [(amount, contained colour)])
-parse :: Text -> Maybe [(Text, [(Int, Text)])]
-parse text = do
-  rawRules <- splitRules text
-  return $ over _2 parseBody <$> rawRules
+parser :: Parser [(Text, [(Int, Text)])]
+parser = parseLine `sepEndBy` char '\n'
+
+parseLine :: Parser (Text, [(Int, Text)])
+parseLine =
+  let
+    bags = parseContained `sepBy` string ", " <* char '.'
+    noBags = string "no other bags." $> []
+  in
+    (,)
+    <$> parseColour <* string " bags contain "
+    <*> (bags <|> noBags)
+
+parseColour :: Parser Text
+parseColour =
+  fold [
+    text1 (noneOf " "),
+    singleton <$> char ' ', -- TODO: Define literal :: Text -> Parser Text
+    text1 (noneOf " ")
+  ]
+
+parseContained :: Parser (Int, Text)
+parseContained =
+  (,)
+  <$> digitsAsNum <* string " "
+  <*> parseColour <* string " bag" <* optional (char 's')
 
 getInput :: IO Text
-getInput = getInput' D7
+getInput = getInput' day
 
 toAssocs :: (Text, [(Int, Text)]) -> [(Text, [Text])]
 toAssocs (outer, inner) =
@@ -114,7 +126,7 @@ solution2 = bagsInside "shiny gold"
 
 main :: IO ()
 main = do
-  input <- fromJust . parse <$> getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print . solution1 . toGraph $ input
