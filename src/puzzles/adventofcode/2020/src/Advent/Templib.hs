@@ -20,18 +20,63 @@ module Advent.Templib (
   AdventContext,
   Advent,
   MonadAdvent,
-  AdventT (..)
+  AdventT (..),
+  Day (..),
+  getInput',
+  getParsedInput
   ) where
 
 import           Advent.Perlude
 import           Control.Lens               (view)
+import           Control.Monad.Fail         (MonadFail)
+import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Reader       (MonadReader)
 import           Control.Monad.Trans.Class  (MonadTrans)
 import           Control.Monad.Trans.Reader (ReaderT, runReaderT)
 import           Data.Functor.Identity      (Identity, runIdentity)
 import           Data.Generics.Labels       ()
+import           System.IO.Advent           (getInput)
+import           Text.Parsec.Text           (Parser)
 
 import           Advent.Templib.Internal
+import           Advent.Templib.Parsec      (unsafeParseAll)
+
+data Day = D1
+    | D2
+    | D3
+    | D4
+    | D5
+    | D6
+    | D7
+    | D8
+    | D9
+    | D11
+    | D12
+    | D13
+    | D14
+    | D15
+    | D16
+    | D17
+    | D18
+    | D19
+    | D10
+    | D21
+    | D22
+    | D23
+    | D24
+    | D25
+    deriving stock (Eq, Ord, Enum, Bounded, Show)
+
+getInput' :: MonadIO m => Day -> m Text
+getInput' = getInput . unpack . toText
+
+toText :: Day -> Text
+toText = show . (+ 1) . fromEnum
+
+-- Get parsedInput
+getParsedInput :: MonadIO m => MonadFail m => Day -> Parser a -> m a
+getParsedInput d p = getInput' d >>= unsafeParseAll p
+
 
 -- Typeclass to encapsulate Advent problems.
 --
