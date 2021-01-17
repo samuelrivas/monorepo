@@ -1,6 +1,7 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,8 +9,7 @@
 
 module Advent.Day7 where
 
-import           Prelude          hiding (lines, putStr, putStrLn, read, show)
-import qualified Prelude
+import           Advent.Perlude
 
 import           Control.Lens     (at, both, each, foldlOf, non, over, view, _2)
 import           Control.Monad    (guard)
@@ -25,17 +25,15 @@ import           Data.Text        (Text, count, dropEnd, lines, pack, replace,
                                    singleton, splitOn, stripEnd, takeEnd,
                                    unpack)
 import qualified Data.Text        as Text
-import           Data.Text.IO     (putStr, putStrLn)
 import qualified System.IO.Advent as IOAdvent
 import qualified Text.Read        as Read
+
+
+import           Advent.Templib   (Day (..), getInput')
 
 -- TODO: We need a better graph abstraction. Using a map like here seems to be
 -- more convenient than Data.Graph, but then we need to implement all
 -- interesting algorithms ourselves. There is surely an alternative ready to use
-
--- TODO: Move read :: Text -> a to our own prelude
-read :: Read a => Text -> a
-read = Prelude.read . unpack
 
 example :: Text
 example = "light red bags contain 1 bright white bag, 2 muted yellow bags.\n\
@@ -76,7 +74,7 @@ parse text = do
   return $ over _2 parseBody <$> rawRules
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "7"
+getInput = getInput' D7
 
 toAssocs :: (Text, [(Int, Text)]) -> [(Text, [Text])]
 toAssocs (outer, inner) =
