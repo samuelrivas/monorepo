@@ -15,8 +15,11 @@ import           Text.Parsec.Text      (Parser)
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
 import           Advent.Templib.Parsec (text1)
 
+day :: Day
+day = D6
+
 getInput :: IO Text
-getInput = getInput' D6
+getInput = getInput' day
 
 example :: Text
 example = "abc\n\
@@ -51,7 +54,7 @@ count = sum . fmap Set.size
 
 main :: IO ()
 main = do
-  answers <- toSets <$> getParsedInput D6 parser
+  answers <- toSets <$> getParsedInput day parser
 
   putStr "Solution 1: "
   print $ count $ group Set.union answers
