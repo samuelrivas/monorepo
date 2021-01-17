@@ -5,20 +5,40 @@ module Advent.Day6 where
 
 import           Advent.Perlude
 
-import           Data.List        (foldl1')
-import           Data.Set         (Set)
-import qualified Data.Set         as Set
-import           Data.Text        (splitOn, strip, unpack)
-import qualified System.IO.Advent as IOAdvent
+import           Data.List             (foldl1')
+import           Data.Set              (Set)
+import qualified Data.Set              as Set
+import           Data.Text             (unpack)
+import           Text.Parsec           (char, noneOf, sepBy, sepEndBy)
+import           Text.Parsec.Text      (Parser)
+
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
+import           Advent.Templib.Parsec (text1)
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "6"
+getInput = getInput' D6
 
-parse :: Text -> [[Text]]
-parse = fmap lines . splitOn "\n\n" . strip
+example :: Text
+example = "abc\n\
+          \a\n\
+          \b\n\
+          \c\n\
+          \\n\
+          \ab\n\
+          \ac\n\
+          \\n\
+          \a\n\
+          \a\n\
+          \a\n\
+          \a\n\
+          \\n\
+          \b\n"
 
-example :: [[Text]]
-example = [["abc"], ["a", "b", "c"], ["ab", "ac"], ["a", "a", "a"], ["b"]]
+parseAnswers :: Parser [Text]
+parseAnswers = text1 (noneOf "\n") `sepEndBy` char '\n'
+
+parser :: Parser [[Text]]
+parser = parseAnswers `sepBy` char '\n'
 
 toSets :: [[Text]] -> [[Set Char]]
 toSets = fmap (fmap (Set.fromList . unpack))
@@ -31,11 +51,10 @@ count = sum . fmap Set.size
 
 main :: IO ()
 main = do
-  input <- toSets . parse <$> getInput
+  answers <- toSets <$> getParsedInput D6 parser
 
   putStr "Solution 1: "
-  print $ count $ group Set.union input
+  print $ count $ group Set.union answers
 
   putStr "Solution 2: "
-  print $ count $ group Set.intersection input
-
+  print $ count $ group Set.intersection answers
