@@ -1,50 +1,37 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 
 module Advent.Day7 where
 
 import           Advent.Perlude
 
-import           Control.Lens          (at, both, each, foldlOf, non, over,
-                                        view, _2)
-import           Control.Monad         (guard)
-import           Data.Foldable         (fold)
+import           Advent.Templib.Parsec (digitsAsNum, literal, text1)
+import           Control.Lens          (at, non, view)
+import           Data.Foldable         (fold, foldl')
 import           Data.Functor          (($>))
-import           Data.Graph            (Graph, Vertex, graphFromEdges)
-import           Data.List             (find, foldl', sort, unfoldr)
-import           Data.Map              (Map, assocs, keysSet)
+import           Data.Map              (Map)
 import qualified Data.Map              as Map
-import           Data.Maybe            (fromJust)
-import           Data.Maybe            (isJust)
-import           Data.Set              (Set, difference, member)
+import           Data.Set              (Set)
 import qualified Data.Set              as Set
-import           Data.Text             (Text, count, dropEnd, lines, pack,
-                                        replace, singleton, splitOn, stripEnd,
-                                        takeEnd, unpack)
-import qualified Data.Text             as Text
-import qualified System.IO.Advent      as IOAdvent
+import           Text.Parsec           (char, noneOf, optional, sepBy, sepEndBy,
+                                        (<|>))
 import           Text.Parsec.Text      (Parser)
-import qualified Text.Read             as Read
-
--- TODO: Close
-import           Advent.Templib.Parsec hiding (parse)
-import           Text.Parsec           hiding (getInput, parse)
-
 
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
-
-day :: Day
-day = D7
 
 -- TODO: We need a better graph abstraction. Using a map like here seems to be
 -- more convenient than Data.Graph, but then we need to implement all
 -- interesting algorithms ourselves. There is surely an alternative ready to use
+
+day :: Day
+day = D7
+
+getInput :: IO Text
+getInput = getInput' day
 
 example :: Text
 example = "light red bags contain 1 bright white bag, 2 muted yellow bags.\n\
@@ -84,9 +71,6 @@ parseContained =
   (,)
   <$> digitsAsNum <* literal " "
   <*> parseColour <* literal " bag" <* optional (char 's')
-
-getInput :: IO Text
-getInput = getInput' day
 
 toAssocs :: (Text, [(Int, Text)]) -> [(Text, [Text])]
 toAssocs (outer, inner) =
