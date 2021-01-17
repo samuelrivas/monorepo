@@ -64,26 +64,26 @@ parser = parseLine `sepEndBy` char '\n'
 parseLine :: Parser (Text, [(Int, Text)])
 parseLine =
   let
-    bags = parseContained `sepBy` string ", " <* char '.'
-    noBags = string "no other bags." $> []
+    bags = parseContained `sepBy` literal ", " <* char '.'
+    noBags = literal "no other bags." $> []
   in
     (,)
-    <$> parseColour <* string " bags contain "
+    <$> parseColour <* literal " bags contain "
     <*> (bags <|> noBags)
 
 parseColour :: Parser Text
 parseColour =
   fold [
     text1 (noneOf " "),
-    singleton <$> char ' ', -- TODO: Define literal :: Text -> Parser Text
+    literal " ",
     text1 (noneOf " ")
   ]
 
 parseContained :: Parser (Int, Text)
 parseContained =
   (,)
-  <$> digitsAsNum <* string " "
-  <*> parseColour <* string " bag" <* optional (char 's')
+  <$> digitsAsNum <* literal " "
+  <*> parseColour <* literal " bag" <* optional (char 's')
 
 getInput :: IO Text
 getInput = getInput' day

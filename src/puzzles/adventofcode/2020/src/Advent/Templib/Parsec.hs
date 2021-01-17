@@ -15,6 +15,7 @@
 module Advent.Templib.Parsec (
   digitAsNum,
   digitsAsNum,
+  literal,
   parse,
   parseAll,
   parsePart,
@@ -31,9 +32,8 @@ import qualified Prelude
 import           Control.Monad.Fail (MonadFail)
 import           Data.Char          (digitToInt)
 import           Data.Foldable      (foldl')
-import           Data.Text          (Text, pack)
 import           Text.Parsec        (ParseError, anyChar, digit, eof, getInput,
-                                     lookAhead, many, many1, manyTill)
+                                     lookAhead, many, many1, manyTill, string)
 import qualified Text.Parsec        as Parsec
 import           Text.Parsec.Text   (Parser)
 
@@ -66,6 +66,10 @@ text = fmap pack . many
 -- parser fails
 text1 :: Parser Char -> Parser Text
 text1 = fmap pack . many1
+
+-- Consumes a literal, returning that literal
+literal :: Text -> Parser Text
+literal = fmap pack . string . unpack
 
 -- Run a parser over a Text. Returns 'Left' if the parser fails
 parse :: Parser a -> Text -> Either ParseError a
