@@ -15,12 +15,13 @@
 module Advent.Templib.Parsec (
   digitAsNum,
   digitsAsNum,
-  textUntil,
-  text,
   parse,
-  parsePart,
-  unsafeParse,
   parseAll,
+  parsePart,
+  text,
+  text1,
+  textUntil,
+  unsafeParse,
   unsafeParseAll
   ) where
 
@@ -56,9 +57,15 @@ digitsAsNum = foldl' (\acc n -> acc * 10 + n) 0 <$> many1 digitAsNum
 textUntil :: Parser a -> Parser Text
 textUntil terminator = pack <$> manyTill anyChar (lookAhead terminator)
 
--- Consumes characters into a Text until the character parser fails
+-- Consumes characters into a Text until the character parser fails. Can return
+-- an empty text.
 text :: Parser Char -> Parser Text
 text = fmap pack . many
+
+-- Consumes at least character into a Text, continuing until the character
+-- parser fails
+text1 :: Parser Char -> Parser Text
+text1 = fmap pack . many1
 
 -- Run a parser over a Text. Returns 'Left' if the parser fails
 parse :: Parser a -> Text -> Either ParseError a
