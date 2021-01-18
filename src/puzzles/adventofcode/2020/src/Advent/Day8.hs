@@ -32,7 +32,12 @@ import qualified Data.Text                as Text
 import qualified System.IO.Advent         as IOAdvent
 import qualified Text.Read                as Read
 
+import           Advent.Templib           (Day (..), getInput')
+
 import           Advent.Day8.Internal
+
+day :: Day
+day = D8
 
 -- TODO: This is part of the most recent base (for String), make it for Text in
 -- our prelude
@@ -51,7 +56,7 @@ example = "nop +0\n\
           \acc +6"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "8"
+getInput = getInput' day
 
 parseInstruction :: Text -> Maybe Op
 parseInstruction instruction =
