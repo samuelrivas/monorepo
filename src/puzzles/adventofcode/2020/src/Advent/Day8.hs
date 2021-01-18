@@ -1,48 +1,30 @@
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Advent.Day8 where
 
 import           Advent.Perlude
 
-import           Control.Lens             (at, both, each, foldlOf, ix,
-                                           modifying, over, preuse, preview,
-                                           use, uses, view, _1, _2, _head,
-                                           _tail)
-import           Control.Monad            (guard)
-import           Control.Monad.Loops      (untilJust)
-import           Control.Monad.State.Lazy (State, gets, modify)
-import           Data.Generics.Labels     ()
-import           Data.List                (find, foldl', sort, unfoldr)
-import           Data.Map.Lazy            (Map, assocs, keysSet)
-import qualified Data.Map.Lazy            as Map
-import           Data.Maybe               (fromJust)
-import           Data.Maybe               (isJust)
-import           Data.Set                 (Set, difference, member)
-import qualified Data.Set                 as Set
-import           Data.Text                (Text, count, dropEnd, lines, pack,
-                                           replace, singleton, splitOn,
-                                           stripEnd, takeEnd, unpack)
-import qualified Data.Text                as Text
-import qualified System.IO.Advent         as IOAdvent
-import qualified Text.Read                as Read
+import           Advent.Templib.Parsec (digitsAsNum, literal)
+import           Control.Lens          (ix, over, preview, view, _1, _2, _head,
+                                        _tail)
+import           Data.Functor          (($>))
+import           Data.Generics.Labels  ()
+import           Data.List             (find)
+import           Data.Maybe            (fromJust)
+import           Data.Set              (Set)
+import qualified Data.Set              as Set
+import           Text.Parsec           (char, sepEndBy, (<|>))
+import           Text.Parsec.Text      (Parser)
 
-import           Advent.Templib           (Day (..), getInput')
+
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
 
 import           Advent.Day8.Internal
 
 day :: Day
 day = D8
-
--- TODO: This is part of the most recent base (for String), make it for Text in
--- our prelude
-readMaybe :: Read a => Text -> Maybe a
-readMaybe = Read.readMaybe . unpack
 
 example :: Text
 example = "nop +0\n\
@@ -58,26 +40,24 @@ example = "nop +0\n\
 getInput :: IO Text
 getInput = getInput' day
 
-parseInstruction :: Text -> Maybe Op
-parseInstruction instruction =
-  let
-    -- TODO: there is probably an elegant way of doing this
-    split = case Text.splitOn " " instruction
-      of [a, b] -> Just (a, b)
-         _      -> Nothing
-  in do
-    (opText, valueText) <- split
-    value <- readMaybe . Text.dropWhile (== '+') $ valueText
-    parseOp opText value
+parseOp :: Parser (Int -> Op)
+parseOp =
+  literal "nop" $> Nop
+  <|> literal "acc" $> Acc
+  <|> literal "jmp" $> Jmp
 
-parseOp :: Text -> Int -> Maybe Op
-parseOp "nop" = Just . Nop
-parseOp "acc" = Just . Acc
-parseOp "jmp" = Just . Jmp
-parseOp _     = const Nothing
+parseArg :: Parser Int
+parseArg = do
+  sign <- char '-' $> -1 <|> char '+' $> 1
+  (* sign) <$> digitsAsNum
 
-parse :: Text -> Maybe [Op]
-parse = traverse parseInstruction . Text.lines
+parseInstruction :: Parser Op
+parseInstruction =
+  parseOp <* literal " "
+  <*> parseArg
+
+parser :: Parser [Op]
+parser = parseInstruction `sepEndBy` char '\n'
 
 runOp :: Op -> VMState -> VMState
 runOp (Nop _) = over #pc (+1)
@@ -113,21 +93,22 @@ allMutations :: [Op] -> [[Op]]
 allMutations []    = []
 allMutations (h:t) = (mutate h : t) : ((h :) <$> allMutations t)
 
+solution2 :: [Op] -> [(Maybe VMState, VMState)]
 solution2 input =
   let
-    mutations = fromJust $ allMutations <$> parse input
+    mutations = allMutations input
     repeated = findRepeated Set.empty . unfold . mkState <$> mutations
   in
     zip repeated (mkState <$> mutations)
 
 main :: IO ()
 main = do
-  input <- getInput
+  instructions <- getParsedInput day parser
 
   -- TODO: Clean this mess
   putStr "Solution 1: "
-  print $ view #acc . fromJust . findRepeated Set.empty . unfold . mkState . fromJust . parse $ input
+  print . view #acc . fromJust . findRepeated Set.empty . unfold . mkState $ instructions
 
   -- TODO: UGH!
   putStr "Solution 2: "
-  print $ view #acc . last . unfold $ view _2 . fromJust $ find ((== Nothing) . view _1) $ solution2 input
+  print . view #acc . last . unfold $ view _2 . fromJust $ find ((== Nothing) . view _1) $ solution2 instructions
