@@ -10,13 +10,15 @@ module Advent.Day10 where
 
 import           Advent.Perlude
 
-import           Data.List      (sort)
-import           Data.Matrix    (Matrix, getElem, matrix, ncols)
-import           Data.Set       (member)
-import qualified Data.Set       as Set
-import qualified Data.Text      as Text
+import           Data.List        (sort)
+import           Data.Matrix      (Matrix, getElem, matrix, ncols)
+import           Data.Set         (member)
+import qualified Data.Set         as Set
+import qualified Data.Text        as Text
+import           Text.Parsec.Text (Parser)
 
-import           Advent.Templib (Day (..), getInput')
+import           Advent.Templib   (Day (..), getInput', getParsedInput,
+                                   listOfNum)
 
 day :: Day
 day = D10
@@ -31,9 +33,8 @@ example = [28, 33, 18, 42, 31, 14, 46, 20, 48, 47, 24, 23, 49, 45, 19, 38, 39,
 getInput :: IO Text
 getInput = getInput' day
 
--- TODO: This is a common parser, move to Adventlib
-parse :: Text -> [Int]
-parse = fmap read . Text.lines
+parser :: Parser [Int]
+parser = listOfNum
 
 solution1 :: [Int] -> Int
 solution1 l =
@@ -75,7 +76,7 @@ solution2 l =
 
 main :: IO ()
 main = do
-  input <- parse <$> getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print . solution1 $ input

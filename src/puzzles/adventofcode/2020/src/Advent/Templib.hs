@@ -23,7 +23,8 @@ module Advent.Templib (
   AdventT (..),
   Day (..),
   getInput',
-  getParsedInput
+  getParsedInput,
+  listOfNum
   ) where
 
 import           Advent.Perlude
@@ -36,10 +37,11 @@ import           Control.Monad.Trans.Reader (ReaderT, runReaderT)
 import           Data.Functor.Identity      (Identity, runIdentity)
 import           Data.Generics.Labels       ()
 import           System.IO.Advent           (getInput)
+import           Text.Parsec                (char, sepEndBy)
 import           Text.Parsec.Text           (Parser)
 
 import           Advent.Templib.Internal
-import           Advent.Templib.Parsec      (unsafeParseAll)
+import           Advent.Templib.Parsec      (digitsAsNum, unsafeParseAll)
 
 data Day = D1
     | D2
@@ -74,10 +76,13 @@ getInput' = getInput . unpack . toText
 toText :: Day -> Text
 toText = show . (+ 1) . fromEnum
 
--- Get parsedInput
+-- Get parsed input
 getParsedInput :: MonadIO m => MonadFail m => Day -> Parser a -> m a
 getParsedInput d p = getInput' d >>= unsafeParseAll p
 
+-- Very common parsers
+listOfNum :: Num n => Parser [n]
+listOfNum = digitsAsNum `sepEndBy` char '\n'
 
 -- Typeclass to encapsulate Advent problems.
 --
