@@ -26,12 +26,16 @@ import           Data.Set                 (Set)
 import qualified Data.Set                 as Set
 import qualified Data.Text                as Text
 import           Data.Text.Lens           (packed, unpacked)
-import qualified System.IO.Advent         as IOAdvent
 import qualified Text.Read                as Read
+
+import           Advent.Templib           (Day (..), getInput', getParsedInput)
 
 import           Advent.Day12.Internal    (Action (..), Direction (..),
                                            Instruction, Ship, Ship2,
                                            mkInstruction, mkShip, mkShip2)
+
+day :: Day
+day = D12
 
 -- TODO: This is part of the most recent base (for String), make it for Text in
 -- our prelude
@@ -46,7 +50,7 @@ example = "F10\n\
           \F11\n"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "12"
+getInput = getInput' D12
 
 parseInstruction :: Text -> Maybe Instruction
 parseInstruction textInstruction = do

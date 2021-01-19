@@ -10,17 +10,16 @@ module Advent.Day10 where
 
 import           Advent.Perlude
 
-import           Control.Lens     (at, both, each, foldlOf, over, view, _2)
-import           Control.Monad    (guard)
-import           Data.List        (find, foldl', sort, tails, unfoldr)
-import           Data.Map         (Map)
-import qualified Data.Map         as Map
-import           Data.Matrix      (Matrix, getElem, matrix, ncols)
-import           Data.Maybe       (fromJust, isJust)
-import           Data.Set         (Set, member)
-import qualified Data.Set         as Set
-import qualified Data.Text        as Text
-import qualified System.IO.Advent as IOAdvent
+import           Data.List      (sort)
+import           Data.Matrix    (Matrix, getElem, matrix, ncols)
+import           Data.Set       (member)
+import qualified Data.Set       as Set
+import qualified Data.Text      as Text
+
+import           Advent.Templib (Day (..), getInput')
+
+day :: Day
+day = D10
 
 smallExample :: [Int]
 smallExample = [16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4]
@@ -30,7 +29,7 @@ example = [28, 33, 18, 42, 31, 14, 46, 20, 48, 47, 24, 23, 49, 45, 19, 38, 39,
            11, 1, 32, 25, 35, 8, 17, 7, 9, 4, 2, 34, 10, 3]
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "10"
+getInput = getInput' day
 
 -- TODO: This is a common parser, move to Adventlib
 parse :: Text -> [Int]
