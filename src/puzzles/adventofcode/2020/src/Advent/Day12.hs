@@ -1,44 +1,28 @@
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Advent.Day12 where
 
 import           Advent.Perlude
 
-import           Control.Lens             (at, both, each, foldlOf, modifying,
-                                           over, preview, use, view, _2, _head,
-                                           _tail)
-import           Control.Monad            (guard)
+import           Control.Lens             (both, modifying, over, use, view)
 import           Control.Monad.State.Lazy (MonadState, execState)
 import           Data.Bidim               (Coord, plus)
 import           Data.Foldable            (traverse_)
-import           Data.Generics.Labels     ()
-import           Data.List                (find, foldl', sort, unfoldr)
-import           Data.Map                 (Map)
-import qualified Data.Map                 as Map
-import           Data.Maybe               (fromJust, isJust)
-import           Data.Set                 (Set)
-import qualified Data.Set                 as Set
-import qualified Data.Text                as Text
-import           Data.Text.Lens           (packed, unpacked)
-import           Text.Parsec.Text         (Parser)
-import qualified Text.Read                as Read
-
-import           Advent.Templib           (Day (..), getInput', getParsedInput)
 import           Data.Functor             (($>))
+import           Data.Generics.Labels     ()
+import           Text.Parsec.Text         (Parser)
 
 -- TODO: Close
-import           Advent.Templib.Parsec    hiding (parse)
-import           Text.Parsec              hiding (getInput, parse)
+import           Advent.Templib.Parsec    (digitsAsNum)
+import           Text.Parsec              (char, sepEndBy, unexpected, (<|>))
 
 import           Advent.Day12.Internal    (Action (..), Direction (..),
                                            Instruction, Ship, Ship2,
                                            mkInstruction, mkShip, mkShip2)
+import           Advent.Templib           (Day (..), getInput', getParsedInput)
 
 day :: Day
 day = D12
