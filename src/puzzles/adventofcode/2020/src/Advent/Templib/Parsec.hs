@@ -15,6 +15,7 @@
 module Advent.Templib.Parsec (
   digitAsNum,
   digitsAsNum,
+  num,
   literal,
   parse,
   parseAll,
@@ -32,8 +33,10 @@ import qualified Prelude
 import           Control.Monad.Fail (MonadFail)
 import           Data.Char          (digitToInt)
 import           Data.Foldable      (foldl')
-import           Text.Parsec        (ParseError, anyChar, digit, eof, getInput,
-                                     lookAhead, many, many1, manyTill, string)
+import           Data.Functor       (($>))
+import           Text.Parsec        (ParseError, anyChar, char, digit, eof,
+                                     getInput, lookAhead, many, many1, manyTill,
+                                     option, string, (<|>))
 import qualified Text.Parsec        as Parsec
 import           Text.Parsec.Text   (Parser)
 
@@ -44,6 +47,15 @@ digitAsNum = fromIntegral . digitToInt <$> digit
 -- Parse consecutive digits and return them as a Num value
 digitsAsNum :: Num n => Parser n
 digitsAsNum = foldl' (\acc n -> acc * 10 + n) 0 <$> many1 digitAsNum
+
+-- Parse an integer number with optional sign
+num :: Num n => Parser n
+num =
+  let
+    sign = (char '+' $> (* 1)) <|> (char '-' $> (* (-1)))
+  in do
+    mult <- option (* 1) sign
+    mult <$> digitsAsNum
 
 -- Return the characters until p succeeds, as text. Doesn't consume p
 

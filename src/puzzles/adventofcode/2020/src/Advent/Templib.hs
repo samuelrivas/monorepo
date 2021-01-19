@@ -41,7 +41,7 @@ import           Text.Parsec                (char, sepEndBy)
 import           Text.Parsec.Text           (Parser)
 
 import           Advent.Templib.Internal
-import           Advent.Templib.Parsec      (digitsAsNum, unsafeParseAll)
+import           Advent.Templib.Parsec      (num, unsafeParseAll)
 
 data Day = D1
     | D2
@@ -82,7 +82,7 @@ getParsedInput d p = getInput' d >>= unsafeParseAll p
 
 -- Very common parsers
 listOfNum :: Num n => Parser [n]
-listOfNum = digitsAsNum `sepEndBy` char '\n'
+listOfNum = num `sepEndBy` char '\n'
 
 -- Typeclass to encapsulate Advent problems.
 --
