@@ -26,9 +26,15 @@ import           Data.Set                 (Set)
 import qualified Data.Set                 as Set
 import qualified Data.Text                as Text
 import           Data.Text.Lens           (packed, unpacked)
+import           Text.Parsec.Text         (Parser)
 import qualified Text.Read                as Read
 
 import           Advent.Templib           (Day (..), getInput', getParsedInput)
+import           Data.Functor             (($>))
+
+-- TODO: Close
+import           Advent.Templib.Parsec    hiding (parse)
+import           Text.Parsec              hiding (getInput, parse)
 
 import           Advent.Day12.Internal    (Action (..), Direction (..),
                                            Instruction, Ship, Ship2,
@@ -36,11 +42,6 @@ import           Advent.Day12.Internal    (Action (..), Direction (..),
 
 day :: Day
 day = D12
-
--- TODO: This is part of the most recent base (for String), make it for Text in
--- our prelude
-readMaybe :: Read a => Text -> Maybe a
-readMaybe = Read.readMaybe . unpack
 
 example :: Text
 example = "F10\n\
@@ -52,33 +53,31 @@ example = "F10\n\
 getInput :: IO Text
 getInput = getInput' D12
 
-parseInstruction :: Text -> Maybe Instruction
-parseInstruction textInstruction = do
-  action <- preview (unpacked . _head) textInstruction >>= parseAction
-  amount <- preview (unpacked . _tail . packed) textInstruction >>= readMaybe
-  validateInstruction action amount
-  pure $ mkInstruction action amount
+parseTurn :: Parser Instruction
+parseTurn =
+  let action = char 'R' $> T True <|> char 'L' $> T False
+  in mkInstruction <$> action <*> parseDegrees
 
-parseAction :: Char -> Maybe Action
-parseAction 'F' = Just F
-parseAction 'R' = Just $ T True
-parseAction 'L' = Just $ T False
-parseAction 'N' = Just $ M N
-parseAction 'S' = Just $ M S
-parseAction 'E' = Just $ M E
-parseAction 'W' = Just $ M W
-parseAction _   = Nothing
+parseMove :: Parser Instruction
+parseMove =
+  let action =
+        char 'F' $> F
+        <|> char 'N' $> M N
+        <|> char 'S' $> M S
+        <|> char 'E' $> M E
+        <|> char 'W' $> M W
+  in
+    mkInstruction <$> action <*> digitsAsNum
 
-validateInstruction :: Action -> Int -> Maybe ()
-validateInstruction (T _) 0   = Just ()
-validateInstruction (T _) 90  = Just ()
-validateInstruction (T _) 180 = Just ()
-validateInstruction (T _) 270 = Just ()
-validateInstruction (T _) _   = Nothing
-validateInstruction _ _       = Just ()
+parseDegrees :: Parser Int
+parseDegrees = do
+  n <- digitsAsNum
+  if n `elem` [0, 90, 180, 270]
+    then pure n
+    else unexpected "invalid degree amount in turn"
 
-parse :: Text -> Maybe [Instruction]
-parse = traverse parseInstruction . Text.lines
+parser :: Parser [Instruction]
+parser = (parseMove <|> parseTurn) `sepEndBy` char '\n'
 
 step :: MonadState Ship m => Instruction -> m ()
 step instruction =
@@ -173,7 +172,7 @@ solution2 instructions =
 
 main :: IO ()
 main = do
-  input <- fromJust . parse <$> getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print $ solution1 input
