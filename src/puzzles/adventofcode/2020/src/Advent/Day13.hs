@@ -1,8 +1,4 @@
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -10,25 +6,44 @@ module Advent.Day13 where
 
 import           Advent.Perlude
 
-import           Control.Lens     (at, both, each, foldlOf, over, view, _1, _2)
-import           Control.Monad    (guard)
-import           Data.List        (all, elemIndex, find, foldl', lookup,
-                                   maximumBy, sort, unfoldr)
-import           Data.Map         (Map)
-import qualified Data.Map         as Map
-import           Data.Maybe       (fromJust, isJust)
-import           Data.Set         (Set)
-import qualified Data.Set         as Set
-import qualified Data.Text        as Text
-import qualified System.IO.Advent as IOAdvent
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
+import           Control.Lens          (over, preview, view, _1, _2)
+import           Data.Functor          (($>))
+import           Data.List             (all, elemIndex, find, maximumBy)
+import           Data.Maybe            (fromJust, mapMaybe)
+import           Text.Parsec           (char, sepBy, (<|>))
+import           Text.Parsec.Text      (Parser)
+
+import           Advent.Templib.Parsec (digitsAsNum)
+
+-- TODO: Write the solution for this, it was solved in the repl, hastily
+
+day :: Day
+day = D13
 
 example :: Text
 example = "foo"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "13"
+getInput = getInput' day
 
--- TODO: Actually parse this, cheat!
+parser :: Parser [(Int, Int)]
+parser = toSchedule . view _2 <$> parseInput
+
+toSchedule :: [Maybe Int] -> [(Int, Int)]
+toSchedule l =
+  let f (x :: (Maybe Int, Int)) = (,) <$> view _1 x <*> preview _2 x
+  in mapMaybe f $ zip l [0..]
+
+parseInput :: Parser (Int, [Maybe Int])
+parseInput = (,) <$> (digitsAsNum <* char '\n') <*> (parseSchedule <* char '\n')
+
+parseSchedule :: Parser [Maybe Int]
+parseSchedule =
+  let bus = (Just <$> digitsAsNum) <|> (char 'x' $> Nothing)
+  in bus `sepBy` char ','
+
+-- TODO: We can remove this now, as we have an actual parser
 buses :: [Int]
 buses = [13, 41, 37, 419, 19, 23, 29, 421, 17]
 
@@ -128,7 +143,7 @@ solve2 schedule = head . dropWhile (not . test schedule) . candidates $ schedule
 
 main :: IO ()
 main = do
-  input <- getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print $ "NA"
