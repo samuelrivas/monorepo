@@ -8,12 +8,13 @@ import           Advent.Perlude
 
 import           Control.Lens          (over, set, view, _2)
 import           Data.Bits             (clearBit, setBit)
+import           Data.Functor          (($>))
 import           Data.Generics.Labels  ()
 import           Data.List             (foldl')
 import qualified Data.Map              as Map
 import qualified Data.Text             as Text
-import           Text.Parsec           (between, char, oneOf, sepEndBy, try,
-                                        (<?>), (<|>))
+import           Text.Parsec           (between, char, many1, oneOf, sepEndBy,
+                                        try, (<?>), (<|>))
 
 import           Advent.Day14.Internal
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
@@ -38,7 +39,13 @@ parseInstruction :: Parser Instruction
 parseInstruction  = try parseMask <|> try parseMem <?> "expression"
 
 parseMask :: Parser Instruction
-parseMask = Mask <$> (literal "mask = " *> text1 (oneOf "X01"))
+parseMask = Mask <$> (literal "mask = " *> many1 parseTrit)
+
+parseTrit :: Parser Trit
+parseTrit = literal "1" $> I
+  <|> literal "0" $> O
+  <|> literal "X" $> X
+  <?> "trit"
 
 parseMem :: Parser Instruction
 parseMem =
@@ -55,17 +62,16 @@ step st (Mem addr value) =
 
   in over #memory (Map.insert addr newValue) st
 
-applyMask :: Text -> Int -> Int
+applyMask :: [Trit] -> Int -> Int
 applyMask mask value =
   let
     f c (pos, n) =
       case c of
-        'X' -> (pos + 1, n)
-        '1' -> (pos + 1, n `setBit` pos)
-        '0' -> (pos + 1, n `clearBit` pos)
-        _   -> undefined
+        X -> (pos + 1, n)
+        I -> (pos + 1, n `setBit` pos)
+        O -> (pos + 1, n `clearBit` pos)
 
-  in view _2 $ Text.foldr f (0, value) mask
+  in view _2 $ foldr f (0, value) mask
 
 -- TODO: this feels convoluted, there must be a better monadic approach
 --
@@ -73,10 +79,10 @@ applyMask mask value =
 -- represent non-determinism. The interpretation of binding a function is that
 -- the function returns a list of possible results, which is exactly of what we
 -- want
-applyAddrMask :: Text -> Int -> [Int]
+applyAddrMask :: [Trit] -> Int -> [Int]
 applyAddrMask mask value =
   let f c (pos, addrs) = (pos + 1, addrs >>= applyAddrMaskBit c pos)
-  in view _2 $ Text.foldr f (0, [value]) mask
+  in view _2 $ foldr f (0, [value]) mask
 
 step2 :: ComputerState -> Instruction -> ComputerState
 step2 st (Mask mask)      = step st (Mask mask)
@@ -91,13 +97,10 @@ step2 st (Mem addr value) =
 
   in set #memory newMemory st
 
--- TODO: We can easily parse this into a list of a better type to avoid the
--- undefined clause at the end
-applyAddrMaskBit :: Char -> Int -> Int -> [Int]
-applyAddrMaskBit '1' pos value  = [value `setBit` pos]
-applyAddrMaskBit '0' _pos value = [value]
-applyAddrMaskBit 'X' pos value  = [value `setBit` pos, value `clearBit` pos]
-applyAddrMaskBit _ _ _          = undefined
+applyAddrMaskBit :: Trit -> Int -> Int -> [Int]
+applyAddrMaskBit I pos value  = [value `setBit` pos]
+applyAddrMaskBit O _pos value = [value]
+applyAddrMaskBit X pos value  = [value `setBit` pos, value `clearBit` pos]
 
 solve :: (ComputerState -> Instruction -> ComputerState) -> [Instruction] -> Int
 solve stepper = Map.foldl' (+) 0 . view #memory . foldl' stepper mkComputerState
