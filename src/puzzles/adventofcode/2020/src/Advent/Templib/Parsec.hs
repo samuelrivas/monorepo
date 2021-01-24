@@ -24,7 +24,8 @@ module Advent.Templib.Parsec (
   text1,
   textUntil,
   unsafeParse,
-  unsafeParseAll
+  unsafeParseAll,
+  Parser
   ) where
 
 import           Advent.Perlude
