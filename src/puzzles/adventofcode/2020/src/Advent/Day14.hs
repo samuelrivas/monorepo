@@ -1,30 +1,17 @@
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Advent.Day14 where
 
 import           Advent.Perlude
 
-import           Control.Lens          (at, both, each, foldlOf, over, set,
-                                        sets, view, _2)
-import           Control.Monad         (guard)
+import           Control.Lens          (over, set, view, _2)
 import           Data.Bits             (clearBit, setBit)
-import           Data.Char             (isDigit)
 import           Data.Generics.Labels  ()
-import           Data.List             (elemIndices, find, foldl', sort,
-                                        unfoldr)
-import           Data.Map              (Map)
+import           Data.List             (foldl')
 import qualified Data.Map              as Map
-import           Data.Maybe            (fromJust, isJust)
-import           Data.Set              (Set)
-import qualified Data.Set              as Set
 import qualified Data.Text             as Text
-import qualified System.IO.Advent      as IOAdvent
 import           Text.Parsec           (between, char, oneOf, sepEndBy, try,
                                         (<?>), (<|>))
 
@@ -71,11 +58,11 @@ step st (Mem addr value) =
 applyMask :: Text -> Int -> Int
 applyMask mask value =
   let
-    f char (pos, num) =
-      case char of
-        'X' -> (pos + 1, num)
-        '1' -> (pos + 1, num `setBit` pos)
-        '0' -> (pos + 1, num `clearBit` pos)
+    f c (pos, n) =
+      case c of
+        'X' -> (pos + 1, n)
+        '1' -> (pos + 1, n `setBit` pos)
+        '0' -> (pos + 1, n `clearBit` pos)
         _   -> undefined
 
   in view _2 $ Text.foldr f (0, value) mask
@@ -88,7 +75,7 @@ applyMask mask value =
 -- want
 applyAddrMask :: Text -> Int -> [Int]
 applyAddrMask mask value =
-  let f char (pos, addrs) = (pos + 1, addrs >>= applyAddrMaskBit char pos)
+  let f c (pos, addrs) = (pos + 1, addrs >>= applyAddrMaskBit c pos)
   in view _2 $ Text.foldr f (0, [value]) mask
 
 step2 :: ComputerState -> Instruction -> ComputerState
@@ -104,6 +91,8 @@ step2 st (Mem addr value) =
 
   in set #memory newMemory st
 
+-- TODO: We can easily parse this into a list of a better type to avoid the
+-- undefined clause at the end
 applyAddrMaskBit :: Char -> Int -> Int -> [Int]
 applyAddrMaskBit '1' pos value  = [value `setBit` pos]
 applyAddrMaskBit '0' _pos value = [value]
