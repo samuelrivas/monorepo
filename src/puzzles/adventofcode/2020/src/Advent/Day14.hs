@@ -25,8 +25,15 @@ import           Data.Set              (Set)
 import qualified Data.Set              as Set
 import qualified Data.Text             as Text
 import qualified System.IO.Advent      as IOAdvent
+import           Text.Parsec           (between, char, oneOf, sepEndBy, try,
+                                        (<?>), (<|>))
 
 import           Advent.Day14.Internal
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
+import           Advent.Templib.Parsec (Parser, literal, num, text1)
+
+day :: Day
+day = D14
 
 example :: Text
 example = "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X\n\
@@ -35,20 +42,22 @@ example = "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X\n\
           \mem[8] = 0\n"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "14"
+getInput = getInput' D14
 
-parse :: Text -> [Instruction]
-parse = fmap (parseInstruction <$> Text.splitOn " = ") . Text.lines
+parser :: Parser [Instruction]
+parser = parseInstruction `sepEndBy` char '\n'
 
-parseInstruction :: [Text] -> Instruction
-parseInstruction ["mask", mask] = Mask mask
-parseInstruction [mem, value] =
-  let
-    pos = read . Text.dropAround (not . isDigit) $ mem
-    val = read value
+parseInstruction :: Parser Instruction
+parseInstruction  = try parseMask <|> try parseMem <?> "expression"
 
-  in Mem pos val
-parseInstruction _ = undefined
+parseMask :: Parser Instruction
+parseMask = Mask <$> (literal "mask = " *> text1 (oneOf "X01"))
+
+parseMem :: Parser Instruction
+parseMem =
+  Mem
+  <$> between (literal "mem[") (literal "]") num <* literal " = "
+  <*> num
 
 step :: ComputerState -> Instruction -> ComputerState
 step st (Mask mask)      = set #mask mask st
@@ -106,7 +115,7 @@ solve stepper = Map.foldl' (+) 0 . view #memory . foldl' stepper mkComputerState
 
 main :: IO ()
 main = do
-  input <- parse <$> getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print $ solve step input
