@@ -14,16 +14,22 @@ import           Control.Monad              (replicateM_)
 import           Control.Monad.State.Strict (MonadState, evalState)
 import           Data.Generics.Labels       ()
 import qualified Data.Map                   as Map
-import qualified Data.Text                  as Text
-import qualified System.IO.Advent           as IOAdvent
+import           Text.Parsec                (char, sepBy)
+
 
 import           Advent.Day15.Internal
+import           Advent.Templib             (Day (..), getInput',
+                                             getParsedInput)
+import           Advent.Templib.Parsec      (Parser, digitsAsNum)
+
+day :: Day
+day = D15
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "15"
+getInput = getInput' D15
 
-parse :: Text -> [Int]
-parse = fmap read . Text.splitOn ","
+parser :: Parser [Int]
+parser = digitsAsNum `sepBy` char ','
 
 step :: MonadState GameState m => m Int
 step = do
@@ -49,7 +55,7 @@ solve initial steps =
 
 main :: IO ()
 main = do
-  input <- parse <$> getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print $ solve input  2020
@@ -57,7 +63,7 @@ main = do
   -- TODO: Optimise
 
   -- This may be also a good case for some extra visibility monad, like
-  -- MonadSample or somethign that allows us to run long computations but see
+  -- MonadSample or something that allows us to run long computations but see
   -- what is going on
   putStr "Solution 2: "
   print $ solve input 30000000
