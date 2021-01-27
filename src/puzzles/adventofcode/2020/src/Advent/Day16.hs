@@ -10,14 +10,11 @@ module Advent.Day16 where
 
 import           Advent.Perlude
 
-import           Control.Lens          (at, both, each, foldlOf, over, traverse,
-                                        view, _1, _2)
+import           Control.Lens          (view, _1, _2)
 import           Control.Monad.Fail    (MonadFail)
 import           Data.Generics.Labels  ()
-import           Data.List             (find, foldl', intersect, sort,
-                                        transpose, unfoldr)
-import qualified Data.Text             as Text
-import qualified Text.Read             as Read
+import           Data.List             (foldl', intersect, sort, transpose)
+import           Data.Text             (isPrefixOf)
 
 import           Advent.Day16.Internal (Rule, mkRule)
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
@@ -156,7 +153,7 @@ solve2 :: ([Rule], [Int], [[Int]]) -> Int
 solve2 (rules, ticket, others) =
   let
     fields = solveConstrains . getConstrains rules $ others
-    departureFields = filter (Text.isPrefixOf "departure" . view _2) fields
+    departureFields = filter (isPrefixOf "departure" . view _2) fields
     indices = view _1 <$> departureFields
   in
     product $ (ticket !!) <$> indices
