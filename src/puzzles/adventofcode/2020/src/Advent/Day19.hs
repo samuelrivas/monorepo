@@ -1,6 +1,5 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -10,22 +9,19 @@ module Advent.Day19 where
 
 import           Advent.Perlude
 
-import           Control.Lens         (at, both, each, foldlOf, over, set, view,
-                                       _1, _2)
-import           Control.Monad        (guard)
-import           Data.Foldable        (fold)
-import           Data.List            (find, foldl', sort, unfoldr)
-import           Data.Map             (Map)
-import qualified Data.Map             as Map
-import           Data.Maybe           (fromJust, isJust)
-import           Data.Set             (Set)
-import qualified Data.Set             as Set
-import qualified Data.Text            as Text
-import qualified System.IO.Advent     as IOAdvent
-import           Text.Regex.TDFA      ((=~))
-import           Text.Regex.TDFA.Text ()
+import           Control.Lens          (at, over, set, view, _1, _2)
+import           Data.Foldable         (fold)
+import           Data.Map              (Map)
+import qualified Data.Map              as Map
+import           Data.Maybe            (fromJust)
+import qualified Data.Text             as Text
+import           Text.Parsec           (between, char, oneOf, sepBy, sepEndBy,
+                                        (<|>))
+import           Text.Regex.TDFA       ((=~))
+import           Text.Regex.TDFA.Text  ()
 
-import           Advent.Templib       (Day (..), getInput', getParsedInput)
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
+import           Advent.Templib.Parsec (Parser, digitsAsNum, literal, text1)
 
 day :: Day
 day = D19
@@ -114,23 +110,33 @@ exampleGrammar = Map.fromList [
   (5, Literal 'b')
   ]
 
-parse :: Text -> (Grammar, [Text])
-parse text =
-  let [rulesText, matchesText] = Text.splitOn "\n\n" text
-  in (parseRules rulesText, Text.lines matchesText)
+parser :: Parser (Grammar, [Text])
+parser =
+      (,)
+  <$> parseGrammar <* char '\n'
+  <*> parseMatches
 
-parseRules :: Text -> Grammar
-parseRules text = Map.fromList (parseRule <$> Text.lines text)
+parseGrammar :: Parser Grammar
+parseGrammar = Map.fromList <$> parseRule `sepEndBy` char '\n'
 
-parseRule :: Text -> (Int, Rule)
-parseRule text =
-  let [ruleId, body] = Text.splitOn ": " text
-  in (read ruleId, parseRuleBody body)
+parseRule :: Parser (Int, Rule)
+parseRule =
+  (,)
+  <$> digitsAsNum <* literal ": "
+  <*> parseRuleBody
 
-parseRuleBody :: Text -> Rule
-parseRuleBody "\"a\"" = Literal 'a'
-parseRuleBody "\"b\"" = Literal 'b'
-parseRuleBody refs = Refs $ fmap read . Text.words <$> Text.splitOn " | " refs
+parseRuleBody :: Parser Rule
+parseRuleBody =
+      Literal <$> between (char '"') (char '"') (oneOf "ab")
+  <|> Refs <$> parseRefs
+
+parseRefs :: Parser [[Int]]
+parseRefs =
+  let p = digitsAsNum `sepEndBy` char ' '
+  in p `sepBy` literal "| "
+
+parseMatches :: Parser [Text]
+parseMatches =  text1 (oneOf "ab") `sepEndBy` char '\n'
 
 ruleToRegexText :: Grammar -> Rule -> Text
 ruleToRegexText _ (Literal c) = Text.singleton c
@@ -156,24 +162,20 @@ grammarToRegex grammar = "^" <> ruleToRegexText grammar (Refs [[0]]) <> "$"
 isMatch :: Grammar -> Text -> Bool
 isMatch grammar = (=~ grammarToRegex grammar)
 
-solution1 :: Text -> Int
-solution1 text =
-  let (grammar, matches) = parse text
-  in sum . fmap fromEnum $ isMatch grammar <$> matches
+solution1 :: (Grammar, [Text]) -> Int
+solution1 (grammar, matches) = sum . fmap fromEnum $ isMatch grammar <$> matches
 
 -- This is wrong, the solution matches something like (rule 42)* (rule 31)*,
 -- where there are more applications of 41 than 31. But this doesn't obey this
 -- latest restriction
-solution2 :: Text -> Int
-solution2 text =
-  let (grammar, matches) = parse text
-  in sum . fmap fromEnum $ isMatch (modifyGrammar grammar) <$> matches
+solution2 :: (Grammar, [Text]) -> Int
+solution2 (grammar, matches) =
+  sum . fmap fromEnum $ isMatch (modifyGrammar grammar) <$> matches
 
 -- TODO: This is just a dirty copy from what I did in the repl. Clean this up
-solution2' :: Text -> Int
-solution2' text =
+solution2' :: (Grammar, [Text]) -> Int
+solution2' (g, m) =
   let
-    (g, m) = parse text
     g' = modifyGrammar g
     matches = filter (isMatch g') m
     r8 = ("^" <>) . ruleToRegexText g $ Refs [[42]]
@@ -198,7 +200,7 @@ consumeRegex regex text =
 
 main :: IO ()
 main = do
-  input <- getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print . solution1 $ input
