@@ -8,21 +8,26 @@
 
 module Advent.Day18 where
 
-import           Advent.Perlude as Perlude
-import qualified Prelude        (show)
+import           Advent.Perlude        as Perlude
+import qualified Prelude               (show)
 
-import           Control.Lens   (at, both, each, foldlOf, over, view, _2)
-import           Control.Monad  (guard)
-import           Data.Char      (isDigit, isSpace)
-import           Data.List      (find, foldl', sort, unfoldr)
-import           Data.Map       (Map)
-import qualified Data.Map       as Map
-import           Data.Maybe     (fromJust, isJust)
-import           Data.Set       (Set)
-import qualified Data.Set       as Set
-import qualified Data.Text      as Text
+import           Control.Lens          (at, both, each, foldlOf, over, view, _2)
+import           Control.Monad         (guard)
+import           Data.Char             (isDigit, isSpace)
+import           Data.Functor          (($>))
+import           Data.List             (find, foldl', sort, unfoldr)
+import           Data.Map              (Map)
+import qualified Data.Map              as Map
+import           Data.Maybe            (fromJust, isJust)
+import           Data.Set              (Set)
+import qualified Data.Set              as Set
+import qualified Data.Text             as Text
 
-import           Advent.Templib (Day (..), getInput', getParsedInput)
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
+
+-- TODO: Close
+import           Advent.Templib.Parsec hiding (parse)
+import           Text.Parsec           hiding (getInput, parse)
 
 day :: Day
 day = D18
@@ -45,18 +50,22 @@ example = "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"
 getInput :: IO Text
 getInput = getInput' D18
 
-parse :: Text -> [[Tok]]
-parse = fmap (fmap charToTok . filter (not . isSpace) . unpack) . Text.lines
+parser :: Parser [[Tok]]
+parser = many parseToken `sepEndBy` char '\n'
 
--- TODO: This is ugly and unsafe as hell, figure out a better way to generalise
--- this for the future
-charToTok :: Char -> Tok
-charToTok '(' = Open
-charToTok ')' = Close
-charToTok c =
-  if isDigit c
-  then Digit $ fromEnum c - fromEnum '0'
-  else Operator c
+parseToken :: Parser Tok
+parseToken =
+      (char '(' <* spaces) $> Open
+  <|> (char ')' <* spaces) $> Close
+  <|> parseValue <* spaces
+  <|> parseOperator <* spaces
+  <?> "digit or operator"
+
+parseValue :: Parser Tok
+parseValue = Digit <$> digitsAsNum
+
+parseOperator :: Parser Tok
+parseOperator = Operator <$> oneOf "*+"
 
 precedence1 :: Tok -> Tok -> Bool
 precedence1 _ Open = False
@@ -109,7 +118,7 @@ solution2 = sum . fmap (eval . generalisedToPostfix precedence2)
 
 main :: IO ()
 main = do
-  input <- parse <$> getInput
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print . solution1 $ input
