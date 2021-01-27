@@ -25,8 +25,13 @@ import qualified System.IO.Advent     as IOAdvent
 import           Text.Regex.TDFA      ((=~))
 import           Text.Regex.TDFA.Text ()
 
+import           Advent.Templib       (Day (..), getInput', getParsedInput)
+
+day :: Day
+day = D19
+
 getInput :: IO Text
-getInput = IOAdvent.getInput "19"
+getInput = getInput' D19
 
 example :: Text
 example = "0: 4 1 5\n\
