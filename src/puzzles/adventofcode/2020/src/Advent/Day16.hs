@@ -17,10 +17,13 @@ import           Data.Generics.Labels  ()
 import           Data.List             (find, foldl', intersect, sort,
                                         transpose, unfoldr)
 import qualified Data.Text             as Text
-import qualified System.IO.Advent      as IOAdvent
 import qualified Text.Read             as Read
 
 import           Advent.Day16.Internal (Rule, mkRule)
+import           Advent.Templib        (Day (..), getInput', getParsedInput)
+
+day :: Day
+day = D16
 
 -- TODO: this may be easier by using parsec and parsing into what the solution
 -- needs, rather than parsing into a more generic representation of the
@@ -66,7 +69,7 @@ example2 = "class: 0-1 or 4-19\n\
            \5,14,9\n"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "16"
+getInput = getInput' D16
 
 parse :: MonadFail m => Text -> m ([Rule], [Int], [[Int]])
 parse input = do
