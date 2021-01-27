@@ -15,13 +15,13 @@ import           Control.Monad.Fail    (MonadFail)
 import           Data.Generics.Labels  ()
 import           Data.List             (foldl', intersect, sort, transpose)
 import           Data.Text             (isPrefixOf)
+import           Text.Parsec           (between, char, endBy, noneOf, sepBy,
+                                        sepBy1, sepEndBy)
 
 import           Advent.Day16.Internal (Rule, mkRule)
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
+import           Advent.Templib.Parsec (Parser, digitsAsNum, literal, text1)
 
--- TODO: close
-import           Advent.Templib.Parsec hiding (parse)
-import           Text.Parsec           hiding (getInput, parse)
 
 day :: Day
 day = D16
