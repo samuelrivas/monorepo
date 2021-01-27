@@ -1,6 +1,5 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -11,31 +10,25 @@ module Advent.Day18 where
 import           Advent.Perlude        as Perlude
 import qualified Prelude               (show)
 
-import           Control.Lens          (at, both, each, foldlOf, over, view, _2)
-import           Control.Monad         (guard)
-import           Data.Char             (isDigit, isSpace)
+import           Data.Foldable         (foldl')
 import           Data.Functor          (($>))
-import           Data.List             (find, foldl', sort, unfoldr)
-import           Data.Map              (Map)
-import qualified Data.Map              as Map
-import           Data.Maybe            (fromJust, isJust)
-import           Data.Set              (Set)
-import qualified Data.Set              as Set
-import qualified Data.Text             as Text
+import           Text.Parsec           (char, many, sepEndBy, spaces, (<?>),
+                                        (<|>))
 
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
-
--- TODO: Close
-import           Advent.Templib.Parsec hiding (parse)
-import           Text.Parsec           hiding (getInput, parse)
+import           Advent.Templib.Parsec (Parser, digitsAsNum)
 
 day :: Day
 day = D18
 
+data Op = Plus
+    | Times
+    deriving stock (Eq)
+
 data Tok = Digit Int
     | Open
     | Close
-    | Operator Char
+    | Operator Op
     deriving stock (Eq)
 
 instance Perlude.Show Tok where
@@ -43,6 +36,10 @@ instance Perlude.Show Tok where
   show Close        = ")"
   show (Operator c) = Prelude.show c
   show (Digit d)    = Prelude.show d
+
+instance Perlude.Show Op where
+  show Plus  = "+"
+  show Times = "*"
 
 example :: Text
 example = "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"
@@ -65,16 +62,18 @@ parseValue :: Parser Tok
 parseValue = Digit <$> digitsAsNum
 
 parseOperator :: Parser Tok
-parseOperator = Operator <$> oneOf "*+"
+parseOperator =
+  let op = (char '*' $> Times) <|> (char '+' $> Plus)
+  in Operator <$> op
 
 precedence1 :: Tok -> Tok -> Bool
 precedence1 _ Open = False
 precedence1 _ _    = True
 
 precedence2 :: Tok -> Tok -> Bool
-precedence2 _ Open                        = False
-precedence2 (Operator '+') (Operator '*') = False
-precedence2 _ _                           = True
+precedence2 _ Open                           = False
+precedence2 (Operator Plus) (Operator Times) = False
+precedence2 _ _                              = True
 
 toPostfix :: [Tok] -> [Tok]
 toPostfix = generalisedToPostfix precedence1
@@ -85,7 +84,7 @@ toPostfix = generalisedToPostfix precedence1
 generalisedToPostfix :: (Tok -> Tok -> Bool) -> [Tok] -> [Tok]
 generalisedToPostfix precedenceF expr =
   let
-    f (stack, acc) digit@(Digit _) = (stack, acc ++ [digit])
+    f (stack, acc) d@(Digit _) = (stack, acc ++ [d])
     f (stack, acc) op@(Operator _) =
       (op : dropWhile (precedenceF op) stack, acc ++ takeWhile (precedenceF op) stack)
     f (stack, acc) Close =
@@ -106,9 +105,9 @@ eval =
     head . foldl' f []
 
 operate :: Tok -> Int -> Int -> Int
-operate (Operator '+') = (+)
-operate (Operator '*') = (*)
-operate _              = undefined
+operate (Operator Plus)  = (+)
+operate (Operator Times) = (*)
+operate _                = undefined
 
 solution1 :: [[Tok]] -> Int
 solution1 = sum . fmap (eval . toPostfix)
