@@ -8,20 +8,24 @@
 
 module Advent.Day18 where
 
-import           Advent.Perlude   as Perlude
-import qualified Prelude          (show)
+import           Advent.Perlude as Perlude
+import qualified Prelude        (show)
 
-import           Control.Lens     (at, both, each, foldlOf, over, view, _2)
-import           Control.Monad    (guard)
-import           Data.Char        (isDigit, isSpace)
-import           Data.List        (find, foldl', sort, unfoldr)
-import           Data.Map         (Map)
-import qualified Data.Map         as Map
-import           Data.Maybe       (fromJust, isJust)
-import           Data.Set         (Set)
-import qualified Data.Set         as Set
-import qualified Data.Text        as Text
-import qualified System.IO.Advent as IOAdvent
+import           Control.Lens   (at, both, each, foldlOf, over, view, _2)
+import           Control.Monad  (guard)
+import           Data.Char      (isDigit, isSpace)
+import           Data.List      (find, foldl', sort, unfoldr)
+import           Data.Map       (Map)
+import qualified Data.Map       as Map
+import           Data.Maybe     (fromJust, isJust)
+import           Data.Set       (Set)
+import qualified Data.Set       as Set
+import qualified Data.Text      as Text
+
+import           Advent.Templib (Day (..), getInput', getParsedInput)
+
+day :: Day
+day = D18
 
 data Tok = Digit Int
     | Open
@@ -39,7 +43,7 @@ example :: Text
 example = "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "18"
+getInput = getInput' D18
 
 parse :: Text -> [[Tok]]
 parse = fmap (fmap charToTok . filter (not . isSpace) . unpack) . Text.lines
