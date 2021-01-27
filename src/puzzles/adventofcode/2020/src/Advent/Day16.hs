@@ -22,6 +22,10 @@ import qualified Text.Read             as Read
 import           Advent.Day16.Internal (Rule, mkRule)
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
 
+-- TODO: close
+import           Advent.Templib.Parsec hiding (parse)
+import           Text.Parsec           hiding (getInput, parse)
+
 day :: Day
 day = D16
 
@@ -30,12 +34,7 @@ day = D16
 -- input. For example, we don't care about our ticket or the field names for
 -- part 1, but we spent time parsing them
 
--- TODO: This is part of the most recent base (for String), make it for Text in
--- our prelude
-readMaybe :: MonadFail m => Read a => Text -> m a
-readMaybe = liftMaybe . Read.readMaybe . unpack
-
--- doesn't this already exist?
+-- TODO: Move to lib
 liftMaybe :: MonadFail m => Maybe a -> m a
 liftMaybe = \case
   Just a -> pure a
@@ -71,39 +70,27 @@ example2 = "class: 0-1 or 4-19\n\
 getInput :: IO Text
 getInput = getInput' D16
 
-parse :: MonadFail m => Text -> m ([Rule], [Int], [[Int]])
-parse input = do
-  [rulesText, ticketText, othersText]
-    <- pure . fmap Text.strip . Text.splitOn "\n\n" $ input
+parser :: Parser ([Rule], [Int], [[Int]])
+parser =
+  (,,)
+  <$> (parseRule `endBy` char '\n' <* char '\n')
+  <*> between (literal "your ticket:\n") (literal "\n\n") parseTicket
+  <*> (literal "nearby tickets:\n" *> parseNearby)
 
-  rules <- parseRules rulesText
-  ticket <- parseTicket ticketText
-  others <- parseOthers othersText
-  pure (rules, ticket, others)
+parseRule :: Parser Rule
+parseRule =
+  mkRule
+  <$> text1 (noneOf ":\n") <* literal ": "
+  <*> (parseRange `sepBy` literal " or ")
 
-parseRules :: MonadFail m => Text -> m [Rule]
-parseRules = traverse parseRule . Text.lines
+parseRange :: Parser (Int, Int)
+parseRange = (,) <$> (digitsAsNum <* char '-') <*> digitsAsNum
 
-parseTicket :: MonadFail m => Text -> m [Int]
-parseTicket text = liftMaybe $ do
-  textNumbers <- Text.stripPrefix "your ticket:\n" text
-  traverse readMaybe $ Text.splitOn "," textNumbers
+parseTicket :: Parser [Int]
+parseTicket = digitsAsNum `sepBy1` char ','
 
-parseOthers :: MonadFail m => Text -> m [[Int]]
-parseOthers text = liftMaybe $ do
-    textTickets <- Text.stripPrefix "nearby tickets:\n" text
-    traverse (traverse readMaybe . Text.splitOn ",") $ Text.splitOn "\n" textTickets
-
-parseRule :: MonadFail m => Text -> m Rule
-parseRule text = do
-  [name, ranges] <- pure . Text.splitOn ": " $ text
-  textRanges <- pure . Text.splitOn " or " $ ranges
-  mkRule name <$> traverse parseRange textRanges
-
-parseRange :: MonadFail m => Text -> m (Int, Int)
-parseRange text = do
-  [lo, hi] <- pure . fmap read . Text.splitOn "-" $ text
-  pure (lo, hi)
+parseNearby :: Parser [[Int]]
+parseNearby = parseTicket `sepEndBy` char '\n'
 
 validField :: [(Int, Int)] -> Int -> Bool
 validField rules value = any (\(lo, hi) -> (lo <= value) && (value <= hi)) rules
@@ -176,7 +163,7 @@ solve2 (rules, ticket, others) =
 
 main :: IO ()
 main = do
-  input <- getInput >>= parse
+  input <- getParsedInput day parser
 
   putStr "Solution 1: "
   print $ solve1 input
