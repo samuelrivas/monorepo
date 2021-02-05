@@ -29,29 +29,32 @@
 
 module Advent.Day18 where
 
-import           Prelude                  hiding (lines, putStrLn, readFile,
-                                           show, unlines)
+import           Prelude                         hiding (lines, putStrLn, show,
+                                                  unlines)
 import qualified Prelude
 
-import           Control.Lens             (at, ix, over, preview, set, view,
-                                           views, _1, _2)
-import           Control.Monad            (replicateM_)
-import           Control.Monad.IO.Class   (liftIO)
-import           Control.Monad.Reader     (Reader)
-import           Data.Char                (isAsciiLower, isAsciiUpper, toLower)
-import           Data.Foldable            (find)
-import           Data.Functor.Identity    (runIdentity)
-import           Data.Generics.Labels     ()
-import qualified Data.HashSet             as HashSet
-import qualified Data.Map.Strict          as Map
-import           Data.Maybe               (catMaybes, fromJust)
-import           Data.Text                (Text, pack)
-import           Data.Text.IO             (putStrLn, readFile)
+import           Control.Lens                    (at, ix, over, preview, set,
+                                                  view, views, _1, _2)
+import           Control.Monad                   (replicateM_)
+import           Control.Monad.IO.Class          (liftIO)
+import           Control.Monad.MonadSearch       (step)
+import           Control.Monad.MonadSearch.Astar
+import           Control.Monad.Reader            (Reader)
+import           Data.Bidim                      (Bidim, Coord, cross, fromText,
+                                                  plus)
+import           Data.Char                       (isAsciiLower, isAsciiUpper,
+                                                  toLower)
+import           Data.Foldable                   (find)
+import           Data.Functor.Identity           (runIdentity)
+import           Data.Generics.Labels            ()
+import qualified Data.HashSet                    as HashSet
+import qualified Data.Map.Strict                 as Map
+import           Data.Maybe                      (catMaybes, fromJust)
+import           Data.Text                       (Text, pack)
+import           Data.Text.IO                    (putStrLn)
+import qualified System.IO.Advent                as Advent
 
-import           Advent.Day18.Astar
-import           Advent.Day18.Bidim
 import           Advent.Day18.Internal
-import           Advent.Day18.MonadSearch (step)
 
 show :: Show a => a -> Text
 show = pack . Prelude.show
@@ -103,7 +106,7 @@ solve2 text =
     -- putStrLn $ Text.unlines . reverse $ (show <$> view #path (fromJust node))
 
 getInput :: IO Text
-getInput = readFile "input.txt"
+getInput = Advent.getInput "18"
 
 parseInput :: Text -> (Bidim Char, Coord, [Char])
 parseInput text =

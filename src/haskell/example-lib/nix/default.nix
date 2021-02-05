@@ -2,7 +2,7 @@
   haskell-pkg,
   haskellPackages,
 }: haskell-pkg {
-  name = "advent-lib";
+  name = "examplelib";
   src = ./../src;
   haskell-packages-selector = p: [
     p.random-fu

@@ -110,6 +110,7 @@ let
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix { };
     low-battery = callPackage ./../src/haskell/low-battery/nix { };
     example-lib = callPackage ./../src/haskell/example-lib/nix { };
+    adventlib = callPackage ./../src/haskell/adventlib/nix { };
 
     # Shell-scripts
     # =============
@@ -144,7 +145,10 @@ let
 
     # Contests, puzzles, etc
     # ======================
-    adventofcode-2019-sandbox = callPackage ./../src/puzzles/adventofcode/2019/nix {
+    adventofcode-2019 = callPackage ./../src/puzzles/adventofcode/2019/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
+    };
+    adventofcode-2020 = callPackage ./../src/puzzles/adventofcode/2020/nix {
       inherit (pkgs-sam.pkgs-patched) haskellPackages;
     };
   };

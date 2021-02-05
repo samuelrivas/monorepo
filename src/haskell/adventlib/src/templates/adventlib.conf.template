@@ -1,0 +1,15 @@
+name: adventlib
+version: 1.0
+id: adventlib
+key: adventlib
+exposed: True
+exposed-modules:
+    Control.Monad.MonadSearch
+    Control.Monad.MonadSearch.Astar
+    Data.Bidim
+    System.IO.Advent
+import-dirs: @@IMPORT-DIR@@
+library-dirs: @@STATIC-LIB-DIR@@
+dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
+hs-libraries: HSadventlib
+depends:

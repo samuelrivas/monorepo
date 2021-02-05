@@ -19,6 +19,7 @@ import           Prelude              hiding (lines, putStrLn, readFile, show,
 import qualified Prelude
 
 import           Control.Monad.State  (StateT, evalStateT, gets, modify)
+import           Data.Bidim
 import           Data.Bool            (bool)
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
@@ -29,7 +30,6 @@ import qualified Data.Map.Strict      as Map
 import           Data.Text            (Text, pack)
 import           Data.Text.IO         (putStrLn)
 
-import           Advent.Day24.Bidim
 import           System.IO.Advent     (getInput)
 
 show :: Show a => a -> Text

@@ -21,6 +21,7 @@ import           Control.Lens          (assign, at, modifying, set, use, view)
 import           Control.Monad         (when)
 import           Control.Monad.Loops   (untilJust)
 import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, lift)
+import           Data.Bidim            (Coord, showBidim)
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
 import           Data.Map.Strict       (Map, empty)
@@ -30,7 +31,6 @@ import qualified Data.Sequence         as Seq
 import           Data.Text             (Text, pack, splitOn, unpack)
 import           Data.Text.IO          (putStrLn)
 
-import           Advent.Day15.Bidim
 import           Advent.Day15.Intcode
 import           Advent.Day15.Internal
 import           System.IO.Advent      (getInput)
@@ -231,10 +231,10 @@ main = do
 
   putStrLn $ "Solution 1: " <> (show . length  $ path)
   putStrLn $ "At " <> show coord
-  putStrLn $ showMap formatCell cellMap
+  putStrLn $ showBidim formatCell cellMap
   putStrLn searchLog
 
   let ((cellMap', time), searchLog') = solution_2 code
   putStrLn $ "Solution 2: " <> show time
-  putStrLn $ showMap formatCell cellMap'
+  putStrLn $ showBidim formatCell cellMap'
   putStrLn searchLog'
