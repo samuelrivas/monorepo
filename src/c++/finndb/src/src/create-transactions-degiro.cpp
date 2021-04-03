@@ -60,8 +60,8 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, '\t');
 
-    if (tokens.size() != 18) {
-      cerr << format("Line '%s' produces %d tokens, we want 18\n")
+    if (tokens.size() != 19) {
+      cerr << format("Line '%s' produces %d tokens, we want 19\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
@@ -69,16 +69,16 @@ int main() {
 
     string transaction_id = sha1(line);
     string date = rearrange_date(tokens[0]);
-    cout << transaction_line(transaction_id, date, get_type(tokens[5]), line);
+    cout << transaction_line(transaction_id, date, get_type(tokens[6]), line);
 
     // Asset movement
-    cout << movement_line(date, tokens[2], "degiro-es", "degiro", tokens[5],
+    cout << movement_line(date, tokens[2], "degiro-es", "degiro", tokens[6],
                           transaction_id);
 
     // Cash movement
-    cout << movement_line(date, tokens[15], "degiro-es", "degiro", tokens[16],
+    cout << movement_line(date, tokens[17], "degiro-es", "degiro", tokens[16],
                           transaction_id);
-    cout << valuation_line(date, tokens[2], tokens[7]);
+    // cout << valuation_line(date, tokens[2], tokens[8]);
   }
   return 0;
 }
