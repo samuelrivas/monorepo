@@ -107,10 +107,14 @@ let
     name-generator = callPackage ./../src/haskell/name-generator/nix { };
     boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
-    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix { };
+    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
+    };
     low-battery = callPackage ./../src/haskell/low-battery/nix { };
     example-lib = callPackage ./../src/haskell/example-lib/nix { };
-    adventlib = callPackage ./../src/haskell/adventlib/nix { };
+    adventlib = callPackage ./../src/haskell/adventlib/nix {
+      inherit (pkgs-sam.pkgs-patched) haskellPackages;
+    };
 
     # Shell-scripts
     # =============

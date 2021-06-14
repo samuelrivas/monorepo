@@ -28,5 +28,5 @@ haskell-pkg {
     ADVENT_INPUT_DIR = ./../src/inputs;
   };
 
-  inherit haskell-packages-selector;
+  inherit haskellPackages haskell-packages-selector;
 }
