@@ -3,6 +3,7 @@
   lib,
   options,
   pkgs,
+  specialArgs
 }:
 {
   options = {

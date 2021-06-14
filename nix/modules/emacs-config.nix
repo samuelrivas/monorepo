@@ -3,6 +3,7 @@
   lib,
   options,
   pkgs,
+  specialArgs
 }:
 let
   configured-modes = [

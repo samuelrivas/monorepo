@@ -35,5 +35,5 @@ haskell-pkg {
     '';
   };
 
-  inherit haskell-packages-selector;
+  inherit haskellPackages haskell-packages-selector;
 }
