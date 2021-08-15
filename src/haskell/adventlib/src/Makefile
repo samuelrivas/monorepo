@@ -7,12 +7,12 @@
 PACKAGE-NAME := adventlib
 PACKAGE-VERSION := 1.0
 
+GHC-VERSION := $(shell ghc --numeric-version)
 GHC-FLAGS := -O3 -Wall -j
 
 # Internal variables
 # ==================
 # TODO: Many of these must be generalised when improving this Makefile
-GHC-VERSION := 8.6.5
 ARCH = x86_64-linux
 
 BUILD-DIR := ../build
