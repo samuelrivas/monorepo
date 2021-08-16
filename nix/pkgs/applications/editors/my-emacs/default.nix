@@ -36,7 +36,7 @@
   sbt,
   scalaMode2,
   silver-searcher,
-  stdenv,
+  lib,
   stylish-haskell,
   terraform-mode,
   tuareg,
@@ -51,7 +51,7 @@ let
   };
 
   mode-deps = mode:
-    if   stdenv.lib.elem mode emacs-config-options.blacklisted-modes
+    if   lib.elem mode emacs-config-options.blacklisted-modes
     then []
     else builtins.getAttr mode deps;
 
@@ -75,7 +75,7 @@ let
     yaml-mode
   ];
 
-  dep-packages = stdenv.lib.concatMap mode-deps [
+  dep-packages = lib.concatMap mode-deps [
     "erlang"
     "haskell"
     "ocaml"

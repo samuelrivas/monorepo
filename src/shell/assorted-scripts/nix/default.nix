@@ -1,5 +1,6 @@
 {
   gawk,
+  lib,
   makeWrapper,
   pdftk,
   python,
@@ -40,7 +41,7 @@ stdenv.mkDerivation rec {
   meta = {
     description = "A collection of barely useful scripts";
     homepage = https://github.com/samuelrivas/assorted-scripts;
-    license = stdenv.lib.licenses.bsd3;
+    license = lib.licenses.bsd3;
     maintainers = [ "Samuel Rivas <samuelrivas@gmail.com>" ];
   };
 }
