@@ -17,7 +17,6 @@ let
     multiset
     readline
     regex-tdfa
-    regex-tdfa-text
     unliftio
     unordered-containers
     writer-cps-mtl
