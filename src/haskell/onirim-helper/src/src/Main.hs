@@ -35,8 +35,8 @@ import           Data.Maybe                 (fromMaybe)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
                                              empty, insert, member, occur)
 import           Data.Random                (MonadRandom, RVar, sample, shuffle)
-import           Game
 import           GHC.Generics               (Generic)
+import           Game
 import           Util                       (addHistory, head, last, print,
                                              readline, uncons)
 
@@ -75,8 +75,8 @@ colour = lens get_colour set_colour
 
 get_colour :: Location -> Colour
 get_colour = \case
-  Key c -> c
-  Sun c -> c
+  Key c  -> c
+  Sun c  -> c
   Moon c -> c
 
 set_colour :: Location -> Colour -> Location
@@ -448,7 +448,8 @@ initial_hand_and_deck :: RVar ([Location], [Card])
 initial_hand_and_deck = do
   (hand, rest) <- splitAt 5 <$> shuffle locations
 
-  when (length hand /= 5) $ fail "Not enough location cards in deck"
+  -- FIXME: Use a proper monad to avoid error. At the very least use fail
+  when (length hand /= 5) $ error "Not enough location cards in deck"
 
   let
     location_cards = Location <$> rest
