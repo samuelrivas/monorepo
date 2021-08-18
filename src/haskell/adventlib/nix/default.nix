@@ -15,8 +15,7 @@ in haskell-pkg {
   name = "adventlib";
   src = ./../src;
 
-  inherit haskellPackages;
-  haskell-packages-selector = haskell-packages-selector;
+  inherit haskellPackages haskell-packages-selector;
 
   extra-drv = rec {
     makeFlags = "PREFIX=$out";

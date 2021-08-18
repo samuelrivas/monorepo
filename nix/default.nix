@@ -92,6 +92,7 @@ let
 
     # Haskell stuff
     # =============
+    ## FIXME: haskell-mk may not be needed there
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
     haskell-lib = import ./lib/haskell.nix { inherit pkgs pkgs-sam; };
 
@@ -102,7 +103,20 @@ let
         });
       };
     };
+
+    haskellPackages = pkgs-sam.haskell-lib.mk-haskell-packages
+      pkgs.haskellPackages pkgs-sam.samsHaskellPackagesGen;
+
+    haskellPackagesPatched = pkgs-sam.haskell-lib.mk-haskell-packages
+      pkgs-sam.pkgs-patched.haskellPackages pkgs-sam.samsHaskellPackagesGen;
+
+    ## FIXME: these may not be necessary
     inherit (pkgs-sam.haskell-lib) emacs-for-haskell haskell-pkg haskell-shell;
+
+    samsHaskellPackagesGen = hp: {
+      adventlib = hp.callPackage ./../src/haskell/adventlib/nix {};
+      example-lib = hp.callPackage ./../src/haskell/example-lib/nix { };
+    };
 
     name-generator = callPackage ./../src/haskell/name-generator/nix { };
     boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
@@ -112,9 +126,6 @@ let
     };
     low-battery = callPackage ./../src/haskell/low-battery/nix { };
     example-lib = callPackage ./../src/haskell/example-lib/nix { };
-    adventlib = callPackage ./../src/haskell/adventlib/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-    };
 
     # Shell-scripts
     # =============
@@ -151,9 +162,11 @@ let
     # ======================
     adventofcode-2019 = callPackage ./../src/puzzles/adventofcode/2019/nix {
       inherit (pkgs-sam.pkgs-patched) haskellPackages;
+      inherit (pkgs-sam.haskellPackagesPatched) adventlib;
     };
     adventofcode-2020 = callPackage ./../src/puzzles/adventofcode/2020/nix {
       inherit (pkgs-sam.pkgs-patched) haskellPackages;
+      inherit (pkgs-sam.haskellPackagesPatched) adventlib;
     };
   };
 in
