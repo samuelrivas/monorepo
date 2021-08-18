@@ -12,15 +12,17 @@ rec {
   # FIXME: There are "official" ways of doing this in nixpkgs now, may be a good
   # idea to rework this to be more standard
   haskell-pkg =
-    { haskellPackages,
+    { haskellPackages ? null, # FIXME: remove
       name,
       src,
-      haskell-packages-selector,
+      haskell-libs ? [], # FIXME: make mandatory
+      haskell-packages-selector ? null, # FIXME: remove
+      ghcWithPackages,
       extra-build-inputs ? [],
       extra-drv ? { },
     }:
     let
-      ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
+      ghc = ghcWithPackages (_: haskell-libs);
       drv-args = {
 
         inherit name src;

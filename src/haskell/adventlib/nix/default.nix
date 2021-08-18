@@ -1,25 +1,29 @@
 {
   haskell-pkg,
-  haskellPackages,
+  ghcWithPackages,
+  fingertree,
+  generic-lens,
+  lens,
+  unliftio,
+  writer-cps-mtl,
 }:
 let
-  haskell-packages-selector = p: [
-    p.fingertree
-    p.generic-lens
-    p.lens
-    p.unliftio
-    p.writer-cps-mtl
-
+  haskell-libs = [
+    fingertree
+    generic-lens
+    lens
+    unliftio
+    writer-cps-mtl
   ];
 in haskell-pkg {
   name = "adventlib";
   src = ./../src;
 
-  inherit haskellPackages haskell-packages-selector;
+  inherit ghcWithPackages haskell-libs;
 
   extra-drv = rec {
     makeFlags = "PREFIX=$out";
-    propagatedBuildInputs = haskell-packages-selector haskellPackages;
+    propagatedBuildInputs = haskell-libs;
     installPhase = ''
       make ${makeFlags} install
     '';

@@ -114,11 +114,14 @@ let
     inherit (pkgs-sam.haskell-lib) emacs-for-haskell haskell-pkg haskell-shell;
 
     samsHaskellPackagesGen = hp: {
-      adventlib = hp.callPackage ./../src/haskell/adventlib/nix {};
+      adventlib = hp.callPackage ./../src/haskell/adventlib/nix { };
+      adventofcode-2019 = hp.callPackage ./../src/puzzles/adventofcode/2019/nix { };
       example-lib = hp.callPackage ./../src/haskell/example-lib/nix { };
+      name-generator = hp.callPackage ./../src/haskell/name-generator/nix { };
     };
 
-    name-generator = callPackage ./../src/haskell/name-generator/nix { };
+    name-generator = pkgs-sam.haskellPackages.name-generator;
+
     boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
     hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
     onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
@@ -160,10 +163,7 @@ let
 
     # Contests, puzzles, etc
     # ======================
-    adventofcode-2019 = callPackage ./../src/puzzles/adventofcode/2019/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-      inherit (pkgs-sam.haskellPackagesPatched) adventlib;
-    };
+    adventofcode-2019 = pkgs-sam.haskellPackagesPatched.adventofcode-2019;
     adventofcode-2020 = callPackage ./../src/puzzles/adventofcode/2020/nix {
       inherit (pkgs-sam.pkgs-patched) haskellPackages;
       inherit (pkgs-sam.haskellPackagesPatched) adventlib;
