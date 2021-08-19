@@ -1,14 +1,9 @@
 {
   haskell-pkg,
-  ghcWithPackages,
-  fingertree,
-  generic-lens,
-  lens,
-  unliftio,
-  writer-cps-mtl,
+  haskellPackages,
 }:
 let
-  haskell-libs = [
+  haskell-libs = with haskellPackages; [
     fingertree
     generic-lens
     lens
@@ -19,7 +14,7 @@ in haskell-pkg {
   name = "adventlib";
   src = ./../src;
 
-  inherit ghcWithPackages haskell-libs;
+  inherit haskellPackages haskell-libs;
 
   extra-drv = rec {
     makeFlags = "PREFIX=$out";

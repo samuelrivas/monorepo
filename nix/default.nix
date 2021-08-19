@@ -113,12 +113,17 @@ let
     ## FIXME: these may not be necessary
     inherit (pkgs-sam.haskell-lib) emacs-for-haskell haskell-pkg haskell-shell;
 
-    samsHaskellPackagesGen = hp: {
-      adventlib = hp.callPackage ./../src/haskell/adventlib/nix { };
-      adventofcode-2019 = hp.callPackage ./../src/puzzles/adventofcode/2019/nix { };
-      example-lib = hp.callPackage ./../src/haskell/example-lib/nix { };
-      name-generator = hp.callPackage ./../src/haskell/name-generator/nix { };
-    };
+    ## For some reason I need to explicitly pass haskellPackages here, otherwise
+    ## the derivations get the version before overriding (i.e. the one without
+    ## my packages)
+    samsHaskellPackagesGen = hp: builtins.mapAttrs
+      (name: path: hp.callPackage path { haskellPackages = hp; })
+      {
+        adventlib = ./../src/haskell/adventlib/nix;
+        adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
+        example-lib =  ./../src/haskell/example-lib/nix;
+        name-generator =  ./../src/haskell/name-generator/nix;
+      };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
 

@@ -1,21 +1,9 @@
 {
   haskell-pkg,
-  ghcWithPackages,
-  adventlib,
-  ansi-terminal,
-  fingertree,
-  generic-lens,
-  lens,
-  monad-loops,
-  readline,
-  regex-pcre,
-  unliftio,
-  unordered-containers,
-  writer-cps-mtl,
-  stdenv,
+  haskellPackages,
 }:
 let
-  haskell-libs = [
+  haskell-libs = with haskellPackages; [
     adventlib
     ansi-terminal
     fingertree
@@ -38,5 +26,5 @@ haskell-pkg {
     ADVENT_INPUT_DIR = ./../src/inputs;
   };
 
-  inherit ghcWithPackages haskell-libs;
+  inherit haskellPackages haskell-libs;
 }

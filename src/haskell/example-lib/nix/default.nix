@@ -4,8 +4,8 @@
 }: haskell-pkg {
   name = "examplelib";
   src = ./../src;
-  haskell-packages-selector = p: [
-    p.random-fu
+  haskell-libs = [
+    haskellPackages.random-fu
   ];
   inherit haskellPackages;
 
