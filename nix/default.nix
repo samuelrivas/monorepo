@@ -138,7 +138,7 @@ let
     name-generator = pkgs-sam.haskellPackages.name-generator;
     boardgamer = pkgs-sam.haskellPackages.boardgamer;
     hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
-    onirim-helper = pkgs-sam.haskellPackagesPatched.onirim-helper;
+    onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
     low-battery = pkgs-sam.haskellPackages.low-battery;
 
     # Shell-scripts
@@ -174,8 +174,8 @@ let
 
     # Contests, puzzles, etc
     # ======================
-    adventofcode-2019 = pkgs-sam.haskellPackagesPatched.adventofcode-2019;
-    adventofcode-2020 = pkgs-sam.haskellPackagesPatched.adventofcode-2020;
+    adventofcode-2019 = pkgs-sam.haskellPackages.adventofcode-2019;
+    adventofcode-2020 = pkgs-sam.haskellPackages.adventofcode-2020;
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our
