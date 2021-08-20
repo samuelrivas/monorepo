@@ -121,19 +121,20 @@ let
       {
         adventlib = ./../src/haskell/adventlib/nix;
         adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
+        adventofcode-2020 = ./../src/puzzles/adventofcode/2019/nix;
         example-lib =  ./../src/haskell/example-lib/nix;
         name-generator =  ./../src/haskell/name-generator/nix;
+        boardgamer = ./../src/haskell/boardgamer/nix;
+        hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
+        onirim-helper = ./../src/haskell/onirim-helper/nix;
+        low-battery = ./../src/haskell/low-battery/nix;
       };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
-
-    boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
-    hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
-    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-    };
-    low-battery = callPackage ./../src/haskell/low-battery/nix { };
-    example-lib = callPackage ./../src/haskell/example-lib/nix { };
+    boardgamer = pkgs-sam.haskellPackages.boardgamer;
+    hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
+    onirim-helper = pkgs-sam.haskellPackagesPatched.onirim-helper;
+    low-battery = pkgs-sam.haskellPackages.low-battery;
 
     # Shell-scripts
     # =============
@@ -169,10 +170,7 @@ let
     # Contests, puzzles, etc
     # ======================
     adventofcode-2019 = pkgs-sam.haskellPackagesPatched.adventofcode-2019;
-    adventofcode-2020 = callPackage ./../src/puzzles/adventofcode/2020/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-      inherit (pkgs-sam.haskellPackagesPatched) adventlib;
-    };
+    adventofcode-2020 = pkgs-sam.haskellPackagesPatched.adventofcode-2020;
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our
