@@ -1,7 +1,7 @@
 let
-  version = "a445f5829889959d65ad65e5c961d5c67e1cd677";
+  version = "7bbca9877caed472c6b5866ea09302cfcdce3dbf";
   pkgs = builtins.fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/${version}.tar.gz";
-    sha256 = "0zl930jjacdphplw1wv5nlhjk15zvflzzwp53zbh0l8qq01wh7bl";
+    sha256 = "1byrw1inwrlw7yp5dwvdf0zv1zdqnjq32j1j7cmlwah4x7f46bvg";
   };
 in import pkgs

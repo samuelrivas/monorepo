@@ -1,6 +1,5 @@
 {
   acpi,
-  add-sandbox,
   haskell-pkg,
   haskellPackages,
   libnotify,
@@ -10,7 +9,7 @@ let
   binary = haskell-pkg {
     name = "low-battery";
     src = ./../src;
-    haskell-packages-selector = p: with p; [
+    haskell-libs = with haskellPackages; [
       HSH
       parsec
       generic-lens
@@ -23,5 +22,4 @@ let
     export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1002/bus
     ${binary}/bin/low-battery-check
   '';
-# in add-sandbox (binary.sandbox.buidInputs) script
 in binary

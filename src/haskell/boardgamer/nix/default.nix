@@ -4,7 +4,7 @@
 }: haskell-pkg {
   name = "boardgamer";
   src = ./../src;
-  haskell-packages-selector = p: with p; [
+  haskell-libs = with haskellPackages; [
     random-fu
   ];
   inherit haskellPackages;

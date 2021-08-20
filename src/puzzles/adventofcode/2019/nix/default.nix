@@ -1,11 +1,9 @@
 {
-  adventlib,
   haskell-pkg,
   haskellPackages,
-  stdenv,
 }:
 let
-  haskell-packages-selector = p: with p; [
+  haskell-libs = with haskellPackages; [
     adventlib
     ansi-terminal
     fingertree
@@ -28,5 +26,5 @@ haskell-pkg {
     ADVENT_INPUT_DIR = ./../src/inputs;
   };
 
-  inherit haskellPackages haskell-packages-selector;
+  inherit haskellPackages haskell-libs;
 }

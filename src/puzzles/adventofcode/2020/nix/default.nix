@@ -5,7 +5,7 @@
   stdenv,
 }:
 let
-  haskell-packages-selector = p: with p; [
+  haskell-libs = with haskellPackages; [
     adventlib
     ansi-terminal
     deque
@@ -34,5 +34,5 @@ haskell-pkg {
     '';
   };
 
-  inherit haskellPackages haskell-packages-selector;
+  inherit haskellPackages haskell-libs;
 }

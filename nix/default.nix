@@ -92,8 +92,17 @@ let
 
     # Haskell stuff
     # =============
+
+    # FIXME: haskell-mk (and maybe emacs) should be passed as arguments to the
+    # derivations, currently we are implicitly adding them as dependencies
+    # because they are part of haskell-lib. The problem with the current setting
+    # is that we cannot change any of them without affceting all our haskell
+    # packages.
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
-    haskell-lib = import ./lib/haskell.nix { inherit pkgs pkgs-sam; };
+    haskell-lib = import ./lib/haskell.nix {
+      inherit pkgs;
+      inherit (pkgs-sam) emacs haskell-mk;
+    };
 
     profiledHaskellPackages = pkgs.haskellPackages.override {
       overrides = pkgs-sam: super: {
@@ -102,19 +111,35 @@ let
         });
       };
     };
-    inherit (pkgs-sam.haskell-lib) emacs-for-haskell haskell-pkg haskell-shell;
 
-    name-generator = callPackage ./../src/haskell/name-generator/nix { };
-    boardgamer = callPackage ./../src/haskell/boardgamer/nix { };
-    hashcode-photoalbum = callPackage ./../src/haskell/hashcode-photoalbum/nix { };
-    onirim-helper = callPackage ./../src/haskell/onirim-helper/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-    };
-    low-battery = callPackage ./../src/haskell/low-battery/nix { };
-    example-lib = callPackage ./../src/haskell/example-lib/nix { };
-    adventlib = callPackage ./../src/haskell/adventlib/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-    };
+    haskellPackages = pkgs-sam.haskell-lib.mk-haskell-packages
+      pkgs.haskellPackages pkgs-sam.samsHaskellPackagesGen;
+
+    haskellPackagesPatched = pkgs-sam.haskell-lib.mk-haskell-packages
+      pkgs-sam.pkgs-patched.haskellPackages pkgs-sam.samsHaskellPackagesGen;
+
+    ## For some reason I need to explicitly pass haskellPackages here, otherwise
+    ## the derivations get the version before overriding (i.e. the one without
+    ## my packages)
+    samsHaskellPackagesGen = hp: builtins.mapAttrs
+      (name: path: hp.callPackage path { haskellPackages = hp; })
+      {
+        adventlib = ./../src/haskell/adventlib/nix;
+        adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
+        adventofcode-2020 = ./../src/puzzles/adventofcode/2019/nix;
+        example-lib =  ./../src/haskell/example-lib/nix;
+        name-generator =  ./../src/haskell/name-generator/nix;
+        boardgamer = ./../src/haskell/boardgamer/nix;
+        hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
+        onirim-helper = ./../src/haskell/onirim-helper/nix;
+        low-battery = ./../src/haskell/low-battery/nix;
+      };
+
+    name-generator = pkgs-sam.haskellPackages.name-generator;
+    boardgamer = pkgs-sam.haskellPackages.boardgamer;
+    hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
+    onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
+    low-battery = pkgs-sam.haskellPackages.low-battery;
 
     # Shell-scripts
     # =============
@@ -149,12 +174,8 @@ let
 
     # Contests, puzzles, etc
     # ======================
-    adventofcode-2019 = callPackage ./../src/puzzles/adventofcode/2019/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-    };
-    adventofcode-2020 = callPackage ./../src/puzzles/adventofcode/2020/nix {
-      inherit (pkgs-sam.pkgs-patched) haskellPackages;
-    };
+    adventofcode-2019 = pkgs-sam.haskellPackages.adventofcode-2019;
+    adventofcode-2020 = pkgs-sam.haskellPackages.adventofcode-2020;
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our

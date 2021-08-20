@@ -1,30 +1,34 @@
 {
+  emacs,
+  haskell-mk,
   pkgs,
-  pkgs-sam
 }:
 rec {
   # A utility to instantiate a capable emacs in a haskell sandbox
-  emacs-for-haskell = haskell-env: pkgs-sam.emacs.override { ghc = haskell-env; };
+  emacs-for-haskell = haskell-env: emacs.override { ghc = haskell-env; };
 
   # Create a haskell package with haskell-mk included and enough meta to create
   # shell environments
+  #
+  # FIXME: There are "official" ways of doing this in nixpkgs now, may be a good
+  # idea to rework this to be more standard
   haskell-pkg =
-    { haskellPackages ? pkgs.haskellPackages,
+    { haskellPackages,
       name,
       src,
-      haskell-packages-selector,
+      haskell-libs,
       extra-build-inputs ? [],
       extra-drv ? { },
     }:
     let
-      ghc = haskellPackages.ghcWithPackages haskell-packages-selector;
+      ghc = haskellPackages.ghcWithPackages (_: haskell-libs);
       drv-args = {
 
         inherit name src;
 
         buildInputs = [
           ghc
-          pkgs-sam.haskell-mk
+          haskell-mk
         ] ++ extra-build-inputs;
 
         installPhase = ''
@@ -56,4 +60,16 @@ rec {
           haskell-drv.meta.haskellPackages.hoogle
         ];
       });
+
+  # Add my haskell libraries to a given set of haskell packages
+  #
+  # packages-to-add is a lambda taking a haskellPackages and returning a set
+  # with new packages to add.
+  mk-haskell-packages =
+    haskellPackages: packages-to-add:
+    (haskellPackages.override {
+      overrides = self: super: {
+        inherit haskell-pkg;
+      } // (packages-to-add self);
+    });
 }
