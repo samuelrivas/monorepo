@@ -1,10 +1,11 @@
 {
+  emacs,
+  haskell-mk,
   pkgs,
-  pkgs-sam
 }:
 rec {
   # A utility to instantiate a capable emacs in a haskell sandbox
-  emacs-for-haskell = haskell-env: pkgs-sam.emacs.override { ghc = haskell-env; };
+  emacs-for-haskell = haskell-env: emacs.override { ghc = haskell-env; };
 
   # Create a haskell package with haskell-mk included and enough meta to create
   # shell environments
@@ -27,7 +28,7 @@ rec {
 
         buildInputs = [
           ghc
-          pkgs-sam.haskell-mk
+          haskell-mk
         ] ++ extra-build-inputs;
 
         installPhase = ''

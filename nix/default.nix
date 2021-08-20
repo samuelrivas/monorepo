@@ -92,9 +92,17 @@ let
 
     # Haskell stuff
     # =============
-    ## FIXME: haskell-mk may not be needed there
+
+    # FIXME: haskell-mk (and maybe emacs) should be passed as arguments to the
+    # derivations, currently we are implicitly adding them as dependencies
+    # because they are part of haskell-lib. The problem with the current setting
+    # is that we cannot change any of them without affceting all our haskell
+    # packages.
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
-    haskell-lib = import ./lib/haskell.nix { inherit pkgs pkgs-sam; };
+    haskell-lib = import ./lib/haskell.nix {
+      inherit pkgs;
+      inherit (pkgs-sam) emacs haskell-mk;
+    };
 
     profiledHaskellPackages = pkgs.haskellPackages.override {
       overrides = pkgs-sam: super: {
@@ -109,9 +117,6 @@ let
 
     haskellPackagesPatched = pkgs-sam.haskell-lib.mk-haskell-packages
       pkgs-sam.pkgs-patched.haskellPackages pkgs-sam.samsHaskellPackagesGen;
-
-    ## FIXME: these may not be necessary
-    inherit (pkgs-sam.haskell-lib) emacs-for-haskell haskell-pkg haskell-shell;
 
     ## For some reason I need to explicitly pass haskellPackages here, otherwise
     ## the derivations get the version before overriding (i.e. the one without
