@@ -63,10 +63,32 @@ let
       inherit (pkgs) emacs;
     };
 
+    # This is where we can override failing packages
+    emacsPackages = pkgs.emacsPackages.overrideScope' (
+      self: super:
+      let
+        spinner-version = "1.7.3";
+        spinner-file = "spinner-${spinner-version}.el";
+        spinner-lzip = builtins.fetchurl {
+          url = "https://elpa.gnu.org/packages/${spinner-file}.lz";
+          sha256 = "188i2r7ixva78qd99ksyh3jagnijpvzzjvvx37n57x8nkp8jc4i4";
+        };
+      in {
+        # spinner got broken because elpa lzips old versions. See
+        # https://discourse.nixos.org/t/how-to-override-an-emacs-package-src-url-to-fix-404/13947/6
+        spinner = super.spinner.override {
+          elpaBuild = args: super.elpaBuild (args // {
+            src = pkgs.runCommandLocal spinner-file {} ''
+              ${pkgs.lzip}/bin/lzip -d -c ${spinner-lzip} > $out
+            '';
+          });
+        };
+      });
+
     # An emacs wrapper with the needed packages accessible
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
-        inherit (emacsPackages)
+        inherit (pkgs-sam.emacsPackages)
           dumb-jump
           colorThemeSolarized
           erlangMode
