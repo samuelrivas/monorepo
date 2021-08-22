@@ -99,6 +99,7 @@ let
           helm-ls-git
           helm-org
           htmlize
+          lsp-haskell
           markdown-mode
           nix-mode
           projectile

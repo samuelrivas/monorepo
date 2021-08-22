@@ -37,6 +37,7 @@
   scalaMode2,
   silver-searcher,
   lib,
+  lsp-haskell,
   stylish-haskell,
   terraform-mode,
   tuareg,
@@ -44,8 +45,10 @@
   yaml-mode,
 }:
 let
+  # FIXME remove comments and unused dependencies
   deps = {
-    "haskell" = [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
+    "haskell" = [ lsp-haskell ];
+    # [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];
   };
