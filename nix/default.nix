@@ -56,10 +56,12 @@ let
 
     # Emacs stuff
     # ===========
-    emacs-config = callPackage ./../src/elisp/emacs-config/nix
-      (pkgs-sam.local-config.emacs-config // {
-        inherit (pkgs) emacs;
-      });
+    emacs-config = callPackage ./../src/elisp/emacs-config/nix {
+      inherit (pkgs-sam.local-config.emacs-config)
+        full-user-name
+        extra-config;
+      inherit (pkgs) emacs;
+    };
 
     # An emacs wrapper with the needed packages accessible
     emacs = callPackage ./pkgs/applications/editors/my-emacs

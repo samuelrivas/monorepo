@@ -5,7 +5,7 @@
 ## emacs-config derivation in this monorepo
 ##
 ## Since some packages carry some heavy dependencies with them, you can
-## blacklist them if you need to generate an emacs but don't want to spend the
+## denylist them if you need to generate an emacs but don't want to spend the
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
   aspell-wrapped,
@@ -51,7 +51,7 @@ let
   };
 
   mode-deps = mode:
-    if   lib.elem mode emacs-config-options.blacklisted-modes
+    if   lib.elem mode emacs-config-options.denylisted-modes
     then []
     else builtins.getAttr mode deps;
 
