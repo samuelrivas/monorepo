@@ -91,6 +91,7 @@ let
         inherit (pkgs-sam.emacsPackages)
           dumb-jump
           colorThemeSolarized
+          company
           erlangMode
           flycheck-haskell
           groovy-mode

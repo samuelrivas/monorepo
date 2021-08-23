@@ -10,6 +10,7 @@
 {
   aspell-wrapped,
   colorThemeSolarized,
+  company,
   coreutils,
   dumb-jump,
   emacs-config,
@@ -48,7 +49,7 @@
 let
   # FIXME remove comments and unused dependencies
   deps = {
-    "haskell" = [ lsp-haskell flycheck-haskell ];
+    "haskell" = [ lsp-haskell flycheck-haskell company ];
     # [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];

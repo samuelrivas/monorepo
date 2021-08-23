@@ -159,11 +159,13 @@
 ;;  )
 
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
-
 (defun my-haskell-mode-hook ()
   (lsp)
   (flycheck-mode)
-  (flyspell-prog-mode))
+  (flyspell-prog-mode)
+  (yas-minor-mode)
+  (setq company-minimum-prefix-length 1
+        company-idle-delay 0.0))
   ;; (define-key haskell-mode-map (kbd "C-c C-c") 'comment-region))
 
 ;; Ocaml mode
