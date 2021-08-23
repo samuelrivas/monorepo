@@ -22,6 +22,7 @@
   git,
   gnused,
   groovy-mode,
+  haskell-language-server,
   haskell-mode,
   helm,
   helm-ls-git,
@@ -43,11 +44,12 @@
   tuareg,
   utop,
   yaml-mode,
+  yasnippet,
 }:
 let
   # FIXME remove comments and unused dependencies
   deps = {
-    "haskell" = [ lsp-haskell ];
+    "haskell" = [ lsp-haskell flycheck-haskell haskell-language-server ];
     # [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];
@@ -76,6 +78,7 @@ let
     silver-searcher
     terraform-mode
     yaml-mode
+    yasnippet
   ];
 
   dep-packages = lib.concatMap mode-deps [

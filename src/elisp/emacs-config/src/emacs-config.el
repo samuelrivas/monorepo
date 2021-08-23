@@ -158,13 +158,13 @@
 ;;  '(haskell-stylish-on-save t)
 ;;  )
 
-;; (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
+(add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
 
-;; (defun my-haskell-mode-hook ()
-;;   (turn-on-haskell-indentation)
-;;   (flycheck-mode)
-;;   (flyspell-prog-mode)
-;;   (define-key haskell-mode-map (kbd "C-c C-c") 'comment-region))
+(defun my-haskell-mode-hook ()
+  (lsp)
+  (flycheck-mode)
+  (flyspell-prog-mode))
+  ;; (define-key haskell-mode-map (kbd "C-c C-c") 'comment-region))
 
 ;; Ocaml mode
 ;; TODO: this will fail if ocaml is blacklisted but I don't want to complicate
