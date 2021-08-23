@@ -22,7 +22,6 @@
   git,
   gnused,
   groovy-mode,
-  haskell-language-server,
   haskell-mode,
   helm,
   helm-ls-git,
@@ -49,7 +48,7 @@
 let
   # FIXME remove comments and unused dependencies
   deps = {
-    "haskell" = [ lsp-haskell flycheck-haskell haskell-language-server ];
+    "haskell" = [ lsp-haskell flycheck-haskell ];
     # [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];
