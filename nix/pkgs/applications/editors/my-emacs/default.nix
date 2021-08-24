@@ -26,9 +26,12 @@
   haskell-mode,
   helm,
   helm-ls-git,
+  helm-lsp,
   helm-org,
   hlint,
   htmlize,
+  lib,
+  lsp-haskell,
   markdown-mode,
   merlin,
   nix-mode,
@@ -37,8 +40,6 @@
   sbt,
   scalaMode2,
   silver-searcher,
-  lib,
-  lsp-haskell,
   stylish-haskell,
   terraform-mode,
   tuareg,
@@ -49,7 +50,7 @@
 let
   # FIXME remove comments and unused dependencies
   deps = {
-    "haskell" = [ lsp-haskell flycheck-haskell company ];
+    "haskell" = [ helm-lsp lsp-haskell flycheck-haskell company ];
     # [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];
