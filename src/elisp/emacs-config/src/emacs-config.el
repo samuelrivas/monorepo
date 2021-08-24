@@ -42,8 +42,6 @@
 (auto-fill-mode t)
 
 ;; Key bindings
-(global-set-key "\C-c\C-c" 'comment-region)
-(global-set-key "\C-c\C-u" 'uncomment-region)
 (global-set-key "\M-g" 'goto-line)
 
 ;; Global variables
@@ -90,8 +88,6 @@
 ;; LaTeX mode
 (defun my-latex-mode-hook ()
   "LaTeX mode hook"
-  (local-set-key "\C-c\C-c" 'comment-region)
-  (local-set-key "\C-c\C-u" 'uncomment-region)
   (flyspell-mode t)
   (ispell-change-dictionary "british")
   (auto-fill-mode t))
@@ -113,9 +109,7 @@
 (defun my-javascript-mode-hook ()
   (flyspell-prog-mode)
   (auto-fill-mode)
-  (setq indent-tabs-mode nil)
-  (local-set-key "\C-c\C-c" 'comment-region)
-  (local-set-key "\C-c\C-u" 'uncomment-region))
+  (setq indent-tabs-mode nil))
 
 (add-hook 'js-mode-hook 'my-javascript-mode-hook)
 
