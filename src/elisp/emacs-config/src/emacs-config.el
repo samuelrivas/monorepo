@@ -147,7 +147,8 @@
   (yas-minor-mode)
   (setq company-minimum-prefix-length 1
         company-idle-delay 0.0
-        haskell-stylish-on-save t))
+        haskell-stylish-on-save t)
+  (local-set-key "\C-cl" 'lsp-ui-sideline-apply-code-actions))
 
 ;; Ocaml mode
 ;; TODO: this will fail if ocaml is blacklisted but I don't want to complicate
