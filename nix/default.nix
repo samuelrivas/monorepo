@@ -110,7 +110,6 @@ let
           tuareg
           yaml-mode
           yasnippet;
-        inherit (haskellPackages) hlint stylish-haskell;
         inherit (ocamlPackages) merlin ocp-indent utop;
         emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
