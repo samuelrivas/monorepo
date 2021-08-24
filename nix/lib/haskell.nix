@@ -58,6 +58,7 @@ rec {
       { buildInputs = attrs.buildInputs ++ [
           (emacs-for-haskell haskell-drv.meta.ghc)
           haskell-drv.meta.haskellPackages.hoogle
+          haskell-drv.meta.haskellPackages.haskell-language-server
         ];
       });
 

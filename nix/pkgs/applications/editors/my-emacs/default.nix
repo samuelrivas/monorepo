@@ -5,53 +5,45 @@
 ## emacs-config derivation in this monorepo
 ##
 ## Since some packages carry some heavy dependencies with them, you can
-## blacklist them if you need to generate an emacs but don't want to spend the
+## denylist them if you need to generate an emacs but don't want to spend the
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
   aspell-wrapped,
   colorThemeSolarized,
-  coreutils,
-  dumb-jump,
+  company,
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
   erlangMode,
   flycheck-haskell,
-  gawk,
   ghc,
   git,
-  gnused,
   groovy-mode,
   haskell-mode,
   helm,
   helm-ls-git,
+  helm-lsp,
   helm-org,
-  hlint,
   htmlize,
-  markdown-mode,
-  merlin,
-  nix-mode,
-  ocp-indent,
-  projectile,
-  sbt,
-  scalaMode2,
-  silver-searcher,
   lib,
-  stylish-haskell,
+  lsp-haskell,
+  lsp-ui,
+  markdown-mode,
+  nix-mode,
+  projectile,
+  silver-searcher,
   terraform-mode,
-  tuareg,
-  utop,
   yaml-mode,
+  yasnippet,
 }:
 let
   deps = {
-    "haskell" = [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
-    "ocaml"   = [ merlin ocp-indent tuareg utop ];
+    "haskell" = [ helm-lsp lsp-haskell lsp-ui flycheck-haskell company ];
     "erlang"  = [ erlangMode ];
   };
 
   mode-deps = mode:
-    if   lib.elem mode emacs-config-options.blacklisted-modes
+    if   lib.elem mode emacs-config-options.denylisted-modes
     then []
     else builtins.getAttr mode deps;
 
@@ -59,7 +51,6 @@ let
   hardcoded-deps = [
     aspell-wrapped
     colorThemeSolarized
-    dumb-jump
     emacs-config
     git
     groovy-mode
@@ -73,12 +64,12 @@ let
     silver-searcher
     terraform-mode
     yaml-mode
+    yasnippet
   ];
 
   dep-packages = lib.concatMap mode-deps [
     "erlang"
     "haskell"
-    "ocaml"
   ];
 in
 emacsWithPackages (hardcoded-deps ++ dep-packages)

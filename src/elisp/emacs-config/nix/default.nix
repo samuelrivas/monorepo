@@ -1,10 +1,9 @@
 {
-  blacklisted-modes,
   emacs,
   extra-config,
   full-user-name,
   stdenv,
-  writeTextFile
+  writeTextFile,
 }:
 
 stdenv.mkDerivation rec {

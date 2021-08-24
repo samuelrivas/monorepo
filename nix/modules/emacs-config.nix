@@ -30,12 +30,12 @@ in
           (require 'iso-transl) ; required for dead keys to work with ibus
         '';
       };
-      blacklisted-modes = lib.mkOption {
+      denylisted-modes = lib.mkOption {
         type = lib.types.listOf (lib.types.enum configured-modes);
         default = [ ];
         description = ''
           You can prevent installing the dependencies of heavy modules by
-          blakclisting them here. The configuration will still be present,
+          denylisting them here. The configuration will still be present,
           but all the needed packages will not, so those modes will not work
           if you require them.
         '';

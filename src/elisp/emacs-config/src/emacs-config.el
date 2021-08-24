@@ -42,8 +42,6 @@
 (auto-fill-mode t)
 
 ;; Key bindings
-(global-set-key "\C-c\C-c" 'comment-region)
-(global-set-key "\C-c\C-u" 'uncomment-region)
 (global-set-key "\M-g" 'goto-line)
 
 ;; Global variables
@@ -80,7 +78,6 @@
 ;; helm, projectile, etc
 (helm-mode)
 (projectile-mode)
-(dumb-jump-mode)
 
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
 (add-to-list 'helm-completing-read-handlers-alist
@@ -91,8 +88,6 @@
 ;; LaTeX mode
 (defun my-latex-mode-hook ()
   "LaTeX mode hook"
-  (local-set-key "\C-c\C-c" 'comment-region)
-  (local-set-key "\C-c\C-u" 'uncomment-region)
   (flyspell-mode t)
   (ispell-change-dictionary "british")
   (auto-fill-mode t))
@@ -114,9 +109,7 @@
 (defun my-javascript-mode-hook ()
   (flyspell-prog-mode)
   (auto-fill-mode)
-  (setq indent-tabs-mode nil)
-  (local-set-key "\C-c\C-c" 'comment-region)
-  (local-set-key "\C-c\C-u" 'uncomment-region))
+  (setq indent-tabs-mode nil))
 
 (add-hook 'js-mode-hook 'my-javascript-mode-hook)
 
@@ -146,54 +139,16 @@
 
 
 ;; Haskell mode
-(defvar haskell-mode-map)
-(eval-after-load 'flycheck
-  '(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup))
-
-(custom-set-variables
- '(haskell-process-suggest-remove-import-lines t)
- '(haskell-process-auto-import-loaded-modules t)
- '(haskell-process-log t)
- '(haskell-stylish-on-save t)
- )
-
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
-
 (defun my-haskell-mode-hook ()
-  (turn-on-haskell-indentation)
+  (lsp)
   (flycheck-mode)
   (flyspell-prog-mode)
-  (define-key haskell-mode-map (kbd "C-c C-c") 'comment-region))
-
-;; Ocaml mode
-;; TODO: this will fail if ocaml is blacklisted but I don't want to complicate
-;; it moving it to a dynamicly generated file
-(with-demoted-errors
-  "Couldn't load tuareg, but this is only a problem if you want OCaml support: %S"
-  (load-library "tuareg-site-file"))
-
-(autoload 'utop-minor-mode "utop" "Toplevel for OCaml" t)
-(add-hook 'tuareg-mode-hook 'my-tuareg-mode-hook)
-
-(defvar utop-command)
-(defvar merlin-mode-map)
-(defvar merlin-use-auto-complete-mode)
-(defun my-tuareg-mode-hook ()
-  (require 'merlin)
-  (require 'ocp-indent)
-  (setq utop-command "utop -emacs")
-  (utop-minor-mode)
-  (merlin-mode)
-  (flyspell-prog-mode)
-
-  (setq merlin-use-auto-complete-mode t)
-
-  (define-key merlin-mode-map
-    (kbd "C-c C-n") 'merlin-error-next)
-  (define-key merlin-mode-map
-    (kbd "C-c <up>") 'merlin-type-enclosing-go-up)
-  (define-key merlin-mode-map
-    (kbd "C-c <down>") 'merlin-type-enclosing-go-down))
+  (yas-minor-mode)
+  (setq company-minimum-prefix-length 1
+        company-idle-delay 0.0
+        haskell-stylish-on-save t)
+  (local-set-key "\C-cl" 'lsp-ui-sideline-apply-code-actions))
 
 ;; Nix mode
 (autoload 'nix-mode "nix-mode" "nix-mode" t)
