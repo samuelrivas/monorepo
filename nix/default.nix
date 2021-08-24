@@ -89,7 +89,6 @@ let
     emacs = callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
         inherit (pkgs-sam.emacsPackages)
-          dumb-jump
           colorThemeSolarized
           company
           erlangMode

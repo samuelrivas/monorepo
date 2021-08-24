@@ -12,7 +12,6 @@
   colorThemeSolarized,
   company,
   coreutils,
-  dumb-jump,
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
@@ -65,7 +64,6 @@ let
   hardcoded-deps = [
     aspell-wrapped
     colorThemeSolarized
-    dumb-jump
     emacs-config
     git
     groovy-mode

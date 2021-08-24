@@ -80,7 +80,6 @@
 ;; helm, projectile, etc
 (helm-mode)
 (projectile-mode)
-(dumb-jump-mode)
 
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
 (add-to-list 'helm-completing-read-handlers-alist
