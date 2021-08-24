@@ -101,6 +101,7 @@ let
           helm-org
           htmlize
           lsp-haskell
+          lsp-ui
           markdown-mode
           nix-mode
           projectile

@@ -31,6 +31,7 @@
   htmlize,
   lib,
   lsp-haskell,
+  lsp-ui,
   markdown-mode,
   merlin,
   nix-mode,
@@ -49,7 +50,7 @@
 let
   # FIXME remove comments and unused dependencies
   deps = {
-    "haskell" = [ helm-lsp lsp-haskell flycheck-haskell company ];
+    "haskell" = [ helm-lsp lsp-haskell lsp-ui flycheck-haskell company ];
     # [ haskell-mode hlint ghc flycheck-haskell stylish-haskell ];
     "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];
