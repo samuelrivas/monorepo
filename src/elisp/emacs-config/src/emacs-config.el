@@ -150,36 +150,6 @@
         haskell-stylish-on-save t)
   (local-set-key "\C-cl" 'lsp-ui-sideline-apply-code-actions))
 
-;; Ocaml mode
-;; TODO: this will fail if ocaml is blacklisted but I don't want to complicate
-;; it moving it to a dynamicly generated file
-(with-demoted-errors
-  "Couldn't load tuareg, but this is only a problem if you want OCaml support: %S"
-  (load-library "tuareg-site-file"))
-
-(autoload 'utop-minor-mode "utop" "Toplevel for OCaml" t)
-(add-hook 'tuareg-mode-hook 'my-tuareg-mode-hook)
-
-(defvar utop-command)
-(defvar merlin-mode-map)
-(defvar merlin-use-auto-complete-mode)
-(defun my-tuareg-mode-hook ()
-  (require 'merlin)
-  (require 'ocp-indent)
-  (setq utop-command "utop -emacs")
-  (utop-minor-mode)
-  (merlin-mode)
-  (flyspell-prog-mode)
-
-  (setq merlin-use-auto-complete-mode t)
-
-  (define-key merlin-mode-map
-    (kbd "C-c C-n") 'merlin-error-next)
-  (define-key merlin-mode-map
-    (kbd "C-c <up>") 'merlin-type-enclosing-go-up)
-  (define-key merlin-mode-map
-    (kbd "C-c <down>") 'merlin-type-enclosing-go-down))
-
 ;; Nix mode
 (autoload 'nix-mode "nix-mode" "nix-mode" t)
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))

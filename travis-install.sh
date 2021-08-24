@@ -9,7 +9,7 @@ create_config() {
 {
   emacs-config = {
     full-user-name = "Test user";
-    denylisted-modes = [ "ocaml" "erlang" ];
+    denylisted-modes = [ "erlang" ];
     extra-config = "";
   };
   sams-pkgs = {

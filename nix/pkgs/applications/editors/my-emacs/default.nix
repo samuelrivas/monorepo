@@ -11,16 +11,13 @@
   aspell-wrapped,
   colorThemeSolarized,
   company,
-  coreutils,
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
   erlangMode,
   flycheck-haskell,
-  gawk,
   ghc,
   git,
-  gnused,
   groovy-mode,
   haskell-mode,
   helm,
@@ -32,24 +29,16 @@
   lsp-haskell,
   lsp-ui,
   markdown-mode,
-  merlin,
   nix-mode,
-  ocp-indent,
   projectile,
-  sbt,
-  scalaMode2,
   silver-searcher,
   terraform-mode,
-  tuareg,
-  utop,
   yaml-mode,
   yasnippet,
 }:
 let
-  # FIXME remove comments and unused dependencies
   deps = {
     "haskell" = [ helm-lsp lsp-haskell lsp-ui flycheck-haskell company ];
-    "ocaml"   = [ merlin ocp-indent tuareg utop ];
     "erlang"  = [ erlangMode ];
   };
 
@@ -81,7 +70,6 @@ let
   dep-packages = lib.concatMap mode-deps [
     "erlang"
     "haskell"
-    "ocaml"
   ];
 in
 emacsWithPackages (hardcoded-deps ++ dep-packages)

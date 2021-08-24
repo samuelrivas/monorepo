@@ -105,12 +105,9 @@ let
           markdown-mode
           nix-mode
           projectile
-          scalaMode2
           terraform-mode
-          tuareg
           yaml-mode
           yasnippet;
-        inherit (ocamlPackages) merlin ocp-indent utop;
         emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
 
