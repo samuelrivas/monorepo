@@ -143,7 +143,7 @@ INSERT INTO asset_info (asset, currency, type) VALUES ("Carnegie Corporate Bond 
 INSERT INTO asset_info (asset, currency, type) VALUES ("FIM Euro", "SEK", "debt security");
 INSERT INTO asset_info (asset, currency, type) VALUES ("Intel Corp", "USD", "stock");
 INSERT INTO asset_info (asset, currency, type) VALUES ("Microsoft Corp", "USD", "stock");
-INSERT INTO asset_info (asset, currency, type) VALUES ("SEB Hållbar Global Indexnära C USD - Lux", "SEK", "stock");
+INSERT INTO asset_info (asset, currency, type) VALUES ("SEB Global Indexnära C USD - Lux", "SEK", "stock");
 INSERT INTO asset_info (asset, currency, type) VALUES ("SPP Aktiefond Europa", "SEK", "stock");
 INSERT INTO asset_info (asset, currency, type) VALUES ("SPP Aktiefond USA", "SEK", "stock");
 INSERT INTO asset_info (asset, currency, type) VALUES ("Schibsted ser. B", "NOK", "stock");
