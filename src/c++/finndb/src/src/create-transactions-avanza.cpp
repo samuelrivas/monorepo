@@ -27,15 +27,11 @@ using std::vector;
 using boost::format;
 
 // At some point avanza removed types, so we need to infer them here
-TransactionType parse_misc(const string& type_text, const string& description) {
-  if (description == "Schibsted B") {
-    return TransactionType::ASSET_TRANSFER;
+TransactionType parse_misc(const string& description) {
+  if (description.find("skatt") == 0) {
+    return TransactionType::TAX;
   } else {
-    cerr << format("Cannot parse transaction type '%s' with description '%s'\n")
-      % type_text
-      % description;
-    std::flush(cerr);
-    assert(false);
+    return TransactionType::ASSET_TRANSFER;
   }
 }
 
@@ -60,10 +56,11 @@ TransactionType parse_type(const string& type_text, const string& description) {
              || type_text.find("Byte från ") == 0) {
     return TransactionType::ASSET_TRANSFER;
   } else if (type_text == "Övrigt") {
-    return parse_misc(type_text, description);
+    return parse_misc(description);
   } else {
-    cerr << format("Cannot parse transaction type '%s'\n")
-      % type_text;
+    cerr << format("Cannot parse transaction type '%s' with description '%s'\n")
+      % type_text
+      % description;
     std::flush(cerr);
     assert(false);
   }
