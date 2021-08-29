@@ -9,8 +9,7 @@
 
 ## Standard prelude
 ##====================================================================
-set -e
-set -u
+set -euo pipefail
 
 readonly ARGS=("$@")
 readonly NARGS="$#"
@@ -74,7 +73,7 @@ main() {
     fi
 
     for branch in ${merged[@]}; do
-        if [[ ! "$branch" =~ "/master" ]]; then
+        if [[ ! "$branch" =~ "/$upstream_branch" ]]; then
             delete_local_branch "$branch"
             if [[ "$remove_mode" == "all" ]]; then
                 delete_remote_branch "$branch"
