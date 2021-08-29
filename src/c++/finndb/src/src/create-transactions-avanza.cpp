@@ -26,8 +26,17 @@ using std::string;
 using std::vector;
 using boost::format;
 
+// At some point avanza removed types, so we need to infer them here
+TransactionType parse_misc(const string& description) {
+  if (description.find("skatt") == 0) {
+    return TransactionType::TAX;
+  } else {
+    return TransactionType::ASSET_TRANSFER;
+  }
+}
+
 // This is quite fragile, so always fail in case of unknown types
-TransactionType parse_type(const string& type_text) {
+TransactionType parse_type(const string& type_text, const string& description) {
   if (type_text ==  "Köp") {
     return TransactionType::BUY;
   } else if (type_text == "Sälj") {
@@ -42,15 +51,12 @@ TransactionType parse_type(const string& type_text) {
   } else if (type_text == "Insättning"
              || type_text == "Uttag") {
     return TransactionType::CASH_TRANSFER;
-  } else if (type_text.find("Övf från ") == 0
-             || type_text.find("Byte till ") == 0
-             || type_text.find("Byte från ") == 0) {
-    return TransactionType::ASSET_TRANSFER;
   } else if (type_text == "Övrigt") {
-    return TransactionType::MISC;
+    return parse_misc(description);
   } else {
-    cerr << format("Cannot parse transaction type '%s'\n")
-      % type_text;
+    cerr << format("Cannot parse transaction type '%s' with description '%s'\n")
+      % type_text
+      % description;
     std::flush(cerr);
     assert(false);
   }
@@ -71,14 +77,19 @@ int main() {
     }
 
     string transaction_id = sha1(line);
-    TransactionType type = parse_type(tokens[2]);
+    TransactionType type = parse_type(tokens[2], tokens[3]);
 
     // Transaction
     cout << transaction_line(transaction_id, tokens[0], type, line);
 
     // Cash movement
-    cout << movement_line(tokens[0], tokens[8], tokens[1], "Avanza",
-                          tokens[6], transaction_id);
+    //
+    // Movements that introduce stock from other accounts show up as Övrigt,
+    // with no cash movement
+    if (type != TransactionType::ASSET_TRANSFER || tokens[8] != "-") {
+      cout << movement_line(tokens[0], tokens[8], tokens[1], "Avanza",
+                            tokens[6], transaction_id);
+    }
 
     // Movements and transactions
     if (type == TransactionType::BUY
