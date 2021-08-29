@@ -51,10 +51,6 @@ TransactionType parse_type(const string& type_text, const string& description) {
   } else if (type_text == "Insättning"
              || type_text == "Uttag") {
     return TransactionType::CASH_TRANSFER;
-  } else if (type_text.find("Övf från ") == 0
-             || type_text.find("Byte till ") == 0
-             || type_text.find("Byte från ") == 0) {
-    return TransactionType::ASSET_TRANSFER;
   } else if (type_text == "Övrigt") {
     return parse_misc(description);
   } else {
