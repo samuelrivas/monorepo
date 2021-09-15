@@ -161,6 +161,7 @@ let
         parselib = ./../src/haskell/parselib/nix;
         boollib = ./../src/haskell/boollib/nix;
         searchlib = ./../src/haskell/searchlib/nix;
+        clean-clocks = ./../src/haskell/clean-clocks/nix;
       };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
@@ -173,6 +174,7 @@ let
     adventlib = pkgs-sam.haskellPackages.adventlib;
     boollib = pkgs-sam.haskellPackages.boollib;
     searchlib = pkgs-sam.haskellPackages.searchlib;
+    clean-clocks = pkgs-sam.haskellPackages.clean-clocks;
 
     # Shell-scripts
     # =============
