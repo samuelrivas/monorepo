@@ -33,14 +33,14 @@ get_merged_remote() {
         --remotes                     \
         --merged "$upstream_branch" | \
         sed -e 's/^[ \*]*//' | \
-        grep -v "/$upstream_branch\$"
+        (grep -v "/$upstream_branch\$" || true)
 }
 
 get_merged_local() {
     local upstream_branch="$1"
     git branch --list --merged "$upstream_branch" | \
         sed -e 's/^[ \*]*//' | \
-        grep -v "^$upstream_branch\$"
+        (grep -v "^$upstream_branch\$" || true)
 }
 
 delete_remote_branch() {
