@@ -1,9 +1,13 @@
 {
   gawk,
+  git,
+  gnugrep,
+  gnused,
   lib,
   makeWrapper,
   pdftk,
   python,
+  sh-lib,
   stdenv,
   which,
   xbacklight,
@@ -19,6 +23,9 @@ stdenv.mkDerivation rec {
 
   inherit
     gawk
+    git
+    gnugrep
+    gnused
     pdftk
     python
     which
@@ -29,6 +36,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     makeWrapper
+    sh-lib
   ];
 
   dontBuild = true;
@@ -40,7 +48,7 @@ stdenv.mkDerivation rec {
 
   meta = {
     description = "A collection of barely useful scripts";
-    homepage = https://github.com/samuelrivas/assorted-scripts;
+    homepage = "https://github.com/samuelrivas/monorepo/src/shell/assorted-scripts";
     license = lib.licenses.bsd3;
     maintainers = [ "Samuel Rivas <samuelrivas@gmail.com>" ];
   };

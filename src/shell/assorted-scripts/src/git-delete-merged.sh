@@ -6,14 +6,11 @@
 # Just in case of disaster, you'll get a printout with the affected sha's, so
 # it is fairly easy to recover a branch in case you didn't really wanted to
 # delete it
+#
+# This script requires next environment variables to be set
+#  * SH_LIB: the lib directory to load utils from
 
-## Standard prelude
-##====================================================================
-set -euo pipefail
-
-readonly ARGS=("$@")
-readonly NARGS="$#"
-readonly PROGNAME="$(basename "$0")"
+source $SH_LIB/prelude.sh
 
 ## Functions
 ##====================================================================

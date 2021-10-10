@@ -23,7 +23,10 @@ wrap_calls () {
     local program="$1"
     local dependencies="$2"
 
-    wrapProgram "$out/bin/$program" --suffix-each PATH : "$dependencies"
+    wrapProgram                              \
+        "$out/bin/$program"                  \
+        --suffix-each PATH : "$dependencies" \
+        --set SH_LIB "$SH_LIB"
 }
 
 main() {
@@ -44,6 +47,7 @@ main() {
     wrap_calls "pp-json.sh" "$python/bin"
     wrap_calls "http-easy-server" "$python/bin"
     wrap_calls "selection-to-clipboard" "$xclip/bin"
+    wrap_calls "git-delete-merged.sh" "$git/bin $gnused/bin $gnugrep/bin"
 }
 
 main
