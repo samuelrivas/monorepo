@@ -1,4 +1,5 @@
 {
+  add-sandbox,
   gawk,
   git,
   gnugrep,
@@ -15,41 +16,45 @@
   xrandr,
   xset,
 }:
+let
+  drv = stdenv.mkDerivation rec {
+    name = "assorted-scripts-0.0.0";
 
-stdenv.mkDerivation rec {
-  name = "assorted-scripts-0.0.0";
+    src = ./../src;
 
-  src = ./../src;
+    inherit
+      gawk
+      git
+      gnugrep
+      gnused
+      pdftk
+      python
+      which
+      xbacklight
+      xclip
+      xrandr
+      xset;
 
-  inherit
-    gawk
-    git
-    gnugrep
-    gnused
-    pdftk
-    python
-    which
-    xbacklight
-    xclip
-    xrandr
-    xset;
+    buildInputs = [
+      git
+      gnugrep
+      gnused
+      makeWrapper
+      sh-lib
+    ];
 
-  buildInputs = [
-    makeWrapper
-    sh-lib
-  ];
+    dontBuild = true;
+    dontStrip = true;
+    dontPatchELF = true;
 
-  dontBuild = true;
-  dontStrip = true;
-  dontPatchELF = true;
+    installPhase = ./install.sh;
+    postFixup = ./post-fixup.sh;
 
-  installPhase = ./install.sh;
-  postFixup = ./post-fixup.sh;
-
-  meta = {
-    description = "A collection of barely useful scripts";
-    homepage = "https://github.com/samuelrivas/monorepo/src/shell/assorted-scripts";
-    license = lib.licenses.bsd3;
-    maintainers = [ "Samuel Rivas <samuelrivas@gmail.com>" ];
+    meta = {
+      description = "A collection of barely useful scripts";
+      homepage = "https://github.com/samuelrivas/monorepo/src/shell/assorted-scripts";
+      license = lib.licenses.bsd3;
+      maintainers = [ "Samuel Rivas <samuelrivas@gmail.com>" ];
+    };
   };
-}
+in add-sandbox [ ] drv
