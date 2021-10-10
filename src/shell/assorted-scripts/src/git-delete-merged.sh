@@ -26,12 +26,21 @@ usage_and_exit() {
     exit 1
 }
 
-get_merged() {
+get_merged_remote() {
     local our_remote="$1"
     local upstream_branch="$2"
     git branch --list "$our_remote/*" \
         --remotes                     \
-        --merged "$upstream_branch"
+        --merged "$upstream_branch" | \
+        sed -e 's/^[ \*]*//' | \
+        grep -v "/$upstream_branch\$"
+}
+
+get_merged_local() {
+    local upstream_branch="$1"
+    git branch --list --merged "$upstream_branch" | \
+        sed -e 's/^[ \*]*//' | \
+        grep -v "^$upstream_branch\$"
 }
 
 delete_remote_branch() {
@@ -40,7 +49,7 @@ delete_remote_branch() {
     local branch="$(echo "$long_name" | cut -d/ -f2)"
     local sha="$(git rev-parse "$long_name")"
 
-    echo "Deleting remote $sha ($long_name)"
+    echo "$sha deleting $branch from $remote"
     if ! git push "$remote" :"$branch"; then
         echo "Couldn't delete remote branch: $long_name"
     fi
@@ -51,7 +60,7 @@ delete_local_branch() {
     local branch="$(echo "$long_name" | cut -d/ -f2)"
     local sha="$(git rev-parse "$long_name")"
 
-    echo "Deleting local $sha ($branch)"
+    echo "$sha deleting local $branch"
     if ! git branch -D "$branch"; then
         echo "Couldn't delete local branch: $branch"
     fi
@@ -66,20 +75,22 @@ main() {
     remove_mode="${ARGS[0]}"
     our_remote="${ARGS[1]}"
     upstream_branch="${ARGS[2]}"
-    merged=("$(get_merged "$our_remote" "$upstream_branch")")
 
     if [[ "$remove_mode" != "local" && "$remove_mode" != "all" ]]; then
         usage_and_exit
     fi
 
-    for branch in ${merged[@]}; do
-        if [[ ! "$branch" =~ "/$upstream_branch" ]]; then
-            delete_local_branch "$branch"
-            if [[ "$remove_mode" == "all" ]]; then
-                delete_remote_branch "$branch"
-            fi
-        fi
+    merged_local=("$(get_merged_local "$upstream_branch")")
+    for branch in ${merged_local[@]}; do
+        delete_local_branch "$branch"
     done
+
+    if [[ "$remove_mode" == "all" ]]; then
+        merged_remote=("$(get_merged_remote "$our_remote" "$upstream_branch")")
+        for branch in ${merged_remote[@]}; do
+            delete_remote_branch "$branch"
+        done
+    fi
 }
 
 main
