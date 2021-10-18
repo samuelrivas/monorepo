@@ -3,7 +3,7 @@
 
 module Advent.Day6 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Data.List             (foldl1')
 import           Data.Set              (Set)

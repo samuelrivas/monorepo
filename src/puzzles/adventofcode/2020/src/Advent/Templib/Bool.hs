@@ -7,7 +7,7 @@ module Advent.Templib.Bool (
   xor
   ) where
 
-import           Advent.Perlude
+import           Perlude
 
 -- Logic exclusive or
 xor :: Bool -> Bool -> Bool

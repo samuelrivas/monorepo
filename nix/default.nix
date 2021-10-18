@@ -157,6 +157,7 @@ let
         hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
         onirim-helper = ./../src/haskell/onirim-helper/nix;
         low-battery = ./../src/haskell/low-battery/nix;
+        perlude = ./../src/haskell/perlude/nix;
       };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
@@ -164,6 +165,7 @@ let
     hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
     onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
     low-battery = pkgs-sam.haskellPackages.low-battery;
+    perlude = pkgs-sam.haskellPackages.perlude;
 
     # Shell-scripts
     # =============

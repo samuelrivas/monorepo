@@ -8,7 +8,7 @@
 
 module Advent.Day4 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Monad         (guard)
 import           Data.Map              (Map, assocs, keysSet)

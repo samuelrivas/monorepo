@@ -8,7 +8,7 @@ module Advent.Day15.Internal (
   mkGameState
   ) where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Data.List      (zip)
 import           Data.Map       (Map, fromList)

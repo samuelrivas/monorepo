@@ -8,7 +8,7 @@
 
 module Advent.Day22 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens              (at, both, each, foldlOf, modifying,
                                             non, over, preuse, use, uses, view,

@@ -8,7 +8,7 @@
 module Advent.Day2 where
 
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens          (ix, preview)
 import           Data.Maybe            (fromJust)

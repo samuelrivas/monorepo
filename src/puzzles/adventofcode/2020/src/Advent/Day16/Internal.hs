@@ -8,7 +8,7 @@ module Advent.Day16.Internal (
   mkRule
   ) where
 
-import           Advent.Perlude
+import           Perlude
 
 import           GHC.Generics   (Generic)
 

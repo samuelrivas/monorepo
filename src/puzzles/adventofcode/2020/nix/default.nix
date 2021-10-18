@@ -15,6 +15,7 @@ let
     matrix
     monad-loops
     multiset
+    perlude
     readline
     regex-tdfa
     unliftio

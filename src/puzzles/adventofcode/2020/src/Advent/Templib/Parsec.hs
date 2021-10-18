@@ -28,7 +28,7 @@ module Advent.Templib.Parsec (
   Parser
   ) where
 
-import           Advent.Perlude
+import           Perlude
 import qualified Prelude
 
 import           Control.Monad.Fail (MonadFail)

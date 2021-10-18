@@ -4,7 +4,7 @@
 
 module Advent.Day13 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
 import           Control.Lens          (over, preview, view, _1, _2)

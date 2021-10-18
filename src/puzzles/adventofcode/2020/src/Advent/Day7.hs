@@ -7,7 +7,7 @@
 
 module Advent.Day7 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Advent.Templib.Parsec (digitsAsNum, literal, text1)
 import           Control.Lens          (at, non, view)

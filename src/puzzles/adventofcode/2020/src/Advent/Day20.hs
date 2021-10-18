@@ -8,7 +8,7 @@
 
 module Advent.Day20 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens     (at, both, each, foldlOf, non, over, view, _1,
                                    _2)

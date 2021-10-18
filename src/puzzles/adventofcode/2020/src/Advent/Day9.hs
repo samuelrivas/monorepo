@@ -8,7 +8,7 @@
 
 module Advent.Day9 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens     (at, both, each, foldlOf, over, view, _2)
 import           Control.Monad    (fmap, guard)

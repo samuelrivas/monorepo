@@ -8,7 +8,7 @@
 
 module Advent.Day10 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Data.List        (sort)
 import           Data.Matrix      (Matrix, getElem, matrix, ncols)
