@@ -150,7 +150,7 @@ let
       {
         adventlib = ./../src/haskell/adventlib/nix;
         adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
-        adventofcode-2020 = ./../src/puzzles/adventofcode/2019/nix;
+        adventofcode-2020 = ./../src/puzzles/adventofcode/2020/nix;
         example-lib =  ./../src/haskell/example-lib/nix;
         name-generator =  ./../src/haskell/name-generator/nix;
         boardgamer = ./../src/haskell/boardgamer/nix;
