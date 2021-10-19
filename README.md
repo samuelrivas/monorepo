@@ -1,6 +1,6 @@
 # A nix tree of everything
 
-[![Build Status](https://travis-ci.org/samuelrivas/monorepo.svg?branch=main)](https://travis-ci.org/samuelrivas/monorepo)
+[![Build Status](https://app.travis-ci.com/samuelrivas/monorepo.svg?branch=main)](https://app.travis-ci.com/samuelrivas/monorepo)
 
 ## Usage
 
