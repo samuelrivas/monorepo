@@ -7,7 +7,7 @@
 
 module Advent.Day19 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens          (at, over, set, view, _1, _2)
 import           Data.Foldable         (fold)

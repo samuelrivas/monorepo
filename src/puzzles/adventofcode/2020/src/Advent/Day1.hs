@@ -8,7 +8,7 @@
 
 module Advent.Day1 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Data.List        (find, tails)
 import           Data.Maybe       (fromJust)

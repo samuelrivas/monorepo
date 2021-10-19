@@ -1,7 +1,7 @@
 {
-  adventlib,
   haskell-pkg,
   haskellPackages,
+  makeWrapper,
   stdenv,
 }:
 let
@@ -15,23 +15,31 @@ let
     matrix
     monad-loops
     multiset
+    perlude
     readline
     regex-tdfa
     unliftio
     unordered-containers
     writer-cps-mtl
   ];
+  advent-input-dir = ./../src/inputs;
 in
 haskell-pkg {
 
   name = "adventofcode-2020";
   src = ./../src;
 
+  extra-build-inputs = [ makeWrapper ];
+
   extra-drv = {
-    ADVENT_INPUT_DIR = ./../src/inputs;
     shellHook = ''
       export ADVENT_INPUT_DIR=inputs
     '';
+    postFixup = ''
+      wrapProgram "$out/bin/advent" \
+      --set ADVENT_INPUT_DIR "${advent-input-dir}"
+    '';
+
   };
 
   inherit haskellPackages haskell-libs;

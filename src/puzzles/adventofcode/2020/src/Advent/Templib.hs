@@ -27,7 +27,7 @@ module Advent.Templib (
   listOfNum
   ) where
 
-import           Advent.Perlude
+import           Perlude
 import           Control.Lens               (view)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.IO.Class     (MonadIO)

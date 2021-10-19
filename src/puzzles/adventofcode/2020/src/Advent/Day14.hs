@@ -4,7 +4,7 @@
 
 module Advent.Day14 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens          (over, set, view, _2)
 import           Data.Bits             (clearBit, setBit)

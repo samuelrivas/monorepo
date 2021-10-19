@@ -7,7 +7,7 @@
 
 module Advent.Day18 where
 
-import           Advent.Perlude        as Perlude
+import           Perlude        as Perlude
 import qualified Prelude               (show)
 
 import           Data.Foldable         (foldl')

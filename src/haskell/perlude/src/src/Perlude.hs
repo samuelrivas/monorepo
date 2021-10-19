@@ -1,16 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
--- TODO: Move this to Adventlib
+{-|
+The intention of this alternative -Prelude- is to remove any references to
+'String' or 'IO', substituting them with 'Text' and 'MonadIO'.
+-}
 
--- TODO: For some reason, if I name this module Advent.Prelude, emacs barfs that
--- the module name doesn't match with the file name and doesn't compile
--- it. Since that is very annoying I decided to name it not-prelude. However,
--- ghci and ghc do compile with `Advent.Prelude` so I have no idea what is going
--- on. Figure it out!
-
--- To document: This removes references to String an IO from the standard
--- Prelude
-module Advent.Perlude (
+-- TODO: This is not comprehensive yet, I have only added the functions that I
+-- normally use.
+module Perlude (
   read,
   show,
   putStr,

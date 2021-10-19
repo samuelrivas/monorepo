@@ -11,7 +11,7 @@ module Advent.Day14.Internal (
   mkComputerState
   ) where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Data.Map       (Map, empty)
 import           GHC.Generics   (Generic)

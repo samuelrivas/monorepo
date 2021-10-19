@@ -8,7 +8,7 @@
 
 module Advent.Day16 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens          (view, _1, _2)
 import           Control.Monad.Fail    (MonadFail)

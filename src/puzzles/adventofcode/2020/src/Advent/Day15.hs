@@ -7,7 +7,7 @@
 
 module Advent.Day15 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens               (assign, at, modifying, use, view)
 import           Control.Monad              (replicateM_)

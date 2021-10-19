@@ -8,7 +8,7 @@ module Advent.Day8.Internal (
   mkState
   ) where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Data.Map.Strict (Map, fromList)
 import           GHC.Generics    (Generic)

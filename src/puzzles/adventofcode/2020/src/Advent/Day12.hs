@@ -5,7 +5,7 @@
 
 module Advent.Day12 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Control.Lens             (both, modifying, over, use, view)
 import           Control.Monad.State.Lazy (MonadState, execState)

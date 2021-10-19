@@ -4,7 +4,7 @@
 
 module Advent.Day8 where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Advent.Templib.Parsec (digitsAsNum, literal)
 import           Control.Lens          (ix, over, preview, view, _1, _2, _head,

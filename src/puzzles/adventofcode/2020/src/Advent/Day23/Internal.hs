@@ -9,7 +9,7 @@ module Advent.Day23.Internal (
   mkGame
   ) where
 
-import           Advent.Perlude
+import           Perlude
 import qualified Prelude              (Show, show)
 
 import           Control.Lens         (at, view)

@@ -15,7 +15,7 @@ module Advent.Day12.Internal (
   mkInstruction
   ) where
 
-import           Advent.Perlude
+import           Perlude
 
 import           Data.Bidim     (Coord)
 import           GHC.Generics   (Generic)
