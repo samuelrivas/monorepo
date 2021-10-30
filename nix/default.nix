@@ -160,6 +160,7 @@ let
         perlude = ./../src/haskell/perlude/nix;
         parselib = ./../src/haskell/parselib/nix;
         boollib = ./../src/haskell/boollib/nix;
+        searchlib = ./../src/haskell/searchlib/nix;
       };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
@@ -171,6 +172,7 @@ let
     parselib = pkgs-sam.haskellPackages.parselib;
     adventlib = pkgs-sam.haskellPackages.adventlib;
     boollib = pkgs-sam.haskellPackages.boollib;
+    searchlib = pkgs-sam.haskellPackages.searchlib;
 
     # Shell-scripts
     # =============
