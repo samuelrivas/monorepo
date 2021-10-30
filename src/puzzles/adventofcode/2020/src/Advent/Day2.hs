@@ -12,6 +12,7 @@ import           Perlude
 
 import           Control.Lens         (ix, preview)
 import           Data.Advent          (Day (D2))
+import           Data.Bool.Boollib    (xor)
 import           Data.Maybe           (fromJust)
 import           Data.Text            (Text, count, singleton)
 import qualified Data.Text            as Text
@@ -20,8 +21,6 @@ import           Text.Parsec          (anyChar, char, endOfLine, noneOf,
                                        sepEndBy, string)
 import           Text.Parsec.Parselib (digitsAsNum, text, unsafeParseAll)
 import           Text.Parsec.Text     (Parser)
-
-import           Advent.Templib.Bool  (xor)
 
 example :: Text
 example = "1-3 a: abcde\n\

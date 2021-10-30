@@ -8,6 +8,7 @@ let
   haskell-libs = with haskellPackages; [
     adventlib
     ansi-terminal
+    boollib
     deque
     fingertree
     generic-lens
