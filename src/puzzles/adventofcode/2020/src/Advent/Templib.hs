@@ -41,19 +41,15 @@ import           Data.Generics.Labels       ()
 import           Perlude
 import           System.IO.Advent           (getInput)
 import           Text.Parsec                (char, sepEndBy)
-import           Text.Parsec.Advent         (listOfNum)
+import           Text.Parsec.Advent         (getParsedInput, listOfNum)
 import           Text.Parsec.Parselib       (num, unsafeParseAll)
 import           Text.Parsec.Text           (Parser)
 
 import           Advent.Templib.Internal
 
+-- Legacy, just for compatibility
 getInput' :: MonadIO m => Day -> m Text
 getInput' = getInput
-
-
--- Get parsed input
-getParsedInput :: MonadIO m => MonadFail m => Day -> Parser a -> m a
-getParsedInput d p = getInput' d >>= unsafeParseAll p
 
 -- Typeclass to encapsulate Advent problems.
 --
