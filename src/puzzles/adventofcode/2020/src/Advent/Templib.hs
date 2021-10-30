@@ -25,7 +25,8 @@ module Advent.Templib (
   getInput',
   getParsedInput,
   listOfNum,
-  module Data.Advent
+  module Data.Advent,
+  module Text.Parsec.Advent
   ) where
 
 import           Control.Lens               (view)
@@ -40,6 +41,7 @@ import           Data.Generics.Labels       ()
 import           Perlude
 import           System.IO.Advent           (getInput)
 import           Text.Parsec                (char, sepEndBy)
+import           Text.Parsec.Advent         (listOfNum)
 import           Text.Parsec.Parselib       (num, unsafeParseAll)
 import           Text.Parsec.Text           (Parser)
 
@@ -52,10 +54,6 @@ getInput' = getInput
 -- Get parsed input
 getParsedInput :: MonadIO m => MonadFail m => Day -> Parser a -> m a
 getParsedInput d p = getInput' d >>= unsafeParseAll p
-
--- Very common parsers
-listOfNum :: Num n => Parser [n]
-listOfNum = num `sepEndBy` char '\n'
 
 -- Typeclass to encapsulate Advent problems.
 --
