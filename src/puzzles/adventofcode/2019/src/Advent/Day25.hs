@@ -17,19 +17,19 @@ import           Prelude                hiding (Left, Right, concat, getLine,
                                          unlines)
 import qualified Prelude
 
-import           Control.Lens           (view, _1, _2)
+import           Advent.Day25.Intcode
+import           Control.Lens           (_1, _2, view)
 import           Control.Monad.IO.Class (liftIO)
+import           Data.Advent            (Day (..))
 import           Data.Functor.Identity  (runIdentity)
 import           Data.Generics.Labels   ()
-import           Data.Hashable          (Hashable)
 import           Data.HashSet           (HashSet)
 import qualified Data.HashSet           as HashSet
+import           Data.Hashable          (Hashable)
 import           Data.List              (find, subsequences)
 import           Data.Text              (Text, pack, splitOn, unlines, unpack)
 import qualified Data.Text              as Text
 import           Data.Text.IO           (putStrLn, readFile)
-
-import           Advent.Day25.Intcode
 import           System.IO.Advent       (adventPath, getInput)
 
 show :: Show a => a -> Text
@@ -46,7 +46,7 @@ decode :: (Integral c, Enum a) => c -> a
 decode = toEnum . fromIntegral
 
 getCode :: IO [Integer]
-getCode = fmap (read . unpack) . splitOn "," <$> getInput "25"
+getCode = fmap (read . unpack) . splitOn "," <$> getInput D25
 
 cleanComments :: Text -> Text
 cleanComments = Text.unlines.  filter ((/=) '#' . Text.head) . Text.lines

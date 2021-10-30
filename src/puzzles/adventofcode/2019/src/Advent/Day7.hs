@@ -15,9 +15,12 @@ module Advent.Day7 where
 
 import           Prelude               hiding (getLine, putStrLn, readFile)
 
-import           Control.Lens          (assign, use, uses, view, _2, _3)
+import           Advent.Day7.Intcode
+import           Advent.Day7.Internal
+import           Control.Lens          (_2, _3, assign, use, uses, view)
 import           Control.Monad.Loops   (whileM)
 import           Control.Monad.State   (MonadState, evalState)
+import           Data.Advent           (Day (..))
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
 import           Data.List             (permutations)
@@ -25,9 +28,6 @@ import           Data.List.NonEmpty    (NonEmpty (..), fromList, toList)
 import           Data.Text             (pack, splitOn, unpack)
 import           Data.Text.IO          (putStrLn)
 import           GHC.Generics          (Generic)
-
-import           Advent.Day7.Intcode
-import           Advent.Day7.Internal
 import           System.IO.Advent      (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -118,7 +118,7 @@ find_solution_2 code = maximum (get_power code <$> permutations [5..9])
 
 main :: IO ()
 main = do
-  code :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput "7"
+  code :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput D7
 
   putStrLn $  "Solution 1: " <> (pack . show $ find_solution_1 code)
   putStrLn $  "Solution 2: " <> (pack . show $ find_solution_2 code)

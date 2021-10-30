@@ -24,7 +24,8 @@ module Advent.Templib (
   Day (..),
   getInput',
   getParsedInput,
-  listOfNum
+  listOfNum,
+  module Data.Advent
   ) where
 
 import           Control.Lens               (view)
@@ -33,6 +34,7 @@ import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Reader       (MonadReader)
 import           Control.Monad.Trans.Class  (MonadTrans)
 import           Control.Monad.Trans.Reader (ReaderT, runReaderT)
+import           Data.Advent                (Day (..))
 import           Data.Functor.Identity      (Identity, runIdentity)
 import           Data.Generics.Labels       ()
 import           Perlude
@@ -43,38 +45,9 @@ import           Text.Parsec.Text           (Parser)
 
 import           Advent.Templib.Internal
 
-data Day = D1
-    | D2
-    | D3
-    | D4
-    | D5
-    | D6
-    | D7
-    | D8
-    | D9
-    | D10
-    | D11
-    | D12
-    | D13
-    | D14
-    | D15
-    | D16
-    | D17
-    | D18
-    | D19
-    | D20
-    | D21
-    | D22
-    | D23
-    | D24
-    | D25
-    deriving stock (Eq, Ord, Enum, Bounded, Show)
-
 getInput' :: MonadIO m => Day -> m Text
-getInput' = getInput . unpack . toText
+getInput' = getInput
 
-toText :: Day -> Text
-toText = show . (+ 1) . fromEnum
 
 -- Get parsed input
 getParsedInput :: MonadIO m => MonadFail m => Day -> Parser a -> m a

@@ -16,11 +16,15 @@ module Advent.Day13 where
 import           Prelude                   hiding (Left, Right, concat, getLine,
                                             putStrLn, readFile, show)
 
-import           Control.Lens              (assign, at, ix, modifying, set,
-                                            toListOf, traverse, use, uses, view,
-                                            _1, _2)
+import           Advent.Day13.GameInternal
+import           Advent.Day13.Intcode      hiding (initial_state)
+import           Advent.Day13.Internal     hiding (initial_state)
+import           Control.Lens              (_1, _2, assign, at, ix, modifying,
+                                            set, toListOf, traverse, use, uses,
+                                            view)
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.State       (StateT, get, lift, runStateT)
+import           Data.Advent               (Day (..))
 import           Data.Foldable             (maximum, minimum)
 import           Data.Functor.Identity     (runIdentity)
 import           Data.Generics.Labels      ()
@@ -29,10 +33,6 @@ import           Data.Text                 (Text, concat, intercalate, splitOn,
                                             unpack)
 import           Data.Text.IO              (putStrLn)
 import           System.Console.ANSI       (clearScreen, setCursorPosition)
-
-import           Advent.Day13.GameInternal
-import           Advent.Day13.Intcode      hiding (initial_state)
-import           Advent.Day13.Internal     hiding (initial_state)
 import           System.IO.Advent          (getInput)
 
 
@@ -94,7 +94,7 @@ show_screen =
   in show_map formatter
 
 get_input :: IO [Integer]
-get_input = fmap (read . unpack) . splitOn "," <$> getInput "13"
+get_input = fmap (read . unpack) . splitOn "," <$> getInput D13
 
 get_input_2 :: IO [Integer]
 get_input_2 = set (ix 0) 2 <$> get_input

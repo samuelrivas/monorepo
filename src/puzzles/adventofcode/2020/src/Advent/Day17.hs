@@ -10,11 +10,12 @@ module Advent.Day17 where
 
 import           Perlude
 
-import           Control.Lens        (at, both, each, foldlOf, modifying, non,
-                                      over, set, toListOf, use, view, _1, _2,
-                                      _3, _4)
+import           Control.Lens        (_1, _2, _3, _4, at, both, each, foldlOf,
+                                      modifying, non, over, set, toListOf, use,
+                                      view)
 import           Control.Monad       (filterM, guard, replicateM_)
 import           Control.Monad.State (MonadState, evalState, get, gets, put)
+import           Data.Advent         (Day (..))
 import           Data.Bidim          (Bidim, fromText, showBidim)
 import           Data.List           (find, foldl', sort, unfoldr)
 import           Data.Map.Strict     (Map)
@@ -219,7 +220,7 @@ mustDeactivate4 :: MonadState Cells4 m => Coord4 -> m Bool
 mustDeactivate4 = fmap (not . (`elem` [2, 3]) . length) . filterCellState4 True . neighbours4
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "17"
+getInput = IOAdvent.getInput D17
 
 solve1 :: Cells -> Int
 solve1 = evalState (replicateM_ 6 step >> getActive)

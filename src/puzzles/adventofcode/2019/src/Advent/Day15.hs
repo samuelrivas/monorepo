@@ -17,10 +17,13 @@ import           Prelude               hiding (Left, Right, concat, getLine,
                                         putStrLn, readFile, show)
 import qualified Prelude
 
+import           Advent.Day15.Intcode
+import           Advent.Day15.Internal
 import           Control.Lens          (assign, at, modifying, set, use, view)
 import           Control.Monad         (when)
 import           Control.Monad.Loops   (untilJust)
 import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, lift)
+import           Data.Advent           (Day (..))
 import           Data.Bidim            (Coord, showBidim)
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
@@ -30,9 +33,6 @@ import           Data.Sequence         (Seq ((:<|)), fromList, (><), (|>))
 import qualified Data.Sequence         as Seq
 import           Data.Text             (Text, pack, splitOn, unpack)
 import           Data.Text.IO          (putStrLn)
-
-import           Advent.Day15.Intcode
-import           Advent.Day15.Internal
 import           System.IO.Advent      (getInput)
 
 show :: Show a => a -> Text
@@ -59,7 +59,7 @@ encodeMove :: Move -> Integer
 encodeMove = (+1) . encode
 
 getIntcode :: IO [Integer]
-getIntcode = fmap (read . unpack) . splitOn "," <$> getInput "15"
+getIntcode = fmap (read . unpack) . splitOn "," <$> getInput D15
 
 popNode :: Monad m => ExploreT m (Maybe Node)
 popNode =

@@ -10,9 +10,10 @@ module Advent.Day20 where
 
 import           Perlude
 
-import           Control.Lens     (at, both, each, foldlOf, non, over, view, _1,
-                                   _2)
+import           Control.Lens     (_1, _2, at, both, each, foldlOf, non, over,
+                                   view)
 import           Control.Monad    (guard)
+import           Data.Advent      (Day (..))
 import           Data.Bidim       (Bidim, Coord, boundaries, fromText,
                                    showBidim)
 import           Data.Hashable    (hash)
@@ -48,7 +49,7 @@ data Rotation = R0
     deriving stock (Show, Ord, Eq, Enum)
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "20"
+getInput = IOAdvent.getInput D20
 
 parse :: Text -> [(Int, Bidim Char)]
 parse = fmap parseTile . Text.splitOn "\n\n" . Text.strip

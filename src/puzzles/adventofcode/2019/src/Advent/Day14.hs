@@ -15,8 +15,9 @@ module Advent.Day14 where
 
 import           Prelude              hiding (lines, readFile, unlines)
 
-import           Control.Lens         (at, non, over, set, traverse, view, _1,
-                                       _2)
+import           Control.Lens         (_1, _2, at, non, over, set, traverse,
+                                       view)
+import           Data.Advent          (Day (..))
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import           Data.Graph
@@ -28,7 +29,6 @@ import           Data.Text            (Text, intercalate, lines, splitOn,
                                        unpack)
 import qualified Data.Text            as Text
 import           Data.Tuple           (swap)
-
 import           System.IO.Advent     (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -66,7 +66,7 @@ input_to_reactions =
   in fromList . fmap to_entry
 
 get_input :: IO [([Amount], Amount)]
-get_input = parse_input <$> getInput "14"
+get_input = parse_input <$> getInput D14
 
 -- How many chemicals we need to produce something?
 needs :: Reactions -> Amount -> HashMap Text Int

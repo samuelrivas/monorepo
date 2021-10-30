@@ -24,7 +24,7 @@ example :: [Int]
 example = [1721, 979, 366, 299, 675, 1456]
 
 getInput :: MonadIO m => m Text
-getInput =  IOAdvent.getInput "1"
+getInput =  IOAdvent.getInput D1
 
 -- TODO: Remove the `init` hack
 parse :: Text -> [Int]

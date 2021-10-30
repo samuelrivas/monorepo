@@ -16,10 +16,11 @@ module Advent.Day10 where
 import           Prelude              hiding (getLine, lines, putStrLn,
                                        readFile)
 
-import           Control.Lens         (maximum1Of, modifying, over, set, use,
-                                       uses, view, _1, _2)
+import           Control.Lens         (_1, _2, maximum1Of, modifying, over, set,
+                                       use, uses, view)
 import           Control.Monad.Loops  (whileM)
 import           Control.Monad.State  (State, evalState)
+import           Data.Advent          (Day (..))
 import           Data.Foldable        (sequence_)
 import           Data.Generics.Labels ()
 import           Data.HashSet         (HashSet, delete, fromList, toList)
@@ -66,10 +67,10 @@ parse :: Text -> (HashSet Coord, Coord)
 parse text =
   let
     f (l, x, y) = \case
-      '#' -> ((x, y) : l, x + 1, y)
-      '.' -> (l, x + 1, y)
+      '#'  -> ((x, y) : l, x + 1, y)
+      '.'  -> (l, x + 1, y)
       '\n' -> (l, 0, y + 1)
-      _ -> error "badmatch"
+      _    -> error "badmatch"
     coords = view _1 $ Text.foldl' f ([], 0, 0) text
   in
     (fromList coords,
@@ -135,7 +136,7 @@ solution_1 input =
 
 main :: IO ()
 main = do
-  input <- getInput "10"
+  input <- getInput D10
   putStrLn $ "Solution 1: " <> (pack . show $ solution_1 input)
   putStrLn "Solution 2: not done :("
-  
+
