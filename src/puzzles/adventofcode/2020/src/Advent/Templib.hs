@@ -27,7 +27,6 @@ module Advent.Templib (
   listOfNum
   ) where
 
-import           Perlude
 import           Control.Lens               (view)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.IO.Class     (MonadIO)
@@ -36,12 +35,13 @@ import           Control.Monad.Trans.Class  (MonadTrans)
 import           Control.Monad.Trans.Reader (ReaderT, runReaderT)
 import           Data.Functor.Identity      (Identity, runIdentity)
 import           Data.Generics.Labels       ()
+import           Perlude
 import           System.IO.Advent           (getInput)
 import           Text.Parsec                (char, sepEndBy)
+import           Text.Parsec.Parselib       (num, unsafeParseAll)
 import           Text.Parsec.Text           (Parser)
 
 import           Advent.Templib.Internal
-import           Advent.Templib.Parsec      (num, unsafeParseAll)
 
 data Day = D1
     | D2

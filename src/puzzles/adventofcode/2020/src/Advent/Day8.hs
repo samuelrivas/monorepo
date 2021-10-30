@@ -6,20 +6,20 @@ module Advent.Day8 where
 
 import           Perlude
 
-import           Advent.Templib.Parsec (digitsAsNum, literal)
-import           Control.Lens          (ix, over, preview, view, _1, _2, _head,
-                                        _tail)
-import           Data.Functor          (($>))
-import           Data.Generics.Labels  ()
-import           Data.List             (find)
-import           Data.Maybe            (fromJust)
-import           Data.Set              (Set)
-import qualified Data.Set              as Set
-import           Text.Parsec           (char, sepEndBy, (<|>))
-import           Text.Parsec.Text      (Parser)
+import           Control.Lens         (_1, _2, _head, _tail, ix, over, preview,
+                                       view)
+import           Data.Functor         (($>))
+import           Data.Generics.Labels ()
+import           Data.List            (find)
+import           Data.Maybe           (fromJust)
+import           Data.Set             (Set)
+import qualified Data.Set             as Set
+import           Text.Parsec          (char, sepEndBy, (<|>))
+import           Text.Parsec.Parselib (digitsAsNum, literal)
+import           Text.Parsec.Text     (Parser)
 
 
-import           Advent.Templib        (Day (..), getInput', getParsedInput)
+import           Advent.Templib       (Day (..), getInput', getParsedInput)
 
 import           Advent.Day8.Internal
 

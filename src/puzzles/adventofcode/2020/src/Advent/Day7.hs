@@ -9,19 +9,19 @@ module Advent.Day7 where
 
 import           Perlude
 
-import           Advent.Templib.Parsec (digitsAsNum, literal, text1)
-import           Control.Lens          (at, non, view)
-import           Data.Foldable         (fold, foldl')
-import           Data.Functor          (($>))
-import           Data.Map              (Map)
-import qualified Data.Map              as Map
-import           Data.Set              (Set)
-import qualified Data.Set              as Set
-import           Text.Parsec           (char, noneOf, optional, sepBy, sepEndBy,
-                                        (<|>))
-import           Text.Parsec.Text      (Parser)
+import           Control.Lens         (at, non, view)
+import           Data.Foldable        (fold, foldl')
+import           Data.Functor         (($>))
+import           Data.Map             (Map)
+import qualified Data.Map             as Map
+import           Data.Set             (Set)
+import qualified Data.Set             as Set
+import           Text.Parsec          (char, noneOf, optional, sepBy, sepEndBy,
+                                       (<|>))
+import           Text.Parsec.Parselib (digitsAsNum, literal, text1)
+import           Text.Parsec.Text     (Parser)
 
-import           Advent.Templib        (Day (..), getInput', getParsedInput)
+import           Advent.Templib       (Day (..), getInput', getParsedInput)
 
 -- TODO: We need a better graph abstraction. Using a map like here seems to be
 -- more convenient than Data.Graph, but then we need to implement all

@@ -5,15 +5,15 @@ module Advent.Day6 where
 
 import           Perlude
 
-import           Data.List             (foldl1')
-import           Data.Set              (Set)
-import qualified Data.Set              as Set
-import           Data.Text             (unpack)
-import           Text.Parsec           (char, noneOf, sepBy, sepEndBy)
-import           Text.Parsec.Text      (Parser)
+import           Data.List            (foldl1')
+import           Data.Set             (Set)
+import qualified Data.Set             as Set
+import           Data.Text            (unpack)
+import           Text.Parsec          (char, noneOf, sepBy, sepEndBy)
+import           Text.Parsec.Parselib (text1)
+import           Text.Parsec.Text     (Parser)
 
-import           Advent.Templib        (Day (..), getInput', getParsedInput)
-import           Advent.Templib.Parsec (text1)
+import           Advent.Templib       (Day (..), getInput', getParsedInput)
 
 day :: Day
 day = D6

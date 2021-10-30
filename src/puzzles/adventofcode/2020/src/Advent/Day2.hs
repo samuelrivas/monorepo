@@ -10,17 +10,17 @@ module Advent.Day2 where
 
 import           Perlude
 
-import           Control.Lens          (ix, preview)
-import           Data.Maybe            (fromJust)
-import           Data.Text             (Text, count, singleton)
-import qualified Data.Text             as Text
-import qualified System.IO.Advent      as IOAdvent
-import           Text.Parsec           (anyChar, char, endOfLine, noneOf,
-                                        sepEndBy, string)
-import           Text.Parsec.Text      (Parser)
+import           Control.Lens         (ix, preview)
+import           Data.Maybe           (fromJust)
+import           Data.Text            (Text, count, singleton)
+import qualified Data.Text            as Text
+import qualified System.IO.Advent     as IOAdvent
+import           Text.Parsec          (anyChar, char, endOfLine, noneOf,
+                                       sepEndBy, string)
+import           Text.Parsec.Parselib (digitsAsNum, text, unsafeParseAll)
+import           Text.Parsec.Text     (Parser)
 
-import           Advent.Templib.Bool   (xor)
-import           Advent.Templib.Parsec (digitsAsNum, text, unsafeParseAll)
+import           Advent.Templib.Bool  (xor)
 
 example :: Text
 example = "1-3 a: abcde\n\

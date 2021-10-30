@@ -9,19 +9,19 @@ module Advent.Day19 where
 
 import           Perlude
 
-import           Control.Lens          (at, over, set, view, _1, _2)
-import           Data.Foldable         (fold)
-import           Data.Map              (Map)
-import qualified Data.Map              as Map
-import           Data.Maybe            (fromJust)
-import qualified Data.Text             as Text
-import           Text.Parsec           (between, char, oneOf, sepBy, sepEndBy,
-                                        (<|>))
-import           Text.Regex.TDFA       ((=~))
-import           Text.Regex.TDFA.Text  ()
+import           Control.Lens         (_1, _2, at, over, set, view)
+import           Data.Foldable        (fold)
+import           Data.Map             (Map)
+import qualified Data.Map             as Map
+import           Data.Maybe           (fromJust)
+import qualified Data.Text            as Text
+import           Text.Parsec          (between, char, oneOf, sepBy, sepEndBy,
+                                       (<|>))
+import           Text.Parsec.Parselib (Parser, digitsAsNum, literal, text1)
+import           Text.Regex.TDFA      ((=~))
+import           Text.Regex.TDFA.Text ()
 
-import           Advent.Templib        (Day (..), getInput', getParsedInput)
-import           Advent.Templib.Parsec (Parser, digitsAsNum, literal, text1)
+import           Advent.Templib       (Day (..), getInput', getParsedInput)
 
 day :: Day
 day = D19
@@ -213,7 +213,7 @@ main = do
 --
 -- We want to turn [["a", "b"], ["1", "2"]] into ["a1", "a2", "b1",
 -- "b2"]. Thinking of lists as a monad, we need to turn m [Text] into m Text. If
--- whe change the monad to Maybe, that is turning [Just "a", Just "b"] into Just
+-- we change the monad to Maybe, that is turning [Just "a", Just "b"] into Just
 -- "ab".
 --
 -- What makes it confusing with the list monad is that we are using lists in two

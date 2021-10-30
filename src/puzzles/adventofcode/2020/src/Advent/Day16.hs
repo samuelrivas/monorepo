@@ -10,17 +10,17 @@ module Advent.Day16 where
 
 import           Perlude
 
-import           Control.Lens          (view, _1, _2)
+import           Control.Lens          (_1, _2, view)
 import           Control.Monad.Fail    (MonadFail)
 import           Data.Generics.Labels  ()
 import           Data.List             (foldl', intersect, sort, transpose)
 import           Data.Text             (isPrefixOf)
 import           Text.Parsec           (between, char, endBy, noneOf, sepBy,
                                         sepBy1, sepEndBy)
+import           Text.Parsec.Parselib  (Parser, digitsAsNum, literal, text1)
 
 import           Advent.Day16.Internal (Rule, mkRule)
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
-import           Advent.Templib.Parsec (Parser, digitsAsNum, literal, text1)
 
 
 day :: Day
@@ -34,7 +34,7 @@ day = D16
 -- TODO: Move to lib
 liftMaybe :: MonadFail m => Maybe a -> m a
 liftMaybe = \case
-  Just a -> pure a
+  Just a  -> pure a
   Nothing -> fail "maybeToFail did, indeed, fail"
 
 example :: Text

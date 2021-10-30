@@ -14,12 +14,12 @@ import           Data.Foldable            (traverse_)
 import           Data.Functor             (($>))
 import           Data.Generics.Labels     ()
 import           Text.Parsec              (char, sepEndBy, unexpected, (<|>))
+import           Text.Parsec.Parselib     (Parser, digitsAsNum)
 
 import           Advent.Day12.Internal    (Action (..), Direction (..),
                                            Instruction, Ship, Ship2,
                                            mkInstruction, mkShip, mkShip2)
 import           Advent.Templib           (Day (..), getInput', getParsedInput)
-import           Advent.Templib.Parsec    (Parser, digitsAsNum)
 
 day :: Day
 day = D12

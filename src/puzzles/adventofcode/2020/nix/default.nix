@@ -15,6 +15,7 @@ let
     matrix
     monad-loops
     multiset
+    parselib
     perlude
     readline
     regex-tdfa
