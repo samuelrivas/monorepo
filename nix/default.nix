@@ -159,6 +159,7 @@ let
         low-battery = ./../src/haskell/low-battery/nix;
         perlude = ./../src/haskell/perlude/nix;
         parselib = ./../src/haskell/parselib/nix;
+        boollib = ./../src/haskell/boollib/nix;
       };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
@@ -169,6 +170,7 @@ let
     perlude = pkgs-sam.haskellPackages.perlude;
     parselib = pkgs-sam.haskellPackages.parselib;
     adventlib = pkgs-sam.haskellPackages.adventlib;
+    boollib = pkgs-sam.haskellPackages.boollib;
 
     # Shell-scripts
     # =============
