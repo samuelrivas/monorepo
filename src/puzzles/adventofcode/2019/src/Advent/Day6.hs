@@ -17,6 +17,7 @@ import           Prelude              hiding (getLine, lines, putStrLn,
 
 import           Control.Lens         (both, over, toListOf)
 import           Control.Monad        (join)
+import           Data.Advent          (Day (..))
 import qualified Data.Array           as Array
 import           Data.Foldable        (find)
 import           Data.Generics.Labels ()
@@ -29,7 +30,6 @@ import qualified Data.Set             as Set
 import           Data.Text            (Text, lines, pack, splitOn, unlines)
 import           Data.Text.IO         (putStrLn)
 import           Data.Tuple           (swap)
-
 import           System.IO.Advent     (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -134,6 +134,6 @@ solution_2 orbits =
 
 main :: IO ()
 main = do
-  Just orbits <- parse_input <$> getInput "6"
+  Just orbits <- parse_input <$> getInput D6
   putStrLn $ "Solution 1: " <> (pack . show . solution_1 $ orbits)
   putStrLn $ "Solution 2: " <> (pack . show . fromJust . solution_2 $ orbits)

@@ -17,9 +17,9 @@ module Advent.Day11 where
 import           Prelude               hiding (Left, Right, concat, getLine,
                                         putStrLn, readFile, show)
 
-import           Control.Lens          (assign, at, modifying, non, over, set,
-                                        toListOf, traverse, use, view, _1, _2,
-                                        _3)
+import           Control.Lens          (_1, _2, _3, assign, at, modifying, non,
+                                        over, set, toListOf, traverse, use,
+                                        view)
 import           Control.Monad.Loops   (whileM_)
 import           Control.Monad.State   (StateT, lift, runStateT)
 import           Data.Foldable         (maximum, minimum)
@@ -33,6 +33,7 @@ import           GHC.Generics          (Generic)
 
 import           Advent.Day11.Intcode  hiding (initial_state)
 import           Advent.Day11.Internal hiding (initial_state)
+import           Data.Advent           (Day (..))
 import           System.IO.Advent      (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -127,7 +128,7 @@ loop :: Monad m => RobotT m ()
 loop = whileM_ ((== Interrupted) <$> get_status) step
 
 get_input :: IO [Integer]
-get_input = fmap (read . unpack) . splitOn "," <$> getInput "11"
+get_input = fmap (read . unpack) . splitOn "," <$> getInput D11
 
 run_robot ::
   Monad m =>

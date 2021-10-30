@@ -7,6 +7,8 @@ let
     fingertree
     generic-lens
     lens
+    parselib
+    perlude
     unliftio
     writer-cps-mtl
   ];

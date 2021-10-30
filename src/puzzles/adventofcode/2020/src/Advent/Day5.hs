@@ -4,6 +4,7 @@ module Advent.Day5 where
 
 import           Prelude          hiding (lines, putStr, putStrLn, read, show)
 
+import           Data.Advent      (Day (..))
 import           Data.List        (find, foldl')
 import           Data.Maybe       (fromJust)
 import qualified Data.Set         as Set
@@ -12,7 +13,7 @@ import           Data.Text.IO     (putStr)
 import qualified System.IO.Advent as IOAdvent
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "5"
+getInput = IOAdvent.getInput D5
 
 toBin :: Text -> [Bool]
 toBin = fmap (\x -> x == 'B' || x == 'R') . unpack

@@ -19,6 +19,7 @@ import           Prelude              hiding (lines, putStrLn, readFile, show,
 import qualified Prelude
 
 import           Control.Monad.State  (StateT, evalStateT, gets, modify)
+import           Data.Advent          (Day (..))
 import           Data.Bidim
 import           Data.Bool            (bool)
 import           Data.Foldable        (foldl')
@@ -29,7 +30,6 @@ import           Data.Map.Strict      (Map)
 import qualified Data.Map.Strict      as Map
 import           Data.Text            (Text, pack)
 import           Data.Text.IO         (putStrLn)
-
 import           System.IO.Advent     (getInput)
 
 show :: Show a => a -> Text
@@ -196,6 +196,6 @@ findDup eris =
 
 main :: IO ()
 main = do
-  input <- getInput "24"
+  input <- getInput D24
   solve1 input
   solve2 input

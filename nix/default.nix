@@ -168,6 +168,7 @@ let
     low-battery = pkgs-sam.haskellPackages.low-battery;
     perlude = pkgs-sam.haskellPackages.perlude;
     parselib = pkgs-sam.haskellPackages.parselib;
+    adventlib = pkgs-sam.haskellPackages.adventlib;
 
     # Shell-scripts
     # =============

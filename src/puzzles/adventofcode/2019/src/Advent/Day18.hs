@@ -33,13 +33,14 @@ import           Prelude                         hiding (lines, putStrLn, show,
                                                   unlines)
 import qualified Prelude
 
-import           Control.Lens                    (at, ix, over, preview, set,
-                                                  view, views, _1, _2)
+import           Control.Lens                    (_1, _2, at, ix, over, preview,
+                                                  set, view, views)
 import           Control.Monad                   (replicateM_)
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.MonadSearch       (step)
 import           Control.Monad.MonadSearch.Astar
 import           Control.Monad.Reader            (Reader)
+import           Data.Advent                     (Day (..))
 import           Data.Bidim                      (Bidim, Coord, cross, fromText,
                                                   plus)
 import           Data.Char                       (isAsciiLower, isAsciiUpper,
@@ -106,7 +107,7 @@ solve2 text =
     -- putStrLn $ Text.unlines . reverse $ (show <$> view #path (fromJust node))
 
 getInput :: IO Text
-getInput = Advent.getInput "18"
+getInput = Advent.getInput D18
 
 parseInput :: Text -> (Bidim Char, Coord, [Char])
 parseInput text =

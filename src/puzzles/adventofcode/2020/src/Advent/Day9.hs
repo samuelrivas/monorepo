@@ -6,12 +6,14 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 module Advent.Day9 where
 
 import           Perlude
 
-import           Control.Lens     (at, both, each, foldlOf, over, view, _2)
+import           Control.Lens     (_2, at, both, each, foldlOf, over, view)
 import           Control.Monad    (fmap, guard)
+import           Data.Advent      (Day (..))
 import           Data.IntMultiSet (IntMultiSet)
 import qualified Data.IntMultiSet as IntMultiSet
 import           Data.List        (filter, find, maximum, minimum, splitAt,
@@ -24,7 +26,7 @@ import qualified Data.Text        as Text
 import qualified System.IO.Advent as IOAdvent
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "9"
+getInput = IOAdvent.getInput D9
 
 parse :: Text -> [Int]
 parse = fmap read . Text.lines

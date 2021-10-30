@@ -6,8 +6,10 @@ exposed: True
 exposed-modules:
     Control.Monad.MonadSearch
     Control.Monad.MonadSearch.Astar
+    Data.Advent
     Data.Bidim
     System.IO.Advent
+    Text.Parsec.Advent
 import-dirs: @@IMPORT-DIR@@
 library-dirs: @@STATIC-LIB-DIR@@
 dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@

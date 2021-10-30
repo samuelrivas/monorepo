@@ -9,15 +9,15 @@ module Advent.Day2 where
 
 import           Prelude              hiding (getLine)
 
+import           Advent.Day2.State
 import           Control.Lens         (assign, modifying, use, uses)
 import           Control.Monad.Loops  (whileM_)
 import           Control.Monad.State
+import           Data.Advent          (Day (..))
 import           Data.Array           ((!), (//))
 import           Data.Generics.Labels ()
 import           Data.List            (find)
 import           Data.Text            (splitOn, unpack)
-
-import           Advent.Day2.State
 import           System.IO.Advent     (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -43,7 +43,7 @@ step_program :: Monad m => ProgramT m ()
 step_program =
   next_opcode >>= \case
     Just opc -> run_opcode opc
-    Nothing -> assign #status Aborted
+    Nothing  -> assign #status Aborted
 
 run_opcode :: Monad m => Opcode -> ProgramT m ()
 run_opcode Halt = assign #status Finished
@@ -85,7 +85,7 @@ eval_test s (noun, verb) = evalStateT (test noun verb) s
 
 main :: IO ()
 main = do
-  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput "2"
+  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput D2
 
   result <- evalStateT (set_input 12 2 >> run_program >> get_output)
             (initial_state memory)

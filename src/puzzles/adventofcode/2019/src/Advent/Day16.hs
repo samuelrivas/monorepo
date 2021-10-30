@@ -17,11 +17,11 @@ import           Prelude          hiding (lines, putStrLn, readFile, show,
                                    unlines)
 import qualified Prelude
 
+import           Data.Advent      (Day (..))
 import           Data.List        (concatMap, unfoldr)
 import           Data.Text        (Text, pack, unpack)
 import qualified Data.Text        as Text
 import           Data.Text.IO     (putStrLn)
-
 import           System.IO.Advent (getInput)
 
 show :: Show a => a -> Text
@@ -48,7 +48,7 @@ solve2 = undefined
 
 main :: IO ()
 main = do
-  input <- fmap ((+ (- fromEnum '0')) . fromEnum) . unpack <$> getInput "16"
+  input <- fmap ((+ (- fromEnum '0')) . fromEnum) . unpack <$> getInput D16
   putStrLn $ "Solution 1: " <> solve1 input
   -- putStrLn $ "Solution 2: " <> show (solve2 input)
   putStrLn "Solution 2: Takes forever :("

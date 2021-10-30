@@ -13,13 +13,13 @@ module Advent.Day9 where
 
 import           Prelude               hiding (getLine, putStrLn, readFile)
 
-import           Control.Lens          (view, _3)
+import           Advent.Day9.Intcode
+import           Control.Lens          (_3, view)
+import           Data.Advent           (Day (..))
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
 import           Data.Text             (Text, splitOn, unpack)
 import           Data.Text.IO          (putStrLn)
-
-import           Advent.Day9.Intcode
 import           System.IO.Advent      (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -40,6 +40,6 @@ solution_2 = view _3 . runIdentity . launch (push_input [2] >> run_program)
 
 main :: IO ()
 main = do
-  code :: [Integer] <- fmap (read . unpack) . splitOn "," <$> getInput "9"
+  code :: [Integer] <- fmap (read . unpack) . splitOn "," <$> getInput D9
   putStrLn $ "Solution 1: " <> solution_1 code
   putStrLn $ "Solution 2: " <> solution_2 code

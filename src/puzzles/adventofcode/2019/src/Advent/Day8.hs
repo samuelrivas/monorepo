@@ -14,10 +14,10 @@ module Advent.Day8 where
 
 import           Prelude
 
+import           Data.Advent      (Day (..))
 import           Data.List        (find, minimumBy, transpose)
 import           Data.Maybe       (fromMaybe)
 import           Data.Text        (unpack)
-
 import           System.IO.Advent (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -58,7 +58,7 @@ solution_2 img =
 
 main :: IO ()
 main = do
-  image <- unpack <$> getInput "8"
+  image <- unpack <$> getInput D8
   putStrLn $ "Solution 1: " <> show (solution_1 image)
   putStrLn "Solution 2:"
   sequence_ $ putStrLn  <$> solution_2 image

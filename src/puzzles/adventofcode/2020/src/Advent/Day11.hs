@@ -10,9 +10,10 @@ module Advent.Day11 where
 
 import           Perlude
 
-import           Control.Lens     (at, both, each, foldlOf, over, preview, set,
-                                   view, _1, _2)
+import           Control.Lens     (_1, _2, at, both, each, foldlOf, over,
+                                   preview, set, view)
 import           Control.Monad    (guard)
+import           Data.Advent      (Day (..))
 import           Data.Bidim       (Bidim, Coord, plus)
 import qualified Data.Bidim       as Bidim
 import           Data.List        (elem, find, foldl', sort, unfoldr)
@@ -42,7 +43,7 @@ example = "L.LL.LL.LL\n\
           \L.LLLLL.LL\n"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "11"
+getInput = IOAdvent.getInput D11
 
 parse :: Text -> Bidim Char
 parse = Bidim.fromText

@@ -10,8 +10,9 @@ module Advent.Day3 where
 import           Prelude              hiding (lines, putStrLn, read)
 import qualified Prelude
 
-import           Control.Lens         (at, view, _2)
+import           Control.Lens         (_2, at, view)
 import           Control.Monad.Reader (MonadReader, asks)
+import           Data.Advent          (Day (..))
 import           Data.Bidim           (Bidim, Coord, boundaries, fromText, plus)
 import           Data.List            (unfoldr)
 import           Data.Maybe           (fromJust)
@@ -39,7 +40,7 @@ example = "..##.......\n\
           \.#..#...#.#\n"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "3"
+getInput = IOAdvent.getInput D3
 
 -- TODO: Move to Bidim
 

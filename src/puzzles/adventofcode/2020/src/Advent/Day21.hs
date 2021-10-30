@@ -11,15 +11,16 @@ module Advent.Day21 where
 
 import           Perlude
 
-import           Control.Lens         (at, both, each, foldlOf, non, over,
-                                       preview, view, _1, _2, _head)
+import           Control.Lens         (_1, _2, _head, at, both, each, foldlOf,
+                                       non, over, preview, view)
 import           Control.Monad.Loops  (whileJust)
 import           Control.Monad.Reader (MonadReader, Reader, ask, runReader)
 import           Control.Monad.State  (MonadState, StateT, evalStateT, get,
                                        modify)
-import           Data.Hashable        (Hashable)
+import           Data.Advent          (Day (..))
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
+import           Data.Hashable        (Hashable)
 import           Data.List            (foldl', sort)
 import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (catMaybes, fromJust)
@@ -30,7 +31,7 @@ import qualified System.IO.Advent     as IOAdvent
 -- TODO: generalise this. Many problems are similar to this, see day 16 for
 -- exampe
 getInput :: IO Text
-getInput = IOAdvent.getInput "21"
+getInput = IOAdvent.getInput D21
 
 example :: Text
 example = "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)\n\

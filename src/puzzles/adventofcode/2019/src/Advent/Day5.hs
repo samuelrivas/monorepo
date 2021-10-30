@@ -16,23 +16,23 @@ module Advent.Day5 where
 
 import           Prelude               hiding (getLine, putStrLn)
 
+import           Advent.Day5.Internal
 import           Control.Lens          (assign, ix, modifying, preview, use,
                                         uses)
 import           Control.Monad         (when)
 import           Control.Monad.Loops   (whileM_)
-import           Control.Monad.Reader  (MonadReader)
 import           Control.Monad.RWS.CPS (RWST, evalRWST, execRWST, get, runRWST,
                                         tell)
+import           Control.Monad.Reader  (MonadReader)
 import           Control.Monad.State   (MonadState)
 import           Control.Monad.Writer  (MonadWriter)
+import           Data.Advent           (Day (..))
 import           Data.Array            (elems, listArray, (!), (//))
 import           Data.Generics.Labels  ()
 import           Data.List             (uncons)
 import           Data.Maybe            (fromMaybe)
 import           Data.Text             (Text, pack, splitOn, unpack)
 import           Data.Text.IO          (putStrLn)
-
-import           Advent.Day5.Internal
 import           System.IO.Advent      (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -105,7 +105,7 @@ step_program :: Monad m => ProgramT m ()
 step_program =
   pop_opcode >>= \case
     Just opc -> run_opcode opc
-    Nothing -> abort "could not pop next opcode"
+    Nothing  -> abort "could not pop next opcode"
 
 abort :: Monad m => Text -> ProgramT m ()
 abort msg = do
@@ -180,7 +180,7 @@ launch program memory = run program (initial_state memory)
 
 main :: IO ()
 main = do
-  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput "5"
+  memory :: [Int] <- fmap (read . unpack) . splitOn "," <$> getInput D5
 
   ((), _s, out1) <- launch (push_input 1 >> run_program) memory
   putStrLn $  "Solution 1: " <> out1

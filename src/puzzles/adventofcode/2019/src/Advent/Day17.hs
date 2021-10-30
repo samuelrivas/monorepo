@@ -17,10 +17,12 @@ import           Prelude                 hiding (Left, Right, concat, getLine,
                                           putStr, putStrLn, readFile, show)
 import qualified Prelude
 
+import           Advent.Day17.Intcode
 import           Control.Applicative     ((<|>))
-import           Control.Lens            (at, both, ix, productOf, set, view,
-                                          views, _1, _2)
+import           Control.Lens            (_1, _2, at, both, ix, productOf, set,
+                                          view, views)
 import           Control.Monad.IO.Class  (liftIO)
+import           Data.Advent             (Day (..))
 import           Data.Bidim              (Coord, plus, showBidim)
 import           Data.Foldable           (foldl')
 import           Data.Functor.Identity   (runIdentity)
@@ -30,8 +32,6 @@ import           Data.Maybe              (fromJust)
 import           Data.Text               (Text, pack, splitOn, unpack)
 import           Data.Text.IO            (putStr, putStrLn)
 import           System.Console.Readline (readline)
-
-import           Advent.Day17.Intcode
 import           System.IO.Advent        (getInput)
 
 type Scaffold = Map Coord Char
@@ -87,7 +87,7 @@ textToIntcode :: Text -> [Integer]
 textToIntcode = fmap encode . unpack
 
 readInput :: IO [Integer]
-readInput = fmap (read . unpack) . splitOn "," <$> getInput "17"
+readInput = fmap (read . unpack) . splitOn "," <$> getInput D17
 
 readInput2 :: IO [Integer]
 readInput2 = set (ix 0) 2 <$> readInput
@@ -137,8 +137,8 @@ nextMoveRotate scaffold direction coord =
     (leftPos, rightPos) = sideCoords direction coord
     findScaffold pos =
       view (at pos) scaffold >>= \case
-        '#' -> Just ()
-        '.' -> Nothing
+        '#'  -> Just ()
+        '.'  -> Nothing
         what -> error $ "found strange cell" <> [what]
     left = (Rotate False, coord, rotate False direction) <$ findScaffold leftPos
     right = (Rotate True, coord, rotate True direction)  <$ findScaffold rightPos

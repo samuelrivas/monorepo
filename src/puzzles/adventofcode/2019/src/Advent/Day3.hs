@@ -12,14 +12,14 @@ module Advent.Day3 where
 
 import           Prelude          hiding (getLine, lines)
 
-import           Control.Lens     (over, view, _1, _2, _3)
+import           Control.Lens     (_1, _2, _3, over, view)
+import           Data.Advent      (Day (..))
 import           Data.Foldable    (concatMap, foldl')
 import           Data.Map         (Map, empty, insert, insertWith, keysSet, (!))
 import           Data.Set         (Set, intersection)
 import qualified Data.Set         as Set
 import           Data.Text        (Text, lines, splitOn, unpack)
 import qualified Data.Text        as Text
-
 import           System.IO.Advent (getInput)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -124,6 +124,6 @@ find_solution_2 x y =
 
 main :: IO ()
 main = do
-  [Just x, Just y] <- fmap parse . lines <$> getInput "3"
+  [Just x, Just y] <- fmap parse . lines <$> getInput D3
   putStrLn $ "Solution 1: " <> show (find_solution_1 x y)
   putStrLn $ "Solution 2: " <> show (fst $ find_solution_2 x y)

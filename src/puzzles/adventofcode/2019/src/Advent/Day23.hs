@@ -17,11 +17,14 @@ import           Prelude               hiding (Left, Right, concat, getLine,
                                         putStr, putStrLn, readFile, show)
 import qualified Prelude
 
-import           Control.Lens          (assign, at, modifying, set, use, uses,
-                                        view, _2, _Just)
+import           Advent.Day23.Intcode
+import           Advent.Day23.Internal
+import           Control.Lens          (_2, _Just, assign, at, modifying, set,
+                                        use, uses, view)
 import           Control.Monad         (when)
 import           Control.Monad.Loops   (untilJust)
 import           Control.Monad.State
+import           Data.Advent           (Day (..))
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
 import           Data.HashMap.Strict   ((!))
@@ -30,9 +33,6 @@ import           Data.Maybe            (fromMaybe)
 import           Data.Monoid           (Sum (..))
 import           Data.Text             (Text, pack, splitOn, unpack)
 import           Data.Text.IO          (putStrLn)
-
-import           Advent.Day23.Intcode
-import           Advent.Day23.Internal
 import           System.IO.Advent      (getInput)
 
 type NetworkT = StateT NetworkState
@@ -51,7 +51,7 @@ decode :: (Integral c, Enum a) => c -> a
 decode = toEnum . fromIntegral
 
 getCode :: IO [Integer]
-getCode = fmap (read . unpack) . splitOn "," <$> getInput "23"
+getCode = fmap (read . unpack) . splitOn "," <$> getInput D23
 
 allNodes :: [Integer]
 allNodes = [0..49]

@@ -11,6 +11,7 @@ module Advent.Day2 where
 import           Perlude
 
 import           Control.Lens         (ix, preview)
+import           Data.Advent          (Day (D2))
 import           Data.Maybe           (fromJust)
 import           Data.Text            (Text, count, singleton)
 import qualified Data.Text            as Text
@@ -28,7 +29,7 @@ example = "1-3 a: abcde\n\
           \2-9 c: ccccccccc"
 
 getInput :: IO Text
-getInput = IOAdvent.getInput "2"
+getInput = IOAdvent.getInput D2
 
 -- (Min, Max, Character)
 type Policy = (Int, Int, Text)
