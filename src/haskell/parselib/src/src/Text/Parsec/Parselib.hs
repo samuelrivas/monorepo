@@ -12,7 +12,7 @@
 
 -- TODO: Generalise to ParsecT where it makes sense
 
-module Advent.Templib.Parsec (
+module Text.Parsec.Parselib (
   digitAsNum,
   digitsAsNum,
   num,
@@ -31,15 +31,14 @@ module Advent.Templib.Parsec (
 import           Perlude
 import qualified Prelude
 
-import           Control.Monad.Fail (MonadFail)
-import           Data.Char          (digitToInt)
-import           Data.Foldable      (foldl')
-import           Data.Functor       (($>))
-import           Text.Parsec        (ParseError, anyChar, char, digit, eof,
-                                     getInput, lookAhead, many, many1, manyTill,
-                                     option, string, (<|>))
-import qualified Text.Parsec        as Parsec
-import           Text.Parsec.Text   (Parser)
+import           Data.Char        (digitToInt)
+import           Data.Foldable    (foldl')
+import           Data.Functor     (($>))
+import           Text.Parsec      (ParseError, anyChar, char, digit, eof,
+                                   getInput, lookAhead, many, many1, manyTill,
+                                   option, string, (<|>))
+import qualified Text.Parsec      as Parsec
+import           Text.Parsec.Text (Parser)
 
 -- Parse a single digit and return it as a Num value
 digitAsNum :: Num n => Parser n

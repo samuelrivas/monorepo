@@ -15,12 +15,12 @@ import           Control.Monad.State.Strict (MonadState, evalState)
 import           Data.Generics.Labels       ()
 import qualified Data.Map                   as Map
 import           Text.Parsec                (char, sepBy)
+import           Text.Parsec.Parselib       (Parser, digitsAsNum)
 
 
 import           Advent.Day15.Internal
 import           Advent.Templib             (Day (..), getInput',
                                              getParsedInput)
-import           Advent.Templib.Parsec      (Parser, digitsAsNum)
 
 day :: Day
 day = D15

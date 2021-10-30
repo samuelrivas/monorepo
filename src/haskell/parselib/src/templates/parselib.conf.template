@@ -1,0 +1,12 @@
+name: parselib
+version: 1.0
+id: parselib
+key: parselib
+exposed: True
+exposed-modules:
+    Text.Parsec.Parselib
+import-dirs: @@IMPORT-DIR@@
+library-dirs: @@STATIC-LIB-DIR@@
+dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
+hs-libraries: HSparselib
+depends:

@@ -6,7 +6,7 @@ module Advent.Day14 where
 
 import           Perlude
 
-import           Control.Lens          (over, set, view, _2)
+import           Control.Lens          (_2, over, set, view)
 import           Data.Bits             (clearBit, setBit)
 import           Data.Functor          (($>))
 import           Data.Generics.Labels  ()
@@ -15,10 +15,10 @@ import qualified Data.Map              as Map
 import qualified Data.Text             as Text
 import           Text.Parsec           (between, char, many1, oneOf, sepEndBy,
                                         try, (<?>), (<|>))
+import           Text.Parsec.Parselib  (Parser, literal, num, text1)
 
 import           Advent.Day14.Internal
 import           Advent.Templib        (Day (..), getInput', getParsedInput)
-import           Advent.Templib.Parsec (Parser, literal, num, text1)
 
 day :: Day
 day = D14

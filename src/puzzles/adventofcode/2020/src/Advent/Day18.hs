@@ -7,16 +7,16 @@
 
 module Advent.Day18 where
 
-import           Perlude        as Perlude
-import qualified Prelude               (show)
+import           Perlude              as Perlude
+import qualified Prelude              (show)
 
-import           Data.Foldable         (foldl')
-import           Data.Functor          (($>))
-import           Text.Parsec           (char, many, sepEndBy, spaces, (<?>),
-                                        (<|>))
+import           Data.Foldable        (foldl')
+import           Data.Functor         (($>))
+import           Text.Parsec          (char, many, sepEndBy, spaces, (<?>),
+                                       (<|>))
+import           Text.Parsec.Parselib (Parser, digitsAsNum)
 
-import           Advent.Templib        (Day (..), getInput', getParsedInput)
-import           Advent.Templib.Parsec (Parser, digitsAsNum)
+import           Advent.Templib       (Day (..), getInput', getParsedInput)
 
 day :: Day
 day = D18

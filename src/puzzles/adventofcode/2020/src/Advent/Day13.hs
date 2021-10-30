@@ -6,15 +6,14 @@ module Advent.Day13 where
 
 import           Perlude
 
-import           Advent.Templib        (Day (..), getInput', getParsedInput)
-import           Control.Lens          (over, preview, view, _1, _2)
-import           Data.Functor          (($>))
-import           Data.List             (all, elemIndex, find, maximumBy)
-import           Data.Maybe            (fromJust, mapMaybe)
-import           Text.Parsec           (char, sepBy, (<|>))
-import           Text.Parsec.Text      (Parser)
-
-import           Advent.Templib.Parsec (digitsAsNum)
+import           Advent.Templib       (Day (..), getInput', getParsedInput)
+import           Control.Lens         (_1, _2, over, preview, view)
+import           Data.Functor         (($>))
+import           Data.List            (all, elemIndex, find, maximumBy)
+import           Data.Maybe           (fromJust, mapMaybe)
+import           Text.Parsec          (char, sepBy, (<|>))
+import           Text.Parsec.Parselib (digitsAsNum)
+import           Text.Parsec.Text     (Parser)
 
 -- TODO: Write the solution for this, it was solved in the repl, hastily
 

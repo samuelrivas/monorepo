@@ -158,6 +158,7 @@ let
         onirim-helper = ./../src/haskell/onirim-helper/nix;
         low-battery = ./../src/haskell/low-battery/nix;
         perlude = ./../src/haskell/perlude/nix;
+        parselib = ./../src/haskell/parselib/nix;
       };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
@@ -166,6 +167,7 @@ let
     onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
     low-battery = pkgs-sam.haskellPackages.low-battery;
     perlude = pkgs-sam.haskellPackages.perlude;
+    parselib = pkgs-sam.haskellPackages.parselib;
 
     # Shell-scripts
     # =============
