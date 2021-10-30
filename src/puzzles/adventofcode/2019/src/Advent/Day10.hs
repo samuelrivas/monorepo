@@ -139,4 +139,3 @@ main = do
   input <- getInput D10
   putStrLn $ "Solution 1: " <> (pack . show $ solution_1 input)
   putStrLn "Solution 2: not done :("
-
