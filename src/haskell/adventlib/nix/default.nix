@@ -4,13 +4,9 @@
 }:
 let
   haskell-libs = with haskellPackages; [
-    fingertree
-    generic-lens
     lens
     parselib
-    perlude
     unliftio
-    writer-cps-mtl
   ];
 in haskell-pkg {
   name = "adventlib";
