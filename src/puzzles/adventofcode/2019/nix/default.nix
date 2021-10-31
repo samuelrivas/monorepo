@@ -12,6 +12,7 @@ let
     monad-loops
     readline
     regex-pcre
+    searchlib
     unliftio
     unordered-containers
     writer-cps-mtl

@@ -4,12 +4,15 @@
 }:
 let
   haskell-libs = with haskellPackages; [
+    fingertree
+    generic-lens
     lens
-    parselib
-    unliftio
+    perlude
+    unordered-containers
+    writer-cps-mtl
   ];
 in haskell-pkg {
-  name = "adventlib";
+  name = "searchlib";
   src = ./../src;
 
   inherit haskellPackages haskell-libs;

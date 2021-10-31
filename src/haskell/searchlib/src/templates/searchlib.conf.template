@@ -1,15 +1,13 @@
-name: adventlib
+name: searchlib
 version: 1.0
-id: adventlib
-key: adventlib
+id: searchlib
+key: searchlib
 exposed: True
 exposed-modules:
-    Data.Advent
-    Data.Bidim
-    System.IO.Advent
-    Text.Parsec.Advent
+    Control.Monad.MonadSearch
+    Control.Monad.MonadSearch.Astar
 import-dirs: @@IMPORT-DIR@@
 library-dirs: @@STATIC-LIB-DIR@@
 dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
-hs-libraries: HSadventlib
+hs-libraries: HSsearchlib
 depends:
