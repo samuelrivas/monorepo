@@ -4,8 +4,6 @@ id: adventlib
 key: adventlib
 exposed: True
 exposed-modules:
-    Control.Monad.MonadSearch
-    Control.Monad.MonadSearch.Astar
     Data.Advent
     Data.Bidim
     System.IO.Advent

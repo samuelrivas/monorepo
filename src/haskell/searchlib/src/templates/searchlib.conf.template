@@ -5,7 +5,7 @@ key: searchlib
 exposed: True
 exposed-modules:
     Control.Monad.MonadSearch
-    Control.Monad.MonadSearch.AStar
+    Control.Monad.MonadSearch.Astar
 import-dirs: @@IMPORT-DIR@@
 library-dirs: @@STATIC-LIB-DIR@@
 dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
