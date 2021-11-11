@@ -1,4 +1,4 @@
-GHC-PACKAGES := containers random-fu
-PROGRAM-NAME := main
+PROGRAM-NAME := boardgamer
+GHC-FLAGS := -O3
 include $(HASKELL_MK)
 
