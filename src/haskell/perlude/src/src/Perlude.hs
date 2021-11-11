@@ -13,6 +13,7 @@ module Perlude (
   putStr,
   putStrLn,
   appendFile,
+  getContents,
   getLine,
   writeFile,
   interact,
@@ -24,12 +25,12 @@ module Perlude (
   ) where
 
 import           Control.Monad.IO.Class
-import           Data.Text              (Text, pack, unpack, lines)
+import           Data.Text              (Text, lines, pack, unlines, unpack)
 import qualified Data.Text.IO           as TextIO
 import           Prelude                hiding (appendFile, getContents,
-                                         getLine, interact, print, putStr,
-                                         putStrLn, read, readFile, show, lines,
-                                         writeFile, lines)
+                                         getLine, interact, lines, print,
+                                         putStr, putStrLn, read, readFile, show,
+                                         unlines, writeFile)
 import qualified Prelude
 
 read :: Read a => Text -> a
@@ -46,6 +47,9 @@ putStrLn = liftIO . TextIO.putStr
 
 appendFile :: MonadIO m => FilePath -> Text -> m ()
 appendFile path  = liftIO . TextIO.appendFile path
+
+getContents :: MonadIO m => m Text
+getContents = liftIO TextIO.getContents
 
 getLine :: MonadIO m => m Text
 getLine = liftIO TextIO.getLine
