@@ -4,7 +4,9 @@
 import           Perlude
 
 import           Data.Fixed
+import           Data.Maybe
 import           Data.Time
+import           Data.Time.Clock
 import           Text.Parsec
 import           Text.Parsec.Parselib
 
@@ -47,6 +49,14 @@ mkUTCTime (year, mon, day) (hour, min) =
   UTCTime (fromGregorian year mon day)
   (timeOfDayToTime (TimeOfDay hour min 0))
 
+filterLine :: (Integer, Int, Int) -> Text -> Maybe Text
+filterLine cutDate text =
+  let
+    cutUtc = mkUTCTime cutDate (0, 0)
+  in
+    case parsePart clockLine text of
+      Right ((_startTime, endTime), _ ) | endTime < cutUtc -> Nothing
+      _                                                    -> Just text
 
 main :: IO ()
-main = putStrLn "hi!"
+main = interact $ unlines . mapMaybe (filterLine (2021, 10, 10)) . lines
