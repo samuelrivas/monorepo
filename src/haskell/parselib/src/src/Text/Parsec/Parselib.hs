@@ -103,7 +103,7 @@ unsafeParse p t =
   let result = parse p t
   in case result of
     Right a  -> pure a
-    Left err -> fail . Prelude.show $ err
+    Left err -> fail . show $ err
 
 -- Run a parser over a Text, expecting it to consume all the input. Fails if the
 -- parser fails
