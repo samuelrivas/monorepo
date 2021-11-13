@@ -5,6 +5,7 @@
   name = "clean-clocks";
   src = ./../src;
   haskell-libs = with haskellPackages; [
+    lens
     parselib
     perlude
   ];
