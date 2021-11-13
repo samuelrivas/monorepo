@@ -1,2 +1,4 @@
-GHC-PACKAGES := containers mtl random-fu multiset lens generic-lens readline
+MAIN-MODULE := src/Main.hs
+PROGRAM-NAME := onirim-helper
+GHC-FLAGS := -Wall -O3
 include $(HASKELL_MK)
