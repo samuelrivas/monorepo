@@ -4,27 +4,49 @@
 
 import           Perlude
 
-import           Control.Lens         (_Left, over)
+import           Control.Applicative  ((<|>))
+import           Control.Lens         (_2, _3, _Left, over, view)
+import           Data.Functor         (($>))
 import           Data.Maybe           (mapMaybe)
 import           Data.Time            (TimeOfDay (..), UTCTime (..),
                                        fromGregorian, timeOfDayToTime)
-import           Text.Parsec          (noneOf, spaces)
+import           Text.Parsec          (between, noneOf, spaces, try)
 import           Text.Parsec.Parselib (Parser, digitsAsNum, literal, parseAll,
                                        parsePart, text)
 
-example :: Text
-example = "    CLOCK: [2021-10-13 Wed 07:51]--[2021-10-13 Wed 08:02] =>  0:11"
+exampleClockLine :: Text
+exampleClockLine =
+  "    CLOCK: [2021-10-13 Wed 07:51]--[2021-10-13 Wed 08:02] =>  0:11"
 
+exampleTransitionLine :: Text
+exampleTransitionLine =
+  "    - State \"DONE\"       from \"TODO\"       [2021-11-13 Sat 21:02]"
+
+lineWithDate :: Parser UTCTime
+lineWithDate =
+  (view _2 <$> try clockLine)
+  <|> view _3 <$> try stateTransition
 
 clockLine :: Parser (UTCTime, UTCTime)
-clockLine = do
-  spaces
-  literal "CLOCK: ["
-  start <- date
-  literal "]--["
-  stop <- date
-  literal "] => "
-  return (start, stop)
+clockLine =
+  (,)
+  <$> (spaces *> literal "CLOCK: [" *> date)
+  <*> (literal "]--[" *> date <*  literal "] => ")
+
+quote :: Parser ()
+quote = literal "\"" $> ()
+
+quotedText :: Parser Text
+quotedText = between quote quote (text $ noneOf "\"")
+
+stateTransition :: Parser (Text, Text, UTCTime)
+stateTransition =
+  (,,)
+  <$> (spaces *> literal "- State " *> quotedText)
+  <*> (spaces *> literal "from " *> quotedText)
+  <*> (spaces *> between (literal "[") (literal "]") date)
+
+reschedule = undefined
 
 date :: Parser UTCTime
 date =
@@ -50,18 +72,18 @@ time =
 
 -- TODO: move to library
 mkUTCTime :: (Integer, Int, Int) -> (Int, Int) -> UTCTime
-mkUTCTime (year, mon, day) (hour, min) =
+mkUTCTime (year, mon, day) (hour, minute) =
   UTCTime (fromGregorian year mon day)
-  (timeOfDayToTime (TimeOfDay hour min 0))
+  (timeOfDayToTime (TimeOfDay hour minute 0))
 
 filterLine :: (Integer, Int, Int) -> Text -> Maybe Text
 filterLine cutDate text =
   let
     cutUtc = mkUTCTime cutDate (0, 0)
   in
-    case parsePart clockLine text of
-      Right ((_startTime, endTime), _ ) | endTime < cutUtc -> Nothing
-      _                                                    -> Just text
+    case parsePart lineWithDate text of
+      Right (endTime, _ ) | endTime < cutUtc -> Nothing
+      _                                      -> Just text
 
 parseArgs :: [Text] -> Either Text (Integer, Int, Int)
 parseArgs = \case
