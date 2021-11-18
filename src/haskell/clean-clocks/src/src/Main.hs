@@ -1,6 +1,11 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+module Main (
+  main,
+  exampleClockLine,
+  exampleTransitionLine
+  ) where
 
 import           Perlude
 
@@ -46,8 +51,6 @@ stateTransition =
   <*> (spaces *> literal "from " *> quotedText)
   <*> (spaces *> between (literal "[") (literal "]") date)
 
-reschedule = undefined
-
 date :: Parser UTCTime
 date =
   mkUTCTime
@@ -72,18 +75,18 @@ time =
 
 -- TODO: move to library
 mkUTCTime :: (Integer, Int, Int) -> (Int, Int) -> UTCTime
-mkUTCTime (year, mon, day) (hour, minute) =
-  UTCTime (fromGregorian year mon day)
+mkUTCTime (y, m, d) (hour, minute) =
+  UTCTime (fromGregorian y m d)
   (timeOfDayToTime (TimeOfDay hour minute 0))
 
 filterLine :: (Integer, Int, Int) -> Text -> Maybe Text
-filterLine cutDate text =
+filterLine cutDate line =
   let
     cutUtc = mkUTCTime cutDate (0, 0)
   in
-    case parsePart lineWithDate text of
+    case parsePart lineWithDate line of
       Right (endTime, _ ) | endTime < cutUtc -> Nothing
-      _                                      -> Just text
+      _                                      -> Just line
 
 parseArgs :: [Text] -> Either Text (Integer, Int, Int)
 parseArgs = \case
