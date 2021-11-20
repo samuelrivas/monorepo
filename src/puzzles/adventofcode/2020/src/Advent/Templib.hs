@@ -26,7 +26,6 @@ module Advent.Templib (
   getParsedInput,
   listOfNum,
   module Data.Advent,
-  module Text.Parsec.Advent
   ) where
 
 import           Control.Lens               (view)
@@ -39,9 +38,9 @@ import           Data.Advent                (Day (..))
 import           Data.Functor.Identity      (Identity, runIdentity)
 import           Data.Generics.Labels       ()
 import           Perlude
-import           System.IO.Advent           (getInput)
+import           System.IO.Advent           (getInput, getParsedInput)
 import           Text.Parsec                (char, sepEndBy)
-import           Text.Parsec.Advent         (getParsedInput, listOfNum)
+import           Text.Parsec.Advent         (listOfNum)
 import           Text.Parsec.Parselib       (num, unsafeParseAll)
 import           Text.Parsec.Text           (Parser)
 
