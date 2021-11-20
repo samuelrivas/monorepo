@@ -151,6 +151,7 @@ let
         adventlib = ./../src/haskell/adventlib/nix;
         adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
         adventofcode-2020 = ./../src/puzzles/adventofcode/2020/nix;
+        adventofcode-2021 = ./../src/puzzles/adventofcode/2021/nix;
         example-lib =  ./../src/haskell/example-lib/nix;
         name-generator =  ./../src/haskell/name-generator/nix;
         boardgamer = ./../src/haskell/boardgamer/nix;
@@ -211,6 +212,7 @@ let
     # ======================
     adventofcode-2019 = pkgs-sam.haskellPackages.adventofcode-2019;
     adventofcode-2020 = pkgs-sam.haskellPackages.adventofcode-2020;
+    adventofcode-2021 = pkgs-sam.haskellPackages.adventofcode-2021;
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our
