@@ -13,7 +13,7 @@ module Data.Bidim (
 
 import           Prelude         hiding (concat)
 
-import           Control.Lens    (at, set, toListOf, traverse, view, _1, _2)
+import           Control.Lens    (_1, _2, at, set, toListOf, traverse, view)
 import           Data.Foldable   (foldl')
 import           Data.Map.Strict (Map, empty, insert, keys)
 import           Data.Text       (Text, concat, intercalate, unpack)

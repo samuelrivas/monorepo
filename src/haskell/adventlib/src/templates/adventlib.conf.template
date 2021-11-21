@@ -8,6 +8,7 @@ exposed-modules:
     Data.Bidim
     System.IO.Advent
     Text.Parsec.Advent
+    Text.Parsec.Bidim
 import-dirs: @@IMPORT-DIR@@
 library-dirs: @@STATIC-LIB-DIR@@
 dynamic-library-dirs: @@DYNAMIC-LIB-DIR@@
