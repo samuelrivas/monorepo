@@ -95,13 +95,23 @@ mkSlope coord@(x, _)
   | otherwise = Negative $ cosinoid coord
 
 -- The actual cosine would be y^2/sqrt(x^2+y^2), but this formula should
--- preserve order, which is what we want, and won't need pesky floats
+-- preserve order, which is what we want, and won't need pesky floats.
+--
+--- Note that we are reversing the y axes so that positive slopes point upward
+--- as the y axis is reversed in the problem (numbers grow larger downwards
 cosinoid :: Coord -> Ratio Int
-cosinoid (x, y) = y % (abs x + abs y)
+cosinoid (x, y) = (-y) % norm (x, y)
+
+-- TODO Move to library as l1-norm
+norm :: Coord -> Int
+norm (x, y) = abs x + abs y
 
 -- TODO add sortWith to some library
 slopeSort :: [Coord] -> [Coord]
 slopeSort = sortBy (comparing mkSlope)
+
+normSort :: [Coord] -> [Coord]
+normSort = sortBy (comparing norm)
 
 -- TODO add to library
 equating :: Eq a => (b -> a) -> b -> b -> Bool
@@ -119,14 +129,17 @@ asteroids = keys . Map.filter id
 relativize :: Coord -> [Coord] -> [Coord]
 relativize (x, y) = fmap (plus (-x, -y))
 
+unRelativize :: Coord -> [Coord] -> [Coord]
+unRelativize (x, y) = relativize (-x, -y)
+
+getRelativeAsteroids :: Bidim Bool -> Coord -> [Coord]
+getRelativeAsteroids field coord =
+  filter (/= (0, 0)) . relativize coord . asteroids $ field
+
 inSight :: Bidim Bool -> Coord -> Int
 inSight field coord =
-  length
-  . slopeGroup
-  . slopeSort
-  . filter (/= (0, 0))
-  . relativize coord
-  . asteroids $ field
+  length . slopeGroup . slopeSort $ getRelativeAsteroids field coord
+
 
 bestLocation :: Bidim Bool -> (Int, Coord)
 bestLocation field =
@@ -135,6 +148,13 @@ bestLocation field =
     scored = zip (inSight field <$> candidates) candidates
   in
     maximum scored
+
+vaporizationSequence :: Bidim Bool -> Coord -> [[Coord]]
+vaporizationSequence field location =
+  let
+    positions = getRelativeAsteroids field location
+  in
+    reverse (fmap (unRelativize location) <$> fmap normSort . slopeGroup . slopeSort $ positions)
 
 solver1 :: Bidim Bool -> Int
 solver1 = view _1 . bestLocation
