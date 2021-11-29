@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
 -- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 -- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -17,17 +16,14 @@ module Advent.Day10 where
 
 import           Perlude
 
-import           Control.Lens         (_1, _2, over, view)
+import           Control.Lens         (_1, _2, view)
 import           Data.Advent          (Day (..))
-import           Data.Bidim
-import           Data.Generics.Labels ()
-import           Data.List            (groupBy, sort, sortBy)
+import           Data.Bidim           (Bidim, Coord, plus)
+import           Data.List            (groupBy, sortBy, transpose)
 import           Data.Map             (keys)
 import qualified Data.Map             as Map
 import           Data.Ord             (comparing)
 import           Data.Ratio           (Ratio, denominator, numerator, (%))
-import           Data.Set             (Set)
-import qualified Data.Set             as Set
 import           Data.Text            (intercalate)
 import qualified Prelude
 import           System.IO.Advent     (getInput, solve)
@@ -58,6 +54,37 @@ example2 = intercalate "\n"
    ".##.#..###",
    "##...#..#.",
    ".#....####"]
+
+example3 :: Text
+example3 = intercalate "\n"
+  [".#....#####...#..",
+   "##...##.#####..##",
+   "##...#...#.#####.",
+   "..#.....X...###..",
+   "..#.#.....#....##"]
+
+example4 :: Text
+example4 = intercalate "\n"
+  [".#..##.###...#######",
+   "##.############..##.",
+   ".#.######.########.#",
+   ".###.#######.####.#.",
+   "#####.##.#.##.###.##",
+   "..#####..#.#########",
+   "####################",
+   "#.####....###.#.#.##",
+   "##.#################",
+   "#####.##.###..####..",
+   "..######..##.#######",
+   "####.##.####...##..#",
+   ".#####..#.######.###",
+   "##...#.##########...",
+   "#.##########.#######",
+   ".####.#.###.###.#.##",
+   "....##.##.###..#####",
+   ".#.#.###########.###",
+   "#.#.#.#####.####.###",
+   "###.##.####.##.#..##"]
 
 getRawInput :: IO Text
 getRawInput = getInput day
@@ -149,18 +176,30 @@ bestLocation field =
   in
     maximum scored
 
-vaporizationSequence :: Bidim Bool -> Coord -> [[Coord]]
+-- TODO move to library
+interleave :: [[a]] -> [a]
+interleave = concat . transpose
+
+-- TODO Clean this up
+vaporizationSequence :: Bidim Bool -> Coord -> [Coord]
 vaporizationSequence field location =
   let
     positions = getRelativeAsteroids field location
   in
-    reverse (fmap (unRelativize location) <$> fmap normSort . slopeGroup . slopeSort $ positions)
+    interleave . reverse $ (fmap (unRelativize location) <$> fmap normSort . slopeGroup . slopeSort $ positions)
 
 solver1 :: Bidim Bool -> Int
 solver1 = view _1 . bestLocation
 
-solver2 :: Bidim Bool -> Text
-solver2 = const "N/A"
+-- TODO We need support in 'solve' to pass information from the first solver to
+-- this one
+solver2 :: Bidim Bool -> Int
+solver2 b =
+  let
+    best = view _2 $ bestLocation b
+    (x, y) = vaporizationSequence b best !! 199
+  in
+    100 * x + y
 
 main :: IO ()
 main = solve day parser solver1 solver2
