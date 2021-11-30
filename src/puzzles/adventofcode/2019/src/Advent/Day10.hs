@@ -89,19 +89,12 @@ example4 = intercalate "\n"
 getRawInput :: IO Text
 getRawInput = getInput day
 
--- Attempt to use Bidim, but is not finished
 parser :: Parser (Bidim Bool)
--- parser = fixCoords <$> bidim (== '#')
 parser = bidim (== '#')
 
--- fixCoords :: Bidim Bool -> Bidim Bool
--- fixCoords b =
---   let (_, (_, maxY)) = boundaries b
---   in Map.mapKeys (over _2 (maxY -)) b
-
 -- We divide the plane in Positive, with x => 0 and negative, with x < 0. For
--- each semiplane, we represent slope as the "cosinoid" of any coordinate in a
--- line
+-- each semiplane, we represent slope of a vector as the "sinoid" of any
+-- coordinate in a line
 data Slope = Positive (Ratio Int)
   | Negative (Ratio Int)
   deriving stock (Eq)
@@ -118,16 +111,16 @@ instance Show Slope where
 
 mkSlope :: Coord -> Slope
 mkSlope coord@(x, _)
-  | x >=0 = Positive $ cosinoid coord
-  | otherwise = Negative $ cosinoid coord
+  | x >=0 = Positive $ sinoid coord
+  | otherwise = Negative $ sinoid coord
 
--- The actual cosine would be y^2/sqrt(x^2+y^2), but this formula should
--- preserve order, which is what we want, and won't need pesky floats.
+-- The actual sine would be y^2/sqrt(x^2+y^2), but this formula preserves order,
+-- which is what we want, and won't need pesky floats.
 --
 --- Note that we are reversing the y axes so that positive slopes point upward
---- as the y axis is reversed in the problem (numbers grow larger downwards
-cosinoid :: Coord -> Ratio Int
-cosinoid (x, y) = (-y) % norm (x, y)
+--- as the y axis is reversed in the problem (numbers grow larger downwards)
+sinoid :: Coord -> Ratio Int
+sinoid (x, y) = (-y) % norm (x, y)
 
 -- TODO Move to library as l1-norm
 norm :: Coord -> Int
