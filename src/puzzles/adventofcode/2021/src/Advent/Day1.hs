@@ -9,7 +9,7 @@ module Advent.Day1 where
 
 import           Perlude
 
-import           Control.Lens         (Each (each), sumOf)
+import           Control.Lens         (each, sumOf)
 import           Data.Advent          (Day (..))
 import           System.IO.Advent     (getInput, solve)
 import           Text.Parsec.Advent   (listOfNum)
