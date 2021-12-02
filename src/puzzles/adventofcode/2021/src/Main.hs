@@ -3,6 +3,7 @@ import qualified Data.HashMap.Lazy  as HashMap
 import           System.Environment (getArgs)
 
 import qualified Advent.Day1
+import qualified Advent.Day2
 
 -- FIXME: Run each argument separately so that we can report errors
 -- independendly.  Like "2: solution ...  "foo: not found"
@@ -12,7 +13,8 @@ import qualified Advent.Day1
 dispatcher :: HashMap String (IO ())
 dispatcher =
   HashMap.fromList
-  [("1", Advent.Day1.main)
+  [("1", Advent.Day1.main),
+   ("2", Advent.Day2.main)
   ]
 
 dispatch :: [String] -> Maybe [IO ()]
