@@ -21,7 +21,7 @@ import           System.IO.Advent     (getInput, solve)
 import           Text.Parsec          (char, many1, sepEndBy, (<|>))
 import           Text.Parsec.Parselib (Parser, literal)
 
-import           Advent.Templib       (binToDec, linesOf)
+import           Advent.Templib       (binToDec, bit, bitString, linesOf)
 
 type Parsed =  [[Bool]]
 
@@ -47,13 +47,7 @@ example = intercalate "\n" [
   "01010"]
 
 parser :: Parser Parsed
-parser = linesOf binary
-
-binary :: Parser [Bool]
-binary = many1 bit
-
-bit :: Parser Bool
-bit = (literal "1" $> True) <|> (literal "0" $> False)
+parser = linesOf bitString
 
 solver1 :: Parsed -> Int
 solver1 l =
