@@ -21,6 +21,8 @@ import           System.IO.Advent     (getInput, solve)
 import           Text.Parsec          (char, many1, sepEndBy, (<|>))
 import           Text.Parsec.Parselib (Parser, literal)
 
+import           Advent.Templib       (binToDec, linesOf)
+
 type Parsed =  [[Bool]]
 
 day :: Day
@@ -45,17 +47,13 @@ example = intercalate "\n" [
   "01010"]
 
 parser :: Parser Parsed
-parser = binary `sepEndBy` char '\n'
+parser = linesOf binary
 
 binary :: Parser [Bool]
 binary = many1 bit
 
 bit :: Parser Bool
 bit = (literal "1" $> True) <|> (literal "0" $> False)
-
--- TODO Move to library
-binToDec :: [Bool] -> Int
-binToDec = foldl' (\acc b -> fromEnum b + 2*acc) 0
 
 solver1 :: Parsed -> Int
 solver1 l =

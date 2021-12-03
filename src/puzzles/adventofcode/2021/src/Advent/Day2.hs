@@ -19,6 +19,8 @@ import           Text.Parsec          (char, sepEndBy, (<|>))
 import           Text.Parsec.Advent   (listOfNum)
 import           Text.Parsec.Parselib (Parser, digitsAsNum, literal)
 
+import           Advent.Templib       (linesOf)
+
 day :: Day
 day = D2
 
@@ -26,7 +28,7 @@ rawInput :: IO Text
 rawInput = getInput day
 
 parser :: Parser [Coord]
-parser = instruction `sepEndBy` char '\n'
+parser = linesOf instruction
 
 instruction :: Parser Coord
 instruction =
