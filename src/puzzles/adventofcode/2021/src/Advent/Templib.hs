@@ -12,7 +12,8 @@ module Advent.Templib (
   bitString,
   bit,
   conv,
-  linesOf
+  linesOf,
+  matrix
   ) where
 import           Perlude
 
@@ -21,12 +22,14 @@ import           Control.Monad.RWS.CPS (RWST, evalRWST)
 import           Control.Monad.Reader  (MonadReader)
 import           Control.Monad.State   (MonadState)
 import           Data.Advent           (Day)
+import           Data.Bidim            (Coord)
 import           Data.Foldable         (foldl')
 import           Data.Functor          (($>))
 import           Data.List             (tails)
+import           Data.Map.Strict       (Map)
 import           System.IO.Advent      (getParsedInput)
-import           Text.Parsec           (char, many1, sepEndBy)
-import           Text.Parsec.Parselib  (Parser, literal)
+import           Text.Parsec           (char, many, many1, sepBy, sepEndBy)
+import           Text.Parsec.Parselib  (Parser, literal, num)
 
 -- TODO use this in day 2 or delete
 conv :: ([a] -> b) -> [a] -> [b]
@@ -45,6 +48,11 @@ bit = (literal "1" $> True) <|> (literal "0" $> False)
 
 bitString :: Parser [Bool]
 bitString = many1 bit
+
+matrix :: Parser a -> Parser [[a]]
+matrix p =
+  let cell = many (char ' ') *> p
+  in many1 cell `sepEndBy` char '\n'
 
 -- Advent templates
 
