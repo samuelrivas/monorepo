@@ -14,8 +14,8 @@ import           Perlude
 
 import           Advent.Templib       (binToDec, linesOf, matrix)
 
-import           Control.Lens         (_1, _2, allOf, at, non, none, over,
-                                       toListOf, use, view)
+import           Control.Lens         (_1, _2, _Just, allOf, at, folded, non,
+                                       none, over, toListOf, use, view)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks, runReaderT)
 import           Control.Monad.State  (MonadState, StateT, modify, runStateT)
 import           Data.Advent          (Day (..))
@@ -146,6 +146,15 @@ checkWin coord =
       pure . Just $ rowCoords
     else
       pure Nothing
+
+drawAndCheck ::
+  MonadState PunchCard m =>
+  MonadReader BoardIndex m =>
+  Int -> m [[Coord]]
+drawAndCheck n = do
+  punchedCoords <- drawNumber n
+  toListOf (folded . _Just) <$>
+    traverse checkWin (HashSet.toList punchedCoords)
 
 runBingo :: BoardIndex -> ReaderT BoardIndex (StateT PunchCard m) a -> m (a, PunchCard)
 runBingo index x = runStateT (runReaderT x index) HashSet.empty
