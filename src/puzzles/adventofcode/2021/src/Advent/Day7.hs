@@ -48,6 +48,10 @@ distance2 a b =
 fuelNeeded :: (Int -> Int -> Int) -> Int -> [Int] -> Int
 fuelNeeded distanceFunction dest  = sum . fmap (distanceFunction dest)
 
+-- TODO This is solvable with bisection (there may be even faster analytical
+-- solutions). Get a bisection function into adventlib! (maybe is even an
+-- instance of MonadSearch)
+
 solver :: (Int -> Int -> Int) -> [Int] -> Int
 solver distanceFunction input =
   minimum
