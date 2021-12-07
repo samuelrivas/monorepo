@@ -8,19 +8,23 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
+{-# OPTIONS_GHC -Wno-deferred-type-errors #-}
+{-# OPTIONS_GHC -Wno-deferred-type-errors #-}
 module Advent.Day4 where
 
 import           Perlude
 
 import           Advent.Templib       (binToDec, linesOf, matrix)
 
-import           Control.Lens         (_1, _2, _Just, allOf, at, folded, non,
-                                       none, over, toListOf, use, view)
+import           Control.Lens         (_1, _2, _3, _Just, allOf, at, folded,
+                                       non, none, over, to, toListOf, use, view)
+import           Control.Monad.Loops  (iterateUntilM, iterateWhile)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks, runReaderT)
-import           Control.Monad.State  (MonadState, StateT, modify, runStateT)
+import           Control.Monad.State  (MonadState, State, StateT, modify,
+                                       runState, runStateT)
 import           Data.Advent          (Day (..))
 import           Data.Bidim           (Bidim)
-import           Data.Foldable        (foldl', traverse_)
+import           Data.Foldable        (find, foldl', traverse_)
 import           Data.Functor         (($>))
 import           Data.HashMap.Strict  (HashMap)
 import qualified Data.HashMap.Strict  as HashMap
@@ -107,6 +111,15 @@ boardIndex boards =
     foldl' (\i (x, pos) -> HashMap.insertWith HashSet.union x pos i)
     HashMap.empty (over _2 HashSet.singleton <$> withCoordinates)
 
+mapBoard :: [[[Int]]] -> HashMap Coord Int
+mapBoard boards =
+  let
+    dims = dimmensions boards
+    withCoordinates =
+      zip (coordinates dims) (toListOf (traverse . traverse . traverse) boards)
+  in
+    HashMap.fromList withCoordinates
+
 type PunchCard = HashSet Coord
 
 punch :: MonadState PunchCard m => Coord -> m ()
@@ -150,17 +163,29 @@ checkWin coord =
 drawAndCheck ::
   MonadState PunchCard m =>
   MonadReader BoardIndex m =>
-  Int -> m [[Coord]]
+  Int -> m (Int, [[Coord]])
 drawAndCheck n = do
   punchedCoords <- drawNumber n
-  toListOf (folded . _Just) <$>
+  (n,) . toListOf (folded . _Just) <$>
     traverse checkWin (HashSet.toList punchedCoords)
 
-runBingo :: BoardIndex -> ReaderT BoardIndex (StateT PunchCard m) a -> m (a, PunchCard)
-runBingo index x = runStateT (runReaderT x index) HashSet.empty
+findWin ::
+  MonadState PunchCard m =>
+  MonadReader BoardIndex m =>
+  [Int] -> m (Int, [[Coord]])
+findWin numbers = do
+  results <- traverse drawAndCheck numbers
+  pure . fromJust $ find (view (_2 . (to $ not . null))) results
 
-solver1 :: Parsed -> Int
-solver1 l = undefined
+runBingo :: BoardIndex -> ReaderT BoardIndex (State PunchCard ) a -> (a, PunchCard)
+runBingo index x = runState (runReaderT x index) HashSet.empty
+
+solver1 :: Parsed -> ((Int, [[Coord]]), [Coord])
+solver1 (numbers, boards) =
+  let
+    ((number, coords), punchcard) = runBingo (boardIndex boards) (findWin numbers)
+  in
+    ((number, coords), filter ((== 60) . view _3) $HashSet.toList punchcard)
 
 solver2 :: Parsed -> Int
 solver2 l = undefined
