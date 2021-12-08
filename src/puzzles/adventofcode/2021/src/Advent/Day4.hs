@@ -14,6 +14,7 @@ module Advent.Day4 where
 
 import           Perlude
 
+import           Advent.Day4.Internal
 import           Advent.Templib       (binToDec, linesOf, matrix)
 
 import           Control.Lens         (_1, _2, _3, _Just, allOf, at, folded,
@@ -41,9 +42,6 @@ import           Text.Parsec.Parselib (Parser, digitsAsNum, literal,
                                        unsafeParseAll)
 
 type Parsed =  ([Int], [[[Int]]])
-
--- Row, Column, Board
-type Coord = (Int, Int, Int)
 
 day :: Day
 day = D4
@@ -83,11 +81,24 @@ parser =
   <$> digitsAsNum `sepBy` char ',' <* literal "\n\n"
   <*> linesOf (matrix digitsAsNum)
 
+mkBoards :: [[[Int]]] -> Boards
+mkBoards matrices =
+  let
+    dims = dimmensions matrices
+    withCoordinates =
+      zip (coordinates dims) (toListOf (traverse . traverse . traverse) matrices)
+  in
+    Boards
+    (HashMap.fromList withCoordinates)
+    (foldl' (\i (pos, x) -> HashMap.insertWith HashSet.union x pos i)
+      HashMap.empty (over _1 HashSet.singleton <$> withCoordinates))
+
+
 dimmensions :: [[[Int]]] -> Coord
 dimmensions l =
     (length . head . head $ l,  length . head $ l, length l)
 
--- TODO Move to library
+-- TODO Move to library, possibly generalised
 coordinates :: Coord ->  [Coord]
 coordinates (x, y, z) =
   let
@@ -98,97 +109,78 @@ coordinates (x, y, z) =
     ((`mod` y) . (`div` x) <$> count)
     ((`mod` z) . (`div` (y * x)) <$> count)
 
-type BoardIndex = HashMap Int (HashSet Coord)
+-- type BoardIndex = HashMap Int (HashSet Coord)
 
--- Map numbers to the bard, row and column they show up at
-boardIndex :: [[[Int]]] -> BoardIndex
-boardIndex boards =
-  let
-    dims = dimmensions boards
-    withCoordinates =
-      zip (toListOf (traverse . traverse . traverse) boards) (coordinates dims)
-  in
-    foldl' (\i (x, pos) -> HashMap.insertWith HashSet.union x pos i)
-    HashMap.empty (over _2 HashSet.singleton <$> withCoordinates)
-
-mapBoard :: [[[Int]]] -> HashMap Coord Int
-mapBoard boards =
-  let
-    dims = dimmensions boards
-    withCoordinates =
-      zip (coordinates dims) (toListOf (traverse . traverse . traverse) boards)
-  in
-    HashMap.fromList withCoordinates
-
-type PunchCard = HashSet Coord
-
-punch :: MonadState PunchCard m => Coord -> m ()
+punch :: MonadState BingoState m => Coord -> m ()
 punch coord = modify $ HashSet.insert coord
 
--- TODO I am hardcoding the dimmensions here, which sucks and is wrong to boot
--- Also the (: []) isn't great either, this may be more readable using some
--- lensy fold/traversal
-row :: Coord -> [Coord]
-row = (over _1 . const <$> [0..4] <*>) . (: [])
+-- -- TODO I am hardcoding the dimmensions here, which sucks and is wrong to boot
+-- -- Also the (: []) isn't great either, this may be more readable using some
+-- -- lensy fold/traversal
+-- row :: Coord -> [Coord]
+-- row = (over _1 . const <$> [0..4] <*>) . (: [])
 
-column :: Coord -> [Coord]
-column = (over _2 . const <$> [0..4] <*>) . (: [])
+-- column :: Coord -> [Coord]
+-- column = (over _2 . const <$> [0..4] <*>) . (: [])
 
--- Returns the punched holes
-drawNumber ::
-  MonadState PunchCard m =>
-  MonadReader BoardIndex m =>
-  Int -> m (HashSet Coord)
-drawNumber n = do
-  coords <- view (at n . non HashSet.empty)
-  traverse_ punch (HashSet.toList coords)
-  pure coords
+-- -- Returns the punched holes
+-- drawNumber ::
+--   MonadState PunchCard m =>
+--   MonadReader BoardIndex m =>
+--   Int -> m (HashSet Coord)
+-- drawNumber n = do
+--   coords <- view (at n . non HashSet.empty)
+--   traverse_ punch (HashSet.toList coords)
+--   pure coords
 
-checkWin :: MonadState PunchCard m =>
-  Coord -> m (Maybe [Coord])
-checkWin coord =
-  let
-    rowCoords = row coord
-    columnCoords = column coord
-  in do
-    hasColumn <- all isJust <$> traverse (use . at) columnCoords
-    hasRow <- all isJust <$> traverse (use . at) rowCoords
-    if hasColumn then
-      pure . Just $ columnCoords
-    else if hasRow then
-      pure . Just $ rowCoords
-    else
-      pure Nothing
+-- checkWin :: MonadState PunchCard m =>
+--   Coord -> m (Maybe [Coord])
+-- checkWin coord =
+--   let
+--     rowCoords = row coord
+--     columnCoords = column coord
+--   in do
+--     hasColumn <- all isJust <$> traverse (use . at) columnCoords
+--     hasRow <- all isJust <$> traverse (use . at) rowCoords
+--     if hasColumn then
+--       pure . Just $ columnCoords
+--     else if hasRow then
+--       pure . Just $ rowCoords
+--     else
+--       pure Nothing
 
-drawAndCheck ::
-  MonadState PunchCard m =>
-  MonadReader BoardIndex m =>
-  Int -> m (Int, [[Coord]])
-drawAndCheck n = do
-  punchedCoords <- drawNumber n
-  (n,) . toListOf (folded . _Just) <$>
-    traverse checkWin (HashSet.toList punchedCoords)
+-- drawAndCheck ::
+--   MonadState PunchCard m =>
+--   MonadReader BoardIndex m =>
+--   Int -> m (Int, [[Coord]])
+-- drawAndCheck n = do
+--   punchedCoords <- drawNumber n
+--   (n,) . toListOf (folded . _Just) <$>
+--     traverse checkWin (HashSet.toList punchedCoords)
 
-findWin ::
-  MonadState PunchCard m =>
-  MonadReader BoardIndex m =>
-  [Int] -> m (Int, [[Coord]])
-findWin numbers = do
-  results <- traverse drawAndCheck numbers
-  pure . fromJust $ find (view (_2 . (to $ not . null))) results
+-- findWin ::
+--   MonadState PunchCard m =>
+--   MonadReader BoardIndex m =>
+--   [Int] -> m (Int, [[Coord]])
+-- findWin numbers = do
+--   results <- traverse drawAndCheck numbers
+--   pure . fromJust $ find (view (_2 . (to $ not . null))) results
 
-runBingo :: BoardIndex -> ReaderT BoardIndex (State PunchCard ) a -> (a, PunchCard)
-runBingo index x = runState (runReaderT x index) HashSet.empty
+-- runBingo :: BoardIndex -> ReaderT BoardIndex (State PunchCard ) a -> (a, PunchCard)
+-- runBingo index x = runState (runReaderT x index) HashSet.empty
+
+-- solver1 :: Parsed -> ((Int, [[Coord]]), [Coord])
+-- solver1 (numbers, boards) =
+--   let
+--     ((number, coords), punchcard) = runBingo (boardIndex boards) (findWin numbers)
+--   in
+--     ((number, coords), filter ((== 60) . view _3) $HashSet.toList punchcard)
 
 solver1 :: Parsed -> ((Int, [[Coord]]), [Coord])
-solver1 (numbers, boards) =
-  let
-    ((number, coords), punchcard) = runBingo (boardIndex boards) (findWin numbers)
-  in
-    ((number, coords), filter ((== 60) . view _3) $HashSet.toList punchcard)
+solver1 = undefined
 
-solver2 :: Parsed -> Int
-solver2 l = undefined
+solver2 :: Parsed -> ((Int, [[Coord]]), [Coord])
+solver2 = undefined
 
 main :: IO ()
 main = solve day parser solver1 solver2
