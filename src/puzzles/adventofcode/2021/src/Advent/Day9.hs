@@ -99,7 +99,7 @@ solver1 :: Parsed -> Int
 solver1 = riskLevel
 
 solver2 :: Parsed -> Int
-solver2 = product . take 3 . sortBy (flip compare)  . basinSizes
+solver2 = product . take 3 . sortBy (flip compare) . basinSizes
 
 main :: IO ()
 main = solve day parser solver1 solver2
