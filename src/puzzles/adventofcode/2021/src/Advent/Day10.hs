@@ -86,7 +86,7 @@ pushSymbol c =
       if match h c then put t $> True
       else pure False
 
--- Returns whether parsing succeeded and the remaining text
+-- Consumes all valid input and returns the unparsed text
 parseSyntax :: MonadState [Char] m => Text -> m Text
 parseSyntax = fmap pack . dropWhileM pushSymbol . unpack
 
