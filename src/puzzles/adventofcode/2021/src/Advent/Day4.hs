@@ -17,8 +17,8 @@ import           Advent.Day4.Internal
 import           Advent.Templib       (binToDec, linesOf, matrix)
 
 import           Control.Lens         (_1, _2, _3, _Just, _head, allOf, at,
-                                       folded, non, none, over, preview, to,
-                                       toListOf, use, view)
+                                       filtered, folded, non, none, over,
+                                       preview, to, toListOf, use, view)
 import           Control.Monad        (filterM)
 import           Control.Monad.Loops  (iterateUntilM, iterateWhile)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks, runReaderT)
@@ -33,7 +33,7 @@ import           Data.HashMap.Strict  (HashMap)
 import qualified Data.HashMap.Strict  as HashMap
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
-import           Data.List            (transpose)
+import           Data.List            (nub, transpose)
 import           Data.Map.Strict      (Map)
 import           Data.Maybe           (fromJust, isJust)
 import           Data.Text            (intercalate)
@@ -191,14 +191,12 @@ solver1 (numbers, boards) =
   view _1 . runBingo (mkBoards boards) $ do
   (n, coords) <- findWin numbers
   let board = fromJust $ preview (_head . _head . _3) coords
-  unmarked <- unmarkedNumbers board
-  pure $ n * sum unmarked
+  (* n) . sum <$> unmarkedNumbers board
 
--- solver1 :: Parsed -> ((Int, [[Coord]]), [Coord])
--- solver1 = undefined
+solver2 :: Parsed -> [Int]
+solver2 (numbers, boards) =
+  nub $ toListOf (_1 . traverse . _2 . filtered (not . null) . traverse . traverse . _3 ) $ runBingo (mkBoards boards) (traverse drawAndCheck numbers)
 
-solver2 :: Parsed -> ((Int, [[Coord]]), [Coord])
-solver2 = undefined
 
 main :: IO ()
 main = solve day parser solver1 solver2
