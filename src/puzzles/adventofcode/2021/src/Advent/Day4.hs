@@ -16,11 +16,12 @@ import           Perlude
 import           Advent.Day4.Internal
 import           Advent.Templib       (binToDec, linesOf, matrix)
 
-import           Control.Lens         (_1, _2, _3, _Just, _head, allOf, at,
-                                       filtered, folded, non, none, over,
-                                       preview, to, toListOf, use, view)
+import           Control.Lens         (_1, _2, _3, _Just, _head, allOf, assign,
+                                       at, filtered, folded, modifying, non,
+                                       none, over, preview, to, toListOf, use,
+                                       uses, view)
 import           Control.Monad        (filterM)
-import           Control.Monad.Loops  (iterateUntilM, iterateWhile)
+import           Control.Monad.Loops  (allM, iterateUntilM, iterateWhile)
 import           Control.Monad.Reader (MonadReader, ReaderT, asks, runReaderT)
 import           Control.Monad.State  (MonadState, State, StateT, gets, modify,
                                        runState, runStateT)
@@ -94,6 +95,7 @@ mkBoards matrices =
     (HashMap.fromList withCoordinates)
     (foldl' (\i (pos, x) -> HashMap.insertWith HashSet.union x pos i)
       HashMap.empty (over _1 HashSet.singleton <$> withCoordinates))
+    (length matrices)
 
 
 dimmensions :: [[[Int]]] -> Coord
@@ -114,7 +116,7 @@ coordinates (x, y, z) =
 -- type BoardIndex = HashMap Int (HashSet Coord)
 
 punch :: MonadState BingoState m => Coord -> m ()
-punch coord = modify $ HashSet.insert coord
+punch coord = assign (#punched . at coord) $ Just ()
 
 -- TODO I am hardcoding the dimmensions here, which sucks and is wrong to boot
 -- Also the (: []) isn't great either, this may be more readable using some
@@ -142,8 +144,8 @@ checkWin coord =
     rowCoords = row coord
     columnCoords = column coord
   in do
-    hasColumn <- all isJust <$> traverse (use . at) columnCoords
-    hasRow <- all isJust <$> traverse (use . at) rowCoords
+    hasColumn <- allM isPunched columnCoords
+    hasRow <- allM isPunched rowCoords
     if hasColumn then
       pure . Just $ columnCoords
     else if hasRow then
@@ -181,10 +183,10 @@ unmarkedNumbers board = do
   traverse getNumber coords
 
 isPunched :: MonadState BingoState m => Coord -> m Bool
-isPunched coord = gets $ HashSet.member coord
+isPunched coord = uses (#punched . at coord) isJust
 
 runBingo :: Boards -> ReaderT Boards (State BingoState) a -> (a, BingoState)
-runBingo index x = runState (runReaderT x index) HashSet.empty
+runBingo index x = runState (runReaderT x index) mkState
 
 solver1 :: Parsed -> Int
 solver1 (numbers, boards) =
