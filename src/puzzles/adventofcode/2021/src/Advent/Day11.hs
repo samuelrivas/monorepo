@@ -15,7 +15,9 @@ import           Perlude
 
 import           Advent.Templib       (linesOf)
 
-import           Control.Lens         (_1, _2, _head, preview, view)
+import           Control.Lens         (At (at), _1, _2, _head, assign, preview,
+                                       sumOf, view)
+import           Control.Monad        (replicateM)
 import           Control.Monad.Loops  (dropWhileM)
 import           Control.Monad.State  (MonadState, get, gets, modify, put,
                                        runState)
@@ -88,18 +90,44 @@ neighbours b (x, y) =
 findFlashers :: MonadState (Bidim Int) m => m (HashSet Coord)
 findFlashers = gets (HashSet.fromList . Map.keys . Map.filter (> 9))
 
-propagateFlash :: MonadState (Bidim Int) m => HashSet Coord -> m ()
-propagateFlash = traverse_ increaseNeighbourEnergy
+propagateToNeighbours :: MonadState (Bidim Int) m => HashSet Coord -> m ()
+propagateToNeighbours = traverse_ increaseNeighbourEnergy
 
 -- Find flashsers, propagate, find more flashers, propagate and so on until
 -- there aren't any new flashers
 
+-- The flash phase starts with an empty set and returns the set with all
+-- positions that flashed
+flashPhase :: MonadState (Bidim Int) m => HashSet Coord -> m (HashSet Coord)
+flashPhase previousFlashers = do
+  flashers <- findFlashers
+  if flashers ==  previousFlashers
+    then pure flashers
+    else do
+    propagateToNeighbours $ HashSet.difference flashers previousFlashers
+    flashPhase $ HashSet.union flashers previousFlashers
+
+resetEnergy :: MonadState (Bidim Int) m => Coord -> m ()
+resetEnergy coord = assign (at coord) (Just 0)
+
+-- Returns the amount of flashed cells
+step :: MonadState (Bidim Int) m => m Int
+step = do
+  increaseAllEnergy
+  flashed <- flashPhase HashSet.empty
+  traverse_ resetEnergy flashed
+  pure $ HashSet.size flashed
 
 showEnergy :: Bidim Int -> Text
-showEnergy = showBidim (show . fromJust)
+showEnergy =
+  let
+    showCell x | x <= 9 = show x
+               | otherwise = "*"
+  in
+  showBidim (showCell . fromJust)
 
 solver1 :: Parsed -> Int
-solver1 = undefined
+solver1 = sumOf (_1 . traverse) . runState (replicateM 100 step)
 
 solver2 :: Parsed -> [Int]
 solver2 = undefined
