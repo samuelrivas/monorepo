@@ -19,8 +19,8 @@ import           Control.Lens         (At (at), _1, _2, _head, assign, preview,
                                        sumOf, view)
 import           Control.Monad        (replicateM)
 import           Control.Monad.Loops  (dropWhileM)
-import           Control.Monad.State  (MonadState, get, gets, modify, put,
-                                       runState)
+import           Control.Monad.State  (MonadState, evalState, get, gets, modify,
+                                       put, runState)
 import           Data.Advent          (Day (..))
 import           Data.Bidim           (Bidim, Coord, showBidim)
 import           Data.Foldable        (foldl', traverse_)
@@ -127,10 +127,14 @@ showEnergy =
   showBidim (showCell . fromJust)
 
 solver1 :: Parsed -> Int
-solver1 = sumOf (_1 . traverse) . runState (replicateM 100 step)
+solver1 = sum . evalState (replicateM 100 step)
 
-solver2 :: Parsed -> [Int]
-solver2 = undefined
+solver2 :: Parsed -> Int
+solver2 input =
+  let
+    totalAmount = Map.size input
+  in
+    length . takeWhile (< totalAmount) . view _1 $ runState (sequence . repeat $ step) input
 
 main :: IO ()
 main = solve day parser solver1 solver2
