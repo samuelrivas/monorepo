@@ -13,30 +13,23 @@ module Advent.Day11 where
 
 import           Perlude
 
-import           Advent.Templib       (linesOf)
 
-import           Control.Lens         (At (at), _1, _2, _head, assign, preview,
-                                       sumOf, view)
+import           Control.Lens         (assign, at)
 import           Control.Monad        (replicateM)
-import           Control.Monad.Loops  (dropWhileM)
-import           Control.Monad.State  (MonadState, evalState, get, gets, modify,
-                                       put, runState)
+import           Control.Monad.State  (MonadState, evalState, get, gets, modify)
 import           Data.Advent          (Day (..))
 import           Data.Bidim           (Bidim, Coord, showBidim)
-import           Data.Foldable        (foldl', traverse_)
-import           Data.Functor         (($>))
+import           Data.Foldable        (traverse_)
 import           Data.Generics.Labels ()
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
-import           Data.List            (sort)
 import qualified Data.Map.Strict      as Map
-import           Data.Maybe           (fromJust, isNothing, mapMaybe)
+import           Data.Maybe           (fromJust)
 import           Data.Text            (intercalate)
 import qualified Data.Text            as Text
 import           System.IO.Advent     (getInput, solve)
-import           Text.Parsec          (oneOf)
 import           Text.Parsec.Bidim    (bidim)
-import           Text.Parsec.Parselib (Parser, text1, unsafeParseAll)
+import           Text.Parsec.Parselib (Parser, unsafeParseAll)
 
 -- TODO This problem may be solvable just using parsec
 type Parsed = Bidim Int
@@ -73,9 +66,8 @@ increaseAllEnergy = modify (Map.map (+1))
 
 increaseNeighbourEnergy :: MonadState (Bidim Int) m => Coord -> m ()
 increaseNeighbourEnergy coord = do
-  b <- get
-  let
-    toIncrease = Map.fromList $ zip (neighbours b coord) (repeat 1)
+  octopuses <- get
+  let toIncrease = Map.fromList $ zip (neighbours octopuses coord) (repeat 1)
   modify (Map.unionWith (+) toIncrease)
 
 -- TODO Move to bidim
@@ -92,9 +84,6 @@ findFlashers = gets (HashSet.fromList . Map.keys . Map.filter (> 9))
 
 propagateToNeighbours :: MonadState (Bidim Int) m => HashSet Coord -> m ()
 propagateToNeighbours = traverse_ increaseNeighbourEnergy
-
--- Find flashsers, propagate, find more flashers, propagate and so on until
--- there aren't any new flashers
 
 -- The flash phase starts with an empty set and returns the set with all
 -- positions that flashed
@@ -134,7 +123,9 @@ solver2 input =
   let
     totalAmount = Map.size input
   in
-    length . takeWhile (< totalAmount) . view _1 $ runState (sequence . repeat $ step) input
+    length . takeWhile (< totalAmount)
+    . evalState (sequence . repeat $ step)
+    $ input
 
 main :: IO ()
 main = solve day parser solver1 solver2
