@@ -19,4 +19,3 @@ data SchoolState = SchoolState
       school     :: HashMap Int Int
     }
     deriving stock (Show, Eq, Generic)
-

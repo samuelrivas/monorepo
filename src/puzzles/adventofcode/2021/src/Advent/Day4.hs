@@ -14,35 +14,30 @@ module Advent.Day4 where
 import           Perlude
 
 import           Advent.Day4.Internal
-import           Advent.Templib       (binToDec, linesOf, matrix)
 
-import           Control.Lens         (_1, _2, _3, _Just, _head, allOf, assign,
-                                       at, filtered, folded, modifying, non,
-                                       none, over, preview, to, toListOf, use,
-                                       uses, view)
+import           Advent.Templib       (linesOf, matrix)
+
+import           Control.Lens         (_1, _2, _3, _Just, _head, assign, at,
+                                       folded, non, over, preview, toListOf,
+                                       use, uses, view)
 import           Control.Monad        (filterM)
-import           Control.Monad.Loops  (allM, iterateUntilM, iterateWhile)
-import           Control.Monad.Reader (MonadReader, ReaderT, asks, runReaderT)
-import           Control.Monad.State  (MonadState, State, StateT, gets, modify,
-                                       runState, runStateT)
+import           Control.Monad.Loops  (allM)
+import           Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
+import           Control.Monad.State  (MonadState, State, runState)
 import           Data.Advent          (Day (..))
-import           Data.Bidim           (Bidim)
-import           Data.Foldable        (find, foldl', traverse_)
-import           Data.Functor         (($>))
+import           Data.Foldable        (foldl', traverse_)
 import           Data.Generics.Labels ()
-import           Data.HashMap.Strict  (HashMap)
 import qualified Data.HashMap.Strict  as HashMap
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
-import           Data.List            (nub, transpose)
-import           Data.Map.Strict      (Map)
 import           Data.Maybe           (fromJust, isJust)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, solve)
-import           Text.Parsec          (char, many1, sepBy, sepEndBy, (<|>))
-import           Text.Parsec.Bidim    (bidim)
+import           Text.Parsec          (char, sepBy)
 import           Text.Parsec.Parselib (Parser, digitsAsNum, literal,
                                        unsafeParseAll)
+
+-- TODO This is a horrible mess, redo it in a better way
 
 type Parsed =  ([Int], [[[Int]]])
 
@@ -143,14 +138,19 @@ checkWin coord =
   let
     rowCoords = row coord
     columnCoords = column coord
+    board = view _3 coord
   in do
     hasColumn <- allM isPunched columnCoords
     hasRow <- allM isPunched rowCoords
     if hasColumn then
-      pure . Just $ columnCoords
-    else if hasRow then
-      pure . Just $ rowCoords
-    else
+      (do
+        assign (#closedBoards . at board) (Just ())
+        pure . Just $ columnCoords)
+      else if hasRow then
+      (do
+          assign (#closedBoards . at board) (Just ())
+          pure . Just $ rowCoords)
+      else
       pure Nothing
 
 drawAndCheck ::
@@ -185,8 +185,32 @@ unmarkedNumbers board = do
 isPunched :: MonadState BingoState m => Coord -> m Bool
 isPunched coord = uses (#punched . at coord) isJust
 
+-- returns the amount of boards closed after drawing and the baords that closed
+drawAndGetClosed ::
+  MonadState BingoState m =>
+  MonadReader Boards m =>
+  Int -> m (Int, HashSet Int)
+drawAndGetClosed n = do
+  initiallyClosed <- use #closedBoards
+  _ <- drawAndCheck n
+  closedInStep <- uses #closedBoards (`HashSet.difference` initiallyClosed)
+  (, closedInStep) <$> uses #closedBoards HashSet.size
+
 runBingo :: Boards -> ReaderT Boards (State BingoState) a -> (a, BingoState)
 runBingo index x = runState (runReaderT x index) mkState
+
+-- returns drawn number and board closed
+findLastClosed ::
+  MonadState BingoState m =>
+  MonadReader Boards m =>
+  [Int] -> m (Maybe (Int, HashSet Int))
+findLastClosed [] = pure Nothing
+findLastClosed (h:t) = do
+  nBoards <- view #nBoards
+  (nClosedBoards, boardsClosed) <- drawAndGetClosed h
+  if nClosedBoards == nBoards
+    then pure . Just $ (h, boardsClosed)
+    else findLastClosed t
 
 solver1 :: Parsed -> Int
 solver1 (numbers, boards) =
@@ -195,10 +219,12 @@ solver1 (numbers, boards) =
   let board = fromJust $ preview (_head . _head . _3) coords
   (* n) . sum <$> unmarkedNumbers board
 
-solver2 :: Parsed -> [Int]
-solver2 (numbers, boards) =
-  nub $ toListOf (_1 . traverse . _2 . filtered (not . null) . traverse . traverse . _3 ) $ runBingo (mkBoards boards) (traverse drawAndCheck numbers)
-
+solver2 :: Parsed -> Int
+solver2 (numbers, boards) = do
+  view _1 . runBingo (mkBoards boards) $ do
+    (n, lastClosedBoards) <- fromJust <$> findLastClosed numbers
+    let closedBoard =  head . HashSet.toList $ lastClosedBoards
+    (* n) . sum <$> unmarkedNumbers closedBoard
 
 main :: IO ()
 main = solve day parser solver1 solver2
