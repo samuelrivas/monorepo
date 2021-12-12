@@ -9,6 +9,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
+-- TODO: There is an abstraction missing here, either for MonadSearch or
+-- something related to graph traversal (but we need to remember the path here to
+-- know which routes are valid)
+
 module Advent.Day12 where
 
 import           Perlude
