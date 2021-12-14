@@ -141,8 +141,7 @@ polymerise (pair@(a, b), new) = do
     n -> pure . Just . MultiSet.fromOccurList $
          [((a, new), n), ((new, b), n)]
 
--- TODO This doesn't work after third step
-
+-- TODO  I am pretty sure there is a better way of doing this, try to find it
 countElements :: Polymer -> MultiSet Char
 countElements =
   let
