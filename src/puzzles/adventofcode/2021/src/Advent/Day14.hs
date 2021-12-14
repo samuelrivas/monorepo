@@ -37,8 +37,6 @@ import           System.IO.Advent     (getInput, solve)
 import           Text.Parsec          (anyChar, noneOf)
 import           Text.Parsec.Parselib (Parser, literal, text1, unsafeParseAll)
 
-data Instruction = FoldX Int | FoldY Int deriving (Eq, Show)
-
 type Parsed =  (Text, [(Text, Char)])
 
 day :: Day
