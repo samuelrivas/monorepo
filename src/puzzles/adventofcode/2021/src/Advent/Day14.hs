@@ -122,7 +122,6 @@ newPairs = do
   MultiSet.unions <$> (fmap catMaybes . traverse polymerise $ rules)
 
 removeBrokenPairs :: MonadReader Rules m => MonadState Polymer m => m ()
--- removeBrokenPairs = pairsToBreak >>= modify . flip MultiSet.difference
 removeBrokenPairs = do
   toBreak <- pairsToBreak
   modify $ MultiSet.filter (not . (`Set.member` toBreak))
