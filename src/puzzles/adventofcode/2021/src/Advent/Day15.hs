@@ -1,0 +1,147 @@
+{-# OPTIONS_GHC -Wall #-}
+
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
+
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+module Advent.Day15 where
+
+import           Perlude
+
+import           Advent.Day15.Internal           (Node (..))
+import           Advent.Templib                  (linesOf)
+
+import           Control.Lens                    (Getter, _1, _2, _Just, at,
+                                                  both, non, over, preview,
+                                                  singular, sumOf, to, view,
+                                                  views)
+import           Control.Monad                   (replicateM_)
+import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
+                                                  searchAstarT)
+import           Control.Monad.Reader            (MonadReader, ReaderT, asks,
+                                                  runReaderT)
+import           Control.Monad.State             (MonadState, State, gets,
+                                                  modify, runState)
+import           Data.Advent                     (Day (..))
+import           Data.Bidim                      (Bidim, Coord, boundaries,
+                                                  cross)
+import           Data.Char                       (digitToInt)
+import           Data.Functor.Identity           (Identity, runIdentity)
+import           Data.Generics.Labels            ()
+import           Data.HashMap.Strict             (HashMap)
+import qualified Data.HashMap.Strict             as HashMap
+import           Data.HashSet                    (HashSet)
+import           Data.List                       (sortOn)
+import           Data.List.NonEmpty              (NonEmpty (..))
+import qualified Data.List.NonEmpty              as NonEmpty
+import           Data.Maybe                      (catMaybes, fromJust)
+import           Data.MultiSet                   (MultiSet)
+import qualified Data.MultiSet                   as MultiSet
+import           Data.Set                        (Set)
+import qualified Data.Set                        as Set
+import           Data.Text                       (intercalate)
+import qualified Data.Text                       as Text
+import           System.IO.Advent                (getInput, solve)
+import           Text.Parsec                     (anyChar, noneOf)
+import           Text.Parsec.Bidim               (bidim)
+import           Text.Parsec.Parselib            (Parser, literal, text1,
+                                                  unsafeParseAll)
+
+type Parsed =  Bidim Int
+
+day :: Day
+day = D15
+
+rawInput :: IO Text
+rawInput = getInput day
+
+example :: Text
+example =
+  intercalate
+  "\n" [
+  "1163751742",
+  "1381373672",
+  "2136511328",
+  "3694931569",
+  "7463417111",
+  "1319128137",
+  "1359912421",
+  "3125421639",
+  "1293138521",
+  "2311944581"
+  ]
+
+parsedExample :: Parsed
+parsedExample = fromJust $ unsafeParseAll parser example
+
+parser :: Parser Parsed
+parser = bidim digitToInt
+
+astarConfig :: Bidim Int -> AstarConfig Node Coord (Bidim Int)
+astarConfig = mkConfig h cost explode isGoal toMem
+
+toMem :: MonadReader (Bidim Int) m => Node -> m Coord
+toMem = pure . view (#path . hd)
+
+-- TODO Figure out if there is a head lens for NonEmpty
+hd :: Getter (NonEmpty a) a
+hd = to NonEmpty.head
+
+h :: MonadReader (Bidim Int) m => Node -> m Int
+h node =
+  let
+    pos = views #path NonEmpty.head node
+  in do
+    (_, maxCoord) <- asks boundaries
+    pure $ sumOf both maxCoord - sumOf both pos
+
+cost :: MonadReader (Bidim Int) m => Node -> m Int
+cost = pure . view #cost
+
+explode :: MonadReader (Bidim Int) m => Node -> m [Node]
+explode node =
+  do
+    limits <- asks boundaries
+    let newPos = filter (inRange limits) $ cross (view (#path . hd) node)
+    traverse (addHop node) newPos
+
+inRange :: (Coord, Coord) -> Coord -> Bool
+inRange ((minX, minY), (maxX, maxY)) (x, y) =
+  minX <= x && x <= maxX && minY <= y && y <= maxY
+
+addHop :: MonadReader (Bidim Int) m => Node -> Coord -> m Node
+addHop node pos =
+  do
+    risk <- view (at pos . non 0)
+    pure $
+      over #path (pos `NonEmpty.cons`)
+      . over #cost (+ risk)
+      $ node
+
+isGoal :: MonadReader (Bidim Int) m => Node -> m Bool
+isGoal node =
+  let
+    pos = view (#path . hd) node
+  in
+    asks (((pos ==) . view _2) . boundaries)
+
+initialNode :: Node
+initialNode = Node ((0,0) :| []) 0
+
+-- TODO Add Astar and runAstar to Astar
+solver1 :: Parsed -> Int
+solver1 input =
+  view (_1 . singular _Just . #cost) . runIdentity
+  $ (searchAstarT (astarConfig input) initialNode :: Identity (Maybe Node, ()))
+
+solver2 :: Parsed -> Int
+solver2 = undefined
+
+main :: IO ()
+main = solve day parser solver1 solver2
