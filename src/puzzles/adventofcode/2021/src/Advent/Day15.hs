@@ -37,6 +37,8 @@ import           Data.Generics.Labels            ()
 import           Data.HashMap.Strict             (HashMap)
 import qualified Data.HashMap.Strict             as HashMap
 import           Data.HashSet                    (HashSet)
+import qualified Data.HashSet                    as HashSet
+import           Data.Hashable                   (hash)
 import           Data.List                       (sortOn)
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
@@ -86,13 +88,22 @@ parser = bidim digitToInt
 astarConfig :: Bidim Int -> AstarConfig Node Coord (Bidim Int)
 astarConfig = mkConfig h cost explode isGoal toMem
 
+-- TODO I think part the inefficiency is here, either we remember the whole path
+-- or we end up ooping around the same coordinates. The current implementation
+-- seems to work but is wrong, remembering just the node is not enough. And is
+-- still slow so ...
+--
+-- I think I need to either have an alternative to toMem that allows for
+-- arbitrary comparison, so that we can drop paths that go to the same node with
+-- higher cost, or we implement one type with a suspicious Eq instance
 toMem :: MonadReader (Bidim Int) m => Node -> m Coord
-toMem = pure . view (#path . hd)
+toMem  = pure . view (#path . hd)
 
 -- TODO Figure out if there is a head lens for NonEmpty
 hd :: Getter (NonEmpty a) a
 hd = to NonEmpty.head
 
+-- TODO this is a rather optimistic heuristic, so we are probably overexpanding
 h :: MonadReader (Bidim Int) m => Node -> m Int
 h node =
   let
@@ -108,12 +119,17 @@ explode :: MonadReader (Bidim Int) m => Node -> m [Node]
 explode node =
   do
     limits <- asks boundaries
-    let newPos = filter (inRange limits) $ cross (view (#path . hd) node)
+    let newPos =
+          filter (inRange limits)
+          . filter (not . flip HashSet.member (view #pathMem node))
+          $ cross (view (#path . hd) node)
     traverse (addHop node) newPos
+{-# SCC explode #-}
 
 inRange :: (Coord, Coord) -> Coord -> Bool
 inRange ((minX, minY), (maxX, maxY)) (x, y) =
   minX <= x && x <= maxX && minY <= y && y <= maxY
+{-# SCC inRange #-}
 
 addHop :: MonadReader (Bidim Int) m => Node -> Coord -> m Node
 addHop node pos =
@@ -121,6 +137,7 @@ addHop node pos =
     risk <- view (at pos . non 0)
     pure $
       over #path (pos `NonEmpty.cons`)
+      . over #pathMem (HashSet.insert pos)
       . over #cost (+ risk)
       $ node
 
@@ -132,7 +149,7 @@ isGoal node =
     asks (((pos ==) . view _2) . boundaries)
 
 initialNode :: Node
-initialNode = Node ((0,0) :| []) 0
+initialNode = Node ((0,0) :| []) (HashSet.singleton (0,0)) 0
 
 -- TODO Add Astar and runAstar to Astar
 solver1 :: Parsed -> Int
