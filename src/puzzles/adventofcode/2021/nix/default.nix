@@ -24,6 +24,7 @@ let
     unliftio
     unordered-containers
     writer-cps-mtl
+    zippers
   ];
   advent-input-dir = ./../src/inputs;
 in
