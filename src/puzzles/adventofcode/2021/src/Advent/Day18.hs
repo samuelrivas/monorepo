@@ -126,14 +126,14 @@ tryExplode = preview (_Just . _2) .  tryExplode' 4
 tryExplode' :: Int -> Tree Int -> Maybe (Int, Tree Int, Int)
 tryExplode' 0 (Node (Leaf a) (Leaf b)) = Just (a, Leaf 0, b)
 tryExplode' n (Node l r) =
-  case tryExplode' (n - 1) l of
-    Just (carryLeft, t, carryRight) ->
-      Just (carryLeft, Node t (addToLeftmost carryRight r), 0)
-    Nothing ->
-      case tryExplode' (n - 1) r of
-        Just (carryLeft, t, carryRight) ->
-          Just (0, Node (addToRightmost carryLeft l) t, carryRight)
-        Nothing -> Nothing
+  do
+    (carryLeft, t, carryRight) <- tryExplode' (n - 1) l
+    pure (carryLeft, Node t (addToLeftmost carryRight r), 0)
+  <|>
+  do
+    (carryLeft, t, carryRight) <- tryExplode' (n - 1) r
+    pure (0, Node (addToRightmost carryLeft l) t, carryRight)
+
 tryExplode' _ _ = Nothing
 
 -- Returns nothing if the tree cannot be split
