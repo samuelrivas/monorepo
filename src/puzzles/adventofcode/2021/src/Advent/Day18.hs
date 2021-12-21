@@ -30,11 +30,6 @@ import           Control.Monad.Reader            (MonadReader, ReaderT, asks,
                                                   runReaderT)
 import           Control.Monad.State             (MonadState, State, gets,
                                                   modify, runState)
-import           Control.Zipper                  (Top, Zipper, focus, jerkTo,
-                                                  leftmost, restoreTape, rezip,
-                                                  rightmost, saveTape,
-                                                  type (:>>), upward, within,
-                                                  zipper)
 import           Data.Advent                     (Day (..))
 import           Data.Bidim                      (Bidim, Coord, boundaries,
                                                   cross)
@@ -46,7 +41,7 @@ import qualified Data.HashMap.Strict             as HashMap
 import           Data.HashSet                    (HashSet)
 import qualified Data.HashSet                    as HashSet
 import           Data.Hashable                   (hash)
-import           Data.List                       (find, sortOn)
+import           Data.List                       (find, foldl1', sortOn)
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
 import           Data.Maybe                      (catMaybes, fromJust, isJust,
@@ -190,11 +185,27 @@ reduceStep t = tryExplode t <|> trySplit t
 reduce :: Tree Int -> Tree Int
 reduce t = maybe t reduce (reduceStep t)
 
+sumTree :: Tree Int -> Tree Int -> Tree Int
+sumTree a b = reduce $ Node a b
+
+magnitude :: Tree Int -> Int
+magnitude (Leaf n)   = n
+magnitude (Node l r) = 3 * magnitude l + 2 * magnitude r
+
+leftmost :: Tree a -> a
+leftmost (Leaf a)   = a
+leftmost (Node l _) = leftmost l
+
+rightmost :: Tree a -> a
+rightmost (Leaf a)   = a
+rightmost (Node _ r) = rightmost r
+
 solver1 :: Parsed -> Int
-solver1 input = undefined
+solver1 = magnitude . foldl1' sumTree
 
 solver2 :: Parsed -> Int
-solver2 = undefined
+solver2 input =
+  maximum [magnitude . sumTree a $ b | a <- input, b <- input, not (a == b)]
 
 main :: IO ()
 main = solve day parser solver1 solver2
