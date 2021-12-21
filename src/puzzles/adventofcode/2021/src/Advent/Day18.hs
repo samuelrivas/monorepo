@@ -14,50 +14,19 @@ module Advent.Day18 where
 
 import           Perlude
 
-import           Advent.Templib                  (linesOf)
+import           Advent.Templib       (linesOf)
 
-import           Control.Applicative             ((<|>))
-import           Control.Lens                    (Field1, Field2, Getter, Lens',
-                                                  Prism', _1, _2, _Just, at,
-                                                  both, non, over, preview,
-                                                  prism, set, singular, sumOf,
-                                                  to, view, views)
-import           Control.Monad                   (MonadPlus, replicateM,
-                                                  replicateM_, (>=>))
-import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
-                                                  searchAstarT)
-import           Control.Monad.Reader            (MonadReader, ReaderT, asks,
-                                                  runReaderT)
-import           Control.Monad.State             (MonadState, State, gets,
-                                                  modify, runState)
-import           Data.Advent                     (Day (..))
-import           Data.Bidim                      (Bidim, Coord, boundaries,
-                                                  cross)
-import           Data.Char                       (digitToInt)
-import           Data.Functor.Identity           (Identity, runIdentity)
-import           Data.Generics.Labels            ()
-import           Data.HashMap.Strict             (HashMap)
-import qualified Data.HashMap.Strict             as HashMap
-import           Data.HashSet                    (HashSet)
-import qualified Data.HashSet                    as HashSet
-import           Data.Hashable                   (hash)
-import           Data.List                       (find, foldl1', sortOn)
-import           Data.List.NonEmpty              (NonEmpty (..))
-import qualified Data.List.NonEmpty              as NonEmpty
-import           Data.Maybe                      (catMaybes, fromJust, isJust,
-                                                  listToMaybe, mapMaybe)
-import           Data.MultiSet                   (MultiSet)
-import qualified Data.MultiSet                   as MultiSet
-import           Data.Set                        (Set)
-import qualified Data.Set                        as Set
-import           Data.Text                       (intercalate)
-import qualified Data.Text                       as Text
-import qualified Prelude                         as Prelude
-import           System.IO.Advent                (getInput, solve)
-import           Text.Parsec                     (anyChar, char, noneOf)
-import           Text.Parsec.Bidim               (bidim)
-import           Text.Parsec.Parselib            (Parser, digitAsNum, literal,
-                                                  text1, unsafeParseAll)
+import           Control.Applicative  ((<|>))
+import           Control.Lens         (Prism', _2, _Just, preview, prism)
+import           Data.Advent          (Day (..))
+import           Data.Generics.Labels ()
+import           Data.List            (foldl1')
+import           Data.Maybe           (fromJust)
+import           Data.Text            (intercalate)
+import qualified Prelude
+import           System.IO.Advent     (getInput, solve)
+import           Text.Parsec          (char)
+import           Text.Parsec.Parselib (Parser, digitAsNum, unsafeParseAll)
 
 type Parsed = [Tree Int]
 
@@ -83,9 +52,7 @@ example =
   "[[[[4,2],2],6],[8,7]]"
   ]
 
--- TODO This tree may be good for a library. We are not using the optics here,
--- but since I wrote them when trying an alternative apprach I'll let them stay
--- in case I end up collecting all this to a library
+-- TODO This tree may be good for a library.
 data Tree a = Node (Tree a) (Tree a) | Leaf a
   deriving Eq
 
@@ -94,6 +61,10 @@ data Tree a = Node (Tree a) (Tree a) | Leaf a
 -- lists
 instance Show a => Show (Tree a) where
   show = unpack . ("Tree " <>) . showTree
+
+showTree :: Show a => Tree a -> Text
+showTree (Leaf a)   = show a
+showTree (Node a b) = "[" <> showTree a <> "," <> showTree b <> "]"
 
 instance Functor Tree where
   fmap f (Leaf a)   = Leaf (f a)
@@ -107,6 +78,9 @@ instance Traversable Tree where
   traverse f (Leaf a)   = Leaf <$> f a
   traverse f (Node l r) = Node <$> traverse f l <*> traverse f r
 
+-- We are not using the optics here, but since I wrote them when trying an
+-- alternative apprach I'll let them stay in case I end up collecting all this
+-- to a library
 node :: Prism' (Tree a) (Tree a, Tree a)
 node =
   let
@@ -132,6 +106,7 @@ exampleTree =
 parser :: Parser Parsed
 parser = linesOf treeP
 
+-- TODO If you move Tree to a library, move this parser too
 treeP :: Parser (Tree Int)
 treeP = (Leaf <$> digitAsNum) <|> nodeP
 
@@ -141,10 +116,7 @@ nodeP =
   <$> (char '[' *> treeP <* char ',')
   <*> treeP <* char ']'
 
-showTree :: Show a => Tree a -> Text
-showTree (Leaf a)   = show a
-showTree (Node a b) = "[" <> showTree a <> "," <> showTree b <> "]"
-
+-- Returns nothing if the tree cannot be exploded
 tryExplode :: Tree Int -> Maybe (Tree Int)
 tryExplode = preview (_Just . _2) .  tryExplode' 4
 
@@ -156,14 +128,15 @@ tryExplode' 0 (Node (Leaf a) (Leaf b)) = Just (a, Leaf 0, b)
 tryExplode' n (Node l r) =
   case tryExplode' (n - 1) l of
     Just (carryLeft, t, carryRight) ->
-      Just (carryLeft, Node t (sumLeftmost carryRight r), 0)
+      Just (carryLeft, Node t (addToLeftmost carryRight r), 0)
     Nothing ->
       case tryExplode' (n - 1) r of
         Just (carryLeft, t, carryRight) ->
-          Just (0, Node (sumRightmost carryLeft l) t, carryRight)
+          Just (0, Node (addToRightmost carryLeft l) t, carryRight)
         Nothing -> Nothing
 tryExplode' _ _ = Nothing
 
+-- Returns nothing if the tree cannot be split
 trySplit :: Tree Int -> Maybe (Tree Int)
 trySplit (Leaf n)
   | n >= 10 = let d = n `div` 2 in Just $ Node (Leaf d) (Leaf (n - d))
@@ -171,13 +144,13 @@ trySplit (Leaf n)
 trySplit (Node l r) =
   ((`Node` r) <$> trySplit l) <|> ((l `Node`) <$> trySplit r)
 
-sumLeftmost :: Int -> Tree Int -> Tree Int
-sumLeftmost n (Leaf x)   = Leaf (x + n)
-sumLeftmost n (Node x y) = Node (sumLeftmost n x) y
+addToLeftmost :: Int -> Tree Int -> Tree Int
+addToLeftmost n (Leaf x)   = Leaf (x + n)
+addToLeftmost n (Node x y) = Node (addToLeftmost n x) y
 
-sumRightmost :: Int -> Tree Int -> Tree Int
-sumRightmost n (Leaf x)   = Leaf (x + n)
-sumRightmost n (Node x y) = Node x (sumRightmost n y)
+addToRightmost :: Int -> Tree Int -> Tree Int
+addToRightmost n (Leaf x)   = Leaf (x + n)
+addToRightmost n (Node x y) = Node x (addToRightmost n y)
 
 reduceStep :: Tree Int -> Maybe (Tree Int)
 reduceStep t = tryExplode t <|> trySplit t
@@ -191,14 +164,6 @@ sumTree a b = reduce $ Node a b
 magnitude :: Tree Int -> Int
 magnitude (Leaf n)   = n
 magnitude (Node l r) = 3 * magnitude l + 2 * magnitude r
-
-leftmost :: Tree a -> a
-leftmost (Leaf a)   = a
-leftmost (Node l _) = leftmost l
-
-rightmost :: Tree a -> a
-rightmost (Leaf a)   = a
-rightmost (Node _ r) = rightmost r
 
 solver1 :: Parsed -> Int
 solver1 = magnitude . foldl1' sumTree
