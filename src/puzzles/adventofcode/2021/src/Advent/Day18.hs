@@ -8,25 +8,33 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeOperators       #-}
 
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Advent.Day18 where
 
 import           Perlude
 
 import           Advent.Templib                  (linesOf)
 
-import           Control.Lens                    (Getter, Prism', _1, _2, _Just,
-                                                  at, both, non, over, preview,
-                                                  prism, singular, sumOf, to,
-                                                  view, views)
-import           Control.Monad                   (replicateM_)
+import           Control.Applicative             ((<|>))
+import           Control.Lens                    (Field1, Field2, Getter, Lens',
+                                                  Prism', _1, _2, _Just, at,
+                                                  both, non, over, preview,
+                                                  prism, set, singular, sumOf,
+                                                  to, view, views)
+import           Control.Monad                   (MonadPlus, replicateM,
+                                                  replicateM_, (>=>))
 import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
                                                   searchAstarT)
 import           Control.Monad.Reader            (MonadReader, ReaderT, asks,
                                                   runReaderT)
 import           Control.Monad.State             (MonadState, State, gets,
                                                   modify, runState)
+import           Control.Zipper                  (Top, Zipper, focus, jerkTo,
+                                                  leftmost, restoreTape, rezip,
+                                                  rightmost, saveTape,
+                                                  type (:>>), upward, within,
+                                                  zipper)
 import           Data.Advent                     (Day (..))
 import           Data.Bidim                      (Bidim, Coord, boundaries,
                                                   cross)
@@ -38,18 +46,20 @@ import qualified Data.HashMap.Strict             as HashMap
 import           Data.HashSet                    (HashSet)
 import qualified Data.HashSet                    as HashSet
 import           Data.Hashable                   (hash)
-import           Data.List                       (sortOn)
+import           Data.List                       (find, sortOn)
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
-import           Data.Maybe                      (catMaybes, fromJust)
+import           Data.Maybe                      (catMaybes, fromJust, isJust,
+                                                  listToMaybe, mapMaybe)
 import           Data.MultiSet                   (MultiSet)
 import qualified Data.MultiSet                   as MultiSet
 import           Data.Set                        (Set)
 import qualified Data.Set                        as Set
 import           Data.Text                       (intercalate)
 import qualified Data.Text                       as Text
+import qualified Prelude                         as Prelude
 import           System.IO.Advent                (getInput, solve)
-import           Text.Parsec                     (anyChar, char, noneOf, (<|>))
+import           Text.Parsec                     (anyChar, char, noneOf)
 import           Text.Parsec.Bidim               (bidim)
 import           Text.Parsec.Parselib            (Parser, digitAsNum, literal,
                                                   text1, unsafeParseAll)
@@ -78,9 +88,17 @@ example =
   "[[[[4,2],2],6],[8,7]]"
   ]
 
--- TODO This tree may be good for a library
+-- TODO This tree may be good for a library. We are not using the optics here,
+-- but since I wrote them when trying an alternative apprach I'll let them stay
+-- in case I end up collecting all this to a library
 data Tree a = Node (Tree a) (Tree a) | Leaf a
-  deriving (Show, Eq)
+  deriving Eq
+
+-- TODO I am not sure if this is a good idea. It is not dual to treeP, but on
+-- the other hand is would be confusing otherwise as it would render the same as
+-- lists
+instance Show a => Show (Tree a) where
+  show = unpack . ("Tree " <>) . showTree
 
 instance Functor Tree where
   fmap f (Leaf a)   = Leaf (f a)
@@ -112,6 +130,10 @@ leaf =
 parsedExample :: Parsed
 parsedExample = fromJust $ unsafeParseAll parser example
 
+exampleTree :: Tree Int
+exampleTree =
+  fromJust . unsafeParseAll treeP $ "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+
 parser :: Parser Parsed
 parser = linesOf treeP
 
@@ -124,7 +146,50 @@ nodeP =
   <$> (char '[' *> treeP <* char ',')
   <*> treeP <* char ']'
 
--- TODO Add Astar and runAstar to Astar
+showTree :: Show a => Tree a -> Text
+showTree (Leaf a)   = show a
+showTree (Node a b) = "[" <> showTree a <> "," <> showTree b <> "]"
+
+tryExplode :: Tree Int -> Maybe (Tree Int)
+tryExplode = preview (_Just . _2) .  tryExplode' 4
+
+-- TODO Use alternative to make this clearer Returns Nothing for subtrees that
+-- don't explode, otherwise returns the exploded subtree and the carry to sum to
+-- the left and right numbers
+tryExplode' :: Int -> Tree Int -> Maybe (Int, Tree Int, Int)
+tryExplode' 0 (Node (Leaf a) (Leaf b)) = Just (a, Leaf 0, b)
+tryExplode' n (Node l r) =
+  case tryExplode' (n - 1) l of
+    Just (carryLeft, t, carryRight) ->
+      Just (carryLeft, Node t (sumLeftmost carryRight r), 0)
+    Nothing ->
+      case tryExplode' (n - 1) r of
+        Just (carryLeft, t, carryRight) ->
+          Just (0, Node (sumRightmost carryLeft l) t, carryRight)
+        Nothing -> Nothing
+tryExplode' _ _ = Nothing
+
+trySplit :: Tree Int -> Maybe (Tree Int)
+trySplit (Leaf n)
+  | n >= 10 = let d = n `div` 2 in Just $ Node (Leaf d) (Leaf (n - d))
+  | otherwise = Nothing
+trySplit (Node l r) =
+  ((`Node` r) <$> trySplit l) <|> ((l `Node`) <$> trySplit r)
+
+sumLeftmost :: Int -> Tree Int -> Tree Int
+sumLeftmost n (Leaf x)   = Leaf (x + n)
+sumLeftmost n (Node x y) = Node (sumLeftmost n x) y
+
+sumRightmost :: Int -> Tree Int -> Tree Int
+sumRightmost n (Leaf x)   = Leaf (x + n)
+sumRightmost n (Node x y) = Node x (sumRightmost n y)
+
+reduceStep :: Tree Int -> Maybe (Tree Int)
+reduceStep t = tryExplode t <|> trySplit t
+
+reduce :: Tree Int -> Tree Int
+reduce t = maybe t reduce (reduceStep t)
+
 solver1 :: Parsed -> Int
 solver1 input = undefined
 
