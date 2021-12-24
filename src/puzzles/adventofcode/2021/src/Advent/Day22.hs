@@ -20,8 +20,8 @@ import           Advent.Templib                  (linesOf)
 import           Control.Applicative             ((<|>))
 import           Control.Lens                    (Each (each), Getting, Lens',
                                                   Prism', _1, _2, _3, _Just,
-                                                  both, preview, prism, set,
-                                                  sumOf, toListOf, view)
+                                                  allOf, both, preview, prism,
+                                                  set, sumOf, toListOf, view)
 import           Control.Monad.State             (MonadState (get), evalState,
                                                   modify)
 import           Data.Advent                     (Day (..))
@@ -96,6 +96,10 @@ runInstruction :: MonadState (HashSet Coord) m => Instruction -> m ()
 runInstruction (True, fromCoord, toCoord)  = turnCubes HashSet.union fromCoord toCoord
 runInstruction (False, fromCoord, toCoord) = turnCubes HashSet.difference fromCoord toCoord
 
+runInstruction' :: MonadState [(Coord, Coord)] m => Instruction -> m ()
+runInstruction' (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
+runInstruction' (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
+
 turnCubes ::
   MonadState (HashSet Coord) m
   => (HashSet Coord -> HashSet Coord -> HashSet Coord) -> Coord -> Coord -> m ()
@@ -121,6 +125,12 @@ limitRange x y =
     y' = if y > 50 then 50 else y
   in
     [x'..y']
+
+cubeInRange :: (Coord, Coord) -> Bool
+cubeInRange = allOf (each . each) (inRange (-50, 50))
+
+instructionInRange :: Instruction -> Bool
+instructionInRange i = cubeInRange (view _2 i, view _3 i)
 
 -- coversSegment a b is true if b overlaps in any way with a
 coversSegment :: (Int, Int) -> (Int, Int) -> Bool
@@ -185,11 +195,11 @@ breakBy a b =
 
 -- Joins two cubes into a list of non overlapping cubes
 union :: (Coord, Coord) -> (Coord, Coord) -> [(Coord, Coord)]
-union a b =
-  let
-    splits = breakBy a b
-  in
-    a : filter (not . subcube a) splits
+union a b = a : (difference a b)
+
+-- Returns non overlapping cubes covering all volume that is in b but not in a
+difference :: (Coord, Coord) -> (Coord, Coord) -> [(Coord, Coord)]
+difference a b = filter (not . subcube a) (breakBy a b)
 
 -- subcube a b returns whether b is fully included in a
 subcube :: (Coord, Coord) -> (Coord, Coord) -> Bool
@@ -201,12 +211,23 @@ subsegment (x1, x2) (x1', x2') =
   x1 <= x1' && x1' <= x2
   && x1 <= x2' && x2' <= x2
 
-runReboot :: [Instruction] -> HashSet (Coord)
+unions :: (Coord, Coord) -> [(Coord, Coord)] -> [(Coord, Coord)]
+unions cube cubes = cube : differences cube cubes
+
+differences :: (Coord, Coord) -> [(Coord, Coord)] -> [(Coord, Coord)]
+differences cube = concatMap (difference cube)
+
+runReboot :: [Instruction] -> HashSet Coord
 runReboot instructions =
   evalState (traverse_ runInstruction instructions >> get) HashSet.empty
 
+runReboot' :: [Instruction] -> [(Coord, Coord)]
+runReboot' instructions =
+  evalState (traverse_ runInstruction' instructions >> get) []
+
 solver1 :: Parsed -> Int
-solver1 = HashSet.size . runReboot
+solver1 = sum . fmap countCells . runReboot' . filter instructionInRange
+-- solver1 = HashSet.size . runReboot . fmap limitRange
 
 solver2 :: Parsed -> Int
 solver2 = undefined
