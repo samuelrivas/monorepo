@@ -92,39 +92,9 @@ rangeP t =
   <$> (literal (t <> "=") *> num)
   <*> (literal ".." *> num)
 
-runInstruction :: MonadState (HashSet Coord) m => Instruction -> m ()
-runInstruction (True, fromCoord, toCoord)  = turnCubes HashSet.union fromCoord toCoord
-runInstruction (False, fromCoord, toCoord) = turnCubes HashSet.difference fromCoord toCoord
-
-runInstruction' :: MonadState [(Coord, Coord)] m => Instruction -> m ()
-runInstruction' (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
-runInstruction' (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
-
-turnCubes ::
-  MonadState (HashSet Coord) m
-  => (HashSet Coord -> HashSet Coord -> HashSet Coord) -> Coord -> Coord -> m ()
-turnCubes f fromCoord toCoord =
-  let
-    xs = mkRange _1 fromCoord toCoord
-    ys = mkRange _2 fromCoord toCoord
-    zs = mkRange _3 fromCoord toCoord
-    allCoords = [(x,y,z) | x <- xs, y <- ys, z <- zs]
-  in
-    modify (`f` HashSet.fromList allCoords)
-
-mkRange :: Getting Int Coord Int -> Coord -> Coord -> [Int]
-mkRange accessor fromCoord toCoord =
-  case (view accessor fromCoord, view accessor toCoord) of
-    (x, y) | x <= y -> limitRange x y
-           | otherwise -> limitRange y x
-
-limitRange :: Int -> Int -> [Int]
-limitRange x y =
-  let
-    x' = if x < -50 then -50 else x
-    y' = if y > 50 then 50 else y
-  in
-    [x'..y']
+runInstruction :: MonadState [(Coord, Coord)] m => Instruction -> m ()
+runInstruction (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
+runInstruction (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
 
 cubeInRange :: (Coord, Coord) -> Bool
 cubeInRange = allOf (each . each) (inRange (-50, 50))
@@ -195,7 +165,7 @@ breakBy a b =
 
 -- Joins two cubes into a list of non overlapping cubes
 union :: (Coord, Coord) -> (Coord, Coord) -> [(Coord, Coord)]
-union a b = a : (difference a b)
+union a b = a : difference a b
 
 -- Returns non overlapping cubes covering all volume that is in b but not in a
 difference :: (Coord, Coord) -> (Coord, Coord) -> [(Coord, Coord)]
@@ -217,16 +187,12 @@ unions cube cubes = cube : differences cube cubes
 differences :: (Coord, Coord) -> [(Coord, Coord)] -> [(Coord, Coord)]
 differences cube = concatMap (difference cube)
 
-runReboot :: [Instruction] -> HashSet Coord
+runReboot :: [Instruction] -> [(Coord, Coord)]
 runReboot instructions =
-  evalState (traverse_ runInstruction instructions >> get) HashSet.empty
-
-runReboot' :: [Instruction] -> [(Coord, Coord)]
-runReboot' instructions =
-  evalState (traverse_ runInstruction' instructions >> get) []
+  evalState (traverse_ runInstruction instructions >> get) []
 
 solver1 :: Parsed -> Int
-solver1 = sum . fmap countCells . runReboot' . filter instructionInRange
+solver1 = sum . fmap countCells . runReboot . filter instructionInRange
 -- solver1 = HashSet.size . runReboot . fmap limitRange
 
 solver2 :: Parsed -> Int
