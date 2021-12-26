@@ -22,8 +22,9 @@ import           Control.Lens                    (Each (each), Getting, Lens',
                                                   Prism', _1, _2, _3, _Just,
                                                   allOf, both, preview, prism,
                                                   set, sumOf, toListOf, view)
+import           Control.Monad.Loops             (whileM_)
 import           Control.Monad.State             (MonadState (get), evalState,
-                                                  modify)
+                                                  gets, modify)
 import           Data.Advent                     (Day (..))
 import           Data.Foldable                   (traverse_)
 import           Data.Functor                    (($>))
@@ -32,7 +33,9 @@ import           Data.HashSet                    (HashSet)
 import qualified Data.HashSet                    as HashSet
 import           Data.Ix                         (inRange)
 import           Data.List                       (foldl1', nub, sort)
-import           Data.Maybe                      (fromJust)
+import           Data.Maybe                      (fromJust, listToMaybe,
+                                                  mapMaybe)
+import           Data.Primitive                  (copyMutableByteArrayToAddr)
 import           Data.Text                       (intercalate)
 import           Distribution.Types.VersionRange (VersionRangeF (VersionRangeParensF))
 import           Numeric.Lens                    (subtracting)
@@ -75,7 +78,7 @@ parser = linesOf instructionP
 
 instructionP :: Parser Instruction
 instructionP = do
-  isOn <- (try (literal "on ") $> True) <|> (literal "off " $> False)
+  isOn <- try (literal "on ") $> True <|> literal "off " $> False
   (start, end) <- rangesP
   pure (isOn, start, end)
 
@@ -105,9 +108,9 @@ instructionInRange i = cubeInRange (view _2 i, view _3 i)
 -- coversSegment a b is true if b overlaps in any way with a
 coversSegment :: (Int, Int) -> (Int, Int) -> Bool
 coversSegment (x1, x2) (y1, y2) =
-  (x1 <= y1 && y1 <= x2)
-  || (x1 <= y2 && y2 <= x2)
-  || (y1 <= x1 && x2 <= y2)
+  x1 <= y1 && y1 <= x2
+  || x1 <= y2 && y2 <= x2
+  || y1 <= x1 && x2 <= y2
 
 -- Projects a cube on a single dimension, provided by an accessor
 projectCube :: Lens' (Int, Int, Int) Int -> (Coord, Coord) -> (Int, Int)
@@ -187,13 +190,62 @@ unions cube cubes = cube : differences cube cubes
 differences :: (Coord, Coord) -> [(Coord, Coord)] -> [(Coord, Coord)]
 differences cube = concatMap (difference cube)
 
+-- Works if b's merge coord is 1 + a's merge coord
+tryMerge' :: Lens' (Int, Int, Int) Int -> Lens' (Int, Int, Int) Int -> Lens' (Int, Int, Int) Int -> (Coord, Coord) -> (Coord, Coord) -> Maybe (Coord, Coord)
+tryMerge' mergeAccessor keepAccessor1 keepAccessor2 a b =
+  let
+    (_, a2) = projectCube mergeAccessor a
+    (b1, _) = projectCube mergeAccessor b
+  in
+    if projectCube keepAccessor1 a /= projectCube keepAccessor1 b
+       || projectCube keepAccessor2 a /= projectCube keepAccessor2 b
+       || b1 /= a2 + 1
+    then Nothing
+    else Just (view _1 a, view _2 b)
+
+-- This tries to merge just in one direction, merge a b succeeds if b's left
+-- coord is a's right coord + 1 across the merging edge
+tryMerge :: (Coord, Coord) -> (Coord, Coord) -> Maybe (Coord, Coord)
+tryMerge a b =
+      tryMerge' _1 _2 _3 a b
+  <|> tryMerge' _2 _1 _3 a b
+  <|> tryMerge' _3 _1 _2 a b
+
+reduceStep :: MonadState (HashSet (Coord, Coord)) m => m Bool
+reduceStep = do
+  getReducible >>= \case
+    Just (a, b, merged) -> do
+      modify (HashSet.delete a)
+      modify (HashSet.delete b)
+      modify (HashSet.insert merged)
+      pure True
+    Nothing -> pure False
+
+-- TODO Move to library
+firstJust :: (a -> Maybe b) -> [a] -> Maybe b
+firstJust f = listToMaybe . mapMaybe f
+
+getReducible ::
+  MonadState (HashSet (Coord, Coord)) m
+  => m (Maybe ((Coord, Coord), (Coord, Coord), (Coord, Coord)))
+getReducible =
+  do
+    cubes <- gets HashSet.toList
+    let pairs = [(x, y) | x <- cubes, y <- cubes, x /= y]
+    pure $ firstJust (\(a, b) -> (a, b,) <$> tryMerge a b) pairs
+
+mergeCubes :: MonadState (HashSet (Coord, Coord)) m => m ()
+mergeCubes = do
+  reduceStep >>= \case
+    True  -> mergeCubes
+    False -> pure ()
+
 runReboot :: [Instruction] -> [(Coord, Coord)]
 runReboot instructions =
   evalState (traverse_ runInstruction instructions >> get) []
 
 solver1 :: Parsed -> Int
 solver1 = sum . fmap countCells . runReboot . filter instructionInRange
--- solver1 = HashSet.size . runReboot . fmap limitRange
 
 solver2 :: Parsed -> Int
 solver2 = undefined
