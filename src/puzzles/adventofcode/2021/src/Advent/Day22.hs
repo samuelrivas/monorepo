@@ -1,15 +1,17 @@
 {-# OPTIONS_GHC -Wall #-}
 
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedLabels     #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TupleSections        #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Advent.Day22 where
 
@@ -18,6 +20,7 @@ import           Perlude
 import           Advent.Templib                  (linesOf)
 
 import           Control.Applicative             ((<|>))
+import           Control.Concurrent              (forkIO)
 import           Control.Lens                    (Each (each), Getting, Lens',
                                                   Prism', _1, _2, _3, _Just,
                                                   allOf, both, preview, prism,
@@ -25,6 +28,7 @@ import           Control.Lens                    (Each (each), Getting, Lens',
 import           Control.Monad.Loops             (whileM_)
 import           Control.Monad.State             (MonadState (get), evalState,
                                                   gets, modify)
+import           Control.Monad.Writer            (MonadWriter)
 import           Data.Advent                     (Day (..))
 import           Data.Foldable                   (traverse_)
 import           Data.Functor                    (($>))
@@ -95,7 +99,7 @@ rangeP t =
   <$> (literal (t <> "=") *> num)
   <*> (literal ".." *> num)
 
-runInstruction :: MonadState [(Coord, Coord)] m => Instruction -> m ()
+runInstruction :: MonadState (HashSet (Coord, Coord)) m => Instruction -> m ()
 runInstruction (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
 runInstruction (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
 
@@ -167,12 +171,12 @@ breakBy a b =
   >>= breakByDimmension _3
 
 -- Joins two cubes into a list of non overlapping cubes
-union :: (Coord, Coord) -> (Coord, Coord) -> [(Coord, Coord)]
-union a b = a : difference a b
+union :: (Coord, Coord) -> (Coord, Coord) -> HashSet (Coord, Coord)
+union a b = HashSet.insert a $ difference a b
 
 -- Returns non overlapping cubes covering all volume that is in b but not in a
-difference :: (Coord, Coord) -> (Coord, Coord) -> [(Coord, Coord)]
-difference a b = filter (not . subcube a) (breakBy a b)
+difference :: (Coord, Coord) -> (Coord, Coord) -> HashSet (Coord, Coord)
+difference a b = HashSet.filter (not . subcube a) (HashSet.fromList $ breakBy a b)
 
 -- subcube a b returns whether b is fully included in a
 subcube :: (Coord, Coord) -> (Coord, Coord) -> Bool
@@ -184,11 +188,11 @@ subsegment (x1, x2) (x1', x2') =
   x1 <= x1' && x1' <= x2
   && x1 <= x2' && x2' <= x2
 
-unions :: (Coord, Coord) -> [(Coord, Coord)] -> [(Coord, Coord)]
-unions cube cubes = cube : differences cube cubes
+unions :: (Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord)
+unions cube = HashSet.insert cube . differences cube
 
-differences :: (Coord, Coord) -> [(Coord, Coord)] -> [(Coord, Coord)]
-differences cube = concatMap (difference cube)
+differences :: (Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord)
+differences cube = HashSet.fromList . concatMap (HashSet.toList . difference cube)
 
 -- Works if b's merge coord is 1 + a's merge coord
 tryMerge' :: Lens' (Int, Int, Int) Int -> Lens' (Int, Int, Int) Int -> Lens' (Int, Int, Int) Int -> (Coord, Coord) -> (Coord, Coord) -> Maybe (Coord, Coord)
@@ -240,15 +244,20 @@ mergeCubes = do
     True  -> mergeCubes
     False -> pure ()
 
-runReboot :: [Instruction] -> [(Coord, Coord)]
+runReboot :: [Instruction] -> HashSet (Coord, Coord)
 runReboot instructions =
-  evalState (traverse_ runInstruction instructions >> get) []
+  evalState
+  (traverse_ (\x -> runInstruction x >> mergeCubes) instructions >> get)
+  HashSet.empty
 
 solver1 :: Parsed -> Int
-solver1 = sum . fmap countCells . runReboot . filter instructionInRange
+solver1 = sum . fmap countCells . HashSet.toList . runReboot . filter instructionInRange
 
+-- TODO: This won't finish
 solver2 :: Parsed -> Int
 solver2 = undefined
+-- solver2 = sum . fmap countCells . HashSet.toList . runReboot
 
 main :: IO ()
-main = solve day parser solver1 solver2
+main = do
+  solve day parser solver1 solver2
