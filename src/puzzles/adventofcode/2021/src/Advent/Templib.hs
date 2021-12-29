@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedLabels           #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 module Advent.Templib (
   binToDec,
@@ -45,33 +46,36 @@ import           Perlude
 
 import qualified Prelude
 
-import           Control.Applicative      ((<|>))
-import           Control.Monad            (forever)
-import           Control.Monad.Identity   (Identity (..), IdentityT (..),
-                                           runIdentity, runIdentityT)
-import           Control.Monad.RWS.CPS    (tell)
-import           Control.Monad.Reader     (MonadReader (ask, reader),
-                                           ReaderT (..), runReaderT)
-import           Control.Monad.Trans      (MonadTrans)
-import           Control.Monad.Writer.CPS (MonadWriter, Writer, WriterT,
-                                           runWriterT)
-import           Data.Advent              (Day)
-import           Data.Foldable            (foldl')
-import           Data.Functor             (($>))
-import           Data.HashMap.Strict      (HashMap)
-import qualified Data.HashMap.Strict      as HashMap
-import           Data.List                (tails)
-import           Data.Monoid              (Sum)
-import qualified Data.Text                as Text
-import           GHC.Generics             (Generic)
-import qualified System.IO                as SIO
-import           System.IO.Advent         (getParsedInput)
-import           Text.Parsec              (char, many, many1, sepEndBy)
-import           Text.Parsec.Parselib     (Parser, literal)
-import           UnliftIO                 (MonadUnliftIO, TVar, atomically,
-                                           modifyTVar, newTVarIO, readTVarIO,
-                                           stderr, withAsync)
-import           UnliftIO.Concurrent      (threadDelay)
+import           Control.Applicative        ((<|>))
+import           Control.Monad              (forever)
+import           Control.Monad.Identity     (Identity (..), IdentityT (..),
+                                             runIdentity, runIdentityT)
+import           Control.Monad.RWS.CPS      (tell)
+import           Control.Monad.Reader       (MonadReader (ask, reader),
+                                             ReaderT (..), runReaderT)
+import           Control.Monad.State        (MonadState)
+import qualified Control.Monad.State.Lazy   as StateLazy
+import qualified Control.Monad.State.Strict as StateStrict
+import           Control.Monad.Trans        (MonadTrans (lift))
+import           Control.Monad.Writer.CPS   (MonadWriter, Writer, WriterT,
+                                             runWriterT)
+import           Data.Advent                (Day)
+import           Data.Foldable              (foldl')
+import           Data.Functor               (($>))
+import           Data.HashMap.Strict        (HashMap)
+import qualified Data.HashMap.Strict        as HashMap
+import           Data.List                  (tails)
+import           Data.Monoid                (Sum)
+import qualified Data.Text                  as Text
+import           GHC.Generics               (Generic)
+import qualified System.IO                  as SIO
+import           System.IO.Advent           (getParsedInput)
+import           Text.Parsec                (char, many, many1, sepEndBy)
+import           Text.Parsec.Parselib       (Parser, literal)
+import           UnliftIO                   (MonadUnliftIO, TVar, atomically,
+                                             modifyTVar, newTVarIO, readTVarIO,
+                                             stderr, withAsync)
+import           UnliftIO.Concurrent        (threadDelay)
 
 -- TODO use this in day 2 or delete
 conv :: ([a] -> b) -> [a] -> [b]
@@ -167,6 +171,20 @@ printPeriodically delay metrics =
 class Monad m => MonadEmit metric m | m -> metric where
   emit :: metric -> m ()
 
+instance (Monad m, MonadEmit metrics m)
+  => MonadEmit metrics (StateLazy.StateT s m) where
+  emit = lift . emit
+
+instance (Monad m, MonadEmit metrics m)
+  => MonadEmit metrics (StateStrict.StateT s m) where
+  emit = lift . emit
+
+instance (Monad m, MonadEmit metrics m) => MonadEmit metrics (ReaderT r m) where
+  emit = lift . emit
+
+instance (Monad m, MonadEmit metrics m) => MonadEmit metrics (WriterT w m) where
+  emit = lift . emit
+
 -- Instances for Identity, to run Emit actions discarding the metrics. Note that
 -- we cannot derive this for all emittable types, since Identity doesn't
 -- determine the type, so if you do emit any type you cannot use this shortcut
@@ -184,9 +202,15 @@ instance (Monad m) => MonadEmit () (IdentityT m) where
 newtype EmitTVarT metric m a =
   EmitTVarT { unEmitTVarT :: ReaderT (TVar metric) m a }
   deriving newtype (Functor, Applicative, Monad, MonadReader (TVar metric),
-                    MonadTrans, MonadIO)
+                    MonadTrans, MonadIO, MonadState s, MonadFail, MonadWriter w)
 
 type EmitTVar metric a = EmitTVarT metric Identity a
+
+-- instance MonadState s m => MonadState s (EmitTVarT metrics m) where
+--   state = undefined
+
+-- instance MonadEmit metrics m => MonadEmit metrics (EmitTVarT metrics' m) where
+--   emit = undefined
 
 instance (Semigroup metrics, Monad m, MonadIO m) =>
   MonadEmit metrics (EmitTVarT metrics m) where
@@ -225,6 +249,9 @@ newtype EmitWriterT metric m a =
 
 type EmitWriter metric a = EmitWriterT metric Identity a
 
+-- instance MonadState s m => MonadState s (EmitWriterT metric m) where
+--   state = undefined
+
 emitWriter :: Writer metric a -> EmitWriter metric a
 emitWriter = EmitWriterT
 
@@ -245,7 +272,7 @@ runEmitWriter = runIdentity . runEmitWriterT
 -- runEmitVoidT (emit (Sum 10)) :: Monad m => m ()
 
 newtype EmitVoidT metric m a = EmitVoidT { unEmitVoidT :: IdentityT m a }
-  deriving newtype (Functor, Applicative, Monad, MonadTrans, MonadIO)
+  deriving newtype (Functor, Applicative, MonadTrans, MonadIO, Monad)
 
 type EmitVoid metric a = EmitVoidT metric Identity a
 
@@ -258,6 +285,9 @@ emitVoid = EmitVoidT . IdentityT . Identity
 instance (Semigroup metric, Monad m) =>
   MonadEmit metric (EmitVoidT metric m) where
   emit = const . pure $ ()
+
+-- instance MonadState s m => MonadState s (EmitVoidT metric m) where
+--   state = undefined
 
 runEmitVoidT :: EmitVoidT metric m a -> m a
 runEmitVoidT = runIdentityT . unEmitVoidT

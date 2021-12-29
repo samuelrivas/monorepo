@@ -17,7 +17,8 @@ module Advent.Day22 where
 
 import           Perlude
 
-import           Advent.Templib                  (linesOf)
+import           Advent.Templib                  (Metrics (..), MonadEmit, emit,
+                                                  linesOf, solveM)
 
 import           Control.Applicative             ((<|>))
 import           Control.Concurrent              (forkIO)
@@ -26,19 +27,21 @@ import           Control.Lens                    (Each (each), Getting, Lens',
                                                   allOf, both, preview, prism,
                                                   set, sumOf, toListOf, view)
 import           Control.Monad.Loops             (whileM_)
-import           Control.Monad.State             (MonadState (get), evalState,
-                                                  gets, modify)
+import           Control.Monad.State.Strict      (MonadState (get), evalState,
+                                                  evalStateT, gets, modify)
 import           Control.Monad.Writer            (MonadWriter)
 import           Data.Advent                     (Day (..))
 import           Data.Foldable                   (traverse_)
 import           Data.Functor                    (($>))
 import           Data.Generics.Labels            ()
+import qualified Data.HashMap.Strict             as HashMap
 import           Data.HashSet                    (HashSet)
 import qualified Data.HashSet                    as HashSet
 import           Data.Ix                         (inRange)
 import           Data.List                       (foldl1', nub, sort)
 import           Data.Maybe                      (fromJust, listToMaybe,
                                                   mapMaybe)
+import           Data.Monoid                     (Sum (..))
 import           Data.Primitive                  (copyMutableByteArrayToAddr)
 import           Data.Text                       (intercalate)
 import           Distribution.Types.VersionRange (VersionRangeF (VersionRangeParensF))
@@ -102,6 +105,12 @@ rangeP t =
 runInstruction :: MonadState (HashSet (Coord, Coord)) m => Instruction -> m ()
 runInstruction (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
 runInstruction (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
+
+runInstructionM ::
+  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m =>
+  Instruction -> m ()
+runInstructionM (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
+runInstructionM (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
 
 cubeInRange :: (Coord, Coord) -> Bool
 cubeInRange = allOf (each . each) (inRange (-50, 50))
@@ -244,20 +253,42 @@ mergeCubes = do
     True  -> mergeCubes
     False -> pure ()
 
+mergeCubesM :: MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m => m ()
+mergeCubesM = do
+  reduceStep >>= \case
+    True  -> mergeCubes
+    False -> pure ()
+
 runReboot :: [Instruction] -> HashSet (Coord, Coord)
 runReboot instructions =
   evalState
   (traverse_ (\x -> runInstruction x >> mergeCubes) instructions >> get)
   HashSet.empty
 
+type CubeMetrics = Metrics (Sum Int)
+
+countInstruction :: MonadEmit CubeMetrics m => m ()
+countInstruction = emit . Metrics . HashMap.singleton "instructions" . Sum $ 1
+
+runRebootM :: MonadEmit CubeMetrics m => [Instruction] -> m (HashSet (Coord, Coord))
+runRebootM instructions =
+  evalStateT
+  (traverse_ (\x -> runInstructionM x >> countInstruction >> mergeCubesM) instructions >> get)
+  HashSet.empty
+
 solver1 :: Parsed -> Int
 solver1 = sum . fmap countCells . HashSet.toList . runReboot . filter instructionInRange
 
--- TODO: This won't finish
+-- TODO: This won't finish (Possibly because we are using State.Lazy!!
 solver2 :: Parsed -> Int
-solver2 = undefined
--- solver2 = sum . fmap countCells . HashSet.toList . runReboot
+solver2 = sum . fmap countCells . HashSet.toList . runReboot
+
+solver1M :: (MonadEmit (Metrics (Sum Int)) m) => Parsed -> m Int
+solver1M = fmap (sum . fmap countCells . HashSet.toList) . runRebootM . filter instructionInRange
+
+solver2M :: (MonadEmit (Metrics (Sum Int)) m) => Parsed -> m Int
+solver2M = fmap (sum . fmap countCells . HashSet.toList) . runRebootM
 
 main :: IO ()
 main = do
-  solve day parser solver1 solver2
+  solveM day parser solver1M solver2M
