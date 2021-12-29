@@ -21,14 +21,24 @@ module Advent.Templib (
   matrix,
   hPrint,
   solveM,
-  runEmitVoid,
-  runEmitVoidT,
+  MonadEmit (..),
+  emitTVarT,
+  emitTVar,
+  EmitTVarT,
   runEmitTVarTIO,
+  runEmitTVarTIO',
+  EmitWriterT (..),
+  emitWriter,
   runEmitWriter,
   runEmitWriterT,
   runEmitTVar,
   runEmitTVarT,
-  MonadEmit (..),
+  EmitVoidT,
+  EmitVoid,
+  emitVoidT,
+  emitVoid,
+  runEmitVoid,
+  runEmitVoidT,
   Metrics (..)
   ) where
 import           Perlude
@@ -40,10 +50,11 @@ import           Control.Monad            (forever)
 import           Control.Monad.Identity   (Identity (..), IdentityT (..),
                                            runIdentity, runIdentityT)
 import           Control.Monad.RWS.CPS    (tell)
-import           Control.Monad.Reader     (MonadReader (ask), ReaderT,
-                                           runReaderT)
+import           Control.Monad.Reader     (MonadReader (ask, reader),
+                                           ReaderT (..), runReaderT)
 import           Control.Monad.Trans      (MonadTrans)
-import           Control.Monad.Writer.CPS (MonadWriter, WriterT, runWriterT)
+import           Control.Monad.Writer.CPS (MonadWriter, Writer, WriterT,
+                                           runWriterT)
 import           Data.Advent              (Day)
 import           Data.Foldable            (foldl')
 import           Data.Functor             (($>))
@@ -118,7 +129,6 @@ solveM day parser solver1 solver2 = do
 
 -- Monad Emit
 
--- A monad were we can emit metrics of type a
 newtype Metrics a = Metrics { unMetrics :: HashMap Text a }
   deriving stock (Eq, Generic)
   deriving newtype (Functor, Foldable)
@@ -153,7 +163,8 @@ printPeriodically :: MonadIO m => Show a => Int -> TVar a -> m ()
 printPeriodically delay metrics =
   forever $ readTVarIO metrics >>= hPrint stderr >> threadDelay delay
 
-class (Monad m, Semigroup metric) => MonadEmit metric m | m -> metric where
+-- A monad were we can emit metrics of type a
+class Monad m => MonadEmit metric m | m -> metric where
   emit :: metric -> m ()
 
 -- Instances for Identity, to run Emit actions discarding the metrics. Note that
@@ -169,6 +180,7 @@ instance MonadEmit () Identity where
 instance (Monad m) => MonadEmit () (IdentityT m) where
   emit = const . IdentityT . pure $ ()
 
+-- Emit monad that uses a TVar to send metrics
 newtype EmitTVarT metric m a =
   EmitTVarT { unEmitTVarT :: ReaderT (TVar metric) m a }
   deriving newtype (Functor, Applicative, Monad, MonadReader (TVar metric),
@@ -182,18 +194,39 @@ instance (Semigroup metrics, Monad m, MonadIO m) =>
     tvar <- ask
     atomically . modifyTVar tvar $ (metrics <>)
 
+emitTVarT :: (TVar metric -> m a) -> EmitTVarT metric m a
+emitTVarT = EmitTVarT . ReaderT
+
+emitTVar :: (TVar metric -> a) -> EmitTVar metric a
+emitTVar = EmitTVarT . reader
+
 runEmitTVarT :: EmitTVarT metric m a -> TVar metric -> m a
 runEmitTVarT  = runReaderT . unEmitTVarT
 
 runEmitTVar :: EmitTVar metric a -> TVar metric -> a
 runEmitTVar x = runIdentity . runEmitTVarT x
 
+-- Runs an emit monad with a listener thread that prints the collected metrics
+-- periodically
+runEmitTVarTIO :: Show metric => MonadUnliftIO m =>
+  EmitTVarT metric m a -> Int -> metric -> m a
+runEmitTVarTIO x delay initial = withPrinterThread delay initial (runEmitTVarT x)
+
+-- Same as runEmitTVarTIO, but using 'mempty' as initial value for the metrics
+runEmitTVarTIO' :: Show metric => Monoid metric => MonadUnliftIO m =>
+  EmitTVarT metric m a -> Int ->  m a
+runEmitTVarTIO' x delay = withPrinterThread delay mempty (runEmitTVarT x)
+
+-- Emit monad that collects metrics in a Writer
 newtype EmitWriterT metric m a =
   EmitWriterT { unEmitWriterT :: WriterT metric m a }
   deriving newtype (Functor, Applicative, Monad, MonadWriter metric,
                     MonadTrans, MonadIO)
 
 type EmitWriter metric a = EmitWriterT metric Identity a
+
+emitWriter :: Writer metric a -> EmitWriter metric a
+emitWriter = EmitWriterT
 
 instance (Monoid metric, Monad m) =>
   MonadEmit metric (EmitWriterT metric m) where
@@ -205,27 +238,29 @@ runEmitWriterT = runWriterT . unEmitWriterT
 runEmitWriter :: Monoid metric => EmitWriter metric a -> (a, metric)
 runEmitWriter = runIdentity . runEmitWriterT
 
+-- Emit monad that discards metrics
+--
+-- This is useful to unwrap Emit monads without caring about the metrics:
+--
+-- runEmitVoidT (emit (Sum 10)) :: Monad m => m ()
+
 newtype EmitVoidT metric m a = EmitVoidT { unEmitVoidT :: IdentityT m a }
   deriving newtype (Functor, Applicative, Monad, MonadTrans, MonadIO)
 
 type EmitVoid metric a = EmitVoidT metric Identity a
 
+emitVoidT :: m a -> EmitVoidT metric m a
+emitVoidT = EmitVoidT . IdentityT
+
+emitVoid :: a -> EmitVoid metric a
+emitVoid = EmitVoidT . IdentityT . Identity
+
 instance (Semigroup metric, Monad m) =>
   MonadEmit metric (EmitVoidT metric m) where
-  emit = const . EmitVoidT $ pure ()
+  emit = const . pure $ ()
 
 runEmitVoidT :: EmitVoidT metric m a -> m a
 runEmitVoidT = runIdentityT . unEmitVoidT
 
 runEmitVoid :: EmitVoid metric a -> a
 runEmitVoid = runIdentity . runEmitVoidT
-
--- Runs an emit monad with a listener thread that prints the collected metrics
--- periodically
-runEmitTVarTIO :: Show metric => MonadUnliftIO m =>
-  EmitTVarT metric m a -> Int -> metric -> m a
-runEmitTVarTIO x delay initial = withPrinterThread delay initial (runEmitTVarT x)
-
-runEmitTVarTIO' :: Show metric => Monoid metric => MonadUnliftIO m =>
-  EmitTVarT metric m a -> Int ->  m a
-runEmitTVarTIO' x delay = withPrinterThread delay mempty (runEmitTVarT x)
