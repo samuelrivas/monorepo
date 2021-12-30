@@ -324,8 +324,6 @@ solver1 =
   . runReboot
   . filter instructionInRange
 
--- TODO: This takes forever, it jams after about 150 instructions taking more
--- than 5 seconds per instruction
 solver2 :: MonadEmit CubeMetrics m => Parsed -> m Int
 solver2 = fmap (sum . fmap countCells . HashSet.toList) . runReboot
 
