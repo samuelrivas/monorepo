@@ -13,7 +13,7 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Advent.Day22 (main) where
+module Advent.Day22 where
 
 import           Perlude
 
