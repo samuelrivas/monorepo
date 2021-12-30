@@ -24,11 +24,13 @@ import           Control.Applicative             ((<|>))
 import           Control.Concurrent              (forkIO)
 import           Control.Lens                    (Each (each), Getting, Lens',
                                                   Prism', _1, _2, _3, _Just,
-                                                  allOf, both, preview, prism,
-                                                  set, sumOf, toListOf, view)
+                                                  allOf, both, over, preview,
+                                                  prism, set, sumOf, toListOf,
+                                                  view)
 import           Control.Monad.Loops             (whileM_)
 import           Control.Monad.State.Strict      (MonadState (get), evalState,
-                                                  evalStateT, gets, modify)
+                                                  evalStateT, execStateT, gets,
+                                                  modify)
 import           Control.Monad.Writer            (MonadWriter)
 import           Data.Advent                     (Day (..))
 import           Data.Foldable                   (traverse_)
@@ -102,15 +104,13 @@ rangeP t =
   <$> (literal (t <> "=") *> num)
   <*> (literal ".." *> num)
 
-runInstruction :: MonadState (HashSet (Coord, Coord)) m => Instruction -> m ()
-runInstruction (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
-runInstruction (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
-
-runInstructionM ::
-  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m =>
-  Instruction -> m ()
-runInstructionM (True, fromCoord, toCoord) = modify (unions (fromCoord, toCoord))
-runInstructionM (False, fromCoord, toCoord) = modify (differences (fromCoord, toCoord))
+runInstruction ::
+  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord))
+  m => Instruction -> m ()
+runInstruction (True, fromCoord, toCoord) =
+  countInstructionOn >> setOn (fromCoord, toCoord)
+runInstruction (False, fromCoord, toCoord) =
+  countInstructionOff >> setOff (fromCoord, toCoord)
 
 cubeInRange :: (Coord, Coord) -> Bool
 cubeInRange = allOf (each . each) (inRange (-50, 50))
@@ -204,7 +204,13 @@ differences :: (Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord
 differences cube = HashSet.fromList . concatMap (HashSet.toList . difference cube)
 
 -- Works if b's merge coord is 1 + a's merge coord
-tryMerge' :: Lens' (Int, Int, Int) Int -> Lens' (Int, Int, Int) Int -> Lens' (Int, Int, Int) Int -> (Coord, Coord) -> (Coord, Coord) -> Maybe (Coord, Coord)
+tryMerge' ::
+  Lens' (Int, Int, Int) Int
+ -> Lens' (Int, Int, Int) Int
+ -> Lens' (Int, Int, Int) Int
+ -> (Coord, Coord)
+ -> (Coord, Coord)
+ -> Maybe (Coord, Coord)
 tryMerge' mergeAccessor keepAccessor1 keepAccessor2 a b =
   let
     (_, a2) = projectCube mergeAccessor a
@@ -247,48 +253,93 @@ getReducible =
     let pairs = [(x, y) | x <- cubes, y <- cubes, x /= y]
     pure $ firstJust (\(a, b) -> (a, b,) <$> tryMerge a b) pairs
 
-mergeCubes :: MonadState (HashSet (Coord, Coord)) m => m ()
+mergeCubes :: MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m => m ()
 mergeCubes = do
   reduceStep >>= \case
-    True  -> mergeCubes
+    True  -> countMerge >> mergeCubes
     False -> pure ()
-
-mergeCubesM :: MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m => m ()
-mergeCubesM = do
-  reduceStep >>= \case
-    True  -> mergeCubes
-    False -> pure ()
-
-runReboot :: [Instruction] -> HashSet (Coord, Coord)
-runReboot instructions =
-  evalState
-  (traverse_ (\x -> runInstruction x >> mergeCubes) instructions >> get)
-  HashSet.empty
 
 type CubeMetrics = Metrics (Sum Int)
 
 countInstruction :: MonadEmit CubeMetrics m => m ()
 countInstruction = emit . Metrics . HashMap.singleton "instructions" . Sum $ 1
 
+countInstructionOn :: MonadEmit CubeMetrics m => m ()
+countInstructionOn = emit . Metrics . HashMap.singleton "ons" . Sum $ 1
+
+countInstructionOff :: MonadEmit CubeMetrics m => m ()
+countInstructionOff = emit . Metrics . HashMap.singleton "offs" . Sum $ 1
+
+countAddedCubes :: MonadEmit CubeMetrics m => Int -> m ()
+countAddedCubes = emit . Metrics . HashMap.singleton "added cubes" . Sum
+
+countRemovedCubes :: MonadEmit CubeMetrics m => Int -> m ()
+countRemovedCubes = emit . Metrics . HashMap.singleton "removed cubes" . Sum
+
+countAffectedCubes :: MonadEmit CubeMetrics m => Int -> m ()
+countAffectedCubes = emit . Metrics . HashMap.singleton "affected cubes" . Sum
+
+countMerge :: MonadEmit CubeMetrics m => m ()
+countMerge = emit . Metrics . HashMap.singleton "merges" . Sum $ 1
+
 runRebootM :: MonadEmit CubeMetrics m => [Instruction] -> m (HashSet (Coord, Coord))
 runRebootM instructions =
   evalStateT
-  (traverse_ (\x -> runInstructionM x >> countInstruction >> mergeCubesM) instructions >> get)
+  (traverse_ (\x -> runInstruction x >> countInstruction >> mergeCubes) instructions >> get)
   HashSet.empty
 
-solver1 :: Parsed -> Int
-solver1 = sum . fmap countCells . HashSet.toList . runReboot . filter instructionInRange
+-- TODO Merge these two functions
+setOff ::
+  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  => (Coord, Coord) -> m ()
+setOff cube = do
+  affected <- getAffected cube
+  modify $ flip HashSet.difference affected
 
--- TODO: This won't finish (Possibly because we are using State.Lazy!!
-solver2 :: Parsed -> Int
-solver2 = sum . fmap countCells . HashSet.toList . runReboot
+  countRemovedCubes $ HashSet.size affected
 
-solver1M :: (MonadEmit (Metrics (Sum Int)) m) => Parsed -> m Int
-solver1M = fmap (sum . fmap countCells . HashSet.toList) . runRebootM . filter instructionInRange
+  let diffs = differences cube affected
+  toInsert <- execStateT mergeCubes diffs
 
-solver2M :: (MonadEmit (Metrics (Sum Int)) m) => Parsed -> m Int
-solver2M = fmap (sum . fmap countCells . HashSet.toList) . runRebootM
+  countAddedCubes $ HashSet.size toInsert
+
+  modify $ HashSet.union toInsert
+
+setOn ::
+  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  => (Coord, Coord) -> m ()
+setOn cube = do
+  affected <- getAffected cube
+  modify $ flip HashSet.difference affected
+
+  countRemovedCubes $ HashSet.size affected
+
+  let newCubes = unions cube affected
+  toInsert <- execStateT mergeCubes newCubes
+
+  countAddedCubes $ HashSet.size toInsert
+
+  modify $ HashSet.union toInsert
+
+getAffected ::
+  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  => (Coord, Coord) -> m (HashSet (Coord, Coord))
+getAffected cube =
+  let
+    expanded = over (_1 . each) (subtract 1) . over (_2 . each) (+1) $ cube
+  in
+    gets $ HashSet.filter (coversCube expanded)
+
+solver1 :: MonadEmit CubeMetrics m => Parsed -> m Int
+solver1 =
+  fmap (sum . fmap countCells . HashSet.toList)
+  . runRebootM
+  . filter instructionInRange
+
+-- TODO: This takes forever, it jams after about 150 instructions taking more
+-- than 5 seconds per instruction
+solver2 :: MonadEmit CubeMetrics m => Parsed -> m Int
+solver2 = fmap (sum . fmap countCells . HashSet.toList) . runRebootM
 
 main :: IO ()
-main = do
-  solveM day parser solver1M solver2M
+main = solveM day parser solver1 solver2
