@@ -13,48 +13,32 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Advent.Day22 where
+module Advent.Day22 (main) where
 
 import           Perlude
 
-import           Advent.Templib                  (Metrics (..), MonadEmit, emit,
-                                                  linesOf, solveM)
+import           Advent.Templib       (Metrics (..), MonadEmit, emit, linesOf,
+                                       solveM)
 
-import           Control.Applicative             ((<|>))
-import           Control.Concurrent              (forkIO)
-import           Control.Lens                    (Each (each), Getting, Lens',
-                                                  Prism', _1, _2, _3, _Just,
-                                                  allOf, both, over, preview,
-                                                  prism, set, sumOf, toListOf,
-                                                  view)
-import           Control.Monad.Loops             (whileM_)
-import           Control.Monad.State.Strict      (MonadState (get), evalState,
-                                                  evalStateT, execStateT, gets,
-                                                  modify)
-import           Control.Monad.Writer            (MonadWriter)
-import           Data.Advent                     (Day (..))
-import           Data.Foldable                   (traverse_)
-import           Data.Functor                    (($>))
-import           Data.Generics.Labels            ()
-import qualified Data.HashMap.Strict             as HashMap
-import           Data.HashSet                    (HashSet)
-import qualified Data.HashSet                    as HashSet
-import           Data.Ix                         (inRange)
-import           Data.List                       (foldl1', nub, sort)
-import           Data.Maybe                      (fromJust, listToMaybe,
-                                                  mapMaybe)
-import           Data.Monoid                     (Sum (..))
-import           Data.Primitive                  (copyMutableByteArrayToAddr)
-import           Data.Text                       (intercalate)
-import           Distribution.Types.VersionRange (VersionRangeF (VersionRangeParensF))
-import           Numeric.Lens                    (subtracting)
-import qualified Prelude
-import           System.IO.Advent                (getInput, getParsedInput,
-                                                  solve)
-import           Text.Parsec                     (char, try)
-import           Text.Parsec.Parselib            (Parser, digitAsNum,
-                                                  digitsAsNum, literal, num,
-                                                  unsafeParseAll)
+import           Control.Applicative  ((<|>))
+import           Control.Lens         (Each (each), Lens', _1, _2, _3, allOf,
+                                       over, set, view)
+import           Control.Monad.State  (MonadState (get), evalStateT, execStateT,
+                                       gets, modify)
+import           Data.Advent          (Day (..))
+import           Data.Foldable        (traverse_)
+import           Data.Functor         (($>))
+import           Data.Generics.Labels ()
+import qualified Data.HashMap.Strict  as HashMap
+import           Data.HashSet         (HashSet)
+import qualified Data.HashSet         as HashSet
+import           Data.Ix              (inRange)
+import           Data.Maybe           (fromJust, listToMaybe, mapMaybe)
+import           Data.Monoid          (Sum (..))
+import           Data.Text            (intercalate)
+import           System.IO.Advent     (getInput, getParsedInput)
+import           Text.Parsec          (try)
+import           Text.Parsec.Parselib (Parser, literal, num, unsafeParseAll)
 
 type Coord = (Int, Int, Int)
 type Instruction = (Bool, Coord, Coord)
@@ -134,6 +118,7 @@ projectCube accessor cube =
 coversCube :: (Coord, Coord) -> (Coord, Coord) -> Bool
 coversCube  = allProjections coversSegment
 
+-- allProjections p a b is true if p a b is true for all projections of a and b
 allProjections ::
   ((Int, Int) -> (Int, Int) -> Bool) -> (Coord, Coord) -> (Coord, Coord) -> Bool
 allProjections f a b =
@@ -143,7 +128,8 @@ allProjections f a b =
 
 -- TODO This reeks as something that can be done in a simpler way
 --
--- splitSegment a b cuts b in chunks so that all of them are either fully inside a or fully outside a
+-- splitSegment a b cuts b in chunks so that all of them are either fully inside
+-- a or fully outside a
 splitSegment :: (Int, Int) -> (Int, Int) -> [(Int, Int)]
 splitSegment splitter@(a1, a2) segment@(b1, b2)
   | a2 < b1 || b2 < a1 = [segment] -- disjoint
@@ -152,20 +138,6 @@ splitSegment splitter@(a1, a2) segment@(b1, b2)
   | a2 < b2 = [(b1, a2), (a2 + 1, b2)] -- spiltter contains left end of segment
   | a1 > b1 = [(b1, a1 - 1), (a1, b2)] -- splitter contains right end of segment
   | otherwise = error "unexpected segments"
-
--- Same as breakBy, but across a dimension set by the lens
-breakByAcross ::
-  Lens' (Int, Int, Int) Int -> (Int, Int) -> (Coord, Coord)
-  -> [(Coord, Coord)]
-breakByAcross accessor splitter cube =
-  let
-    segments = splitSegment splitter (projectCube accessor cube)
-    cubify (a, b) = set (_1 . accessor) a . set (_2 . accessor) b $  cube
-  in
-    cubify <$> segments
-
-countCells :: (Coord, Coord) -> Int
-countCells ((x, y, z), (x', y', z')) = (x' - x + 1) * (y' - y + 1) * (z' - z + 1)
 
 -- breakBy a b returns b exploded so that is composed of boxes that don't cross
 -- any edge of a
@@ -179,17 +151,26 @@ breakBy a b =
   >>= breakByDimmension _2
   >>= breakByDimmension _3
 
--- Joins two cubes into a list of non overlapping cubes
-union :: (Coord, Coord) -> (Coord, Coord) -> HashSet (Coord, Coord)
-union a b = HashSet.insert a $ difference a b
+-- Same as breakBy, but across a dimension set by the lens
+breakByAcross ::
+  Lens' (Int, Int, Int) Int -> (Int, Int) -> (Coord, Coord)
+  -> [(Coord, Coord)]
+breakByAcross accessor splitter cube =
+  let
+    segments = splitSegment splitter (projectCube accessor cube)
+    cubify (a, b) = set (_1 . accessor) a . set (_2 . accessor) b $  cube
+  in
+    cubify <$> segments
 
--- Returns non overlapping cubes covering all volume that is in b but not in a
+countCells :: (Coord, Coord) -> Int
+countCells ((x, y, z), (x', y', z')) =
+  (x' - x + 1) * (y' - y + 1) * (z' - z + 1)
+
+-- Returns a set of non overlapping cubes covering all volume that is in b but
+-- not in a
 difference :: (Coord, Coord) -> (Coord, Coord) -> HashSet (Coord, Coord)
-difference a b = HashSet.filter (not . subcube a) (HashSet.fromList $ breakBy a b)
-
--- subcube a b returns whether b is fully included in a
-subcube :: (Coord, Coord) -> (Coord, Coord) -> Bool
-subcube = allProjections subsegment
+difference a b =
+  HashSet.filter (not . subcube a) (HashSet.fromList $ breakBy a b)
 
 -- subsegment a b returns whether b is fully included in a
 subsegment :: (Int, Int) -> (Int, Int) -> Bool
@@ -197,13 +178,23 @@ subsegment (x1, x2) (x1', x2') =
   x1 <= x1' && x1' <= x2
   && x1 <= x2' && x2' <= x2
 
+-- subcube a b returns whether b is fully included in a
+subcube :: (Coord, Coord) -> (Coord, Coord) -> Bool
+subcube = allProjections subsegment
+
 unions :: (Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord)
 unions cube = HashSet.insert cube . differences cube
 
-differences :: (Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord)
-differences cube = HashSet.fromList . concatMap (HashSet.toList . difference cube)
+-- Returns a set of non overlapping cubes that cover all the volume of the
+-- provided set that is not covered by cube
+differences ::
+  (Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord)
+differences cube =
+  HashSet.fromList . concatMap (HashSet.toList . difference cube)
 
--- Works if b's merge coord is 1 + a's merge coord
+-- Tries to merge two cubes across a dimension. Works if b's merge coord is 1 +
+-- a's merge coord, so if you don't know how the segments are aligned you need to
+-- run this operation both ways
 tryMerge' ::
   Lens' (Int, Int, Int) Int
  -> Lens' (Int, Int, Int) Int
@@ -223,13 +214,15 @@ tryMerge' mergeAccessor keepAccessor1 keepAccessor2 a b =
     else Just (view _1 a, view _2 b)
 
 -- This tries to merge just in one direction, merge a b succeeds if b's left
--- coord is a's right coord + 1 across the merging edge
+-- coord is a's right coord + 1 across the merging edge. If you don't know how
+-- the cubes are aligned you need to run this operation both ways
 tryMerge :: (Coord, Coord) -> (Coord, Coord) -> Maybe (Coord, Coord)
 tryMerge a b =
       tryMerge' _1 _2 _3 a b
   <|> tryMerge' _2 _1 _3 a b
   <|> tryMerge' _3 _1 _2 a b
 
+-- Tries to merge one pair of cubes in the state set
 reduceStep :: MonadState (HashSet (Coord, Coord)) m => m Bool
 reduceStep = do
   getReducible >>= \case
@@ -253,7 +246,9 @@ getReducible =
     let pairs = [(x, y) | x <- cubes, y <- cubes, x /= y]
     pure $ firstJust (\(a, b) -> (a, b,) <$> tryMerge a b) pairs
 
-mergeCubes :: MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m => m ()
+-- Keeps merging pairs of cubes until there is no more cubes that can be merged
+mergeCubes ::
+  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m => m ()
 mergeCubes = do
   reduceStep >>= \case
     True  -> countMerge >> mergeCubes
@@ -276,14 +271,11 @@ countAddedCubes = emit . Metrics . HashMap.singleton "added cubes" . Sum
 countRemovedCubes :: MonadEmit CubeMetrics m => Int -> m ()
 countRemovedCubes = emit . Metrics . HashMap.singleton "removed cubes" . Sum
 
-countAffectedCubes :: MonadEmit CubeMetrics m => Int -> m ()
-countAffectedCubes = emit . Metrics . HashMap.singleton "affected cubes" . Sum
-
 countMerge :: MonadEmit CubeMetrics m => m ()
 countMerge = emit . Metrics . HashMap.singleton "merges" . Sum $ 1
 
-runRebootM :: MonadEmit CubeMetrics m => [Instruction] -> m (HashSet (Coord, Coord))
-runRebootM instructions =
+runReboot :: MonadEmit CubeMetrics m => [Instruction] -> m (HashSet (Coord, Coord))
+runReboot instructions =
   evalStateT
   (traverse_ (\x -> runInstruction x >> countInstruction >> mergeCubes) instructions >> get)
   HashSet.empty
@@ -292,29 +284,25 @@ runRebootM instructions =
 setOff ::
   MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
   => (Coord, Coord) -> m ()
-setOff cube = do
-  affected <- getAffected cube
-  modify $ flip HashSet.difference affected
-
-  countRemovedCubes $ HashSet.size affected
-
-  let diffs = differences cube affected
-  toInsert <- execStateT mergeCubes diffs
-
-  countAddedCubes $ HashSet.size toInsert
-
-  modify $ HashSet.union toInsert
+setOff = setOnOrOff differences
 
 setOn ::
   MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
   => (Coord, Coord) -> m ()
-setOn cube = do
+setOn = setOnOrOff unions
+
+setOnOrOff ::
+  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  => ((Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord))
+  -> (Coord, Coord)
+  -> m ()
+setOnOrOff f cube = do
   affected <- getAffected cube
   modify $ flip HashSet.difference affected
 
   countRemovedCubes $ HashSet.size affected
 
-  let newCubes = unions cube affected
+  let newCubes = f cube affected
   toInsert <- execStateT mergeCubes newCubes
 
   countAddedCubes $ HashSet.size toInsert
@@ -333,13 +321,13 @@ getAffected cube =
 solver1 :: MonadEmit CubeMetrics m => Parsed -> m Int
 solver1 =
   fmap (sum . fmap countCells . HashSet.toList)
-  . runRebootM
+  . runReboot
   . filter instructionInRange
 
 -- TODO: This takes forever, it jams after about 150 instructions taking more
 -- than 5 seconds per instruction
 solver2 :: MonadEmit CubeMetrics m => Parsed -> m Int
-solver2 = fmap (sum . fmap countCells . HashSet.toList) . runRebootM
+solver2 = fmap (sum . fmap countCells . HashSet.toList) . runReboot
 
 main :: IO ()
 main = solveM day parser solver1 solver2
