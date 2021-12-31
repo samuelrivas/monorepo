@@ -2,6 +2,7 @@
 
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DerivingVia                #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE FunctionalDependencies     #-}
@@ -21,6 +22,7 @@ module Advent.Templib (
   linesOf,
   matrix,
   hPrint,
+  hPutStr,
   solveM,
   MonadEmit (..),
   emitTVarT,
@@ -65,9 +67,10 @@ import           Data.Functor               (($>))
 import           Data.HashMap.Strict        (HashMap)
 import qualified Data.HashMap.Strict        as HashMap
 import           Data.List                  (tails)
-import           Data.Monoid                (Sum)
+import           Data.Monoid                (Sum (..))
 import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
+import           GHC.Stats                  (RTSStats)
 import qualified System.IO                  as SIO
 import           System.IO.Advent           (getParsedInput)
 import           Text.Parsec                (char, many, many1, sepEndBy)
@@ -87,6 +90,12 @@ binToDec = foldl' (\acc b -> fromEnum b + 2*acc) 0
 -- To perlude
 hPrint :: MonadIO m => Show a => SIO.Handle -> a -> m ()
 hPrint h = liftIO . SIO.hPrint h
+
+hPutStr :: MonadIO m => SIO.Handle -> Text -> m ()
+hPutStr h = liftIO . SIO.hPutStr h . unpack
+
+hPutStrLn :: MonadIO m => SIO.Handle -> Text -> m ()
+hPutStrLn h = liftIO . SIO.hPutStrLn h . unpack
 
 -- Parsers
 
@@ -137,7 +146,45 @@ newtype Metrics a = Metrics { unMetrics :: HashMap Text a }
   deriving stock (Eq, Generic)
   deriving newtype (Functor, Foldable)
 
--- The default instances for HashMap aren't really monoidal...
+data Metric =
+  MetricMax (Max Int)
+  | MetricMin (Min Int)
+  | MetricSum (Sum Int)
+  | MetricStats (Stats Int)
+  | MetricCount (Count Int)
+  deriving stock (Eq, Generic, Show)
+
+newtype Min n = Min { getMin :: n } deriving stock (Eq, Generic, Show)
+
+instance Ord a => Semigroup (Min a) where
+  Min a <> Min b = Min $ min a b
+
+instance (Ord a, Bounded a) => Monoid (Min a) where
+  mempty = Min maxBound
+
+newtype Max n = Max { getMax :: n }
+  deriving stock (Eq, Generic, Show)
+
+instance Ord a => Semigroup (Max a) where
+  Max a <> Max b = Max $ max a b
+
+instance (Ord a, Bounded a) => Monoid (Max a) where
+  mempty = Max minBound
+
+-- TODO move this to a private module to hide the accessors
+data Stats n = Stats {
+  count :: Count n,
+  total :: Sum n,
+  max'  :: Max n,
+  min'  :: Min n
+  } deriving stock (Eq, Generic, Show)
+
+newtype Count n = Count { getCount :: n }
+  deriving stock (Eq, Generic, Show)
+  deriving (Semigroup, Monoid) via (Sum n)
+
+-- The default instances for HashMap take the left for a key present in the two
+-- hashmaps, we want full merge of the values instead
 instance Semigroup a => Semigroup (Metrics a) where
   Metrics a <> Metrics b = Metrics $ HashMap.unionWith (<>) a b
 
@@ -164,8 +211,9 @@ withPrinterThread delay initial x =
 
 -- Print the contents of a TVar periodically, forever
 printPeriodically :: MonadIO m => Show a => Int -> TVar a -> m ()
-printPeriodically delay metrics =
-  forever $ readTVarIO metrics >>= hPrint stderr >> threadDelay delay
+printPeriodically delay tvar =
+  forever $
+  readTVarIO tvar >>= hPrint stderr >> hPutStrLn stderr "" >> threadDelay delay
 
 -- A monad were we can emit metrics of type a
 class Monad m => MonadEmit metric m | m -> metric where
