@@ -49,6 +49,7 @@ import           Perlude
 import qualified Prelude
 
 import           Control.Applicative        ((<|>))
+import           Control.Lens               (coerced, over, view, views)
 import           Control.Monad              (forever)
 import           Control.Monad.Identity     (Identity (..), IdentityT (..),
                                              runIdentity, runIdentityT)
@@ -64,17 +65,18 @@ import           Control.Monad.Writer.CPS   (MonadWriter, Writer, WriterT,
 import           Data.Advent                (Day)
 import           Data.Foldable              (foldl')
 import           Data.Functor               (($>))
+import           Data.Generics.Labels       ()
 import           Data.HashMap.Strict        (HashMap)
 import qualified Data.HashMap.Strict        as HashMap
 import           Data.List                  (tails)
 import           Data.Monoid                (Sum (..))
 import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
-import           GHC.Stats                  (RTSStats)
 import qualified System.IO                  as SIO
 import           System.IO.Advent           (getParsedInput)
 import           Text.Parsec                (char, many, many1, sepEndBy)
 import           Text.Parsec.Parselib       (Parser, literal)
+import           Text.Printf                (PrintfArg, printf)
 import           UnliftIO                   (MonadUnliftIO, TVar, atomically,
                                              modifyTVar, newTVarIO, readTVarIO,
                                              stderr, withAsync)
@@ -142,17 +144,30 @@ solveM day parser solver1 solver2 = do
 
 -- Monad Emit
 
-newtype Metrics a = Metrics { unMetrics :: HashMap Text a }
+data Metrics int num = Metrics {
+  gauges :: HashMap Text (Gauge int num),
+  counts :: HashMap Text (Count int)
+  }
   deriving stock (Eq, Generic)
-  deriving newtype (Functor, Foldable)
 
-data Metric =
-  MetricMax (Max Int)
-  | MetricMin (Min Int)
-  | MetricSum (Sum Int)
-  | MetricStats (Stats Int)
-  | MetricCount (Count Int)
-  deriving stock (Eq, Generic, Show)
+instance (Num n, Ord n, Integral i, Semigroup i)
+  => Semigroup (Metrics i n) where
+  (<>) a = over #gauges (HashMap.unionWith (<>) (view #gauges a))
+           . over #counts (HashMap.unionWith (<>) (view #counts a))
+
+instance (Integral i, Num n, Ord n, Semigroup i) => Monoid (Metrics i n) where
+  mappend = (<>)
+  mempty = Metrics HashMap.empty HashMap.empty
+
+printMap :: Show a => HashMap Text a -> Text
+printMap =
+  Text.intercalate "\n"
+  . HashMap.foldlWithKey' (\acc desc v -> (desc <> ": " <> show v) : acc) []
+
+instance (Integral n, Fractional i, PrintfArg n, PrintfArg i, Show n, Show i)
+  => Show (Metrics n i) where
+  show ms =
+    Text.unpack $ views #gauges printMap ms <> "\n" <> views #counts printMap ms
 
 newtype Min n = Min { getMin :: n } deriving stock (Eq, Generic, Show)
 
@@ -171,33 +186,60 @@ instance Ord a => Semigroup (Max a) where
 instance (Ord a, Bounded a) => Monoid (Max a) where
   mempty = Max minBound
 
--- TODO move this to a private module to hide the accessors
-data Stats n = Stats {
-  count :: Count n,
-  total :: Sum n,
-  max'  :: Max n,
-  min'  :: Min n
-  } deriving stock (Eq, Generic, Show)
-
 newtype Count n = Count { getCount :: n }
   deriving stock (Eq, Generic, Show)
   deriving (Semigroup, Monoid) via (Sum n)
 
--- The default instances for HashMap take the left for a key present in the two
--- hashmaps, we want full merge of the values instead
-instance Semigroup a => Semigroup (Metrics a) where
-  Metrics a <> Metrics b = Metrics $ HashMap.unionWith (<>) a b
+-- TODO move this to a private module to hide the accessors
+data Gauge int num = Gauge {
+  entries :: Count int,
+  total   :: Sum num,
+  max'    :: Max num,
+  min'    :: Min num
+  } deriving stock (Eq, Generic)
 
-instance Semigroup a => Monoid (Metrics a) where
+instance (Integral i, Fractional n, PrintfArg n, Show n, Show i)
+  => Show (Gauge i n) where
+  show = Text.unpack . showGauge
+
+instance (Integral i, Num n, Ord n) => Semigroup (Gauge i n) where
+  a <> b = Gauge {
+    entries = view #entries a <> view #entries b,
+    total = view #total a <> view #total b,
+    max' = view #max' a <> view #max' b,
+    min' = view #min' a <> view #min' b
+    }
+
+instance (Integral i, Num n, Bounded n, Ord n) => Monoid (Gauge i n) where
+  mempty = Gauge {
+    entries = mempty,
+    total = mempty,
+    max' = mempty,
+    min' = mempty
+    }
   mappend = (<>)
-  mempty = Metrics HashMap.empty
 
-instance Show a => Show (Metrics a) where
-  show =
-    Text.unpack
-    . Text.intercalate "\n"
-    . HashMap.foldlWithKey' (\acc desc v -> (desc <> ": " <> show v) : acc) []
-    . unMetrics
+average :: forall n i.Integral i => Fractional n =>  Gauge i n -> n
+average g =
+  let
+    es :: i = view (#entries . coerced) g
+  in
+    view (#total . coerced) g / fromIntegral es
+
+-- view (#total . coerced) g / (view (#entries . coerced) g)
+
+showGauge ::
+  Integral i => Fractional n => PrintfArg n => Show n => Show i
+  => Gauge i n -> Text
+showGauge g =
+    "(" <> views (#min' . #getMin) show g <> " | "
+    <> Text.pack (printf "%.4f" $ average g)
+    <> " | " <> views (#max' . #getMax) show g <> ") "
+    <> views #total (show . getSum) g <> "/"
+    <> views (#entries . #getCount) show g
+
+gaugeEntry :: Num n => Integral i => n -> Gauge i n
+gaugeEntry n = Gauge (Count 1) (Sum n) (Max n) (Min n)
 
 -- Run a thread that prints the contents of a TVar periodically, and pas that
 -- TVar to another computation so that it can modify its contents. This is
