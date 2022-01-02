@@ -42,7 +42,11 @@ module Advent.Templib (
   emitVoid,
   runEmitVoid,
   runEmitVoidT,
-  Metrics (..)
+  Metrics (..),
+  gaugeEntry,
+  emitGauge,
+  emitCount,
+  emitCounts
   ) where
 import           Perlude
 
@@ -150,12 +154,12 @@ data Metrics int num = Metrics {
   }
   deriving stock (Eq, Generic)
 
-instance (Num n, Ord n, Integral i, Semigroup i)
+instance (Num n, Ord n, Integral i)
   => Semigroup (Metrics i n) where
   (<>) a = over #gauges (HashMap.unionWith (<>) (view #gauges a))
            . over #counts (HashMap.unionWith (<>) (view #counts a))
 
-instance (Integral i, Num n, Ord n, Semigroup i) => Monoid (Metrics i n) where
+instance (Integral i, Num n, Ord n) => Monoid (Metrics i n) where
   mappend = (<>)
   mempty = Metrics HashMap.empty HashMap.empty
 
@@ -187,8 +191,11 @@ instance (Ord a, Bounded a) => Monoid (Max a) where
   mempty = Max minBound
 
 newtype Count n = Count { getCount :: n }
-  deriving stock (Eq, Generic, Show)
+  deriving stock (Eq, Generic)
   deriving (Semigroup, Monoid) via (Sum n)
+
+instance Show n => Show (Count n) where
+  show c = Text.unpack $ "count " <> views #getCount show c
 
 -- TODO move this to a private module to hide the accessors
 data Gauge int num = Gauge {
@@ -384,3 +391,17 @@ runEmitVoidT = runIdentityT . unEmitVoidT
 
 runEmitVoid :: EmitVoid metric a -> a
 runEmitVoid = runIdentity . runEmitVoidT
+
+-- Helper functions to emit Metrics
+emitGauge ::
+  Integral i => Num n => MonadEmit (Metrics i n) m
+  => Text -> n -> m ()
+emitGauge name g =
+  emit $ Metrics (HashMap.singleton name $ gaugeEntry g) HashMap.empty
+
+emitCount :: Num i => MonadEmit (Metrics i n) m => Text -> m ()
+emitCount name = emitCounts name 1
+
+emitCounts :: Num i => MonadEmit (Metrics i n) m => Text -> i -> m ()
+emitCounts name n =
+  emit $ Metrics HashMap.empty (HashMap.singleton name (Count n))

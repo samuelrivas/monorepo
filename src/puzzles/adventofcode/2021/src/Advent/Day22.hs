@@ -17,8 +17,8 @@ module Advent.Day22 where
 
 import           Perlude
 
-import           Advent.Templib       (Metrics (..), MonadEmit, emit, linesOf,
-                                       solveM)
+import           Advent.Templib       (Metrics (..), MonadEmit, emitCount,
+                                       emitCounts, linesOf, solveM)
 
 import           Control.Applicative  ((<|>))
 import           Control.Lens         (Each (each), Lens', _1, _2, _3, allOf,
@@ -29,12 +29,10 @@ import           Data.Advent          (Day (..))
 import           Data.Foldable        (traverse_)
 import           Data.Functor         (($>))
 import           Data.Generics.Labels ()
-import qualified Data.HashMap.Strict  as HashMap
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
 import           Data.Ix              (inRange)
 import           Data.Maybe           (fromJust, listToMaybe, mapMaybe)
-import           Data.Monoid          (Sum (..))
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, getParsedInput)
 import           Text.Parsec          (try)
@@ -89,7 +87,7 @@ rangeP t =
   <*> (literal ".." *> num)
 
 runInstruction ::
-  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord))
+  MonadEmit (Metrics Int Double) m => MonadState (HashSet (Coord, Coord))
   m => Instruction -> m ()
 runInstruction (True, fromCoord, toCoord) =
   countInstructionOn >> setOn (fromCoord, toCoord)
@@ -248,33 +246,31 @@ getReducible =
 
 -- Keeps merging pairs of cubes until there is no more cubes that can be merged
 mergeCubes ::
-  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m => m ()
+  MonadEmit (Metrics Int Double) m => MonadState (HashSet (Coord, Coord)) m => m ()
 mergeCubes = do
   reduceStep >>= \case
     True  -> countMerge >> mergeCubes
     False -> pure ()
 
-type CubeMetrics = Metrics (Sum Int)
+countInstruction :: MonadEmit (Metrics Int Double) m => m ()
+countInstruction = emitCount "instructions"
 
-countInstruction :: MonadEmit CubeMetrics m => m ()
-countInstruction = emit . Metrics . HashMap.singleton "instructions" . Sum $ 1
+countInstructionOn :: MonadEmit (Metrics Int Double) m => m ()
+countInstructionOn = emitCount "ons"
 
-countInstructionOn :: MonadEmit CubeMetrics m => m ()
-countInstructionOn = emit . Metrics . HashMap.singleton "ons" . Sum $ 1
+countInstructionOff :: MonadEmit (Metrics Int Double) m => m ()
+countInstructionOff = emitCount "offs"
 
-countInstructionOff :: MonadEmit CubeMetrics m => m ()
-countInstructionOff = emit . Metrics . HashMap.singleton "offs" . Sum $ 1
+countAddedCubes :: MonadEmit (Metrics Int Double) m => Int -> m ()
+countAddedCubes = emitCounts "added cubes"
 
-countAddedCubes :: MonadEmit CubeMetrics m => Int -> m ()
-countAddedCubes = emit . Metrics . HashMap.singleton "added cubes" . Sum
+countRemovedCubes :: MonadEmit (Metrics Int Double) m => Int -> m ()
+countRemovedCubes = emitCounts "removed cubes"
 
-countRemovedCubes :: MonadEmit CubeMetrics m => Int -> m ()
-countRemovedCubes = emit . Metrics . HashMap.singleton "removed cubes" . Sum
+countMerge :: MonadEmit (Metrics Int Double) m => m ()
+countMerge = emitCount "merges"
 
-countMerge :: MonadEmit CubeMetrics m => m ()
-countMerge = emit . Metrics . HashMap.singleton "merges" . Sum $ 1
-
-runReboot :: MonadEmit CubeMetrics m => [Instruction] -> m (HashSet (Coord, Coord))
+runReboot :: MonadEmit (Metrics Int Double) m => [Instruction] -> m (HashSet (Coord, Coord))
 runReboot instructions =
   evalStateT
   (traverse_ (\x -> runInstruction x >> countInstruction >> mergeCubes) instructions >> get)
@@ -282,17 +278,17 @@ runReboot instructions =
 
 -- TODO Merge these two functions
 setOff ::
-  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  MonadEmit (Metrics Int Double) m => MonadState (HashSet (Coord, Coord)) m
   => (Coord, Coord) -> m ()
 setOff = setOnOrOff differences
 
 setOn ::
-  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  MonadEmit (Metrics Int Double) m => MonadState (HashSet (Coord, Coord)) m
   => (Coord, Coord) -> m ()
 setOn = setOnOrOff unions
 
 setOnOrOff ::
-  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  MonadEmit (Metrics Int Double) m => MonadState (HashSet (Coord, Coord)) m
   => ((Coord, Coord) -> HashSet (Coord, Coord) -> HashSet (Coord, Coord))
   -> (Coord, Coord)
   -> m ()
@@ -310,7 +306,7 @@ setOnOrOff f cube = do
   modify $ HashSet.union toInsert
 
 getAffected ::
-  MonadEmit CubeMetrics m => MonadState (HashSet (Coord, Coord)) m
+  MonadEmit (Metrics Int Double) m => MonadState (HashSet (Coord, Coord)) m
   => (Coord, Coord) -> m (HashSet (Coord, Coord))
 getAffected cube =
   let
@@ -318,13 +314,13 @@ getAffected cube =
   in
     gets $ HashSet.filter (coversCube expanded)
 
-solver1 :: MonadEmit CubeMetrics m => Parsed -> m Int
+solver1 :: MonadEmit (Metrics Int Double) m => Parsed -> m Int
 solver1 =
   fmap (sum . fmap countCells . HashSet.toList)
   . runReboot
   . filter instructionInRange
 
-solver2 :: MonadEmit CubeMetrics m => Parsed -> m Int
+solver2 :: MonadEmit (Metrics Int Double) m => Parsed -> m Int
 solver2 = fmap (sum . fmap countCells . HashSet.toList) . runReboot
 
 main :: IO ()
