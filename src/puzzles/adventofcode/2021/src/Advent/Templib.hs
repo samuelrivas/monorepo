@@ -52,6 +52,8 @@ import           Perlude
 
 import qualified Prelude
 
+import           Advent.Templib.Internal
+
 import           Control.Applicative        ((<|>))
 import           Control.Lens               (coerced, over, view, views)
 import           Control.Monad              (forever)
@@ -145,113 +147,6 @@ solveM day parser solver1 solver2 = do
   solution2 <- runEmitTVarTIO' (solver2 input) 1000000
   putStr "Solution 2: "
   print solution2
-
--- Monad Emit
-
--- Metrics using int type for counting and num type for recording gauge values
-data Metrics int num = Metrics {
-  gauges :: HashMap Text (Gauge int num),
-  counts :: HashMap Text (Count int)
-  }
-  deriving stock (Eq, Generic)
-
-instance (Num n, Ord n, Integral i)
-  => Semigroup (Metrics i n) where
-  (<>) a = over #gauges (HashMap.unionWith (<>) (view #gauges a))
-           . over #counts (HashMap.unionWith (<>) (view #counts a))
-
-instance (Integral i, Num n, Ord n) => Monoid (Metrics i n) where
-  mappend = (<>)
-  mempty = Metrics HashMap.empty HashMap.empty
-
-printMap :: Show a => HashMap Text a -> Text
-printMap =
-  Text.intercalate "\n"
-  . HashMap.foldlWithKey' (\acc desc v -> (desc <> ": " <> show v) : acc) []
-
-instance (Integral i, Real r, PrintfArg r, Show i, Show r)
-  => Show (Metrics i r) where
-  show ms =
-    Text.unpack . Text.intercalate "\n" $ [
-    views #gauges printMap ms,
-    views #counts printMap ms]
-
-newtype Min n = Min { getMin :: n } deriving stock (Eq, Generic, Show)
-
-instance Ord a => Semigroup (Min a) where
-  Min a <> Min b = Min $ min a b
-
-instance (Ord a, Bounded a) => Monoid (Min a) where
-  mempty = Min maxBound
-
-newtype Max n = Max { getMax :: n }
-  deriving stock (Eq, Generic, Show)
-
-instance Ord a => Semigroup (Max a) where
-  Max a <> Max b = Max $ max a b
-
-instance (Ord a, Bounded a) => Monoid (Max a) where
-  mempty = Max minBound
-
-newtype Count n = Count { getCount :: n }
-  deriving stock (Eq, Generic)
-  deriving (Semigroup, Monoid) via (Sum n)
-
-instance Show n => Show (Count n) where
-  show c = Text.unpack $ "count " <> views #getCount show c
-
--- TODO move this to a private module to hide the accessors
-data Gauge int num = Gauge {
-  entries :: Count int,
-  total   :: Sum num,
-  max'    :: Max num,
-  min'    :: Min num
-  } deriving stock (Eq, Generic)
-
-instance (Integral i, Real n, PrintfArg n, Show n, Show i)
-  => Show (Gauge i n) where
-  show = Text.unpack . showGauge
-
-instance (Integral i, Num n, Ord n) => Semigroup (Gauge i n) where
-  a <> b = Gauge {
-    entries = view #entries a <> view #entries b,
-    total = view #total a <> view #total b,
-    max' = view #max' a <> view #max' b,
-    min' = view #min' a <> view #min' b
-    }
-
-instance (Integral i, Num n, Bounded n, Ord n) => Monoid (Gauge i n) where
-  mempty = Gauge {
-    entries = mempty,
-    total = mempty,
-    max' = mempty,
-    min' = mempty
-    }
-  mappend = (<>)
-
-average :: forall n i f.Integral i => Real n => RealFrac f =>  Gauge i n -> f
-average g =
-  let
-    es :: i = view (#entries . coerced) g
-    vs :: n = view (#total . coerced) g
-  in
-    realToFrac vs / fromIntegral es
-
-showGauge ::
-  Integral i => Real n => PrintfArg n => Show n => Show i
-  => Gauge i n -> Text
-showGauge g =
-  let
-    avg :: Double = average g
-  in
-    "(" <> views (#min' . #getMin) show g <> " | "
-    <> Text.pack (printf "%.4f" avg)
-    <> " | " <> views (#max' . #getMax) show g <> ") "
-    <> views #total (show . getSum) g <> "/"
-    <> views (#entries . #getCount) show g
-
-gaugeEntry :: Num n => Integral i => n -> Gauge i n
-gaugeEntry n = Gauge (Count 1) (Sum n) (Max n) (Min n)
 
 -- Run a thread that prints the contents of a TVar periodically, and pas that
 -- TVar to another computation so that it can modify its contents. This is
@@ -386,9 +281,9 @@ runEmitVoid :: EmitVoid metric a -> a
 runEmitVoid = runIdentity . runEmitVoidT
 
 -- Helper functions to emit Metrics
+
 emitGauge ::
-  Integral i => Num n => MonadEmit (Metrics i n) m
-  => Text -> n -> m ()
+  Integral i => Num n => MonadEmit (Metrics i n) m => Text -> n -> m ()
 emitGauge name g =
   emit $ Metrics (HashMap.singleton name $ gaugeEntry g) HashMap.empty
 
@@ -398,3 +293,6 @@ emitCount name = emitCounts name 1
 emitCounts :: Num i => MonadEmit (Metrics i n) m => Text -> i -> m ()
 emitCounts name n =
   emit $ Metrics HashMap.empty (HashMap.singleton name (Count n))
+
+gaugeEntry :: Num n => Integral i => n -> Gauge i n
+gaugeEntry n = Gauge (Count 1) (Sum n) (Max n) (Min n)
