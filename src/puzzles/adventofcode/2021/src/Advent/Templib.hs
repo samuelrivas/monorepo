@@ -148,6 +148,7 @@ solveM day parser solver1 solver2 = do
 
 -- Monad Emit
 
+-- Metrics using int type for counting and num type for recording gauge values
 data Metrics int num = Metrics {
   gauges :: HashMap Text (Gauge int num),
   counts :: HashMap Text (Count int)
@@ -168,10 +169,12 @@ printMap =
   Text.intercalate "\n"
   . HashMap.foldlWithKey' (\acc desc v -> (desc <> ": " <> show v) : acc) []
 
-instance (Integral n, Fractional i, PrintfArg n, PrintfArg i, Show n, Show i)
-  => Show (Metrics n i) where
+instance (Integral i, Real r, PrintfArg r, Show i, Show r)
+  => Show (Metrics i r) where
   show ms =
-    Text.unpack $ views #gauges printMap ms <> "\n" <> views #counts printMap ms
+    Text.unpack . Text.intercalate "\n" $ [
+    views #gauges printMap ms,
+    views #counts printMap ms]
 
 newtype Min n = Min { getMin :: n } deriving stock (Eq, Generic, Show)
 
@@ -205,7 +208,7 @@ data Gauge int num = Gauge {
   min'    :: Min num
   } deriving stock (Eq, Generic)
 
-instance (Integral i, Fractional n, PrintfArg n, Show n, Show i)
+instance (Integral i, Real n, PrintfArg n, Show n, Show i)
   => Show (Gauge i n) where
   show = Text.unpack . showGauge
 
@@ -226,21 +229,23 @@ instance (Integral i, Num n, Bounded n, Ord n) => Monoid (Gauge i n) where
     }
   mappend = (<>)
 
-average :: forall n i.Integral i => Fractional n =>  Gauge i n -> n
+average :: forall n i f.Integral i => Real n => RealFrac f =>  Gauge i n -> f
 average g =
   let
     es :: i = view (#entries . coerced) g
+    vs :: n = view (#total . coerced) g
   in
-    view (#total . coerced) g / fromIntegral es
-
--- view (#total . coerced) g / (view (#entries . coerced) g)
+    realToFrac vs / fromIntegral es
 
 showGauge ::
-  Integral i => Fractional n => PrintfArg n => Show n => Show i
+  Integral i => Real n => PrintfArg n => Show n => Show i
   => Gauge i n -> Text
 showGauge g =
+  let
+    avg :: Double = average g
+  in
     "(" <> views (#min' . #getMin) show g <> " | "
-    <> Text.pack (printf "%.4f" $ average g)
+    <> Text.pack (printf "%.4f" avg)
     <> " | " <> views (#max' . #getMax) show g <> ") "
     <> views #total (show . getSum) g <> "/"
     <> views (#entries . #getCount) show g
@@ -303,12 +308,6 @@ newtype EmitTVarT metric m a =
 
 type EmitTVar metric a = EmitTVarT metric Identity a
 
--- instance MonadState s m => MonadState s (EmitTVarT metrics m) where
---   state = undefined
-
--- instance MonadEmit metrics m => MonadEmit metrics (EmitTVarT metrics' m) where
---   emit = undefined
-
 instance (Semigroup metrics, Monad m, MonadIO m) =>
   MonadEmit metrics (EmitTVarT metrics m) where
   emit metrics = do
@@ -346,9 +345,6 @@ newtype EmitWriterT metric m a =
 
 type EmitWriter metric a = EmitWriterT metric Identity a
 
--- instance MonadState s m => MonadState s (EmitWriterT metric m) where
---   state = undefined
-
 emitWriter :: Writer metric a -> EmitWriter metric a
 emitWriter = EmitWriterT
 
@@ -382,9 +378,6 @@ emitVoid = EmitVoidT . IdentityT . Identity
 instance (Semigroup metric, Monad m) =>
   MonadEmit metric (EmitVoidT metric m) where
   emit = const . pure $ ()
-
--- instance MonadState s m => MonadState s (EmitVoidT metric m) where
---   state = undefined
 
 runEmitVoidT :: EmitVoidT metric m a -> m a
 runEmitVoidT = runIdentityT . unEmitVoidT
