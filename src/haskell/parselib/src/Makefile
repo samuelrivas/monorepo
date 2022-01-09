@@ -9,6 +9,7 @@ PACKAGE-VERSION := 1.0
 
 GHC-VERSION := $(shell ghc --numeric-version)
 GHC-FLAGS := -O3 -Wall -j
+GHC-PROF-FLAGS := -O3 -Wall -j -prof
 
 # Internal variables
 # ==================
@@ -23,6 +24,7 @@ GENERATED-DIR := $(BUILD-DIR)/generated
 SRCS := $(shell find . -name "*.hs")
 SRC-NAMES = $(SRCS:./src/%=./%)
 OBJ-NAMES = $(SRC-NAMES:%.hs=%.o)
+PROF-OBJ-NAMES = $(SRC-NAMES:%.hs=%.p_o)
 
 PACKAGE-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)
 PACKAGE-CONF-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/package-conf.d
@@ -61,8 +63,10 @@ $(PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template $(PACKAGE-DEPS) | $(PAC
 compile: | $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
 	cd src; ghc $(GHC-FLAGS) -outputdir $(realpath $(STATIC-LIB-DIR)) --make -dynamic -shared -fPIC -package-name $(PACKAGE-NAME) $(SRC-NAMES) -osuf dyn_o -hisuf dyn_hi -o libHS$(PACKAGE-NAME)-ghc$(GHC-VERSION).so
 	cd src; ghc $(GHC-FLAGS) -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name $(PACKAGE-NAME) $(SRC-NAMES)
+	cd src; ghc $(GHC-PROF-FLAGS) -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name $(PACKAGE-NAME) $(SRC-NAMES) -osuf p_o -hisuf p_hi
 	mv src/*.so $(DYNAMIC-LIB-DIR)
 	ar cqs $(STATIC-LIB-DIR)/libHS$(PACKAGE-NAME).a $(addprefix $(STATIC-LIB-DIR)/,$(OBJ-NAMES))
+	ar cqs $(STATIC-LIB-DIR)/libHS$(PACKAGE-NAME)_p.a $(addprefix $(STATIC-LIB-DIR)/,$(PROF-OBJ-NAMES))
 
 .PHONY: clean
 clean:

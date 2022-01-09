@@ -3,6 +3,22 @@ import qualified Data.HashMap.Lazy  as HashMap
 import           System.Environment (getArgs)
 
 import qualified Advent.Day1
+import qualified Advent.Day10
+import qualified Advent.Day11
+import qualified Advent.Day12
+import qualified Advent.Day13
+import qualified Advent.Day14
+import qualified Advent.Day15
+import qualified Advent.Day18
+import qualified Advent.Day2
+import qualified Advent.Day22
+import qualified Advent.Day3
+import qualified Advent.Day4
+import qualified Advent.Day5
+import qualified Advent.Day6
+import qualified Advent.Day7
+import qualified Advent.Day8
+import qualified Advent.Day9
 
 -- FIXME: Run each argument separately so that we can report errors
 -- independendly.  Like "2: solution ...  "foo: not found"
@@ -12,7 +28,23 @@ import qualified Advent.Day1
 dispatcher :: HashMap String (IO ())
 dispatcher =
   HashMap.fromList
-  [("1", Advent.Day1.main)
+  [("1", Advent.Day1.main),
+   ("2", Advent.Day2.main),
+   ("3", Advent.Day3.main),
+   ("4", Advent.Day4.main),
+   ("5", Advent.Day5.main),
+   ("6", Advent.Day6.main),
+   ("7", Advent.Day7.main),
+   ("8", Advent.Day8.main),
+   ("9", Advent.Day9.main),
+   ("10", Advent.Day10.main),
+   ("11", Advent.Day11.main),
+   ("12", Advent.Day12.main),
+   ("13", Advent.Day13.main),
+   ("14", Advent.Day14.main),
+   ("15", Advent.Day15.main),
+   ("18", Advent.Day18.main),
+   ("22", Advent.Day22.main)
   ]
 
 dispatch :: [String] -> Maybe [IO ()]

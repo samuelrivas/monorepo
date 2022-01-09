@@ -46,7 +46,7 @@ putStr :: MonadIO m => Text -> m ()
 putStr = liftIO . TextIO.putStr
 
 putStrLn :: MonadIO m => Text -> m ()
-putStrLn = liftIO . TextIO.putStr
+putStrLn = liftIO . TextIO.putStrLn
 
 appendFile :: MonadIO m => FilePath -> Text -> m ()
 appendFile path  = liftIO . TextIO.appendFile path

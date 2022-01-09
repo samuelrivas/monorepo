@@ -8,49 +8,42 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 module Advent.Day10 where
 
-import           Prelude              hiding (getLine, lines, putStrLn,
-                                       readFile)
+import           Perlude
 
-import           Control.Lens         (_1, _2, maximum1Of, modifying, over, set,
-                                       use, uses, view)
-import           Control.Monad.Loops  (whileM)
-import           Control.Monad.State  (State, evalState)
+import           Control.Lens         (_1, _2, view)
 import           Data.Advent          (Day (..))
-import           Data.Foldable        (sequence_)
-import           Data.Generics.Labels ()
-import           Data.HashSet         (HashSet, delete, fromList, toList)
-import           Data.Ratio           (denominator, numerator, (%))
-import           Data.Text            (Text, intercalate, pack)
-import qualified Data.Text            as Text
-import           Data.Text.IO         (putStrLn)
-import           GHC.Generics         (Generic)
-
-import           System.IO.Advent     (getInput)
+import           Data.Bidim           (Bidim, Coord, plus)
+import           Data.List            (groupBy, sortBy, transpose)
+import           Data.Map             (keys)
+import qualified Data.Map             as Map
+import           Data.Ord             (comparing)
+import           Data.Ratio           (Ratio, denominator, numerator, (%))
+import           Data.Text            (intercalate)
+import qualified Prelude
+import           System.IO.Advent     (getInput, solve)
+import           Text.Parsec.Bidim    (bidim)
+import           Text.Parsec.Parselib (Parser)
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
-type Coord = (Int, Int)
+day :: Day
+day = D10
 
-data Acc = Acc {
-  asteroids :: HashSet Coord,
-  position  :: Coord,
-  limit     :: Coord
-  } deriving stock (Generic, Show)
-
-example_1 :: Text
-example_1 = intercalate "\n"
+example1 :: Text
+example1 = intercalate "\n"
   [".#..#",
    ".....",
    "#####",
    "....#",
    "...##"]
 
-example_2 :: Text
-example_2 = intercalate "\n"
+example2 :: Text
+example2 = intercalate "\n"
   ["......#.#.",
    "#..#.#....",
    "..#######.",
@@ -62,80 +55,144 @@ example_2 = intercalate "\n"
    "##...#..#.",
    ".#....####"]
 
--- Return the set of all satellites and the bottom right coordinate
-parse :: Text -> (HashSet Coord, Coord)
-parse text =
+example3 :: Text
+example3 = intercalate "\n"
+  [".#....#####...#..",
+   "##...##.#####..##",
+   "##...#...#.#####.",
+   "..#.....X...###..",
+   "..#.#.....#....##"]
+
+example4 :: Text
+example4 = intercalate "\n"
+  [".#..##.###...#######",
+   "##.############..##.",
+   ".#.######.########.#",
+   ".###.#######.####.#.",
+   "#####.##.#.##.###.##",
+   "..#####..#.#########",
+   "####################",
+   "#.####....###.#.#.##",
+   "##.#################",
+   "#####.##.###..####..",
+   "..######..##.#######",
+   "####.##.####...##..#",
+   ".#####..#.######.###",
+   "##...#.##########...",
+   "#.##########.#######",
+   ".####.#.###.###.#.##",
+   "....##.##.###..#####",
+   ".#.#.###########.###",
+   "#.#.#.#####.####.###",
+   "###.##.####.##.#..##"]
+
+getRawInput :: IO Text
+getRawInput = getInput day
+
+parser :: Parser (Bidim Bool)
+parser = bidim (== '#')
+
+-- We divide the plane in Positive, with x => 0 and negative, with x < 0. For
+-- each semiplane, we represent slope of a vector as the "sinoid" of any
+-- coordinate in a line
+data Slope = Positive (Ratio Int)
+  | Negative (Ratio Int)
+  deriving stock (Eq)
+
+instance Ord Slope where
+  compare (Positive _) (Negative _) = GT
+  compare (Negative _) (Positive _) = LT
+  compare (Positive x) (Positive y) = compare x y
+  compare (Negative x) (Negative y) = compare y x
+
+instance Show Slope where
+  show (Positive r) = unpack $ show (numerator r) <> "/" <> show (denominator r)
+  show (Negative r) = unpack $ "-" <> show (Positive r)
+
+mkSlope :: Coord -> Slope
+mkSlope coord@(x, _)
+  | x >=0 = Positive $ sinoid coord
+  | otherwise = Negative $ sinoid coord
+
+-- The actual sine would be y^2/sqrt(x^2+y^2), but this formula preserves order,
+-- which is what we want, and won't need pesky floats.
+--
+--- Note that we are reversing the y axes so that positive slopes point upward
+--- as the y axis is reversed in the problem (numbers grow larger downwards)
+sinoid :: Coord -> Ratio Int
+sinoid (x, y) = (-y) % norm (x, y)
+
+-- TODO Move to library as l1-norm
+norm :: Coord -> Int
+norm (x, y) = abs x + abs y
+
+-- TODO add sortWith to some library
+slopeSort :: [Coord] -> [Coord]
+slopeSort = sortBy (comparing mkSlope)
+
+normSort :: [Coord] -> [Coord]
+normSort = sortBy (comparing norm)
+
+-- TODO add to library
+equating :: Eq a => (b -> a) -> b -> b -> Bool
+equating f a b = f a == f b
+
+-- TODO add groupWith to some library
+slopeGroup :: [Coord] -> [[Coord]]
+slopeGroup = groupBy (equating mkSlope)
+
+-- TODO This is probably better with Multisets
+
+asteroids :: Bidim Bool -> [Coord]
+asteroids = keys . Map.filter id
+
+relativize :: Coord -> [Coord] -> [Coord]
+relativize (x, y) = fmap (plus (-x, -y))
+
+unRelativize :: Coord -> [Coord] -> [Coord]
+unRelativize (x, y) = relativize (-x, -y)
+
+getRelativeAsteroids :: Bidim Bool -> Coord -> [Coord]
+getRelativeAsteroids field coord =
+  filter (/= (0, 0)) . relativize coord . asteroids $ field
+
+inSight :: Bidim Bool -> Coord -> Int
+inSight field coord =
+  length . slopeGroup . slopeSort $ getRelativeAsteroids field coord
+
+
+bestLocation :: Bidim Bool -> (Int, Coord)
+bestLocation field =
   let
-    f (l, x, y) = \case
-      '#'  -> ((x, y) : l, x + 1, y)
-      '.'  -> (l, x + 1, y)
-      '\n' -> (l, 0, y + 1)
-      _    -> error "badmatch"
-    coords = view _1 $ Text.foldl' f ([], 0, 0) text
+    candidates = asteroids field
+    scored = zip (inSight field <$> candidates) candidates
   in
-    (fromList coords,
-     (maximum1Of (traverse . _1) coords,
-      maximum1Of (traverse . _2) coords))
+    maximum scored
 
-init_acc :: Text -> Acc
-init_acc text =
-  let (asteroids', limit') = parse text
-  in Acc asteroids' (0,0) limit'
+-- TODO move to library
+interleave :: [[a]] -> [a]
+interleave = concat . transpose
 
-set_position :: Acc -> Coord -> Acc
-set_position acc pos =
-  set #position pos $
-  over #asteroids (delete pos) acc
-
--- Given to coordinates, return an infinite list of all coordinates starting
--- from the first and in line with the second
-trace :: Coord -> Coord -> [Coord]
-trace a@(x1, y1) b =
+-- TODO Clean this up
+vaporizationSequence :: Bidim Bool -> Coord -> [Coord]
+vaporizationSequence field location =
   let
-    (x_step, y_step) = slope a b
+    positions = getRelativeAsteroids field location
   in
-    zip (iterate (+ x_step) x1) (iterate (+ y_step) y1)
+    interleave . reverse $ (fmap (unRelativize location) <$> fmap normSort . slopeGroup . slopeSort $ positions)
 
-slope :: Coord -> Coord -> Coord
-slope (x1, y1) (x2, y2) =
+solver1 :: Bidim Bool -> Int
+solver1 = view _1 . bestLocation
+
+-- TODO We need support in 'solve' to pass information from the first solver to
+-- this one
+solver2 :: Bidim Bool -> Int
+solver2 b =
   let
-    slope' = abs (x2 - x1) % abs (y2 - y1)
-    x_sign = if x2 > x1 then 1 else (-1)
-    y_sign = if y2 > y1 then 1 else (-1)
+    best = view _2 $ bestLocation b
+    (x, y) = vaporizationSequence b best !! 199
   in
-    if y1 == y2
-    then (x_sign, 0)
-    else (x_sign * numerator slope', y_sign * denominator slope')
-
-in_limits :: Coord -> [Coord] -> [Coord]
-in_limits (max_x, max_y) =
-  let valid (x, y) = x <= max_x && y <= max_y && x >= 0 && y >= 0
-  in takeWhile valid
-
--- Remove one line of asteroids
-step :: State Acc ()
-step = do
-  asteroid <- uses #asteroids (head . toList)
-  origin <- use #position
-  limit' <- use #limit
-  let ray = in_limits limit' $ trace origin asteroid
-  sequence_ (modifying #asteroids . delete <$> ray)
-
-count_hits :: State Acc Int
-count_hits = length <$> whileM (uses #asteroids $ not . null) step
-
-get_hits :: Acc -> Coord -> Int
-get_hits acc pos = evalState count_hits $ set_position acc pos
-
-solution_1 :: Text -> Int
-solution_1 input =
-  let
-    acc = init_acc input
-  in
-    maximum $ get_hits acc <$> toList (view #asteroids acc)
+    100 * x + y
 
 main :: IO ()
-main = do
-  input <- getInput D10
-  putStrLn $ "Solution 1: " <> (pack . show $ solution_1 input)
-  putStrLn "Solution 2: not done :("
+main = solve day parser solver1 solver2

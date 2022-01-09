@@ -1,0 +1,2 @@
+Solution 1: 4008
+Solution 2: 4667

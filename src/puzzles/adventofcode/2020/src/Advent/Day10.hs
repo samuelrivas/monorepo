@@ -10,15 +10,15 @@ module Advent.Day10 where
 
 import           Perlude
 
-import           Data.List        (sort)
-import           Data.Matrix      (Matrix, getElem, matrix, ncols)
-import           Data.Set         (member)
-import qualified Data.Set         as Set
-import qualified Data.Text        as Text
-import           Text.Parsec.Text (Parser)
-
-import           Advent.Templib   (Day (..), getInput', getParsedInput,
-                                   listOfNum)
+import           Data.Advent        (Day (..))
+import           Data.List          (sort)
+import           Data.Matrix        (Matrix, getElem, matrix, ncols)
+import           Data.Set           (member)
+import qualified Data.Set           as Set
+import qualified Data.Text          as Text
+import           System.IO.Advent   (getInput, getParsedInput, solve)
+import           Text.Parsec.Advent (listOfNum)
+import           Text.Parsec.Text   (Parser)
 
 day :: Day
 day = D10
@@ -30,14 +30,14 @@ example :: [Int]
 example = [28, 33, 18, 42, 31, 14, 46, 20, 48, 47, 24, 23, 49, 45, 19, 38, 39,
            11, 1, 32, 25, 35, 8, 17, 7, 9, 4, 2, 34, 10, 3]
 
-getInput :: IO Text
-getInput = getInput' day
+rawInput :: IO Text
+rawInput = getInput day
 
 parser :: Parser [Int]
 parser = listOfNum
 
-solution1 :: [Int] -> Int
-solution1 l =
+solver1 :: [Int] -> Int
+solver1 l =
   let
     sorted = sort (0:l)
     diffs = uncurry (flip (-)) <$> zip sorted (tail sorted)
@@ -65,8 +65,8 @@ toAdjMatrix adapterList =
 -- TODO: We are building a graph of connectable adaptors and counting all paths
 -- af any lenght that connect the first to the last. There is a more direct way
 -- to solve this that just requires an array and n^2 calculations
-solution2 :: [Int] -> Int
-solution2 l =
+solver2 :: [Int] -> Int
+solver2 l =
   let
     m = toAdjMatrix l
     size = ncols m
@@ -75,11 +75,4 @@ solution2 l =
   in sum nPaths
 
 main :: IO ()
-main = do
-  input <- getParsedInput day parser
-
-  putStr "Solution 1: "
-  print . solution1 $ input
-
-  putStr "Solution 2: "
-  print . solution2 $ input
+main = solve day parser solver1 solver2
