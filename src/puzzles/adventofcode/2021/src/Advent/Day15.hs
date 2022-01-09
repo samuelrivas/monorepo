@@ -15,46 +15,27 @@ module Advent.Day15 where
 import           Perlude
 
 import           Advent.Day15.Internal           (Node (..))
-import           Advent.Templib                  (linesOf)
 
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
-                                                  both, non, over, preview,
-                                                  singular, sumOf, to, use,
-                                                  view, views)
-import           Control.Monad                   (replicateM_)
+                                                  both, non, over, singular,
+                                                  sumOf, to, view, views)
 import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
                                                   searchAstarT)
-import           Control.Monad.Reader            (MonadReader, ReaderT, asks,
-                                                  runReaderT)
-import           Control.Monad.State             (MonadState, State, gets,
-                                                  modify, runState)
+import           Control.Monad.Reader            (MonadReader)
 import           Data.Advent                     (Day (..))
-import           Data.Bidim                      (Bidim, Coord, boundaries,
-                                                  cross)
+import           Data.Bidim                      (Bidim, Coord, cross)
 import           Data.Char                       (digitToInt)
 import           Data.Functor.Identity           (Identity, runIdentity)
 import           Data.Generics.Labels            ()
-import           Data.HashMap.Strict             (HashMap)
-import qualified Data.HashMap.Strict             as HashMap
-import           Data.HashSet                    (HashSet)
 import qualified Data.HashSet                    as HashSet
-import           Data.Hashable                   (hash)
-import           Data.List                       (sortOn)
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
-import           Data.Maybe                      (catMaybes, fromJust)
-import           Data.MultiSet                   (MultiSet)
-import qualified Data.MultiSet                   as MultiSet
-import           Data.Set                        (Set)
-import qualified Data.Set                        as Set
+import           Data.Maybe                      (fromJust)
 import           Data.Text                       (intercalate)
-import qualified Data.Text                       as Text
 import           System.IO.Advent                (getInput, getParsedInput,
                                                   solve)
-import           Text.Parsec                     (anyChar, noneOf)
 import           Text.Parsec.Bidim               (bidim)
-import           Text.Parsec.Parselib            (Parser, literal, text1,
-                                                  unsafeParseAll)
+import           Text.Parsec.Parselib            (Parser, unsafeParseAll)
 
 type Parsed =  Bidim Int
 
