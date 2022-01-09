@@ -128,14 +128,6 @@ let
       inherit (pkgs-sam) emacs haskell-mk;
     };
 
-    profiledHaskellPackages = pkgs.haskellPackages.override {
-      overrides = pkgs-sam: super: {
-        mkDerivation = args: super.mkDerivation (args // {
-          enableLibraryProfiling = true;
-        });
-      };
-    };
-
     haskellPackages = pkgs-sam.haskell-lib.mk-haskell-packages
       pkgs.haskellPackages pkgs-sam.samsHaskellPackagesGen;
 
