@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall #-}
+
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE NoImplicitPrelude      #-}
@@ -8,8 +10,9 @@ module Control.Monad.MonadSearch (
   step
   ) where
 
-import           Control.Monad (filterM, unless)
 import           Perlude
+
+import           Control.Monad (filterM, unless)
 
 data SearchStatus node = Failed | Exploring | Found node
   deriving Show

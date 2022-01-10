@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall #-}
+
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -20,8 +22,6 @@ import           Perlude
 
 import           Control.Lens                            (assign, modifying,
                                                           uses, view)
-import           Control.Monad.Fail                      (MonadFail)
-import           Control.Monad.IO.Class                  (MonadIO)
 import           Control.Monad.MonadSearch               (MonadSearch (..),
                                                           search)
 import           Control.Monad.RWS.CPS                   (MonadReader,
