@@ -46,7 +46,7 @@ pushNodes nodes = filterSeen nodes >>= mapM_ pushNode
 
 -- Not necessary, but can save quite some memory
 --
--- Todo evaluate the trad off between CPU and saved memory here
+-- TODO evaluate the trade off between CPU and saved memory here
 filterSeen :: MonadSearch node m => [node] -> m [node]
 filterSeen = filterM (fmap not . seenNode)
 
