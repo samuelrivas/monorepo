@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
@@ -20,6 +21,7 @@ module Control.Monad.MonadSearch.Astar (
 
 import           Perlude
 
+import           Advent.Templib                          (Metrics, MonadEmit)
 import           Control.Lens                            (assign, modifying,
                                                           uses, view)
 import           Control.Monad.MonadSearch               (MonadSearch (..),
@@ -37,11 +39,11 @@ import qualified Data.PriorityQueue.FingerTree           as PQueue
 
 import           Control.Monad.MonadSearch.AstarInternal
 
-newtype AstarT node nodeMem pc w m a = AstarT {
-  unAstarT :: RWST (AstarConfig node nodeMem  pc) w (AstarContext node nodeMem) m a
+newtype AstarT n node nodeMem pc w m a = AstarT {
+  unAstarT :: RWST (AstarConfig n node nodeMem  pc) w (AstarContext n node nodeMem) m a
   } deriving newtype (Functor, Applicative, Monad, MonadWriter w,
-                      MonadState (AstarContext node nodeMem),
-                      MonadReader (AstarConfig node nodeMem pc), MonadIO,
+                      MonadState (AstarContext n node nodeMem),
+                      MonadReader (AstarConfig n node nodeMem pc), MonadIO,
                       MonadFail, MonadTrans)
 
 instance
@@ -50,8 +52,10 @@ instance
    Eq nodeMem,
    Hashable nodeMem,
    Hashable node,
-   Monad m) =>
-  MonadSearch node (AstarT node nodeMem pc w m) where
+   Num n,
+   Ord n,
+   MonadEmit (Metrics Int n) m) =>
+  MonadSearch node (AstarT n node nodeMem pc w m) where
   popNode = popBest
   pushNode = astarPushNode
   seenNode = astarSeenNode
@@ -60,40 +64,42 @@ instance
   markSeen = astarMarkSeen
 
 mkConfig ::
-  (node -> Reader pc Int) -> -- h
-  (node -> Reader pc Int) -> -- c
+  (node -> Reader pc n) -> -- h
+  (node -> Reader pc n) -> -- c
   (node -> Reader pc [node]) -> -- explode
   (node -> Reader pc Bool) -> -- isGoal
   (node -> Reader pc nodeMem) -> -- toMem
   pc ->
-  AstarConfig node nodeMem pc
+  AstarConfig n node nodeMem pc
 mkConfig = AstarConfig
 
 runAstarT ::
   Monoid w
-  => AstarT node nodeMem pc w m a
-  -> AstarConfig node nodeMem pc
-  -> AstarContext node nodeMem
-  -> m (a, AstarContext node nodeMem, w)
+  => AstarT n node nodeMem pc w m a
+  -> AstarConfig n node nodeMem pc
+  -> AstarContext n node nodeMem
+  -> m (a, AstarContext n node nodeMem, w)
 runAstarT = runRWST . unAstarT
 
 searchAstarT ::
+  Num n =>
+  Ord n =>
   Monoid w =>
   Show node =>
   Eq node =>
   Eq nodeMem =>
   Hashable node =>
   Hashable nodeMem =>
-  Monad m =>
-  AstarConfig node nodeMem pc -> node -> m (Maybe node, w)
+  MonadEmit (Metrics Int n) m =>
+  AstarConfig n node nodeMem pc -> node -> m (Maybe node, w)
 searchAstarT astarConfig initialNode  = do
   (nodeM, _, w) <- runInAstarT search astarConfig initialNode
   pure (nodeM, w)
 
 runInAstarT ::
-  Monoid w => Show node => Eq node => Hashable node => Monad m =>
-  AstarT node nodeMem pc w m a -> AstarConfig node nodeMem pc -> node ->
-  m (a, AstarContext node nodeMem, w)
+  Num n => Ord n => Monoid w => Show node => Eq node => Hashable node => Monad m
+  => AstarT n node nodeMem pc w m a -> AstarConfig n node nodeMem pc -> node ->
+  m (a, AstarContext n node nodeMem, w)
 runInAstarT x astarConfig initialNode =
   let initialContext = AstarContext PQueue.empty HashSet.empty
   in runAstarT
@@ -102,8 +108,12 @@ runInAstarT x astarConfig initialNode =
        initialContext
 
 popBest ::
-  Show node => Eq node => Hashable node => Monad m =>
-  AstarT node nodeMem pc w m (Maybe node)
+  MonadEmit (Metrics Int n) m
+  => Ord n
+  => Show node
+  => Eq node
+  => Hashable node
+  => AstarT n node nodeMem pc w m (Maybe node)
 popBest =
   uses #openNodes PQueue.minView >>= \case
     Just (node, newMap) -> do
@@ -112,11 +122,11 @@ popBest =
     Nothing -> pure Nothing
 
 peekBest ::
-  Show node => Eq node => Hashable node => Monad m =>
-  AstarT node nodeMem pc w m (Maybe node)
+  Ord n => Show node => Eq node => Hashable node => Monad m =>
+  AstarT n node nodeMem pc w m (Maybe node)
 peekBest = uses #openNodes $ fmap fst . PQueue.minView
 
-valueNode :: Monad m => node -> AstarT node nodeMem pc w m Int
+valueNode :: Num n => Monad m => node -> AstarT n node nodeMem pc w m n
 valueNode node = do
   hReader <- view #h <*> pure node
   cReader <- view #c <*> pure node
@@ -124,30 +134,32 @@ valueNode node = do
 
 astarMarkSeen ::
   Eq nodeMem => Hashable nodeMem => Monad m =>
-  node -> AstarT node nodeMem pc w m ()
+  node -> AstarT n node nodeMem pc w m ()
 astarMarkSeen node = do
   toMem <- view #nodeToMem
   mem <- runInPrivateContext $ toMem node
   modifying #seenNodes (HashSet.insert mem)
 
-astarGetGoalNode :: Monad m => node -> AstarT node nodeMem pc w m Bool
+astarGetGoalNode :: Monad m => node -> AstarT n node nodeMem pc w m Bool
 astarGetGoalNode node = view #isGoal <*> pure node >>= runInPrivateContext
 
-astarExplodeNode :: Monad m => node -> AstarT node nodeMem pc w m [node]
+astarExplodeNode :: Monad m => node -> AstarT n node nodeMem pc w m [node]
 astarExplodeNode node = view #explode <*> pure node >>= runInPrivateContext
 
-runInPrivateContext :: Monad m => Reader pc a -> AstarT node nodeMem pc w m a
+runInPrivateContext :: Monad m => Reader pc a -> AstarT n node nodeMem pc w m a
 runInPrivateContext reader = runReader reader <$> view #privateContext
 
 astarSeenNode ::
-  Eq nodeMem => Hashable nodeMem => Monad m =>
-  node -> AstarT node nodeMem pc w m Bool
+  Eq nodeMem => Hashable nodeMem => Monad m
+  => node -> AstarT n node nodeMem pc w m Bool
 astarSeenNode node = do
   toMem <- view #nodeToMem
   mem <- runInPrivateContext $ toMem node
   uses #seenNodes (HashSet.member mem)
 
-astarPushNode :: Show node => Monad m => node -> AstarT node nodeMem pc w m ()
+astarPushNode ::
+  Num n => Ord n => Show node => Monad m
+  => node -> AstarT n node nodeMem pc w m ()
 astarPushNode node = do
   value <- valueNode node
   modifying #openNodes $ PQueue.insert value node
