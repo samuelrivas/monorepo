@@ -16,6 +16,8 @@ import           Perlude
 
 import           Advent.Day15.Internal           (Node (..))
 
+import           Advent.Templib                  (Metrics (Metrics), MonadEmit,
+                                                  solveM)
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
                                                   both, non, over, singular,
                                                   sumOf, to, view, views)
@@ -74,7 +76,7 @@ parser = bidim digitToInt
 boundaries' :: (Coord, Coord)
 boundaries' = ((0, 0), (99, 99))
 
-astarConfig :: Bidim Int -> AstarConfig Node Coord (Bidim Int)
+astarConfig :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
 astarConfig = mkConfig h cost explode isGoal toMem
 
 -- TODO This is incorrect and may be the reason why part two doesn't work, we
@@ -98,6 +100,17 @@ h node =
     let (_, maxCoord) = boundaries'
     pure $ sumOf both maxCoord - sumOf both pos
 {-# SCC h #-}
+
+-- TODO add manhattan distance to bidim libraries
+h2 :: MonadReader (Bidim Int) m => Node -> m Int
+h2 node =
+  let
+    pos = views #path NonEmpty.head node
+  in do
+    -- (_, maxCoord) <- asks boundaries
+    let (_, maxCoord) = boundaries2
+    pure $ sumOf both maxCoord - sumOf both pos
+{-# SCC h2 #-}
 
 cost :: MonadReader (Bidim Int) m => Node -> m Int
 cost = pure . view #cost
@@ -185,8 +198,8 @@ isGoal node =
 initialNode :: Node
 initialNode = Node ((0,0) :| []) (HashSet.singleton (0,0)) 0
 
-astarConfig2 :: Bidim Int -> AstarConfig Node Coord (Bidim Int)
-astarConfig2 = mkConfig h cost explode2 isGoal2 toMem
+astarConfig2 :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
+astarConfig2 = mkConfig h2 cost explode2 isGoal2 toMem
 
 boundaries2 :: (Coord, Coord)
 boundaries2 = over (_2 . both) (subtract 1 . (*5) . (+ 1)) boundaries'
@@ -200,18 +213,21 @@ isGoal2 node =
 
 -- TODO Add Astar and runAstar to Astar
 -- TODO Maybe this can be faster with a Dijkstra MonadSearch
-solver1 :: Parsed -> Int
-solver1 input =
-  view (_1 . singular _Just . #cost) . runIdentity
-  $ (searchAstarT (astarConfig input) initialNode :: Identity (Maybe Node, ()))
+solver1 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
+solver1 input = do
+  (maybeNode, ()) <- searchAstarT (astarConfig input) initialNode
+  pure . view (singular _Just . #cost) $ maybeNode
 
 -- TODO This does not work, but I have not had time to verify that I am
 -- extending the map faithfully. the ~toMem~ function is also incorrect
-solver2 :: Parsed -> Int
-solver2 input =
-  view (_1 . singular _Just . #cost) . runIdentity
-  $ (searchAstarT (astarConfig2 input) initialNode :: Identity (Maybe Node, ()))
+solver2 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
+solver2 input = do
+  (maybeNode, ()) <- searchAstarT (astarConfig2 input) initialNode
+  pure . view (singular _Just . #cost) $ maybeNode
+
+  -- view (_1 . singular _Just . #cost) . runIdentity
+  -- $ (searchAstarT (astarConfig2 input) initialNode :: Identity (Maybe Node, ()))
 
 
 main :: IO ()
-main = solve day parser solver1 solver2
+main = solveM day parser solver1 solver2
