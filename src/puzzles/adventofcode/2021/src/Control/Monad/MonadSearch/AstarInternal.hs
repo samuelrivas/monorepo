@@ -18,8 +18,7 @@ import           GHC.Generics                  (Generic)
 
 data AstarContext n node nodeMem = AstarContext
     { openNodes  :: PQueue n node
-    , seenNodes  :: HashSet nodeMem
-    , nodeMemory :: HashSet nodeMem
+    , nodeMemory :: HashSet nodeMem -- TODO This must be a generic type
     }
     deriving stock (Show, Generic)
 
@@ -29,7 +28,6 @@ data AstarConfig n node nodeMem pc = AstarConfig
     , c              :: node -> Reader pc n
     , explode        :: node -> Reader pc [node]
     , isGoal         :: node -> Reader pc Bool
-    , nodeToMem      :: node -> Reader pc nodeMem
     , rememberNode   :: HashSet nodeMem -> node -> Reader pc (HashSet nodeMem)
     , seenNode       :: HashSet nodeMem -> node -> Reader pc Bool
     , privateContext :: pc

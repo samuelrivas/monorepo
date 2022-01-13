@@ -68,17 +68,16 @@ instance
   MonadSearch node (AstarT n node nodeMem pc w m) where
   popNode = popBest
   pushNode = astarPushNode
-  seenNode = astarSeenNode'
+  seenNode = astarSeenNode
   goalNode = astarGetGoalNode
   explode  = astarExplodeNode
-  markSeen = astarMarkSeen'
+  markSeen = astarMarkSeen
 
 mkConfig ::
   (node -> Reader pc n) -> -- h
   (node -> Reader pc n) -> -- c
   (node -> Reader pc [node]) -> -- explode
   (node -> Reader pc Bool) -> -- isGoal
-  (node -> Reader pc nodeMem) -> -- toMem
   (HashSet nodeMem -> node -> Reader pc (HashSet nodeMem)) -> -- rememberNode
   (HashSet nodeMem -> node -> Reader pc Bool) -> -- rememberNode
   pc ->
@@ -116,7 +115,7 @@ runInAstarT ::
   => AstarT n node nodeMem pc w m a -> AstarConfig n node nodeMem pc -> node ->
   m (a, AstarContext n node nodeMem, w)
 runInAstarT x astarConfig initialNode =
-  let initialContext = AstarContext PQueue.empty HashSet.empty HashSet.empty
+  let initialContext = AstarContext PQueue.empty HashSet.empty
   in runAstarT
        (astarPushNode initialNode >> x)
        astarConfig
@@ -160,14 +159,6 @@ astarMarkSeen ::
   Eq nodeMem => Hashable nodeMem => Monad m =>
   node -> AstarT n node nodeMem pc w m ()
 astarMarkSeen node = do
-  toMem <- view #nodeToMem
-  mem <- runInPrivateContext $ toMem node
-  modifying #seenNodes (HashSet.insert mem)
-
-astarMarkSeen' ::
-  Eq nodeMem => Hashable nodeMem => Monad m =>
-  node -> AstarT n node nodeMem pc w m ()
-astarMarkSeen' node = do
   rememberNode <- view #rememberNode
   memory <- use #nodeMemory
   newMemory <- runInPrivateContext $ rememberNode memory node
@@ -186,14 +177,6 @@ astarSeenNode ::
   Eq nodeMem => Hashable nodeMem => Monad m
   => node -> AstarT n node nodeMem pc w m Bool
 astarSeenNode node = do
-  toMem <- view #nodeToMem
-  mem <- runInPrivateContext $ toMem node
-  uses #seenNodes (HashSet.member mem)
-
-astarSeenNode' ::
-  Eq nodeMem => Hashable nodeMem => Monad m
-  => node -> AstarT n node nodeMem pc w m Bool
-astarSeenNode' node = do
   isSeen <- view #seenNode
   memory <- use #nodeMemory
   runInPrivateContext (isSeen memory node)

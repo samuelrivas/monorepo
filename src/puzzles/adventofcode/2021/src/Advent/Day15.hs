@@ -78,15 +78,12 @@ boundaries' :: (Coord, Coord)
 boundaries' = ((0, 0), (99, 99))
 
 astarConfig :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
-astarConfig = mkConfig h cost explode isGoal toMem rememberNode seenNode
+astarConfig = mkConfig h cost explode isGoal rememberNode seenNode
 
 -- TODO This is incorrect and may be the reason why part two doesn't work, we
 -- need to support adding nodes that reach a point that was already exploed, but
 -- that the new node reaches with lower cost. At the moment we can only compare
 -- with equality
-toMem :: MonadReader (Bidim Int) m => Node -> m Coord
-toMem = pure . view (#path . hd)
-
 rememberNode :: MonadReader (Bidim Int) m => HashSet Coord -> Node -> m (HashSet Coord)
 rememberNode s n = pure $ HashSet.insert (view (#path . hd) n) s
 
@@ -206,7 +203,7 @@ initialNode :: Node
 initialNode = Node ((0,0) :| []) (HashSet.singleton (0,0)) 0
 
 astarConfig2 :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
-astarConfig2 = mkConfig h2 cost explode2 isGoal2 toMem undefined undefined
+astarConfig2 = mkConfig h2 cost explode2 isGoal2 undefined undefined
 
 boundaries2 :: (Coord, Coord)
 boundaries2 = over (_2 . both) (subtract 1 . (*5) . (+ 1)) boundaries'
