@@ -77,7 +77,7 @@ parser = bidim digitToInt
 boundaries' :: (Coord, Coord)
 boundaries' = ((0, 0), (99, 99))
 
-astarConfig :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
+astarConfig :: Bidim Int -> AstarConfig Int Node (HashSet Coord) (Bidim Int)
 astarConfig = mkConfig h cost explode isGoal rememberNode seenNode
 
 -- TODO This is incorrect and may be the reason why part two doesn't work, we
@@ -202,7 +202,7 @@ isGoal node =
 initialNode :: Node
 initialNode = Node ((0,0) :| []) (HashSet.singleton (0,0)) 0
 
-astarConfig2 :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
+astarConfig2 :: Bidim Int -> AstarConfig Int Node (HashSet Coord) (Bidim Int)
 astarConfig2 = mkConfig h2 cost explode2 isGoal2 undefined undefined
 
 boundaries2 :: (Coord, Coord)
@@ -219,14 +219,14 @@ isGoal2 node =
 -- TODO Maybe this can be faster with a Dijkstra MonadSearch
 solver1 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
 solver1 input = do
-  (maybeNode, ()) <- searchAstarT (astarConfig input) initialNode
+  (maybeNode, ()) <- searchAstarT (astarConfig input) initialNode HashSet.empty
   pure . view (singular _Just . #cost) $ maybeNode
 
 -- TODO This does not work, but I have not had time to verify that I am
 -- extending the map faithfully. the ~toMem~ function is also incorrect
 solver2 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
 solver2 input = do
-  (maybeNode, ()) <- searchAstarT (astarConfig2 input) initialNode
+  (maybeNode, ()) <- searchAstarT (astarConfig2 input) initialNode HashSet.empty
   pure . view (singular _Just . #cost) $ maybeNode
 
 main :: IO ()

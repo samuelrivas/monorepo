@@ -16,20 +16,20 @@ import           Data.HashSet                  (HashSet)
 import           Data.PriorityQueue.FingerTree (PQueue)
 import           GHC.Generics                  (Generic)
 
-data AstarContext n node nodeMem = AstarContext
-    { openNodes  :: PQueue n node
-    , nodeMemory :: HashSet nodeMem -- TODO This must be a generic type
+data AstarContext n node nodeStore = AstarContext
+    { openNodes :: PQueue n node
+    , nodeStore :: nodeStore
     }
     deriving stock (Show, Generic)
 
 -- FIXME wrap, at least, h and c so that they have different types
-data AstarConfig n node nodeMem pc = AstarConfig
+data AstarConfig n node nodeStore pc = AstarConfig
     { h              :: node -> Reader pc n
     , c              :: node -> Reader pc n
     , explode        :: node -> Reader pc [node]
     , isGoal         :: node -> Reader pc Bool
-    , rememberNode   :: HashSet nodeMem -> node -> Reader pc (HashSet nodeMem)
-    , seenNode       :: HashSet nodeMem -> node -> Reader pc Bool
+    , rememberNode   :: nodeStore -> node -> Reader pc nodeStore
+    , seenNode       :: nodeStore -> node -> Reader pc Bool
     , privateContext :: pc
     }
     deriving stock (Generic)
