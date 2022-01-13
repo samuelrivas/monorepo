@@ -16,8 +16,7 @@ import           Perlude
 
 import           Advent.Day15.Internal           (Node (..))
 
-import           Advent.Templib                  (Metrics (Metrics), MonadEmit,
-                                                  solveM)
+import           Advent.Templib                  (Metrics, MonadEmit, solveM)
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
                                                   both, non, over, singular,
                                                   sumOf, to, view, views)
@@ -29,6 +28,8 @@ import           Data.Bidim                      (Bidim, Coord, cross)
 import           Data.Char                       (digitToInt)
 import           Data.Functor.Identity           (Identity, runIdentity)
 import           Data.Generics.Labels            ()
+import qualified Data.HashMap.Lazy               as HasHSet
+import           Data.HashSet                    (HashSet)
 import qualified Data.HashSet                    as HashSet
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
@@ -77,7 +78,7 @@ boundaries' :: (Coord, Coord)
 boundaries' = ((0, 0), (99, 99))
 
 astarConfig :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
-astarConfig = mkConfig h cost explode isGoal toMem
+astarConfig = mkConfig h cost explode isGoal toMem rememberNode seenNode
 
 -- TODO This is incorrect and may be the reason why part two doesn't work, we
 -- need to support adding nodes that reach a point that was already exploed, but
@@ -85,6 +86,12 @@ astarConfig = mkConfig h cost explode isGoal toMem
 -- with equality
 toMem :: MonadReader (Bidim Int) m => Node -> m Coord
 toMem = pure . view (#path . hd)
+
+rememberNode :: MonadReader (Bidim Int) m => HashSet Coord -> Node -> m (HashSet Coord)
+rememberNode s n = pure $ HashSet.insert (view (#path . hd) n) s
+
+seenNode :: MonadReader (Bidim Int) m => HashSet Coord -> Node -> m Bool
+seenNode s n = pure . HashSet.member (view (#path . hd) n) $ s
 
 -- TODO Figure out if there is a head lens for NonEmpty
 hd :: Getter (NonEmpty a) a
@@ -199,7 +206,7 @@ initialNode :: Node
 initialNode = Node ((0,0) :| []) (HashSet.singleton (0,0)) 0
 
 astarConfig2 :: Bidim Int -> AstarConfig Int Node Coord (Bidim Int)
-astarConfig2 = mkConfig h2 cost explode2 isGoal2 toMem
+astarConfig2 = mkConfig h2 cost explode2 isGoal2 toMem undefined undefined
 
 boundaries2 :: (Coord, Coord)
 boundaries2 = over (_2 . both) (subtract 1 . (*5) . (+ 1)) boundaries'
@@ -224,10 +231,6 @@ solver2 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
 solver2 input = do
   (maybeNode, ()) <- searchAstarT (astarConfig2 input) initialNode
   pure . view (singular _Just . #cost) $ maybeNode
-
-  -- view (_1 . singular _Just . #cost) . runIdentity
-  -- $ (searchAstarT (astarConfig2 input) initialNode :: Identity (Maybe Node, ()))
-
 
 main :: IO ()
 main = solveM day parser solver1 solver2

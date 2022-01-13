@@ -17,8 +17,9 @@ import           Data.PriorityQueue.FingerTree (PQueue)
 import           GHC.Generics                  (Generic)
 
 data AstarContext n node nodeMem = AstarContext
-    { openNodes :: PQueue n node
-    , seenNodes :: HashSet nodeMem
+    { openNodes  :: PQueue n node
+    , seenNodes  :: HashSet nodeMem
+    , nodeMemory :: HashSet nodeMem
     }
     deriving stock (Show, Generic)
 
@@ -29,6 +30,8 @@ data AstarConfig n node nodeMem pc = AstarConfig
     , explode        :: node -> Reader pc [node]
     , isGoal         :: node -> Reader pc Bool
     , nodeToMem      :: node -> Reader pc nodeMem
+    , rememberNode   :: HashSet nodeMem -> node -> Reader pc (HashSet nodeMem)
+    , seenNode       :: HashSet nodeMem -> node -> Reader pc Bool
     , privateContext :: pc
     }
     deriving stock (Generic)
