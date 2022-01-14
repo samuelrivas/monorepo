@@ -9,7 +9,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Advent.Day15 where
 
 import           Perlude

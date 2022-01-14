@@ -1,5 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
+{-# OPTIONS_GHC -Wall #-}
+
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedLabels   #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TupleSections      #-}
 
 module Data.Bidim (
   Bidim,
@@ -11,19 +16,35 @@ module Data.Bidim (
   showBidim
   ) where
 
-import           Prelude         hiding (concat)
+import           Prelude              hiding (concat)
 
-import           Control.Lens    (_1, _2, at, set, toListOf, traverse, view)
-import           Data.Foldable   (foldl')
-import           Data.Map.Strict (Map, empty, insert, keys)
-import           Data.Text       (Text, concat, intercalate, unpack)
+import           Control.Lens         (_1, _2, at, over, set, toListOf,
+                                       traverse, view)
+import           Data.Foldable        (foldl')
+import           Data.Generics.Labels ()
+import qualified Data.Map             as Map
+import           Data.Map.Strict      (Map)
+import           Data.Text            (Text, concat, intercalate, unpack)
+import           GHC.Generics         (Generic)
 
 type Coord = (Int, Int)
-type Bidim a = Map Coord a
+data Bidim a = Bidim {
+  toMap      :: Map Coord a,
+  boundaries :: (Coord, Coord)
+  } deriving stock (Show, Generic, Eq)
 
 -- Better would be to wrap this and make it an instance of Num
 plus :: Coord -> Coord -> Coord
 plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
+
+empty :: Bidim a
+empty = Bidim Map.empty (maxCoord, minCoord)
+
+maxCoord :: Coord
+maxCoord = (maxBound, maxBound)
+
+minCoord :: Coord
+minCoord = (minBound, minBound)
 
 cross :: Coord -> [Coord]
 cross coord = [
@@ -33,32 +54,26 @@ cross coord = [
   coord `plus` (0, -1)
   ]
 
--- We need this to be a sorted map just to get the coordinate boundaries. This
--- can easily be improved if we wrap this in its own type and keep track of them
--- when inserting
+insert :: Coord -> a -> Bidim a -> Bidim a
+insert c a =
+  over #toMap (Map.insert c a)
+  . over #boundaries (extendBoundary c)
+
+extendBoundary :: Coord -> (Coord, Coord) -> (Coord, Coord)
+extendBoundary (x, y) ((minX, minY), (maxX, maxY)) =
+  ((min minX x, min minY y), (max maxX x, max maxY y))
+
 showBidim :: (Maybe a -> Text) -> Bidim a -> Text
 showBidim format bidim =
   let
     ((minX, minY), (maxX, maxY)) = boundaries bidim
     row y = (, y) <$> [minX..maxX]
     showCoord :: Coord -> Text
-    showCoord coord = format $ view (at coord) bidim
+    showCoord coord = format $ view (#toMap . at coord) bidim
     printed :: Int -> Text
     printed y = concat (showCoord <$> row y)
   in
     intercalate "\n" (printed <$> [minY..maxY])
-
-boundaries :: Bidim a -> (Coord, Coord)
-boundaries bidim =
-  let
-    coords = keys bidim
-    xs = toListOf (traverse . _1) coords
-    ys = toListOf (traverse . _2) coords
-    maxX = maximum xs
-    minX = minimum xs
-    maxY = maximum ys
-    minY = minimum ys
-  in ((minX, minY), (maxX, maxY))
 
 -- | Given an ascii representation of a bi-dimensional map, create a bidim where
 -- cells are chars. For example
