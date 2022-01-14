@@ -16,6 +16,7 @@ import           Perlude
 
 import           Advent.Day15.Internal           (Node (..))
 
+import           Advent.Templib                  (Metrics, MonadEmit, solveM)
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
                                                   both, non, over, singular,
                                                   sumOf, to, view, views)
@@ -27,6 +28,10 @@ import           Data.Bidim                      (Bidim, Coord, cross)
 import           Data.Char                       (digitToInt)
 import           Data.Functor.Identity           (Identity, runIdentity)
 import           Data.Generics.Labels            ()
+import qualified Data.HashMap.Lazy               as HasHSet
+import           Data.HashMap.Strict             (HashMap)
+import qualified Data.HashMap.Strict             as HashMap
+import           Data.HashSet                    (HashSet)
 import qualified Data.HashSet                    as HashSet
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
@@ -74,15 +79,30 @@ parser = bidim digitToInt
 boundaries' :: (Coord, Coord)
 boundaries' = ((0, 0), (99, 99))
 
-astarConfig :: Bidim Int -> AstarConfig Node Coord (Bidim Int)
-astarConfig = mkConfig h cost explode isGoal toMem
+astarConfig :: Bidim Int -> AstarConfig Int Node (HashMap Coord Int) (Bidim Int)
+astarConfig = mkConfig h cost explode isGoal rememberNode seenNode
 
 -- TODO This is incorrect and may be the reason why part two doesn't work, we
 -- need to support adding nodes that reach a point that was already exploed, but
 -- that the new node reaches with lower cost. At the moment we can only compare
 -- with equality
-toMem :: MonadReader (Bidim Int) m => Node -> m Coord
-toMem = pure . view (#path . hd)
+rememberNode ::
+  MonadReader (Bidim Int) m
+  => HashMap Coord Int -> Node -> m (HashMap Coord Int)
+rememberNode nodeStore n =
+  let
+    coord = view (#path . hd) n
+  in
+    pure $
+    HashMap.insertWith min coord (view #cost n) nodeStore
+
+seenNode :: MonadReader (Bidim Int) m => HashMap Coord Int -> Node -> m Bool
+seenNode nodeStore n =
+  let
+    coord = view (#path . hd) n
+    minCost = view (at coord . non maxBound) nodeStore
+  in
+    pure $ view #cost n >= minCost
 
 -- TODO Figure out if there is a head lens for NonEmpty
 hd :: Getter (NonEmpty a) a
@@ -99,6 +119,17 @@ h node =
     pure $ sumOf both maxCoord - sumOf both pos
 {-# SCC h #-}
 
+-- TODO add manhattan distance to bidim libraries
+h2 :: MonadReader (Bidim Int) m => Node -> m Int
+h2 node =
+  let
+    pos = views #path NonEmpty.head node
+  in do
+    -- (_, maxCoord) <- asks boundaries
+    let (_, maxCoord) = boundaries2
+    pure $ sumOf both maxCoord - sumOf both pos
+{-# SCC h2 #-}
+
 cost :: MonadReader (Bidim Int) m => Node -> m Int
 cost = pure . view #cost
 
@@ -108,7 +139,6 @@ explode node =
     let limits = boundaries'
     let newPos =
           filter (inRange limits)
-          . filter (not . flip HashSet.member (view #pathMem node))
           $ cross (view (#path . hd) node)
     traverse (addHop node) newPos
 {-# SCC explode #-}
@@ -119,7 +149,6 @@ explode2 node =
     let limits = boundaries2
     let newPos =
           filter (inRange limits)
-          . filter (not . flip HashSet.member (view #pathMem node))
           $ cross (view (#path . hd) node)
     traverse (addHop2 node) newPos
 {-# SCC explode2 #-}
@@ -135,7 +164,6 @@ addHop node pos =
     risk <- getRisk pos
     pure $
       over #path (pos `NonEmpty.cons`)
-      . over #pathMem (HashSet.insert pos)
       . over #cost (+ risk)
       $ node
 
@@ -148,7 +176,6 @@ addHop2 node pos =
     risk <- getRisk2 pos
     pure $
       over #path (pos `NonEmpty.cons`)
-      . over #pathMem (HashSet.insert pos)
       . over #cost (+ risk)
       $ node
 
@@ -183,10 +210,10 @@ isGoal node =
     pure (pos ==  view _2 boundaries')
 
 initialNode :: Node
-initialNode = Node ((0,0) :| []) (HashSet.singleton (0,0)) 0
+initialNode = Node ((0,0) :| []) 0
 
-astarConfig2 :: Bidim Int -> AstarConfig Node Coord (Bidim Int)
-astarConfig2 = mkConfig h cost explode2 isGoal2 toMem
+astarConfig2 :: Bidim Int -> AstarConfig Int Node (HashMap Coord Int) (Bidim Int)
+astarConfig2 = mkConfig h2 cost explode2 isGoal2 rememberNode seenNode
 
 boundaries2 :: (Coord, Coord)
 boundaries2 = over (_2 . both) (subtract 1 . (*5) . (+ 1)) boundaries'
@@ -200,18 +227,19 @@ isGoal2 node =
 
 -- TODO Add Astar and runAstar to Astar
 -- TODO Maybe this can be faster with a Dijkstra MonadSearch
-solver1 :: Parsed -> Int
-solver1 input =
-  view (_1 . singular _Just . #cost) . runIdentity
-  $ (searchAstarT (astarConfig input) initialNode :: Identity (Maybe Node, ()))
+solver1 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
+solver1 input = do
+  (maybeNode, ()) <- searchAstarT (astarConfig input) initialNode HashMap.empty
+  pure . view (singular _Just . #cost) $ maybeNode
 
 -- TODO This does not work, but I have not had time to verify that I am
--- extending the map faithfully. the ~toMem~ function is also incorrect
-solver2 :: Parsed -> Int
-solver2 input =
-  view (_1 . singular _Just . #cost) . runIdentity
-  $ (searchAstarT (astarConfig2 input) initialNode :: Identity (Maybe Node, ()))
-
+-- extending the map faithfully.
+--
+-- Incorrect solution: 3059
+solver2 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
+solver2 input = do
+  (maybeNode, ()) <- searchAstarT (astarConfig2 input) initialNode HashMap.empty
+  pure . view (singular _Just . #cost) $ maybeNode
 
 main :: IO ()
-main = solve day parser solver1 solver2
+main = solveM day parser solver1 solver2

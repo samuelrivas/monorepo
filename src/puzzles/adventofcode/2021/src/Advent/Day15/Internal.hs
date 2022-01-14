@@ -15,9 +15,8 @@ import           Data.List.NonEmpty (NonEmpty)
 import           GHC.Generics       (Generic)
 
 data Node = Node
-    { path    :: NonEmpty Coord,
-      pathMem :: HashSet Coord,
-      cost    :: Int
+    { path :: NonEmpty Coord,
+      cost :: Int
     }
     deriving stock (Show, Eq, Generic)
 
