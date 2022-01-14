@@ -203,7 +203,7 @@ initialNode :: Node
 initialNode = Node ((0,0) :| []) (HashSet.singleton (0,0)) 0
 
 astarConfig2 :: Bidim Int -> AstarConfig Int Node (HashSet Coord) (Bidim Int)
-astarConfig2 = mkConfig h2 cost explode2 isGoal2 undefined undefined
+astarConfig2 = mkConfig h2 cost explode2 isGoal2 rememberNode seenNode
 
 boundaries2 :: (Coord, Coord)
 boundaries2 = over (_2 . both) (subtract 1 . (*5) . (+ 1)) boundaries'
