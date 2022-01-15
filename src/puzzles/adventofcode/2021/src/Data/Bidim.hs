@@ -31,6 +31,10 @@ import           Data.Text            (Text, concat, intercalate, unpack)
 import           GHC.Generics         (Generic)
 
 type Coord = (Int, Int)
+
+-- TOD making this accessible as generic is problematic as one could use lenses
+-- to modify either boundaries or the map, we should insted export a setter that
+-- uses insert and getters for the fields
 data Bidim a = Bidim {
   toMap      :: Map Coord a,
   boundaries :: (Coord, Coord)
