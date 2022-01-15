@@ -21,8 +21,8 @@ module Data.Bidim (
 
 import           Prelude              hiding (concat)
 
-import           Control.Lens         (_1, _2, at, over, set, toListOf,
-                                       traverse, view)
+import           Control.Lens         (Lens', _1, _2, at, lens, over, set,
+                                       toListOf, traverse, view)
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import qualified Data.Map             as Map
@@ -38,7 +38,13 @@ type Coord = (Int, Int)
 data Bidim a = Bidim {
   toMap      :: Map Coord a,
   boundaries :: (Coord, Coord)
-  } deriving stock (Show, Generic, Eq)
+  } deriving stock (Show, Eq)
+
+map' :: Lens' (Bidim a) (Map Coord a)
+map' = lens toMap (\b m -> b { toMap = m })
+
+boundaries' :: Lens' (Bidim a) (Coord, Coord)
+boundaries' = lens boundaries (\b m -> b { boundaries = m })
 
 -- Better would be to wrap this and make it an instance of Num
 plus :: Coord -> Coord -> Coord
@@ -63,8 +69,8 @@ cross coord = [
 
 insert :: Coord -> a -> Bidim a -> Bidim a
 insert c a =
-  over #toMap (Map.insert c a)
-  . over #boundaries (extendBoundary c)
+  over map' (Map.insert c a)
+  . over boundaries' (extendBoundary c)
 
 extendBoundary :: Coord -> (Coord, Coord) -> (Coord, Coord)
 extendBoundary (x, y) ((minX, minY), (maxX, maxY)) =
