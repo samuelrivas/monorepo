@@ -18,8 +18,8 @@ import           Control.Lens         (_2, filtered, lengthOf, non, view)
 import           Control.Monad.State  (MonadState, evalState, gets, modify)
 import           Data.Advent          (Day (..))
 import           Data.Bidim           (Coord, showBidim)
+import qualified Data.Bidim           as Bidim
 import           Data.Foldable        (traverse_)
-import qualified Data.Map             as Map
 import           Data.Maybe           (fromJust)
 import           Data.MultiSet        (MultiSet)
 import qualified Data.MultiSet        as MultiSet
@@ -104,7 +104,7 @@ getActivity ends =
 showActivity :: [(Coord, Coord)] -> Text
 showActivity =
   let showCell = view (non ".") . fmap show
-  in showBidim showCell . Map.fromList . getActivity
+  in showBidim showCell . Bidim.fromList . getActivity
 
 solver2 :: Parsed -> Int
 solver2 = lengthOf (traverse . _2 . filtered (>= 2)) . getActivity

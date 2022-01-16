@@ -13,19 +13,18 @@ module Advent.Day9 where
 
 import           Perlude
 
-import           Control.Lens         (At (at), _Just, filtered, folded,
-                                       preview, sumOf, to, toListOf, view)
+import           Advent.Templib       (bidim)
+import           Control.Lens         (_Just, filtered, folded, preview, sumOf,
+                                       to, toListOf, view)
 import           Data.Advent          (Day (..))
-import           Data.Bidim           (Bidim, Coord, cross)
+import           Data.Bidim           (Bidim, Coord, cell, coords, cross)
 import           Data.Generics.Labels ()
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
 import           Data.List            (sortBy)
-import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (catMaybes, fromJust)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, solve)
-import           Text.Parsec.Bidim    (bidim)
 import           Text.Parsec.Parselib (Parser, unsafeParseAll)
 
 
@@ -53,7 +52,7 @@ parser :: Parser Parsed
 parser = bidim (subtract 48 . fromEnum)
 
 getHeight :: Bidim Int -> Coord -> Maybe Int
-getHeight =  flip (view . at)
+getHeight =  flip (view . cell)
 
 isLowPoint :: Bidim Int -> Coord -> Bool
 isLowPoint floorMap coord =
@@ -66,7 +65,7 @@ isLowPoint floorMap coord =
 
 lowPositions :: Bidim Int -> [Coord]
 lowPositions floorMap =
-  toListOf (traverse . filtered (isLowPoint floorMap)) $ Map.keys floorMap
+  toListOf (traverse . filtered (isLowPoint floorMap)) $ view coords floorMap
 
 riskLevel :: Bidim Int -> Int
 riskLevel floorMap =
@@ -86,7 +85,7 @@ growBasin floorMap (x:candidates) currentBasin =
 
 validCandidate :: Bidim Int -> Coord -> Bool
 validCandidate floorMap coord =
-  preview (at coord . _Just. to (< 9)) floorMap == Just True
+  preview (cell coord . _Just . to (< 9)) floorMap == Just True
 
 basinSizes :: Bidim Int -> [Int]
 basinSizes floorMap =

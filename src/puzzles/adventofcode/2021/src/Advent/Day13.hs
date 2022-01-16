@@ -19,12 +19,12 @@ import           Advent.Templib       (linesOf)
 import           Control.Lens         (Lens', _1, _2, over, view)
 import           Data.Advent          (Day (..))
 import           Data.Bidim           (Coord, showBidim)
+import qualified Data.Bidim           as Bidim
 import           Data.Foldable        (foldl')
 import           Data.Functor         (($>))
 import           Data.Generics.Labels ()
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
-import qualified Data.Map             as Map
 import           Data.Maybe           (fromJust)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, getParsedInput)
@@ -128,7 +128,7 @@ solver2 (coords, folds) = showPaper $ performFolds (HashSet.fromList coords) fol
 showPaper :: HashSet Coord -> Text
 showPaper paper =
   let
-    bidim = Map.fromList $ zip (HashSet.toList paper) (repeat True)
+    bidim = Bidim.fromList $ zip (HashSet.toList paper) (repeat True)
     showCell (Just True) = "#"
     showCell _           = " "
   in
@@ -144,4 +144,3 @@ main = do
 
   putStrLn "Solution 2: "
   putStrLn . solver2 $ input
-

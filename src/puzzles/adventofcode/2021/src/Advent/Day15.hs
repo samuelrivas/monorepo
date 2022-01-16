@@ -9,14 +9,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Advent.Day15 where
 
 import           Perlude
 
 import           Advent.Day15.Internal           (Node (..))
 
-import           Advent.Templib                  (Metrics, MonadEmit, solveM)
+import           Advent.Templib                  (Metrics, MonadEmit, bidim,
+                                                  solveM)
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
                                                   both, non, over, singular,
                                                   sumOf, to, view, views)
@@ -24,11 +24,11 @@ import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
                                                   searchAstarT)
 import           Control.Monad.Reader            (MonadReader)
 import           Data.Advent                     (Day (..))
-import           Data.Bidim                      (Bidim, Coord, cross)
+import           Data.Bidim                      (Bidim, Coord, cell, cross,
+                                                  fromText)
 import           Data.Char                       (digitToInt)
 import           Data.Functor.Identity           (Identity, runIdentity)
 import           Data.Generics.Labels            ()
-import qualified Data.HashMap.Lazy               as HasHSet
 import           Data.HashMap.Strict             (HashMap)
 import qualified Data.HashMap.Strict             as HashMap
 import           Data.HashSet                    (HashSet)
@@ -39,8 +39,8 @@ import           Data.Maybe                      (fromJust)
 import           Data.Text                       (intercalate)
 import           System.IO.Advent                (getInput, getParsedInput,
                                                   solve)
-import           Text.Parsec.Bidim               (bidim)
-import           Text.Parsec.Parselib            (Parser, unsafeParseAll)
+import           Text.Parsec                     (anyToken)
+import           Text.Parsec.Parselib            (Parser, text, unsafeParseAll)
 
 type Parsed =  Bidim Int
 
@@ -168,7 +168,7 @@ addHop node pos =
       $ node
 
 getRisk :: MonadReader (Bidim Int) m => Coord -> m Int
-getRisk pos = view (at pos . non 0)
+getRisk pos = view (cell pos . non 0)
 
 addHop2 :: MonadReader (Bidim Int) m => Node -> Coord -> m Node
 addHop2 node pos =
