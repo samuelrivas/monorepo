@@ -29,8 +29,8 @@ import           Control.Lens         (Getter, Lens', _1, _2, at, lens, over,
                                        set, to, view)
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
-import qualified Data.Map             as Map
-import           Data.Map.Strict      (Map)
+import           Data.HashMap.Strict  (HashMap)
+import qualified Data.HashMap.Strict  as Map
 import           Data.Text            (Text, concat, intercalate, unpack)
 
 type Coord = (Int, Int)
@@ -38,12 +38,12 @@ type Coord = (Int, Int)
 -- We don't export a generic lens for this record, as the 'boundaries' field
 -- depends on 'toMap'
 data Bidim a = Bidim {
-  toMap        :: Map Coord a,
+  toMap        :: HashMap Coord a,
   toBoundaries :: (Coord, Coord)
   } deriving stock (Show, Eq)
 
 -- Do not export this lens, as the toMap field cannot be modified freely
-asMap' :: Lens' (Bidim a) (Map Coord a)
+asMap' :: Lens' (Bidim a) (HashMap Coord a)
 asMap' = lens toMap (\b m -> b { toMap = m })
 
 -- Do not export this lens, as the toBoundaries field cannot be modified freely
@@ -64,14 +64,14 @@ cell c = to . view $ (asMap' . at c)
 plus :: Coord -> Coord -> Coord
 plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 
+-- Using 'Bounded' is a bit ugly, but is much more convenient than making the
+-- boundaries field a Maybe
 empty :: Bidim a
 empty = Bidim Map.empty (maxCoord, minCoord)
 
 singleton :: Coord -> a -> Bidim a
 singleton c a = Bidim (Map.singleton c a) (c, c)
 
--- TODO This is a bit of a hack, since we don't really need to start from empty
--- ever
 maxCoord :: Coord
 maxCoord = (maxBound, maxBound)
 
