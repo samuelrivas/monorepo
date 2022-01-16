@@ -14,6 +14,7 @@ module Advent.Day11 where
 import           Perlude
 
 
+import           Advent.Templib       (bidim)
 import           Control.Lens         (assign, at)
 import           Control.Monad        (replicateM)
 import           Control.Monad.State  (MonadState, evalState, get, gets, modify)
@@ -28,7 +29,6 @@ import           Data.Maybe           (fromJust)
 import           Data.Text            (intercalate)
 import qualified Data.Text            as Text
 import           System.IO.Advent     (getInput, solve)
-import           Text.Parsec.Bidim    (bidim)
 import           Text.Parsec.Parselib (Parser, unsafeParseAll)
 
 -- TODO This problem may be solvable just using parsec

@@ -15,6 +15,7 @@
 {-# LANGUAGE UndecidableInstances       #-}
 
 module Advent.Templib (
+  bidim,
   binToDec,
   bitString,
   bit,
@@ -69,6 +70,7 @@ import           Control.Monad.Trans        (MonadTrans (lift))
 import           Control.Monad.Writer.CPS   (MonadWriter, Writer, WriterT,
                                              runWriterT)
 import           Data.Advent                (Day)
+import           Data.Bidim                 (Bidim, fromText)
 import           Data.Foldable              (foldl')
 import           Data.Functor               (($>))
 import           Data.Generics.Labels       ()
@@ -80,13 +82,18 @@ import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
 import qualified System.IO                  as SIO
 import           System.IO.Advent           (getParsedInput)
-import           Text.Parsec                (char, many, many1, sepEndBy)
-import           Text.Parsec.Parselib       (Parser, literal)
+import           Text.Parsec                (anyToken, char, many, many1,
+                                             sepEndBy)
+import           Text.Parsec.Parselib       (Parser, literal, text)
 import           Text.Printf                (PrintfArg, printf)
 import           UnliftIO                   (MonadUnliftIO, TVar, atomically,
                                              modifyTVar, newTVarIO, readTVarIO,
                                              stderr, withAsync)
 import           UnliftIO.Concurrent        (threadDelay)
+
+-- Use this from Adventlib once it is fixed to support bidims based off HashMap
+bidim :: (Char -> a) -> Parser (Bidim a)
+bidim f = fmap f . fromText <$> text anyToken
 
 -- TODO use this in day 2 or delete
 conv :: ([a] -> b) -> [a] -> [b]

@@ -21,7 +21,8 @@ module Data.Bidim (
   cell,
   singleton,
   coords,
-  boundaries
+  boundaries,
+  mergeWith
   ) where
 
 import           Prelude              hiding (concat)
@@ -31,7 +32,7 @@ import           Control.Lens         (Getter, Lens, Lens', _1, _2, at, lens,
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import           Data.HashMap.Strict  (HashMap)
-import qualified Data.HashMap.Strict  as Map
+import qualified Data.HashMap.Strict  as HashMap
 import           Data.Text            (Text, concat, intercalate, unpack)
 
 type Coord = (Int, Int)
@@ -64,11 +65,11 @@ boundaries :: Getter (Bidim a) (Coord, Coord)
 boundaries = to toBoundaries
 
 coords :: Getter (Bidim a) [Coord]
-coords = to (Map.keys . toMap)
+coords = to (HashMap.keys . toMap)
 
 -- Getter for the value of the Bidim in a given position
 cell :: Coord -> Getter (Bidim a) (Maybe a)
-cell c = to . view $ (asMap' . at c)
+cell c = to . view $ asMap' . at c
 
 -- Better would be to wrap this and make it an instance of Num
 plus :: Coord -> Coord -> Coord
@@ -77,10 +78,10 @@ plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 -- Using 'Bounded' is a bit ugly, but is much more convenient than making the
 -- boundaries field a Maybe
 empty :: Bidim a
-empty = Bidim Map.empty (maxCoord, minCoord)
+empty = Bidim HashMap.empty (maxCoord, minCoord)
 
 singleton :: Coord -> a -> Bidim a
-singleton c a = Bidim (Map.singleton c a) (c, c)
+singleton c a = Bidim (HashMap.singleton c a) (c, c)
 
 maxCoord :: Coord
 maxCoord = (maxBound, maxBound)
@@ -98,12 +99,22 @@ cross coord = [
 
 insert :: Coord -> a -> Bidim a -> Bidim a
 insert c a =
-  over asMap' (Map.insert c a)
+  over asMap' (HashMap.insert c a)
   . over boundaries' (extendBoundary c)
 
 extendBoundary :: Coord -> (Coord, Coord) -> (Coord, Coord)
 extendBoundary (x, y) ((minX, minY), (maxX, maxY)) =
   ((min minX x, min minY y), (max maxX x, max maxY y))
+
+mergeBoundaries :: (Coord, Coord) -> (Coord, Coord) -> (Coord, Coord)
+mergeBoundaries (a, b) = extendBoundary a . extendBoundary b
+
+mergeWith :: (a -> a -> a) -> Bidim a -> Bidim a -> Bidim a
+mergeWith f a b =
+  Bidim {
+  toMap = HashMap.unionWith f (toMap a) (toMap b),
+  toBoundaries = mergeBoundaries (toBoundaries a) (toBoundaries b)
+  }
 
 showBidim :: (Maybe a -> Text) -> Bidim a -> Text
 showBidim format bidim =
