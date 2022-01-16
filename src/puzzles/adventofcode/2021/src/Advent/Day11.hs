@@ -19,12 +19,13 @@ import           Control.Lens         (assign, at)
 import           Control.Monad        (replicateM)
 import           Control.Monad.State  (MonadState, evalState, get, gets, modify)
 import           Data.Advent          (Day (..))
-import           Data.Bidim           (Bidim, Coord, showBidim)
+import           Data.Bidim           (Bidim, Coord, showBidim, toMap)
+import qualified Data.Bidim           as Bidim
 import           Data.Foldable        (traverse_)
 import           Data.Generics.Labels ()
+import qualified Data.HashMap.Strict  as HashMap
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
-import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (fromJust)
 import           Data.Text            (intercalate)
 import qualified Data.Text            as Text
@@ -62,13 +63,13 @@ parser :: Parser Parsed
 parser = bidim (read . Text.singleton)
 
 increaseAllEnergy :: MonadState (Bidim Int) m => m ()
-increaseAllEnergy = modify (Map.map (+1))
+increaseAllEnergy = modify (fmap (+1))
 
 increaseNeighbourEnergy :: MonadState (Bidim Int) m => Coord -> m ()
 increaseNeighbourEnergy coord = do
   octopuses <- get
-  let toIncrease = Map.fromList $ zip (neighbours octopuses coord) (repeat 1)
-  modify (Map.unionWith (+) toIncrease)
+  let toIncrease = Bidim.fromList $ zip (neighbours octopuses coord) (repeat 1)
+  modify (Bidim.mergeWith (+) toIncrease)
 
 -- TODO Move to bidim
 neighbours :: Bidim Int -> Coord -> [Coord]
@@ -77,10 +78,11 @@ neighbours b (x, y) =
   | x' <- [x - 1, x, x + 1],
     y' <- [y - 1, y, y + 1],
     (x', y') /= (x, y),
-    Map.member (x', y') b]
+    HashMap.member (x', y') (toMap b)]
 
 findFlashers :: MonadState (Bidim Int) m => m (HashSet Coord)
-findFlashers = gets (HashSet.fromList . Map.keys . Map.filter (> 9))
+findFlashers =
+  gets (HashSet.fromList . HashMap.keys . HashMap.filter (> 9) . toMap)
 
 propagateToNeighbours :: MonadState (Bidim Int) m => HashSet Coord -> m ()
 propagateToNeighbours = traverse_ increaseNeighbourEnergy
@@ -97,7 +99,7 @@ flashPhase previousFlashers = do
     flashPhase $ HashSet.union flashers previousFlashers
 
 resetEnergy :: MonadState (Bidim Int) m => Coord -> m ()
-resetEnergy coord = assign (at coord) (Just 0)
+resetEnergy coord = modify (Bidim.insert coord 0)
 
 -- Returns the amount of flashed cells
 step :: MonadState (Bidim Int) m => m Int
@@ -121,9 +123,9 @@ solver1 = sum . evalState (replicateM 100 step)
 solver2 :: Parsed -> Int
 solver2 input =
   let
-    totalAmount = Map.size input
+    totalAmount = HashMap.size . toMap $ input
   in
-    length . takeWhile (< totalAmount)
+    (+1) . length . takeWhile (< totalAmount)
     . evalState (sequence . repeat $ step)
     $ input
 

@@ -22,7 +22,9 @@ module Data.Bidim (
   singleton,
   coords,
   boundaries,
-  mergeWith
+  mergeWith,
+  fromList,
+  adjust
   ) where
 
 import           Prelude              hiding (concat)
@@ -71,6 +73,13 @@ coords = to (HashMap.keys . toMap)
 cell :: Coord -> Getter (Bidim a) (Maybe a)
 cell c = to . view $ asMap' . at c
 
+-- TODO: figure out if there is a proper lens to change values, without allowing
+-- to insert or remove cells
+
+-- If the coord is not part of the Bidim, the original Bidim is returned
+adjust :: (a -> a) -> Coord -> Bidim a -> Bidim a
+adjust f c = over (asMap') (HashMap.adjust f c)
+
 -- Better would be to wrap this and make it an instance of Num
 plus :: Coord -> Coord -> Coord
 plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
@@ -108,6 +117,9 @@ extendBoundary (x, y) ((minX, minY), (maxX, maxY)) =
 
 mergeBoundaries :: (Coord, Coord) -> (Coord, Coord) -> (Coord, Coord)
 mergeBoundaries (a, b) = extendBoundary a . extendBoundary b
+
+fromList :: Foldable f =>  f (Coord, a) -> Bidim a
+fromList = foldl' (\bd (c, a) -> insert c a bd) empty
 
 mergeWith :: (a -> a -> a) -> Bidim a -> Bidim a -> Bidim a
 mergeWith f a b =
