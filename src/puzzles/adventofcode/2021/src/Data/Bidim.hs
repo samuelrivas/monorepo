@@ -13,6 +13,7 @@ module Data.Bidim (
   empty,
   insert,
   toMap,
+  toBoundaries,
   cross,
   fromText,
   plus,
@@ -25,8 +26,8 @@ module Data.Bidim (
 
 import           Prelude              hiding (concat)
 
-import           Control.Lens         (Getter, Lens', _1, _2, at, lens, over,
-                                       set, to, view)
+import           Control.Lens         (Getter, Lens, Lens', _1, _2, at, lens,
+                                       over, set, to, view)
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import           Data.HashMap.Strict  (HashMap)
@@ -42,8 +43,17 @@ data Bidim a = Bidim {
   toBoundaries :: (Coord, Coord)
   } deriving stock (Show, Eq)
 
+instance Functor Bidim where
+  fmap = over asMap' . fmap
+
+instance Foldable Bidim where
+  foldMap f = foldMap f . toMap
+
+instance Traversable Bidim where
+  traverse f b = flip (set asMap') b <$> traverse f (toMap b)
+
 -- Do not export this lens, as the toMap field cannot be modified freely
-asMap' :: Lens' (Bidim a) (HashMap Coord a)
+asMap' :: Lens (Bidim a) (Bidim b) (HashMap Coord a) (HashMap Coord b)
 asMap' = lens toMap (\b m -> b { toMap = m })
 
 -- Do not export this lens, as the toBoundaries field cannot be modified freely

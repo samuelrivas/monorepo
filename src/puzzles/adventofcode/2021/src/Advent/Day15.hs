@@ -23,11 +23,10 @@ import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
                                                   searchAstarT)
 import           Control.Monad.Reader            (MonadReader)
 import           Data.Advent                     (Day (..))
-import           Data.Bidim                      (Bidim, Coord, cross)
+import           Data.Bidim                      (Bidim, Coord, cross, fromText)
 import           Data.Char                       (digitToInt)
 import           Data.Functor.Identity           (Identity, runIdentity)
 import           Data.Generics.Labels            ()
-import qualified Data.HashMap.Lazy               as HasHSet
 import           Data.HashMap.Strict             (HashMap)
 import qualified Data.HashMap.Strict             as HashMap
 import           Data.HashSet                    (HashSet)
@@ -38,8 +37,8 @@ import           Data.Maybe                      (fromJust)
 import           Data.Text                       (intercalate)
 import           System.IO.Advent                (getInput, getParsedInput,
                                                   solve)
-import           Text.Parsec.Bidim               (bidim)
-import           Text.Parsec.Parselib            (Parser, unsafeParseAll)
+import           Text.Parsec                     (anyToken)
+import           Text.Parsec.Parselib            (Parser, text, unsafeParseAll)
 
 type Parsed =  Bidim Int
 
@@ -64,6 +63,10 @@ example =
   "1293138521",
   "2311944581"
   ]
+
+-- Use this from Adventlib once it is fixed to support bidims based off HashMap
+bidim :: (Char -> a) -> Parser (Bidim a)
+bidim f = fmap f . fromText <$> text anyToken
 
 parsedExample :: Parsed
 parsedExample = fromJust $ unsafeParseAll parser example
