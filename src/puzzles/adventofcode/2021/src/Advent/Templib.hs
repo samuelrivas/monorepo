@@ -51,12 +51,9 @@ module Advent.Templib (
   ) where
 import           Perlude
 
-import qualified Prelude
-
 import           Advent.Templib.Internal
 
 import           Control.Applicative        ((<|>))
-import           Control.Lens               (coerced, over, view, views)
 import           Control.Monad              (forever)
 import           Control.Monad.Identity     (Identity (..), IdentityT (..),
                                              runIdentity, runIdentityT)
@@ -74,18 +71,14 @@ import           Data.Bidim                 (Bidim, fromText)
 import           Data.Foldable              (foldl')
 import           Data.Functor               (($>))
 import           Data.Generics.Labels       ()
-import           Data.HashMap.Strict        (HashMap)
 import qualified Data.HashMap.Strict        as HashMap
 import           Data.List                  (tails)
 import           Data.Monoid                (Sum (..))
-import qualified Data.Text                  as Text
-import           GHC.Generics               (Generic)
 import qualified System.IO                  as SIO
 import           System.IO.Advent           (getParsedInput)
 import           Text.Parsec                (anyToken, char, many, many1,
                                              sepEndBy)
 import           Text.Parsec.Parselib       (Parser, literal, text)
-import           Text.Printf                (PrintfArg, printf)
 import           UnliftIO                   (MonadUnliftIO, TVar, atomically,
                                              modifyTVar, newTVarIO, readTVarIO,
                                              stderr, withAsync)

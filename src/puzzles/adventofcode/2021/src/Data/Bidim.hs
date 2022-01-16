@@ -78,7 +78,7 @@ cell c = to . view $ asMap' . at c
 
 -- If the coord is not part of the Bidim, the original Bidim is returned
 adjust :: (a -> a) -> Coord -> Bidim a -> Bidim a
-adjust f c = over (asMap') (HashMap.adjust f c)
+adjust f c = over asMap' (HashMap.adjust f c)
 
 -- Better would be to wrap this and make it an instance of Num
 plus :: Coord -> Coord -> Coord
