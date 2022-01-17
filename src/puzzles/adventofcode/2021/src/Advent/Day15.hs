@@ -24,23 +24,18 @@ import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
                                                   searchAstarT)
 import           Control.Monad.Reader            (MonadReader)
 import           Data.Advent                     (Day (..))
-import           Data.Bidim                      (Bidim, Coord, cell, cross,
-                                                  fromText)
+import           Data.Bidim                      (Bidim, Coord, boundaries,
+                                                  cell, cross)
 import           Data.Char                       (digitToInt)
-import           Data.Functor.Identity           (Identity, runIdentity)
 import           Data.Generics.Labels            ()
 import           Data.HashMap.Strict             (HashMap)
 import qualified Data.HashMap.Strict             as HashMap
-import           Data.HashSet                    (HashSet)
-import qualified Data.HashSet                    as HashSet
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
 import           Data.Maybe                      (fromJust)
 import           Data.Text                       (intercalate)
-import           System.IO.Advent                (getInput, getParsedInput,
-                                                  solve)
-import           Text.Parsec                     (anyToken)
-import           Text.Parsec.Parselib            (Parser, text, unsafeParseAll)
+import           System.IO.Advent                (getInput, getParsedInput)
+import           Text.Parsec.Parselib            (Parser, unsafeParseAll)
 
 type Parsed =  Bidim Int
 
@@ -75,17 +70,9 @@ parsedInput = getParsedInput day parser
 parser :: Parser Parsed
 parser = bidim digitToInt
 
--- TODO: This is to overocome a current inefficiency of Data.Bidim.boundaries
-boundaries' :: (Coord, Coord)
-boundaries' = ((0, 0), (99, 99))
-
 astarConfig :: Bidim Int -> AstarConfig Int Node (HashMap Coord Int) (Bidim Int)
 astarConfig = mkConfig h cost explode isGoal rememberNode seenNode
 
--- TODO This is incorrect and may be the reason why part two doesn't work, we
--- need to support adding nodes that reach a point that was already exploed, but
--- that the new node reaches with lower cost. At the moment we can only compare
--- with equality
 rememberNode ::
   MonadReader (Bidim Int) m
   => HashMap Coord Int -> Node -> m (HashMap Coord Int)
@@ -108,14 +95,17 @@ seenNode nodeStore n =
 hd :: Getter (NonEmpty a) a
 hd = to NonEmpty.head
 
--- TODO add manhattan distance to bidim libraries
+-- TODO Remove all the duplication, part 1 and part 2 differ only on the map
+-- they use, so it should be easy to collapse them into a single solution
+-- parameterised on the map they use
+
+-- TODO add Manhattan distance to bidim libraries
 h :: MonadReader (Bidim Int) m => Node -> m Int
 h node =
   let
     pos = views #path NonEmpty.head node
   in do
-    -- (_, maxCoord) <- asks boundaries
-    let (_, maxCoord) = boundaries'
+    (_, maxCoord) <- view boundaries
     pure $ sumOf both maxCoord - sumOf both pos
 {-# SCC h #-}
 
@@ -125,8 +115,7 @@ h2 node =
   let
     pos = views #path NonEmpty.head node
   in do
-    -- (_, maxCoord) <- asks boundaries
-    let (_, maxCoord) = boundaries2
+    (_, maxCoord) <- boundaries2
     pure $ sumOf both maxCoord - sumOf both pos
 {-# SCC h2 #-}
 
@@ -136,7 +125,7 @@ cost = pure . view #cost
 explode :: MonadReader (Bidim Int) m => Node -> m [Node]
 explode node =
   do
-    let limits = boundaries'
+    limits <- view boundaries
     let newPos =
           filter (inRange limits)
           $ cross (view (#path . hd) node)
@@ -146,7 +135,7 @@ explode node =
 explode2 :: MonadReader (Bidim Int) m => Node -> m [Node]
 explode2 node =
   do
-    let limits = boundaries2
+    limits <- boundaries2
     let newPos =
           filter (inRange limits)
           $ cross (view (#path . hd) node)
@@ -181,33 +170,33 @@ addHop2 node pos =
 
 getRisk2 :: MonadReader (Bidim Int) m => Coord -> m Int
 getRisk2 pos =
-  let
-    (basePos, addedRisk) = mapExtendedPos pos
-  in do
+  do
+    (basePos, addedRisk) <- mapExtendedPos pos
     baseRisk <- getRisk basePos
-    pure $ (baseRisk + addedRisk - 1) `mod` 10 + 1
+    pure $ (baseRisk + addedRisk - 1) `mod` 9 + 1
 
 -- Return the position in the base map and the added risk
-mapExtendedPos :: Coord -> (Coord, Int)
+mapExtendedPos :: MonadReader (Bidim Int) m => Coord -> m (Coord, Int)
 mapExtendedPos pos =
-  let
-    maxX = view (_2 . _1) boundaries' + 1
-    maxY = view (_2 . _2) boundaries' + 1
-    addX = view _1 pos `div` maxX
-    addY = view _2 pos `div` maxY
-    basePos = over _1 (`mod` maxX)
-              . over _2 (`mod` maxY)
-              $ pos
-  in
-    (basePos, addX + addY)
+  do
+    bds <- view boundaries
+    let
+      maxX = view (_2 . _1) bds + 1
+      maxY = view (_2 . _2) bds + 1
+      addX = view _1 pos `div` maxX
+      addY = view _2 pos `div` maxY
+      basePos = over _1 (`mod` maxX)
+                . over _2 (`mod` maxY)
+                $ pos
+
+    pure (basePos, addX + addY)
 
 isGoal :: MonadReader (Bidim Int) m => Node -> m Bool
 isGoal node =
   let
     pos = view (#path . hd) node
   in
-    -- asks (((pos ==) . view _2) . boundaries)
-    pure (pos ==  view _2 boundaries')
+    (pos ==) . view _2 <$> view boundaries
 
 initialNode :: Node
 initialNode = Node ((0,0) :| []) 0
@@ -215,15 +204,15 @@ initialNode = Node ((0,0) :| []) 0
 astarConfig2 :: Bidim Int -> AstarConfig Int Node (HashMap Coord Int) (Bidim Int)
 astarConfig2 = mkConfig h2 cost explode2 isGoal2 rememberNode seenNode
 
-boundaries2 :: (Coord, Coord)
-boundaries2 = over (_2 . both) (subtract 1 . (*5) . (+ 1)) boundaries'
+boundaries2 :: MonadReader (Bidim Int) m => m (Coord, Coord)
+boundaries2 = over (_2 . both) (subtract 1 . (*5) . (+ 1)) <$> view boundaries
 
 isGoal2 :: MonadReader (Bidim Int) m => Node -> m Bool
 isGoal2 node =
   let
     pos = view (#path . hd) node
   in
-    pure (pos == view _2 boundaries2)
+    (pos ==) . view _2 <$> boundaries2
 
 -- TODO Add Astar and runAstar to Astar
 -- TODO Maybe this can be faster with a Dijkstra MonadSearch
@@ -232,10 +221,6 @@ solver1 input = do
   (maybeNode, ()) <- searchAstarT (astarConfig input) initialNode HashMap.empty
   pure . view (singular _Just . #cost) $ maybeNode
 
--- TODO This does not work, but I have not had time to verify that I am
--- extending the map faithfully.
---
--- Incorrect solution: 3059
 solver2 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
 solver2 input = do
   (maybeNode, ()) <- searchAstarT (astarConfig2 input) initialNode HashMap.empty
