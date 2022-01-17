@@ -221,10 +221,6 @@ solver1 input = do
   (maybeNode, ()) <- searchAstarT (astarConfig input) initialNode HashMap.empty
   pure . view (singular _Just . #cost) $ maybeNode
 
--- TODO This does not work, but I have not had time to verify that I am
--- extending the map faithfully.
---
--- Incorrect solution: 3059
 solver2 :: MonadEmit (Metrics Int Int) m => Parsed -> m Int
 solver2 input = do
   (maybeNode, ()) <- searchAstarT (astarConfig2 input) initialNode HashMap.empty
