@@ -173,7 +173,7 @@ getRisk2 pos =
   do
     (basePos, addedRisk) <- mapExtendedPos pos
     baseRisk <- getRisk basePos
-    pure $ (baseRisk + addedRisk - 1) `mod` 10 + 1
+    pure $ (baseRisk + addedRisk - 1) `mod` 9 + 1
 
 -- Return the position in the base map and the added risk
 mapExtendedPos :: MonadReader (Bidim Int) m => Coord -> m (Coord, Int)
