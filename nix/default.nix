@@ -155,6 +155,7 @@ let
         boollib = ./../src/haskell/boollib/nix;
         searchlib = ./../src/haskell/searchlib/nix;
         clean-clocks = ./../src/haskell/clean-clocks/nix;
+        mk-conf-file = ./../src/haskell/mk-conf-file/nix;
       };
 
     name-generator = pkgs-sam.haskellPackages.name-generator;
@@ -168,6 +169,7 @@ let
     boollib = pkgs-sam.haskellPackages.boollib;
     searchlib = pkgs-sam.haskellPackages.searchlib;
     clean-clocks = pkgs-sam.haskellPackages.clean-clocks;
+    mk-conf-file = pkgs-sam.haskellPackages.mk-conf-file;
 
     # Shell-scripts
     # =============
