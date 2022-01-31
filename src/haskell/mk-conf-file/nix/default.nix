@@ -6,7 +6,6 @@
   src = ./../src;
   haskell-libs = with haskellPackages; [
     optparse-applicative
-    template
   ];
   inherit haskellPackages;
 }
