@@ -67,9 +67,9 @@ cmdParser =
        (long "exposed"
         <> help "Exposed modules. They must be quoted, and separated by spaces"
         <> metavar "\"Mod1 Mod2 ...\"")
-  <*> strOption (long "import-path")
-  <*> strOption (long "static-lib-path")
-  <*> strOption (long "dynamic-lib-path")
+  <*> strOption (long "import-path" <> help "The import path")
+  <*> strOption (long "static-lib-path" <> help "the static lib path")
+  <*> strOption (long "dynamic-lib-path" <> help "the dynamic lib path")
   <*> option multiReader
        (long "dependencies"
          <> help "Package dependencies. They must be quoted, and separated by spaces"
