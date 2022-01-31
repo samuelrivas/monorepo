@@ -18,6 +18,8 @@ import           Options.Applicative     (Parser, ReadM, auto, execParser,
                                           progDesc, short, showDefault,
                                           strArgument, strOption, switch, value)
 
+-- TODO Depending on 'template' just to do this is quite superficial, fix this
+-- so that we just render what we want based on a 'LibInfo' file
 fileTemplate :: Template
 fileTemplate = template
   "name: $name\n\
