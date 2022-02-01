@@ -9,7 +9,7 @@ module Main where
 import           Prelude             hiding (unlines)
 
 import qualified Data.ByteString     as BS
-import           Data.Text           (Text, pack, unlines)
+import           Data.Text           (Text, intercalate, pack)
 import           Data.Text.Encoding  (encodeUtf8)
 import           Options.Applicative (Parser, ReadM, execParser, fullDesc, help,
                                       helper, info, long, maybeReader, metavar,
@@ -17,6 +17,7 @@ import           Options.Applicative (Parser, ReadM, execParser, fullDesc, help,
 
 data LibInfo = LibInfo
   { name           :: Text
+  , version        :: Text
   , exposedModules :: [Text]
   , importDir      :: Text
   , staticLibDir   :: Text
@@ -27,11 +28,11 @@ data LibInfo = LibInfo
 render :: LibInfo -> Text
 render LibInfo {..} =
   let
-    multivalue = unlines . fmap ("    " <>)
+    multivalue = intercalate "\n" . fmap ("    " <>)
   in
-    unlines [
+    intercalate "\n" [
     "name: " <> name,
-    "version: 1.0",
+    "version: " <> version,
     "id: " <> name,
     "key: " <> name,
     "exposed: True",
@@ -52,6 +53,7 @@ cmdParser :: Parser LibInfo
 cmdParser =
   LibInfo
   <$> strArgument (metavar "LIBRARY")
+  <*> strOption (long "version" <> help "Package version")
   <*> option multiReader
        (long "exposed"
         <> help "Exposed modules. They must be quoted, and separated by spaces"
