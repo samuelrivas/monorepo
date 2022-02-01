@@ -50,12 +50,16 @@ $(PACKAGE-DEPS): templates/package-deps.template | $(GENERATED-DIR)
 	cat $< | xargs -L1 -I{} ghc-pkg field "{}" id | \
 	awk -e '{print "    "$$NF}' > $@
 
-$(PACKAGE-CONF): templates/$(PACKAGE-NAME).conf.template $(PACKAGE-DEPS) | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-STATIC-LIB-DIR)
-	sed -e "s|@@STATIC-LIB-DIR@@|$(realpath $(INSTALLED-STATIC-LIB-DIR))|; \
-	        s|@@IMPORT-DIR@@|$(realpath $(INSTALLED-STATIC-LIB-DIR))|; \
-		s|@@DYNAMIC-LIB-DIR@@|$(realpath $(INSTALLED-DYNAMIC-LIB-DIR))|" \
-	< $< > $@
-	cat $(PACKAGE-DEPS) >> $@
+
+$(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-STATIC-LIB-DIR)
+	mk-conf-file $(PACKAGE-NAME) \
+		--version "$(PACKAGE-VERSION)" \
+		--exposed "FOO BAR" \
+		--import-path "$(realpath $(INSTALLED-STATIC-LIB-DIR))" \
+		--static-lib-path "$(realpath $(INSTALLED-STATIC-LIB-DIR))" \
+		--dynamic-lib-path "$(realpath $(INSTALLED-DYNAMIC-LIB-DIR))" \
+		--dependencies "dep1 dep2" \
+		> $@
 
 .PHONY: compile
 compile: | $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)

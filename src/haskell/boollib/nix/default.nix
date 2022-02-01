@@ -1,6 +1,7 @@
 {
   haskell-pkg,
   haskellPackages,
+  mk-conf-file
 }:
 let
   haskell-libs = with haskellPackages; [
@@ -13,6 +14,7 @@ in haskell-pkg {
 
   extra-drv = rec {
     makeFlags = "PREFIX=$out";
+    buildInputs = [ mk-conf-file ];
     propagatedBuildInputs = haskell-libs;
     installPhase = ''
       make ${makeFlags} install
