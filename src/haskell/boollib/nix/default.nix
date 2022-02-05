@@ -12,9 +12,10 @@ in haskell-pkg {
 
   inherit haskellPackages haskell-libs;
 
+  extra-build-inputs = [ mk-conf-file ];
+
   extra-drv = rec {
     makeFlags = "PREFIX=$out";
-    buildInputs = [ mk-conf-file ];
     propagatedBuildInputs = haskell-libs;
     installPhase = ''
       make ${makeFlags} install

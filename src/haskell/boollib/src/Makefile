@@ -6,13 +6,15 @@
 
 PACKAGE-NAME := boollib
 PACKAGE-VERSION := 1.0
+PACKAGE-DEPS := base
+EXPOSED-MODULES := Data.Bool.Boollib
 
-GHC-VERSION := $(shell ghc --numeric-version)
 GHC-FLAGS := -O3 -Wall -j
+GHC-PROF-FLAGS := -O3 -Wall -j -prof
 
 # Internal variables
 # ==================
-# TODO: Many of these must be generalised when improving this Makefile
+GHC-VERSION := $(shell ghc --numeric-version)
 ARCH = x86_64-linux
 
 BUILD-DIR := ../build
@@ -23,6 +25,7 @@ GENERATED-DIR := $(BUILD-DIR)/generated
 SRCS := $(shell find . -name "*.hs")
 SRC-NAMES = $(SRCS:./src/%=./%)
 OBJ-NAMES = $(SRC-NAMES:%.hs=%.o)
+PROF-OBJ-NAMES = $(SRC-NAMES:%.hs=%.p_o)
 
 PACKAGE-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)
 PACKAGE-CONF-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/package-conf.d
@@ -38,7 +41,6 @@ STATIC-LIB-DIR := $(BUILD-PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(PACKAGE-NAME
 INSTALLED-DYNAMIC-LIB-DIR := $(INSTALL-PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
 INSTALLED-STATIC-LIB-DIR := $(INSTALL-PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
 
-PACKAGE-DEPS := $(GENERATED-DIR)/package-deps
 PACKAGE-CONF := $(PACKAGE-CONF-DIR)/$(PACKAGE-NAME).conf
 
 # Targets
@@ -46,27 +48,24 @@ PACKAGE-CONF := $(PACKAGE-CONF-DIR)/$(PACKAGE-NAME).conf
 .PHONY: all
 all: compile
 
-$(PACKAGE-DEPS): templates/package-deps.template | $(GENERATED-DIR)
-	cat $< | xargs -L1 -I{} ghc-pkg field "{}" id | \
-	awk -e '{print "    "$$NF}' > $@
-
-
 $(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-STATIC-LIB-DIR)
 	mk-conf-file $(PACKAGE-NAME) \
 		--version "$(PACKAGE-VERSION)" \
-		--exposed "FOO BAR" \
+		--exposed "$(EXPOSED-MODULES)" \
 		--import-path "$(realpath $(INSTALLED-STATIC-LIB-DIR))" \
 		--static-lib-path "$(realpath $(INSTALLED-STATIC-LIB-DIR))" \
 		--dynamic-lib-path "$(realpath $(INSTALLED-DYNAMIC-LIB-DIR))" \
-		--dependencies "dep1 dep2" \
+		--dependencies "$(PACKAGE-DEPS)" \
 		> $@
 
 .PHONY: compile
 compile: | $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
 	cd src; ghc $(GHC-FLAGS) -outputdir $(realpath $(STATIC-LIB-DIR)) --make -dynamic -shared -fPIC -package-name $(PACKAGE-NAME) $(SRC-NAMES) -osuf dyn_o -hisuf dyn_hi -o libHS$(PACKAGE-NAME)-ghc$(GHC-VERSION).so
 	cd src; ghc $(GHC-FLAGS) -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name $(PACKAGE-NAME) $(SRC-NAMES)
+	cd src; ghc $(GHC-PROF-FLAGS) -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name $(PACKAGE-NAME) $(SRC-NAMES) -osuf p_o -hisuf p_hi
 	mv src/*.so $(DYNAMIC-LIB-DIR)
 	ar cqs $(STATIC-LIB-DIR)/libHS$(PACKAGE-NAME).a $(addprefix $(STATIC-LIB-DIR)/,$(OBJ-NAMES))
+	ar cqs $(STATIC-LIB-DIR)/libHS$(PACKAGE-NAME)_p.a $(addprefix $(STATIC-LIB-DIR)/,$(PROF-OBJ-NAMES))
 
 .PHONY: clean
 clean:

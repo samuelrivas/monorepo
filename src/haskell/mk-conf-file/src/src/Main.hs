@@ -91,4 +91,3 @@ main =
     BS.putStr
     . encodeUtf8
     . render
-
