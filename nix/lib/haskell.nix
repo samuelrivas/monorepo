@@ -1,6 +1,7 @@
 {
   emacs,
   haskell-mk,
+  haskell-lib-mk,
   pkgs,
 }:
 rec {
@@ -70,7 +71,7 @@ rec {
     haskellPackages: packages-to-add:
     (haskellPackages.override {
       overrides = self: super: {
-        inherit haskell-pkg;
+        inherit haskell-pkg haskell-lib-mk;
       } // (packages-to-add self);
     });
 }

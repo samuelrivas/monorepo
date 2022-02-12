@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
 
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
@@ -87,7 +86,4 @@ main =
     opts = info (helper <*> cmdParser)
       (fullDesc <> progDesc "Print a config file for LIBRARY")
   in
-    execParser opts >>= addIds >>=
-    BS.putStr
-    . encodeUtf8
-    . render
+    execParser opts >>= addIds >>= BS.putStr . encodeUtf8 . render

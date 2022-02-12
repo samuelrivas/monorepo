@@ -117,15 +117,16 @@ let
     # Haskell stuff
     # =============
 
-    # FIXME: haskell-mk (and maybe emacs) should be passed as arguments to the
-    # derivations, currently we are implicitly adding them as dependencies
+    # FIXME: haskell-(lib)-mk (and maybe emacs) should be passed as arguments to
+    # the derivations, currently we are implicitly adding them as dependencies
     # because they are part of haskell-lib. The problem with the current setting
-    # is that we cannot change any of them without affceting all our haskell
+    # is that we cannot change any of them without affecting all our haskell
     # packages.
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
+    haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {  };
     haskell-lib = import ./lib/haskell.nix {
       inherit pkgs;
-      inherit (pkgs-sam) emacs haskell-mk;
+      inherit (pkgs-sam) emacs haskell-mk haskell-lib-mk;
     };
 
     haskellPackages = pkgs-sam.haskell-lib.mk-haskell-packages

@@ -1,16 +1,29 @@
+# Common makefile for all library projects living in this monorepo
+#
+# Heavily based on our own conventions. Namely
+#   - All files are generated in a separate directory (BUILD-DIR)
+#   - All source files are in the src dir
+#   - One package per project
+#   - No cabal, we compile and link with ghc, like the good old times :P
+#   - Packages are listed explicitly (this is not necessarily the best option,
+#     since it duplicates information that is already in the nix derivation, but
+#     such is life for now
+#   - Control from the outside via PROGRAM-NAME, GHC-FLAGS, GHC-LD-FLAGS and
+#     GHC-PACKAGES
+
 # Interface
 # =========
 
 # PREFIX can be set to install in a different place. By default we install in
 # $(BUILD-DIR)/install
 
-PACKAGE-NAME := adventlib
-PACKAGE-VERSION := 1.0
-PACKAGE-DEPS := base lens parselib unliftio
-EXPOSED-MODULES := Data.Advent Data.Bidim System.IO.Advent Text.Parsec.Advent Text.Parsec.Bidim
+PACKAGE-NAME ?= $(error "you must define PACKAGE-NAME")
+PACKAGE-VERSION ?= 1.0
+PACKAGE-DEPS ?= $(error "you must define PACKAGE-DEPS")
+EXPOSED-MODULES ?= $(error "you must define PACKAGE-MODULES")
 
-GHC-FLAGS := -O3 -Wall -j
-GHC-PROF-FLAGS := -O3 -Wall -j -prof
+GHC-FLAGS ?= -O3 -Wall -j
+GHC-PROF-FLAGS ?= -O3 -Wall -j -prof
 
 # Internal variables
 # ==================

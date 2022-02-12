@@ -5,9 +5,6 @@
 #   - All source files are in the src dir
 #   - One executable per project
 #   - No cabal, we compile and link with ghc, like the good old times :P
-#   - Packages are listed explicitly (this is not necessarily the best option,
-#     since it duplicates information that is already in the nix derivation, but
-#     such is life for now
 #   - Control from the outside via PROGRAM-NAME, GHC-FLAGS, GHC-LD-FLAGS and
 #     GHC-PACKAGES
 
