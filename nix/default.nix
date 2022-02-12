@@ -117,11 +117,14 @@ let
     # Haskell stuff
     # =============
 
-    # FIXME: haskell-(lib)-mk (and maybe emacs) should be passed as arguments to
+    # FIXME: haskell-mk (and maybe emacs) should be passed as arguments to
     # the derivations, currently we are implicitly adding them as dependencies
     # because they are part of haskell-lib. The problem with the current setting
     # is that we cannot change any of them without affecting all our haskell
     # packages.
+    #
+    # haskell-lib-mk cannot be added to haskell-pkg as mk-conf-file uses
+    # haskell-pkg
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
     haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {  };
     haskell-lib = import ./lib/haskell.nix {

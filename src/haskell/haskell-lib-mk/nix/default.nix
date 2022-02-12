@@ -1,7 +1,10 @@
-{ stdenv }:
+{ mk-conf-file,
+  stdenv,
+}:
 stdenv.mkDerivation {
   name = "haskell-lib-mk";
   src = ./../src;
+  propagatedBuildInputs = [ mk-conf-file ];
   installPhase = ''
     mkdir -p "$out/lib"
     mkdir -p "$out/nix-support"
