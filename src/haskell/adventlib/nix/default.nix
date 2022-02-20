@@ -1,7 +1,7 @@
 {
   haskell-pkg,
   haskellPackages,
-  mk-conf-file
+  haskell-lib-mk,
 }:
 let
   haskell-libs = with haskellPackages; [
@@ -15,7 +15,8 @@ in haskell-pkg {
 
   inherit haskellPackages haskell-libs;
 
-  extra-build-inputs = [ mk-conf-file ];
+  extra-build-inputs = [ haskell-lib-mk ];
+
   extra-drv = rec {
     makeFlags = "PREFIX=$out";
     propagatedBuildInputs = haskell-libs;
