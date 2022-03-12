@@ -1,6 +1,7 @@
 {
   emacs,
   haskell-mk,
+  haskell-lib-mk,
   pkgs,
 }:
 rec {
@@ -12,6 +13,9 @@ rec {
   #
   # FIXME: There are "official" ways of doing this in nixpkgs now, may be a good
   # idea to rework this to be more standard
+  #
+  # FIXME: There is a fair amount of duplication between haskell-pkg and
+  # haskell-lib-pkg
   haskell-pkg =
     { haskellPackages,
       name,
@@ -35,6 +39,43 @@ rec {
             mkdir -p $out/bin
             cp ../build/bin/* $out/bin
           '';
+
+        meta = {
+          inherit haskellPackages ghc;
+        };
+      } // extra-drv;
+      drv = pkgs.stdenv.mkDerivation drv-args;
+    in
+      drv // {
+        sandbox = haskell-shell drv;
+      };
+
+  haskell-lib-pkg =
+    { haskellPackages,
+      name,
+      src,
+      haskell-libs,
+      extra-build-inputs ? [],
+      extra-drv ? { },
+    }:
+    let
+      ghc = haskellPackages.ghcWithPackages (_: haskell-libs);
+      drv-args = {
+
+        inherit name src;
+
+        buildInputs = [
+          ghc
+          haskell-lib-mk
+        ] ++ extra-build-inputs;
+
+        propagatedBuildInputs = haskell-libs;
+        installPhase = ''
+          make PREFIX="$out" install
+        '';
+
+        # Silently required by ghcWithPackages, for some reason
+        isHaskellLibrary = true;
 
         meta = {
           inherit haskellPackages ghc;
@@ -70,7 +111,7 @@ rec {
     haskellPackages: packages-to-add:
     (haskellPackages.override {
       overrides = self: super: {
-        inherit haskell-pkg;
+        inherit haskell-pkg haskell-lib-pkg haskell-lib-mk;
       } // (packages-to-add self);
     });
 }
