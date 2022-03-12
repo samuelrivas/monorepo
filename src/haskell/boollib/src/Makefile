@@ -3,4 +3,3 @@ PACKAGE-VERSION := 1.0
 PACKAGE-DEPS := base
 EXPOSED-MODULES := Data.Bool.Boollib
 include $(HASKELL_LIB_MK)
-
