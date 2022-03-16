@@ -62,4 +62,5 @@ $(bin-dir)/create-transactions-avanza: $(work-dir)/sha1.o $(work-dir)/sql-lines.
 $(bin-dir)/create-transactions-degiro: $(work-dir)/sha1.o $(work-dir)/sql-lines.o $(work-dir)/assert_msg.o $(work-dir)/split.o
 $(bin-dir)/create-cashflow-degiro: $(work-dir)/sha1.o $(work-dir)/sql-lines.o $(work-dir)/assert_msg.o $(work-dir)/split.o
 $(bin-dir)/add-account-state: $(work-dir)/sha1.o $(work-dir)/sql-lines.o $(work-dir)/assert_msg.o
+$(bin-dir)/create-transactions-generic: $(work-dir)/sha1.o $(work-dir)/sql-lines.o $(work-dir)/assert_msg.o $(work-dir)/split.o
 $(bin-dir)/load-valuations: $(work-dir)/sha1.o $(work-dir)/sql-lines.o $(work-dir)/assert_msg.o $(work-dir)/split.o
