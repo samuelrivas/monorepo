@@ -23,12 +23,17 @@ using std::vector;
 using boost::format;
 
 TransactionType parse_type(const string& type_text) {
-  if (type_text != "cash_transfer") {
-    cerr << format("%s is not yet supported as transaction type\n") % type_text;
-    std::flush(cerr);
-    assert(false);
+  if (type_text == "cash_transfer") {
+    return TransactionType::CASH_TRANSFER;
+  } else if (type_text == "tax") {
+    return TransactionType::TAX;
+  } else if (type_text == "interest") {
+    return TransactionType::INTEREST;
   }
-  return TransactionType::CASH_TRANSFER;
+
+  cerr << format("%s is not yet supported as transaction type\n") % type_text;
+  std::flush(cerr);
+  assert(false);
 }
 
 
