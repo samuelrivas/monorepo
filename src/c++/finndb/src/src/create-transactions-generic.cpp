@@ -29,6 +29,8 @@ TransactionType parse_type(const string& type_text) {
     return TransactionType::TAX;
   } else if (type_text == "interest") {
     return TransactionType::INTEREST;
+  } else if (type_text == "buy") {
+    return TransactionType::BUY;
   }
 
   cerr << format("%s is not yet supported as transaction type\n") % type_text;
