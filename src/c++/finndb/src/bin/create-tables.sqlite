@@ -171,3 +171,4 @@ INSERT INTO asset_info (asset, currency, type) VALUES ("NATURGY ENERGY GROUP SA"
 INSERT INTO asset_info (asset, currency, type) VALUES ("SIEMENS GAMESA RENEWABLE ENERGY", "EUR", "stock");
 INSERT INTO asset_info (asset, currency, type) VALUES ("Avanza Global", "SEK", "stock");
 INSERT INTO asset_info (asset, currency, type) VALUES ("ISHARES B E AGG", "EUR", "debt security");
+INSERT INTO asset_info (asset, currency, type) VALUES ("FUTUR", "SEK", "stock");
