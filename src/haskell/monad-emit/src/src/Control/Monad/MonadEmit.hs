@@ -15,6 +15,7 @@
 {-# LANGUAGE UndecidableInstances       #-}
 
 module Control.Monad.MonadEmit (
+  MonadEmit (emit),
   emitTVarT,
   emitTVar,
   EmitTVarT,
