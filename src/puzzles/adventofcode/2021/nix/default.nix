@@ -14,6 +14,7 @@ let
     generic-lens
     lens
     matrix
+    monad-emit
     monad-loops
     multiset
     parselib

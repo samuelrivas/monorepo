@@ -17,6 +17,9 @@ module Perlude (
   print,
   putStr,
   putStrLn,
+  hPrint,
+  hPutStr,
+  hPutStrLn,
   read,
   readFile,
   show,
@@ -35,6 +38,7 @@ import           Prelude                hiding (appendFile, fail, getContents,
                                          unlines, writeFile)
 import qualified Prelude
 import qualified System.Environment
+import qualified System.IO
 
 read :: Read a => Text -> a
 read = Prelude.read . unpack
@@ -47,6 +51,15 @@ putStr = liftIO . TextIO.putStr
 
 putStrLn :: MonadIO m => Text -> m ()
 putStrLn = liftIO . TextIO.putStrLn
+
+hPrint :: MonadIO m => Show a => System.IO.Handle -> a -> m ()
+hPrint h = liftIO . System.IO.hPrint h
+
+hPutStrLn :: MonadIO m => System.IO.Handle -> Text -> m ()
+hPutStrLn h = liftIO . System.IO.hPutStrLn h . unpack
+
+hPutStr :: MonadIO m => System.IO.Handle -> Text -> m ()
+hPutStr h = liftIO . System.IO.hPutStr h . unpack
 
 appendFile :: MonadIO m => FilePath -> Text -> m ()
 appendFile path  = liftIO . TextIO.appendFile path

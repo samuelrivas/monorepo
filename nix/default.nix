@@ -148,32 +148,34 @@ let
         adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
         adventofcode-2020 = ./../src/puzzles/adventofcode/2020/nix;
         adventofcode-2021 = ./../src/puzzles/adventofcode/2021/nix;
-        example-lib =  ./../src/haskell/example-lib/nix;
-        name-generator =  ./../src/haskell/name-generator/nix;
         boardgamer = ./../src/haskell/boardgamer/nix;
-        hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
-        onirim-helper = ./../src/haskell/onirim-helper/nix;
-        low-battery = ./../src/haskell/low-battery/nix;
-        perlude = ./../src/haskell/perlude/nix;
-        parselib = ./../src/haskell/parselib/nix;
         boollib = ./../src/haskell/boollib/nix;
-        searchlib = ./../src/haskell/searchlib/nix;
         clean-clocks = ./../src/haskell/clean-clocks/nix;
+        example-lib =  ./../src/haskell/example-lib/nix;
+        hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
+        low-battery = ./../src/haskell/low-battery/nix;
         mk-conf-file = ./../src/haskell/mk-conf-file/nix;
+        monad-emit = ./../src/haskell/monad-emit/nix;
+        name-generator =  ./../src/haskell/name-generator/nix;
+        onirim-helper = ./../src/haskell/onirim-helper/nix;
+        parselib = ./../src/haskell/parselib/nix;
+        perlude = ./../src/haskell/perlude/nix;
+        searchlib = ./../src/haskell/searchlib/nix;
       };
 
-    name-generator = pkgs-sam.haskellPackages.name-generator;
-    boardgamer = pkgs-sam.haskellPackages.boardgamer;
-    hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
-    onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
-    low-battery = pkgs-sam.haskellPackages.low-battery;
-    perlude = pkgs-sam.haskellPackages.perlude;
-    parselib = pkgs-sam.haskellPackages.parselib;
     adventlib = pkgs-sam.haskellPackages.adventlib;
+    boardgamer = pkgs-sam.haskellPackages.boardgamer;
     boollib = pkgs-sam.haskellPackages.boollib;
-    searchlib = pkgs-sam.haskellPackages.searchlib;
     clean-clocks = pkgs-sam.haskellPackages.clean-clocks;
+    hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
+    low-battery = pkgs-sam.haskellPackages.low-battery;
     mk-conf-file = pkgs-sam.haskellPackages.mk-conf-file;
+    monad-emit = pkgs-sam.haskellPackages.monad-emit;
+    name-generator = pkgs-sam.haskellPackages.name-generator;
+    onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
+    parselib = pkgs-sam.haskellPackages.parselib;
+    perlude = pkgs-sam.haskellPackages.perlude;
+    searchlib = pkgs-sam.haskellPackages.searchlib;
 
     # Shell-scripts
     # =============

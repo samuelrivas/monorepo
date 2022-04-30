@@ -23,11 +23,11 @@ module Control.Monad.MonadSearch.Astar (
 
 import           Perlude
 
-import           Advent.Templib                          (Metrics,
-                                                          MonadEmit (..),
-                                                          emitCount, emitGauge)
 import           Control.Lens                            (assign, modifying,
                                                           use, uses, view)
+import           Control.Monad.MonadEmit                 (Metrics, MonadEmit,
+                                                          emit, emitCount,
+                                                          emitGauge)
 import           Control.Monad.MonadSearch               (MonadSearch (..),
                                                           search)
 import           Control.Monad.RWS.CPS                   (MonadReader,
@@ -37,12 +37,10 @@ import           Control.Monad.RWS.CPS                   (MonadReader,
 import           Control.Monad.Reader                    (Reader, runReader)
 import           Control.Monad.Trans.Class               (MonadTrans, lift)
 import           Data.Generics.Labels                    ()
-import qualified Data.HashSet                            as HashSet
 import           Data.Hashable                           (Hashable)
 import qualified Data.PriorityQueue.FingerTree           as PQueue
 
 import           Control.Monad.MonadSearch.AstarInternal
-import           Data.HashSet                            (HashSet)
 
 newtype AstarT n node nodeStore pc w m a = AstarT {
   unAstarT :: RWST (AstarConfig n node nodeStore pc) w (AstarContext n node nodeStore) m a

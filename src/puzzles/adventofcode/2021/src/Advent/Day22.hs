@@ -17,26 +17,27 @@ module Advent.Day22 where
 
 import           Perlude
 
-import           Advent.Templib       (Metrics (..), MonadEmit, emitCount,
-                                       emitCounts, emitGauge, linesOf, solveM)
+import           Advent.Templib          (linesOf, solveM)
 
-import           Control.Applicative  ((<|>))
-import           Control.Lens         (Each (each), Lens', _1, _2, _3, allOf,
-                                       over, set, view)
-import           Control.Monad.State  (MonadState (get), evalStateT, execStateT,
-                                       gets, modify)
-import           Data.Advent          (Day (..))
-import           Data.Foldable        (traverse_)
-import           Data.Functor         (($>))
-import           Data.Generics.Labels ()
-import           Data.HashSet         (HashSet)
-import qualified Data.HashSet         as HashSet
-import           Data.Ix              (inRange)
-import           Data.Maybe           (fromJust, listToMaybe, mapMaybe)
-import           Data.Text            (intercalate)
-import           System.IO.Advent     (getInput, getParsedInput)
-import           Text.Parsec          (try)
-import           Text.Parsec.Parselib (Parser, literal, num, unsafeParseAll)
+import           Control.Applicative     ((<|>))
+import           Control.Lens            (Each (each), Lens', _1, _2, _3, allOf,
+                                          over, set, view)
+import           Control.Monad.MonadEmit (Metrics, MonadEmit, emitCount,
+                                          emitCounts, emitGauge)
+import           Control.Monad.State     (MonadState (get), evalStateT,
+                                          execStateT, gets, modify)
+import           Data.Advent             (Day (..))
+import           Data.Foldable           (traverse_)
+import           Data.Functor            (($>))
+import           Data.Generics.Labels    ()
+import           Data.HashSet            (HashSet)
+import qualified Data.HashSet            as HashSet
+import           Data.Ix                 (inRange)
+import           Data.Maybe              (fromJust, listToMaybe, mapMaybe)
+import           Data.Text               (intercalate)
+import           System.IO.Advent        (getInput, getParsedInput)
+import           Text.Parsec             (try)
+import           Text.Parsec.Parselib    (Parser, literal, num, unsafeParseAll)
 
 type Coord = (Int, Int, Int)
 type Instruction = (Bool, Coord, Coord)
