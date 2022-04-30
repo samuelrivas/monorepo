@@ -29,7 +29,6 @@ import qualified Data.HashMap.Strict     as HashMap
 import           Data.Monoid             (Sum (..))
 import qualified Data.Text               as Text
 import           GHC.Generics            (Generic)
-import qualified System.IO               as SIO
 import           Text.Printf             (PrintfArg, printf)
 import           UnliftIO                (newTVarIO)
 import           UnliftIO.Async          (withAsync)
@@ -144,13 +143,6 @@ withPrinterThread delay initial x =
   do
     metrics <- newTVarIO initial
     withAsync (printPeriodically delay metrics) $ const (x metrics)
-
--- Move this to perlude
-hPrint :: MonadIO m => Show a => SIO.Handle -> a -> m ()
-hPrint h = liftIO . SIO.hPrint h
-
-hPutStrLn :: MonadIO m => SIO.Handle -> Text -> m ()
-hPutStrLn h = liftIO . SIO.hPutStrLn h . unpack
 
 -- Parsers
 -- Print the contents of a TVar periodically, forever
