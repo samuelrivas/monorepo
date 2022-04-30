@@ -15,11 +15,11 @@ import           Perlude
 
 import           Advent.Day15.Internal           (Node (..))
 
-import           Advent.Templib                  (Metrics, MonadEmit, bidim,
-                                                  solveM)
+import           Advent.Templib                  (bidim, solveM)
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
                                                   both, non, over, singular,
                                                   sumOf, to, view, views)
+import           Control.Monad.MonadEmit         (Metrics, MonadEmit)
 import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
                                                   searchAstarT)
 import           Control.Monad.Reader            (MonadReader)
