@@ -19,7 +19,7 @@ import           Advent.Templib                  (bidim, solveM)
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
                                                   both, non, over, singular,
                                                   sumOf, to, view, views)
-import           Control.Monad.MonadEmit         (Metrics, MonadEmit)
+import           Control.Monad.MonadEmit         (MonadEmit)
 import           Control.Monad.MonadSearch.Astar (AstarConfig, mkConfig,
                                                   searchAstarT)
 import           Control.Monad.Reader            (MonadReader)
@@ -33,6 +33,7 @@ import qualified Data.HashMap.Strict             as HashMap
 import           Data.List.NonEmpty              (NonEmpty (..))
 import qualified Data.List.NonEmpty              as NonEmpty
 import           Data.Maybe                      (fromJust)
+import           Data.Metrics                    (Metrics)
 import           Data.Text                       (intercalate)
 import           System.IO.Advent                (getInput, getParsedInput)
 import           Text.Parsec.Parselib            (Parser, unsafeParseAll)
