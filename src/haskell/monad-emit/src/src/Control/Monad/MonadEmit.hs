@@ -31,8 +31,6 @@ module Control.Monad.MonadEmit (
   emitVoid,
   runEmitVoid,
   runEmitVoidT,
-  Metrics (..),
-  gaugeEntry,
   emitGauge,
   emitCount,
   emitCounts
