@@ -9,7 +9,6 @@ module Advent.Day15.Internal (
 import           Perlude
 
 import           Data.Bidim         (Coord)
-import           Data.HashSet       (HashSet)
 import           Data.Hashable      (Hashable)
 import           Data.List.NonEmpty (NonEmpty)
 import           GHC.Generics       (Generic)
