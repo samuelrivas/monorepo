@@ -12,7 +12,6 @@ import           Perlude
 import qualified Prelude
 
 import           Control.Monad.Reader          (Reader)
-import           Data.HashSet                  (HashSet)
 import           Data.PriorityQueue.FingerTree (PQueue)
 import           GHC.Generics                  (Generic)
 

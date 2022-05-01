@@ -7,11 +7,9 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedLabels           #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
 module Control.Monad.MonadEmit (
@@ -33,8 +31,6 @@ module Control.Monad.MonadEmit (
   emitVoid,
   runEmitVoid,
   runEmitVoidT,
-  Metrics (..),
-  gaugeEntry,
   emitGauge,
   emitCount,
   emitCounts
@@ -57,7 +53,7 @@ import           Control.Monad.Writer.CPS         (MonadWriter, Writer, WriterT,
                                                    runWriterT)
 import           Data.Generics.Labels             ()
 import qualified Data.HashMap.Strict              as HashMap
-import           Data.Monoid                      (Sum (..))
+import           Data.Metrics
 import           UnliftIO                         (MonadUnliftIO, TVar,
                                                    atomically, modifyTVar)
 
@@ -190,6 +186,3 @@ emitCount name = emitCounts name 1
 emitCounts :: Num i => MonadEmit (Metrics i n) m => Text -> i -> m ()
 emitCounts name n =
   emit $ Metrics HashMap.empty (HashMap.singleton name (Count n))
-
-gaugeEntry :: Num n => Integral i => n -> Gauge i n
-gaugeEntry n = Gauge (Count 1) (Sum n) (Max n) (Min n)

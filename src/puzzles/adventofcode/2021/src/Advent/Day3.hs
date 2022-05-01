@@ -13,15 +13,12 @@ module Advent.Day3 where
 import           Perlude
 
 import           Data.Advent          (Day (..))
-import           Data.Foldable        (foldl')
-import           Data.Functor         (($>))
 import           Data.List            (transpose)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, solve)
-import           Text.Parsec          (char, many1, sepEndBy, (<|>))
-import           Text.Parsec.Parselib (Parser, literal)
+import           Text.Parsec.Parselib (Parser)
 
-import           Advent.Templib       (binToDec, bit, bitString, linesOf)
+import           Advent.Templib       (binToDec, bitString, linesOf)
 
 type Parsed =  [[Bool]]
 

@@ -15,7 +15,6 @@ import           Perlude
 
 
 import           Advent.Templib       (bidim)
-import           Control.Lens         (assign, at)
 import           Control.Monad        (replicateM)
 import           Control.Monad.State  (MonadState, evalState, get, gets, modify)
 import           Data.Advent          (Day (..))

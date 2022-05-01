@@ -21,15 +21,13 @@ import           Data.Generics.Labels          ()
 import           Data.HashSet                  (HashSet)
 import qualified Data.HashSet                  as HashSet
 import           Data.Hashable                 (Hashable (..))
-import           Data.Hashable.Generic         (genericHashWithSalt,
-                                                ghashWithSalt)
+import           Data.Hashable.Generic         (genericHashWithSalt)
 import           Data.Maybe                    (fromJust)
 import           Data.Text                     (intercalate)
 import           GHC.Generics                  (Generic)
 import           System.IO.Advent              (getInput, solve)
 import           Text.Parsec                   (char, sepBy, sepEndBy, (<|>))
-import           Text.Parsec.Parselib          (Parser, digitsAsNum, literal,
-                                                unsafeParseAll)
+import           Text.Parsec.Parselib          (Parser, literal, unsafeParseAll)
 import           Text.ParserCombinators.Parsec (many1)
 
 data Wire = A | B | C | D | E | F | G deriving stock (Show, Eq, Generic)
