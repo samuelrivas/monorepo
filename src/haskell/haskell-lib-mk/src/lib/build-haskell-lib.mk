@@ -10,6 +10,8 @@
 #     such is life for now
 #   - Control from the outside via PROGRAM-NAME, GHC-FLAGS, GHC-LD-FLAGS and
 #     GHC-PACKAGES
+#   - The main test file is test.sh and any other test module is in the Test
+#     namespace
 
 # Interface
 # =========
@@ -35,8 +37,8 @@ BUILD-OUTPUT-DIR := $(BUILD-DIR)/out
 INSTALL-DIR = $(PREFIX)
 GENERATED-DIR := $(BUILD-DIR)/generated
 
-SRCS := $(shell find . -name "*.hs")
-SRC-NAMES = $(SRCS:./src/%=./%)
+SRCS := $(shell find ./src -name "*.hs")
+SRC-NAMES = $(filter-out ./test.hs ./Test/%,$(SRCS:./src/%=./%))
 OBJ-NAMES = $(SRC-NAMES:%.hs=%.o)
 PROF-OBJ-NAMES = $(SRC-NAMES:%.hs=%.p_o)
 
