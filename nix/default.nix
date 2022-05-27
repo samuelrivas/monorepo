@@ -127,9 +127,10 @@ let
     # haskell-pkg
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
     haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {  };
+    haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {  };
     haskell-lib = import ./lib/haskell.nix {
       inherit pkgs;
-      inherit (pkgs-sam) emacs haskell-mk haskell-lib-mk;
+      inherit (pkgs-sam) emacs haskell-mk haskell-lib-mk haskell-test-mk;
     };
 
     haskellPackages = pkgs-sam.haskell-lib.mk-haskell-packages

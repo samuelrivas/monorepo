@@ -24,7 +24,7 @@ GHC := ghc $(GHC-FLAGS)
 PROGRAM := $(BIN-DIR)/$(PROGRAM-NAME)
 
 .PHONY: all
-all: $(PROGRAM) $(INPUT-FILES)
+all: $(PROGRAM)
 
 $(BIN-DIR):
 	mkdir -p $@
