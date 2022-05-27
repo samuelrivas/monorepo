@@ -2,6 +2,7 @@
   emacs,
   haskell-mk,
   haskell-lib-mk,
+  haskell-test-mk,
   pkgs,
 }:
 rec {
@@ -33,6 +34,7 @@ rec {
         buildInputs = [
           ghc
           haskell-mk
+          haskell-test-mk
         ] ++ extra-build-inputs;
 
         installPhase = ''
@@ -67,6 +69,7 @@ rec {
         buildInputs = [
           ghc
           haskell-lib-mk
+          haskell-test-mk
         ] ++ extra-build-inputs;
 
         propagatedBuildInputs = haskell-libs;

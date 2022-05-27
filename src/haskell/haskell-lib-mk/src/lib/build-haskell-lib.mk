@@ -60,6 +60,8 @@ PACKAGE-CONF := $(PACKAGE-CONF-DIR)/$(PACKAGE-NAME).conf
 
 # Targets
 # =======
+.SUFFIXES:
+
 .PHONY: all
 all: compile
 
