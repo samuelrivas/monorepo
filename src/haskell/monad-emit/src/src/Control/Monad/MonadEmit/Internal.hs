@@ -21,7 +21,7 @@ import           UnliftIO.STM            (TVar, readTVarIO)
 
 -- IO Helpers
 
--- Run a thread that prints the contents of a TVar periodically, and pas that
+-- Run a thread that prints the contents of a TVar periodically, and pass that
 -- TVar to another computation so that it can modify its contents. This is
 -- useful to print progress of a long computation
 withPrinterThread ::
