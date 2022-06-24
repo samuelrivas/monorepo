@@ -164,16 +164,20 @@ let
         searchlib = ./../src/haskell/searchlib/nix;
       };
 
+    # We need to run an onder version of random fu for some applications, so
+    # keeping them at haskellPackagesPatched while we don't update them to
+    # compile with the latest verison
+
     adventlib = pkgs-sam.haskellPackages.adventlib;
     boardgamer = pkgs-sam.haskellPackages.boardgamer;
     boollib = pkgs-sam.haskellPackages.boollib;
     clean-clocks = pkgs-sam.haskellPackages.clean-clocks;
-    hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
+    hashcode-photoalbum = pkgs-sam.haskellPackagesPatched.hashcode-photoalbum;
     low-battery = pkgs-sam.haskellPackages.low-battery;
     mk-conf-file = pkgs-sam.haskellPackages.mk-conf-file;
     monad-emit = pkgs-sam.haskellPackages.monad-emit;
-    name-generator = pkgs-sam.haskellPackages.name-generator;
-    onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
+    name-generator = pkgs-sam.haskellPackagesPatched.name-generator;
+    onirim-helper = pkgs-sam.haskellPackagesPatched.onirim-helper;
     parselib = pkgs-sam.haskellPackages.parselib;
     perlude = pkgs-sam.haskellPackages.perlude;
     searchlib = pkgs-sam.haskellPackages.searchlib;
@@ -181,7 +185,7 @@ let
     # Shell-scripts
     # =============
     assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {
-      inherit (pkgs.xlibs) xbacklight xrandr xset;
+      inherit (pkgs.xorg) xbacklight xrandr xset;
     };
 
     sh-lib = callPackage ./../src/shell/sh-lib/nix { };
@@ -211,9 +215,9 @@ let
 
     # Contests, puzzles, etc
     # ======================
-    adventofcode-2019 = pkgs-sam.haskellPackages.adventofcode-2019;
-    adventofcode-2020 = pkgs-sam.haskellPackages.adventofcode-2020;
-    adventofcode-2021 = pkgs-sam.haskellPackages.adventofcode-2021;
+    adventofcode-2019 = pkgs-sam.haskellPackagesPatched.adventofcode-2019;
+    adventofcode-2020 = pkgs-sam.haskellPackagesPatched.adventofcode-2020;
+    adventofcode-2021 = pkgs-sam.haskellPackagesPatched.adventofcode-2021;
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our
