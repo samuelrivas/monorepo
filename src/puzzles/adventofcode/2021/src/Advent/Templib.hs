@@ -28,7 +28,8 @@ import           Perlude
 
 
 import           Control.Applicative     ((<|>))
-import           Control.Monad.MonadEmit
+import           Control.Monad.MonadEmit (EmitTVarT',
+                                          runEmitTVarTWithPrinterThread')
 import           Data.Advent             (Day)
 import           Data.Bidim              (Bidim, fromText)
 import           Data.Foldable           (foldl')
@@ -80,16 +81,16 @@ solveM ::
   Show b =>
   Day ->
   Parser input ->
-  (input -> EmitTVarT metrics1 m a) ->
-  (input -> EmitTVarT metrics2 m b) ->
+  (input -> EmitTVarT' metrics1 m a) ->
+  (input -> EmitTVarT' metrics2 m b) ->
   m ()
 solveM day parser solver1 solver2 = do
   input <- getParsedInput day parser
 
-  solution1 <- runEmitTVarTIO' (solver1 input) 1000000
+  solution1 <- runEmitTVarTWithPrinterThread' (solver1 input) 1000000
   putStr "Solution 1: "
   print solution1
 
-  solution2 <- runEmitTVarTIO' (solver2 input) 1000000
+  solution2 <- runEmitTVarTWithPrinterThread' (solver2 input) 1000000
   putStr "Solution 2: "
   print solution2
