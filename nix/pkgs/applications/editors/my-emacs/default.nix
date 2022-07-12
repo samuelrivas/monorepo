@@ -32,13 +32,15 @@
   nix-mode,
   projectile,
   silver-searcher,
+  stylish-haskell,
   terraform-mode,
   yaml-mode,
   yasnippet,
 }:
 let
   deps = {
-    "haskell" = [ helm-lsp lsp-haskell lsp-ui flycheck-haskell company ];
+    "haskell" = [ helm-lsp lsp-haskell lsp-ui flycheck-haskell company
+                  stylish-haskell ];
     "erlang"  = [ erlangMode ];
   };
 
