@@ -1,13 +1,13 @@
 {-# OPTIONS_GHC -Wall #-}
 
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE FunctionalDependencies     #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE DerivingVia            #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE NoImplicitPrelude      #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 module Control.Monad.MonadEmit
   ( -- * MonadEmit class
@@ -60,13 +60,13 @@ import           Perlude
 
 import           Control.Monad.MonadEmit.Internal
 
-import           Control.Lens                     (modifying, view, over, _2)
+import           Control.Lens                     (_2, modifying, over, view)
 import           Control.Monad.Identity           (Identity (..),
                                                    IdentityT (..), runIdentity,
                                                    runIdentityT)
+import           Control.Monad.Reader             (MonadReader, ReaderT (..),
+                                                   runReaderT)
 import           Control.Monad.RWS.CPS            (tell)
-import           Control.Monad.Reader             (MonadReader,
-                                                   ReaderT (..), runReaderT)
 import           Control.Monad.State              (MonadState)
 import qualified Control.Monad.State.Lazy         as StateLazy
 import qualified Control.Monad.State.Strict       as StateStrict
@@ -79,8 +79,7 @@ import qualified Data.HashMap.Strict              as HashMap
 import           Data.Metrics
 import           GHC.Generics                     (Generic)
 import           UnliftIO                         (MonadUnliftIO, TVar,
-                                                   atomically,
-                                                   modifyTVar)
+                                                   atomically, modifyTVar)
 -- TODO
 -- Tidy up
 -- Consider removing the instances on top. Do we need them?
