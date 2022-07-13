@@ -1,15 +1,15 @@
 {-# OPTIONS_GHC -Wall #-}
 
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedLabels      #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 -- These are not yet automated tests
 
@@ -17,20 +17,23 @@ module Main where
 
 import           Perlude
 
-import           Control.Lens             (view)
-import           Control.Monad.MonadEmit (MonadEmit, MetricsWrapper (..),
-                                          EmitTVarT, EmitState, EmitStateT (..),
-                                          EmitTVarT (..), runEmitStateT, runEmitStateT',
-                                          runEmitStateT'', runEmitState, runEmitState',
-                                          runEmitState'', runEmitWriterT, runEmitWriter,
-                                          runEmitTVarT, runEmitTVarT', runEmitIdentityT,
-                                          runEmitIdentity, emitCount, emitGauge)
+import           Control.Lens               (view)
+import           Control.Monad.MonadEmit    (EmitState, EmitStateT (..),
+                                             EmitTVarT (..),
+                                             MetricsWrapper (..), MonadEmit,
+                                             emitCount, emitGauge,
+                                             runEmitIdentity, runEmitIdentityT,
+                                             runEmitState, runEmitState',
+                                             runEmitState'', runEmitStateT,
+                                             runEmitStateT', runEmitStateT'',
+                                             runEmitTVarT, runEmitTVarT',
+                                             runEmitWriter, runEmitWriterT)
+import           Control.Monad.Reader       (MonadReader, ReaderT (..),
+                                             runReaderT)
 import           Control.Monad.State.Strict (State, runState)
-import           Control.Monad.Reader     (MonadReader, ReaderT (..),
-                                           runReaderT)
-import           Data.Metrics.Internal    (Metrics)
-import           GHC.Generics             (Generic)
-import           UnliftIO.STM             (TVar, newTVarIO, readTVarIO)
+import           Data.Metrics.Internal      (Metrics)
+import           GHC.Generics               (Generic)
+import           UnliftIO.STM               (TVar, newTVarIO, readTVarIO)
 
 increaseCount :: MonadEmit (Metrics Int Int)  m => m ()
 increaseCount = emitCount "test count"
@@ -63,7 +66,7 @@ runTVarApp (TVarApp reader) r = do
 -- Simulate that we are running tests over a mocked app that does not use IO
 data ContextPure metrics = ContextPure {
   metricsValue :: MetricsWrapper metrics,
-  bar :: Int
+  bar          :: Int
   } deriving (Generic)
 
 newtype PureApp metrics a = PureApp (State (ContextPure metrics) a)
