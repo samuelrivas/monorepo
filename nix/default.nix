@@ -197,6 +197,10 @@ let
     # =======
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
 
+    # Latex base
+    # ==========
+    latex-base = callPackage ./../src/docs/latex-base/nix { };
+
     # Contests, puzzles, etc
     # ======================
     adventofcode-2019 = pkgs-sam.haskellPackagesPatched.adventofcode-2019;
