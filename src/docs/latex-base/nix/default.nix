@@ -1,5 +1,7 @@
 {
   add-sandbox,
+  digestif,
+  emacs,
   rubber,
   stdenv,
   texlive,
@@ -16,4 +18,4 @@ let
       tex
     ];
   };
-in add-sandbox [] drv
+in add-sandbox [emacs digestif] drv

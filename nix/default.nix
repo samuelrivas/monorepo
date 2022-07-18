@@ -75,6 +75,7 @@ let
         inherit (pkgs-sam.emacsPackages)
           colorThemeSolarized
           company
+          eglot
           erlangMode
           flycheck-haskell
           groovy-mode
@@ -199,7 +200,10 @@ let
 
     # Latex base
     # ==========
-    latex-base = callPackage ./../src/docs/latex-base/nix { };
+    latex-base = callPackage ./../src/docs/latex-base/nix {
+      inherit (pkgs.lua53Packages) digestif;
+      inherit (pkgs-sam) emacs;
+    };
 
     # Contests, puzzles, etc
     # ======================
