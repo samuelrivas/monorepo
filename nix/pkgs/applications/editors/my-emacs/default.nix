@@ -11,6 +11,7 @@
   aspell-wrapped,
   colorThemeSolarized,
   company,
+  eglot,
   emacs-config,
   emacs-config-options,
   emacsWithPackages,
@@ -53,6 +54,7 @@ let
   hardcoded-deps = [
     aspell-wrapped
     colorThemeSolarized
+    eglot
     emacs-config
     git
     groovy-mode

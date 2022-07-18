@@ -88,11 +88,16 @@
 ;; LaTeX mode
 (defun my-latex-mode-hook ()
   "LaTeX mode hook"
+  (yas-minor-mode)
+  (company-mode)
   (flyspell-mode t)
   (ispell-change-dictionary "british")
-  (auto-fill-mode t))
+  (auto-fill-mode t)
+  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
+  (add-to-list 'eglot-ignored-server-capabilities :hoverProvider))
 
-(add-hook 'LaTeX-mode-hook 'my-latex-mode-hook)
+(add-hook 'latex-mode-hook 'my-latex-mode-hook)
+(add-hook 'latex-mode-hook 'eglot-ensure)
 
 ;; C/C++ mode
 (defun my-c-mode-hook ()
