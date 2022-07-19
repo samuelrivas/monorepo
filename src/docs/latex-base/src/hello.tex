@@ -9,7 +9,16 @@
 
 \usetikzlibrary{intersections}
 
+\title{On sailing forces}
 \begin{document}
+\maketitle
+This is a simplified graph of the forces that make a boat sail windward. I am
+assuming that there is no hydrodynamic drag here, and that the apparent speed of
+the water is parallel to the direction of the boat. Otherwise, the keel also
+acts as a wing with respect to water, generating lift and drag, which decompose
+to a side force and a force opposing to the driving force, thus ending up on the
+boat moving sideways and a reduced total force pushing the boat forward.
+
 \begin{tikzpicture}
   % Boat
   \draw[help lines, dashed] (-2,-2) -- (2,2);
@@ -72,11 +81,20 @@ Nice summary of the forces involved
   \overrightarrow{F}_S + \overrightarrow{R}$.
 \end{itemize}
 
-I suspect that the drag force, being constrained by the hull, is what produces
-the reaction force that pushes the boat forward.
-
-We assume that lift is generated somehow. A sail that has a small angle to the
-wind generates less drag, but also less lift. Play with
+We assume that lift and drage are generated somehow by the sail. The actual
+physics of how this happens are quite complex. A sail that has a small angle to
+the wind generates less drag, but also less lift. Play with
 \href{https://www.grc.nasa.gov/www/k-12/airplane/foil3.html}{foil simulator}, to
 experiment.
+
+In the chart, the sail generates a total aerodynamic force that we decompose in
+lift and drag to illustrate how both forces interact, but is not necessary to do
+this to understand how the sail pushes the boat. Is just necessary that the
+total aerodynamic force has an angle with the direction of the boat that is
+smaller than 90 degrees (so that there is a driving force component). To see how
+the total aerodynamic force moves the boat, we assume that it is not possible to
+push the boat out of the sailing line, and decompose the total aerodynamic force
+into the heeling force and driving force components. The heeling force is
+compensated by the hydrodynamic side force, but the residual driving force
+accelerates the boat.
 \end{document}
