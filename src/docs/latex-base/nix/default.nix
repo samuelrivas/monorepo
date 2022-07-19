@@ -18,5 +18,9 @@ let
       rubber
       tex
     ];
+    installPhase = ''
+      mkdir -p "$out"
+      cp ../build/*.pdf "$out"
+    '';
   };
 in add-sandbox [emacs digestif inotify-tools] drv
