@@ -2,6 +2,7 @@
   add-sandbox,
   digestif,
   emacs,
+  inotify-tools,
   rubber,
   stdenv,
   texlive,
@@ -17,5 +18,9 @@ let
       rubber
       tex
     ];
+    installPhase = ''
+      mkdir -p "$out"
+      cp ../build/*.pdf "$out"
+    '';
   };
-in add-sandbox [emacs digestif] drv
+in add-sandbox [emacs digestif inotify-tools] drv
