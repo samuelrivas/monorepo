@@ -7,40 +7,46 @@
   colorlinks=true
 }
 
+\usetikzlibrary{intersections}
+
 \begin{document}
 \begin{tikzpicture}
-  % keel
+  % Boat
   \draw[help lines, dashed] (-2,-2) -- (2,2);
-
   \node[above, right] at (2,2) {Direction of the boat};
-  % wind
+
+  % Wind
   \draw[very thick, red, ->] (0,3) -- (0,2);
   \node[above] at (0,3) {Wind};
 
-  % aerodynamic forces
-  \draw[red, ->] (0,0) -- (2,0);
-  \draw[red, ->] (0,0) -- (0, -1);
-  \draw[thick, red, ->] (0,0) -- (2, -1);
-  \draw[help lines, red] (0, -1) -- (2, -1) -- (2, 0);
+  % Aerodynamic forces
+  \draw[red, dashed, ->] (0,0) -- (2,0);
+  \node[right] at (2, 0) {Aerodynamic lift};
 
-  \node[right] at (2, 0) {Lift};
-  \node[below] at (0, -1) {Drag};
+  \draw[red, dashed, ->] (0,0) -- (0, -1);
+  \node[below, left] at (0, -1) {Aerodynamic drag};
+
+  \draw[help lines] (0, -1) -- (2, -1) -- (2, 0);
+  \draw[very thick, red, ->] (0,0) -- (2, -1);
   \node[below, right] at (2, -1) {Total aerodynamic force};
 
-  % hydrodynamic forces
-  \draw[blue, thick, ->] (0,0) -- (intersection cs:
-  first line={(0,0) -- (3, -3)},
-  second line={(2, -1) -- (1, -2)}) coordinate (A);
-
-  \draw[blue, thick, ->] (0,0) -- (intersection cs:
+  \draw[red, thick, ->] (0,0) -- (intersection cs:
   first line={(0,0) -- (3, 3)},
-  second line={(2, -1) -- (1, 0)}) coordinate (B);
+  second line={(2, -1) -- (1, 0)}) coordinate (Fr);
+  \node[right, above] at (Fr) {Driving force};
 
-  \draw[help lines, blue] (B) -- (2, -1) -- (A);
+  \draw[red, thick, ->] (0,0) -- (intersection cs:
+  first line={(0,0) -- (3, -3)},
+  second line={(2, -1) -- (1, -2)}) coordinate (Fh);
 
-  \node[right, below] at (A) {Heeling force};
-  \node[right, above] at (B) {Driving force};
+  \draw[help lines] (Fr) -- (2, -1) -- (Fh);
+  \node[below] at (Fh) {Heeling force};
 
+  % hydrodynamic forces
+  \draw[thick, blue, ->] (0,0) -- (intersection cs:
+  first line={(0,0) -- (-1, 1)},
+  second line={(-2, 1) -- (-1, 2)}) coordinate (Fs);
+  \node[above] at (Fs) {Hydrodynamic side force};
 \end{tikzpicture}
 
 Nice summary of the forces involved
@@ -51,8 +57,6 @@ Nice summary of the forces involved
   wind.
 \item The aerodynamic drag force (\overrightarrow{D}) goes in the direction of
   the wind.
-\item The normal force (N) is perpendicular to the sail.
-\item The axial force (A) is parallel to the sail.
 \item The total aerodynamic force is the sum of lift and drag
   $\overrightarrow{F}_T = \overrightarrow{L} + \overrightarrow{D}$.
 \item The driving force ($\overrightarrow{F}_R$) goes parallel to the point of
