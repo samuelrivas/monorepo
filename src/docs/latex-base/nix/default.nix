@@ -2,6 +2,7 @@
   add-sandbox,
   digestif,
   emacs,
+  inotify-tools,
   rubber,
   stdenv,
   texlive,
@@ -18,4 +19,4 @@ let
       tex
     ];
   };
-in add-sandbox [emacs digestif] drv
+in add-sandbox [emacs digestif inotify-tools] drv
