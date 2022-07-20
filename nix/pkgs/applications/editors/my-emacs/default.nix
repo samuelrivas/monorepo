@@ -17,18 +17,14 @@
   emacsWithPackages,
   erlangMode,
   flycheck-haskell,
-  ghc,
   git,
   groovy-mode,
   haskell-mode,
   helm,
   helm-ls-git,
-  helm-lsp,
   helm-org,
   htmlize,
   lib,
-  lsp-haskell,
-  lsp-ui,
   markdown-mode,
   nix-mode,
   projectile,
@@ -40,8 +36,7 @@
 }:
 let
   deps = {
-    "haskell" = [ helm-lsp lsp-haskell lsp-ui flycheck-haskell company
-                  stylish-haskell ];
+    "haskell" = [ flycheck-haskell stylish-haskell ];
     "erlang"  = [ erlangMode ];
   };
 
@@ -54,6 +49,7 @@ let
   hardcoded-deps = [
     aspell-wrapped
     colorThemeSolarized
+    company
     eglot
     emacs-config
     git

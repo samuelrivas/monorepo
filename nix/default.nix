@@ -81,12 +81,9 @@ let
           groovy-mode
           haskell-mode
           helm
-          helm-lsp
           helm-ls-git
           helm-org
           htmlize
-          lsp-haskell
-          lsp-ui
           markdown-mode
           nix-mode
           projectile
