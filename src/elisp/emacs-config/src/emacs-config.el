@@ -145,19 +145,14 @@
 
 ;; Haskell mode
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
+(add-hook 'haskell-mode-hook 'eglot-ensure)
 (defun my-haskell-mode-hook ()
-  (lsp)
+  (yas-minor-mode)
+  (company-mode)
   (flycheck-mode)
   (flyspell-prog-mode)
-  (yas-minor-mode)
-  (setq company-minimum-prefix-length 1
-        company-idle-delay 0.0
-        haskell-stylish-on-save t
-        lsp-ui-sideline-show-diagnostics t
-        lsp-ui-sideline-show-code-actions t
-        lsp-ui-doc-enable t
-        lsp-ui-doc-show-with-cursor t)
-  (local-set-key "\C-cl" 'lsp-ui-sideline-apply-code-actions))
+  (setq haskell-stylish-on-save t)
+  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions))
 
 ;; Nix mode
 (autoload 'nix-mode "nix-mode" "nix-mode" t)

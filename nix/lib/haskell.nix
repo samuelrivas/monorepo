@@ -6,9 +6,6 @@
   pkgs,
 }:
 rec {
-  # A utility to instantiate a capable emacs in a haskell sandbox
-  emacs-for-haskell = haskell-env: emacs.override { ghc = haskell-env; };
-
   # Create a haskell package with haskell-mk included and enough meta to create
   # shell environments
   #
@@ -100,7 +97,7 @@ rec {
     haskell-drv.overrideAttrs (attrs:
 
       { buildInputs = attrs.buildInputs ++ [
-          (emacs-for-haskell haskell-drv.meta.ghc)
+          emacs
           haskell-drv.meta.haskellPackages.hoogle
           haskell-drv.meta.haskellPackages.haskell-language-server
         ];
