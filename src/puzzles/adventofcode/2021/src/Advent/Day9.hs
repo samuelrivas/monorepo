@@ -3,17 +3,13 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 
-{-# LANGUAGE DeriveGeneric       #-}
 module Advent.Day9 where
 
 import           Perlude
 
-import           Advent.Templib       (bidim)
 import           Control.Lens         (_Just, filtered, folded, preview, sumOf,
                                        to, toListOf, view)
 import           Data.Advent          (Day (..))
@@ -25,6 +21,7 @@ import           Data.List            (sortBy)
 import           Data.Maybe           (catMaybes, fromJust)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, solve)
+import           Text.Parsec.Bidim    (bidim)
 import           Text.Parsec.Parselib (Parser, unsafeParseAll)
 
 

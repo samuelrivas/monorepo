@@ -80,11 +80,6 @@ import           Data.Metrics
 import           GHC.Generics                     (Generic)
 import           UnliftIO                         (MonadUnliftIO, TVar,
                                                    atomically, modifyTVar)
--- TODO
--- Tidy up
--- Consider removing the instances on top. Do we need them?
--- Try to reduce wrappers to just one (the one we use for state)
--- Verify that all implementations are equivalent
 -- A monad were we can emit metrics of type metric
 
 class Monad m => MonadEmit metric m | m -> metric where
@@ -103,6 +98,8 @@ emitCounts name n =
   emit $ Metrics HashMap.empty (HashMap.singleton name (Count n))
 
 -- * Instances for MTL monads
+
+-- TODO: Do we need these? Could we get them deriving MonadTrans via Identity?
 instance (Monad m, MonadEmit metrics m)
   => MonadEmit metrics (StateLazy.StateT s m) where
   emit = lift . emit

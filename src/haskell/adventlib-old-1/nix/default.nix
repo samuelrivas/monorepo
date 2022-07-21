@@ -4,7 +4,6 @@
 }:
 let
   haskell-libs = with haskellPackages; [
-    generic-lens
     lens
     parselib
     unliftio

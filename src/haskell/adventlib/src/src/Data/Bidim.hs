@@ -1,29 +1,102 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
+{-# OPTIONS_GHC -Wall #-}
+
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedLabels   #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE TupleSections      #-}
 
 module Data.Bidim (
   Bidim,
   Coord,
-  boundaries,
+  empty,
+  insert,
+  toMap,
+  toBoundaries,
   cross,
   fromText,
   plus,
-  showBidim
+  showBidim,
+  cell,
+  singleton,
+  coords,
+  boundaries,
+  mergeWith,
+  fromList,
+  adjust
   ) where
 
-import           Prelude         hiding (concat)
+import           Prelude              hiding (concat)
 
-import           Control.Lens    (_1, _2, at, set, toListOf, traverse, view)
-import           Data.Foldable   (foldl')
-import           Data.Map.Strict (Map, empty, insert, keys)
-import           Data.Text       (Text, concat, intercalate, unpack)
+import           Control.Lens         (Getter, Lens, Lens', _1, _2, at, lens,
+                                       over, set, to, view)
+import           Data.Foldable        (foldl')
+import           Data.Generics.Labels ()
+import           Data.HashMap.Strict  (HashMap)
+import qualified Data.HashMap.Strict  as HashMap
+import           Data.Text            (Text, concat, intercalate, unpack)
 
 type Coord = (Int, Int)
-type Bidim a = Map Coord a
+
+-- We don't export a generic lens for this record, as the 'boundaries' field
+-- depends on 'toMap'
+data Bidim a = Bidim {
+  toMap        :: HashMap Coord a,
+  toBoundaries :: (Coord, Coord)
+  } deriving stock (Show, Eq)
+
+instance Functor Bidim where
+  fmap = over asMap' . fmap
+
+instance Foldable Bidim where
+  foldMap f = foldMap f . toMap
+
+instance Traversable Bidim where
+  traverse f b = flip (set asMap') b <$> traverse f (toMap b)
+
+-- Do not export this lens, as the toMap field cannot be modified freely
+asMap' :: Lens (Bidim a) (Bidim b) (HashMap Coord a) (HashMap Coord b)
+asMap' = lens toMap (\b m -> b { toMap = m })
+
+-- Do not export this lens, as the toBoundaries field cannot be modified freely
+boundaries' :: Lens' (Bidim a) (Coord, Coord)
+boundaries' = lens toBoundaries (\b m -> b { toBoundaries = m })
+
+boundaries :: Getter (Bidim a) (Coord, Coord)
+boundaries = to toBoundaries
+
+coords :: Getter (Bidim a) [Coord]
+coords = to (HashMap.keys . toMap)
+
+-- Getter for the value of the Bidim in a given position
+cell :: Coord -> Getter (Bidim a) (Maybe a)
+cell c = to . view $ asMap' . at c
+
+-- TODO: figure out if there is a proper lens to change values, without allowing
+-- to insert or remove cells
+
+-- If the coord is not part of the Bidim, the original Bidim is returned
+adjust :: (a -> a) -> Coord -> Bidim a -> Bidim a
+adjust f c = over asMap' (HashMap.adjust f c)
 
 -- Better would be to wrap this and make it an instance of Num
 plus :: Coord -> Coord -> Coord
 plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
+
+-- Using 'Bounded' is a bit ugly, but is much more convenient than making the
+-- boundaries field a Maybe
+empty :: Bidim a
+empty = Bidim HashMap.empty (maxCoord, minCoord)
+
+singleton :: Coord -> a -> Bidim a
+singleton c a = Bidim (HashMap.singleton c a) (c, c)
+
+maxCoord :: Coord
+maxCoord = (maxBound, maxBound)
+
+minCoord :: Coord
+minCoord = (minBound, minBound)
 
 cross :: Coord -> [Coord]
 cross coord = [
@@ -33,32 +106,39 @@ cross coord = [
   coord `plus` (0, -1)
   ]
 
--- We need this to be a sorted map just to get the coordinate boundaries. This
--- can easily be improved if we wrap this in its own type and keep track of them
--- when inserting
+insert :: Coord -> a -> Bidim a -> Bidim a
+insert c a =
+  over asMap' (HashMap.insert c a)
+  . over boundaries' (extendBoundary c)
+
+extendBoundary :: Coord -> (Coord, Coord) -> (Coord, Coord)
+extendBoundary (x, y) ((minX, minY), (maxX, maxY)) =
+  ((min minX x, min minY y), (max maxX x, max maxY y))
+
+mergeBoundaries :: (Coord, Coord) -> (Coord, Coord) -> (Coord, Coord)
+mergeBoundaries (a, b) = extendBoundary a . extendBoundary b
+
+fromList :: Foldable f =>  f (Coord, a) -> Bidim a
+fromList = foldl' (\bd (c, a) -> insert c a bd) empty
+
+mergeWith :: (a -> a -> a) -> Bidim a -> Bidim a -> Bidim a
+mergeWith f a b =
+  Bidim {
+  toMap = HashMap.unionWith f (toMap a) (toMap b),
+  toBoundaries = mergeBoundaries (toBoundaries a) (toBoundaries b)
+  }
+
 showBidim :: (Maybe a -> Text) -> Bidim a -> Text
 showBidim format bidim =
   let
-    ((minX, minY), (maxX, maxY)) = boundaries bidim
+    ((minX, minY), (maxX, maxY)) = toBoundaries bidim
     row y = (, y) <$> [minX..maxX]
     showCoord :: Coord -> Text
-    showCoord coord = format $ view (at coord) bidim
+    showCoord coord = format $ view (asMap' . at coord) bidim
     printed :: Int -> Text
     printed y = concat (showCoord <$> row y)
   in
     intercalate "\n" (printed <$> [minY..maxY])
-
-boundaries :: Bidim a -> (Coord, Coord)
-boundaries bidim =
-  let
-    coords = keys bidim
-    xs = toListOf (traverse . _1) coords
-    ys = toListOf (traverse . _2) coords
-    maxX = maximum xs
-    minX = minimum xs
-    maxY = maximum ys
-    minY = minimum ys
-  in ((minX, minY), (maxX, maxY))
 
 -- | Given an ascii representation of a bi-dimensional map, create a bidim where
 -- cells are chars. For example

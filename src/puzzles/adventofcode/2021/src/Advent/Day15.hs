@@ -15,7 +15,7 @@ import           Perlude
 
 import           Advent.Day15.Internal           (Node (..))
 
-import           Advent.Templib                  (bidim, solveM)
+import           Advent.Templib                  (solveM)
 import           Control.Lens                    (Getter, _1, _2, _Just, at,
                                                   both, non, over, singular,
                                                   sumOf, to, view, views)
@@ -36,6 +36,7 @@ import           Data.Maybe                      (fromJust)
 import           Data.Metrics                    (Metrics)
 import           Data.Text                       (intercalate)
 import           System.IO.Advent                (getInput, getParsedInput)
+import           Text.Parsec.Bidim               (bidim)
 import           Text.Parsec.Parselib            (Parser, unsafeParseAll)
 
 type Parsed =  Bidim Int

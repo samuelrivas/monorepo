@@ -1,21 +1,15 @@
 {-# OPTIONS_GHC -Wall #-}
 
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE FunctionalDependencies     #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE OverloadedLabels           #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Advent.Templib (
-  bidim,
   binToDec,
   bitString,
   bit,
@@ -31,19 +25,14 @@ import           Control.Applicative     ((<|>))
 import           Control.Monad.MonadEmit (EmitTVarT',
                                           runEmitTVarTWithPrinterThread')
 import           Data.Advent             (Day)
-import           Data.Bidim              (Bidim, fromText)
 import           Data.Foldable           (foldl')
 import           Data.Functor            (($>))
 import           Data.Generics.Labels    ()
 import           Data.List               (tails)
 import           System.IO.Advent        (getParsedInput)
-import           Text.Parsec             (anyToken, char, many, many1, sepEndBy)
-import           Text.Parsec.Parselib    (Parser, literal, text)
+import           Text.Parsec             (char, many, many1, sepEndBy)
+import           Text.Parsec.Parselib    (Parser, literal)
 import           UnliftIO                (MonadUnliftIO)
-
--- Use this from Adventlib once it is fixed to support bidims based off HashMap
-bidim :: (Char -> a) -> Parser (Bidim a)
-bidim f = fmap f . fromText <$> text anyToken
 
 -- TODO use this in day 2 or delete
 conv :: ([a] -> b) -> [a] -> [b]
