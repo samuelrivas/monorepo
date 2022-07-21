@@ -6,7 +6,13 @@
 #    them are colocated with the source and linked from here
 #  * For the packages that use external sources (usually packages that are
 #    patches to the official nix tree) we use nixpkgs-like struture inside pkgs
-
+#
+# Whenever we break compatibility without fixing all the dependencies we create
+# an old version of the derivation that changed. For a derivation `foo`, we name
+# these old versions as `foo-old-1`, `foo-old-2`, ... where the lowest the
+# number the oldest the copy. Those derivations that are not updated to use the
+# upstream version of the changed derivation stay dependant on the old version
+# that they are compatible with.
 { system ? builtins.currentSystem }:
 
 let
@@ -127,6 +133,7 @@ let
     samsHaskellPackagesGen = hp: builtins.mapAttrs
       (name: path: hp.callPackage path { haskellPackages = hp; })
       {
+        adventlib-old-1 = ./../src/haskell/adventlib-old-1/nix;
         adventlib = ./../src/haskell/adventlib/nix;
         adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
         adventofcode-2020 = ./../src/puzzles/adventofcode/2020/nix;
@@ -151,6 +158,7 @@ let
     # compile with the latest verison
 
     adventlib = pkgs-sam.haskellPackages.adventlib;
+    adventlib-old-1 = pkgs-sam.haskellPackages.adventlib;
     boardgamer = pkgs-sam.haskellPackages.boardgamer;
     boollib = pkgs-sam.haskellPackages.boollib;
     clean-clocks = pkgs-sam.haskellPackages.clean-clocks;

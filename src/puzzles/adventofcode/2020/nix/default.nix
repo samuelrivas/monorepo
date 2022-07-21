@@ -6,7 +6,7 @@
 }:
 let
   haskell-libs = with haskellPackages; [
-    adventlib
+    adventlib-old-1
     ansi-terminal
     boollib
     deque
