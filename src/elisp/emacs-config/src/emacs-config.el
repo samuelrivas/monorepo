@@ -152,7 +152,9 @@
   (flycheck-mode)
   (flyspell-prog-mode)
   (setq haskell-stylish-on-save t)
-  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions))
+  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
+  (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
 ;; Nix mode
 (autoload 'nix-mode "nix-mode" "nix-mode" t)
