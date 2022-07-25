@@ -20,7 +20,8 @@ import           Data.IORef              (IORef, newIORef, readIORef,
 import           Data.STRef              (STRef, newSTRef, readSTRef,
                                           writeSTRef)
 import           Data.Vector             (MVector, Vector, freeze)
-import           Data.Vector.Mutable     (new, unsafeGrow, unsafeTake, write)
+import           Data.Vector.Mutable     (length, new, unsafeGrow, unsafeTake,
+                                          write)
 import           GHC.Generics            (Generic)
 
 -- TODO Move this to its own library
@@ -52,7 +53,7 @@ data DList s ref a = DList {
   } deriving stock (Generic)
 
 minSize :: Int
-minSize = 100
+minSize = 2
 
 empty :: PrimMonad m => MutableRef m ref => m (DList (PrimState m) ref a)
 empty =
@@ -66,7 +67,8 @@ getSize = readRef . view #size
 insert :: PrimMonad m => MutableRef m ref => DList (PrimState m) ref a -> a -> m ()
 insert l a =
   do
-    size <- readRef (view #size l)
+    maybeResize l
+    size <- getSize l
     v <- readRef (view #storage l)
     write v size a
     modifyRef (view #size l) (+1)
@@ -75,17 +77,19 @@ toVector :: PrimMonad m => MutableRef m ref =>
   DList (PrimState m) ref a -> m (Vector a)
 toVector l =
   do
-    size <- readRef (view #size l)
+    size <- getSize l
     v <- readRef (view #storage l)
     freeze . unsafeTake size $ v
 
--- maybeResize :: PrimMonad m => MutableRef m ref =>
---   m (DList (PrimState m) ref a) -> m ()
--- maybeResize l =
---   do
---     size <- getSize l
---     when (size == (length . view #storage $ l)) $
---       unsafeGrow (view #storage l) size
+maybeResize :: PrimMonad m => MutableRef m ref =>
+  DList (PrimState m) ref a -> m ()
+maybeResize l =
+  do
+    size <- getSize l
+    storage <- readRef (view #storage l)
+    when (size == Data.Vector.Mutable.length storage) $ do
+      newStorage <- unsafeGrow storage size
+      writeRef (view #storage l) newStorage
 
 main :: IO ()
 main =
@@ -94,7 +98,12 @@ main =
     insert l (42 :: Int)
     insert l (43 :: Int)
     insert l (44 :: Int)
+    insert l (45 :: Int)
+    insert l (46 :: Int)
     putStrLn "size:"
     h <- readRef $ view #size l
     print h
+    putStrLn "length:"
+    s <- readRef $ view #storage l
+    print $ Data.Vector.Mutable.length s
     toVector l >>= print
