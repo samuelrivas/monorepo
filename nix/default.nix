@@ -150,6 +150,7 @@ let
         onirim-helper = ./../src/haskell/onirim-helper/nix;
         parselib = ./../src/haskell/parselib/nix;
         perlude = ./../src/haskell/perlude/nix;
+        prioq = ./../src/haskell/prioq/nix;
         searchlib = ./../src/haskell/searchlib/nix;
       };
 
@@ -170,6 +171,7 @@ let
     onirim-helper = pkgs-sam.haskellPackagesPatched.onirim-helper;
     parselib = pkgs-sam.haskellPackages.parselib;
     perlude = pkgs-sam.haskellPackages.perlude;
+    prioq = pkgs-sam.haskellPackages.prioq;
     searchlib = pkgs-sam.haskellPackages.searchlib;
 
     # Shell-scripts
