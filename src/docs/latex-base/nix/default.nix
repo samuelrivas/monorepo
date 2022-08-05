@@ -18,6 +18,9 @@ let
       rubber
       tex
     ];
+    preBuild = ''
+      export HOME="$TMPDIR"
+    '';
     installPhase = ''
       mkdir -p "$out"
       cp ../build/*.pdf "$out"
