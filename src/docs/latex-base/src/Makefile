@@ -4,7 +4,7 @@ BUILD-DIR := ../build
 all: $(BUILD-DIR)/hello.pdf
 
 $(BUILD-DIR)/hello.pdf: hello.tex | $(BUILD-DIR)
-	rubber --pdf --into $(BUILD-DIR) hello.tex
+	rubber --pdf --into $(BUILD-DIR) ../src/hello.tex
 
 $(BUILD-DIR):
 	mkdir -p $@
