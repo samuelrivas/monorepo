@@ -1,10 +1,14 @@
+{-# LANGUAGE FlexibleContexts #-}
 import qualified Control.Monad                    as Control
+import           Control.Monad.Reader             (runReaderT)
 import qualified Data.Char                        as Char
 import qualified Data.List                        as List
 import qualified Data.Random                      as Random
 import qualified Data.Random.Distribution.Poisson as Poisson
 import qualified Data.Set                         as Set
 import qualified System.IO                        as SIO
+import           System.Random                    (getStdGen)
+import           System.Random.Stateful           (newIOGenM)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -132,7 +136,8 @@ basic_component_gen (Optional letter_type) =
   let empty_if_false False = return ""
       empty_if_false True  = basic_component_gen (Mandatory letter_type)
   in
-    Random.sample (Random.Uniform True False) >>= empty_if_false
+    Random.rvar (Random.Uniform True False) >>= empty_if_false
+
 basic_component_gen (Mandatory letter_type) = basic_letter_gen letter_type
 
 basic_syllable_struct :: SyllableStruct
@@ -142,7 +147,7 @@ basic_syllable_struct = [Mandatory Consonant,
                          Optional Final]
 
 bigrams :: [String] -> [(String, String)]
-bigrams (x:y:t) = (x, y) : (bigrams (y:t))
+bigrams (x:y:t) = (x, y) : bigrams (y:t)
 bigrams _       = []
 
 valid_syllable :: [String] -> Bool
@@ -159,7 +164,7 @@ hard_bigrams =
     Set.union shf rl
 
 valid_bigram :: (String, String) -> Bool
-valid_bigram bigram@(x, y) = (x /= y) && (not $ Set.member bigram hard_bigrams)
+valid_bigram bigram@(x, y) = (x /= y) && not (Set.member bigram hard_bigrams)
 
 -- TODO Consnants and vowels should be separate types so that we can easily map
 -- both ortographies
@@ -223,9 +228,8 @@ poisson_length_gen = (+1) <$> Poisson.poisson (1::Double)
 word_gen :: SyllableGen -> LengthGen -> Random.RVar [[String]]
 word_gen syllableGen lengthGen =
   do
-    len <- Random.sample lengthGen
-    Random.sample $ Control.replicateM len syllableGen
-    -- Random.sample $ sequence (replicate len syllableGen)
+    len <- lengthGen
+    Control.replicateM len syllableGen
 
 format_syllable :: [String] -> String
 format_syllable = List.intercalate "-"
@@ -241,6 +245,9 @@ capitalise :: String -> String
 capitalise ""    = ""
 capitalise (h:t) = Char.toUpper h : t
 
+sampleRVar :: Random.RVar t -> IO t
+sampleRVar rvar = getStdGen >>= newIOGenM >>= runReaderT (Random.sample rvar)
+
 main :: IO ()
 main =
   let struct = basic_syllable_struct
@@ -251,7 +258,7 @@ main =
       vowel_orthography = Doubles
 
   in do
-    word <- Random.sample $ word_gen syllable syllable_length
+    word <- sampleRVar $ word_gen syllable syllable_length
     SIO.hSetEncoding SIO.stdout SIO.utf8
     putStrLn $ format_word word
     putStrLn $ print_word consonant_orthography vowel_orthography word
