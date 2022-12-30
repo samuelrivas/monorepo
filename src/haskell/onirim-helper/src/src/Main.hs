@@ -22,6 +22,7 @@ import           Control.Monad              (forever, guard, unless, when)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Loops        (whileM_)
+import           Control.Monad.Random       (RandomGen, getStdGen)
 import           Control.Monad.Reader       (ask, asks)
 import           Control.Monad.Reader.Class (MonadReader)
 import           Control.Monad.State.Class  (MonadState, get, gets, modify, put)
@@ -34,9 +35,9 @@ import qualified Data.List                  as List
 import           Data.Maybe                 (fromMaybe)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
                                              empty, insert, member, occur)
-import           Data.Random                (MonadRandom, RVar, sample, shuffle)
-import           GHC.Generics               (Generic)
+import           Data.Random                (RVar, sample, shuffle)
 import           Game
+import           GHC.Generics               (Generic)
 import           Util                       (addHistory, head, last, print,
                                              readline, uncons)
 
@@ -419,7 +420,7 @@ next_onirim_state (Rearrange cards) = do
       assign #osStatus Placing
       draw
 
-open_door_M :: MonadRandom m => MonadState OnirimState m => Maybe Colour -> m ()
+open_door_M :: MonadState OnirimState m => Maybe Colour -> m ()
 open_door_M Nothing = pure ()
 open_door_M (Just c) = do
   doors <- gets osDoors
@@ -460,12 +461,11 @@ initial_hand_and_deck = do
 
 shuffle_cards ::
      MonadState OnirimState m
-  => MonadRandom m
   => m ()
 shuffle_cards = do
   deck <- gets osDeck
   limbo <- gets osLimbo
-  shuffled <-  sample . shuffle $ deck ++ (Dream <$> limbo)
+  shuffled <- sample . shuffle $ deck ++ (Dream <$> limbo)
   modify $ \s -> s { osDeck = shuffled, osLimbo = [] }
 
 pick_top ::
@@ -481,7 +481,6 @@ pick_top = do
 -- Fill the hand up to 5, stopping if hitting actionable dreams
 draw ::
      MonadState OnirimState m
-  => MonadRandom m
   => MonadFail m
   => m ()
 draw = do
@@ -507,7 +506,6 @@ draw = do
 
 restore_hand ::
      MonadState OnirimState m
-  => MonadRandom m
   => MonadFail m
   => m ()
 restore_hand = do
@@ -516,7 +514,6 @@ restore_hand = do
 
 pick_location ::
      MonadState OnirimState m
-  => MonadRandom m
   => MonadFail m
   => m ()
 pick_location = do
@@ -529,7 +526,6 @@ pick_location = do
 
 reshuffle_limbo ::
      MonadState OnirimState m
-  => MonadRandom m
   => m ()
 reshuffle_limbo = do
   limbo <- gets osLimbo
@@ -537,7 +533,6 @@ reshuffle_limbo = do
 
 solve_door ::
      MonadState OnirimState m
-  => MonadRandom m
   => MonadFail m
   => Colour -> m ()
 solve_door c = do
@@ -685,12 +680,23 @@ warmup_history =
    ]
 
 user_step ::
-     MonadState OnirimState m
+     RandomGen g
+  => MonadState OnirimState m
   => MonadFail m
-  => MonadRandom m
   => MonadIO m
-  => m ()
-user_step = insist get_transition >>= apply_transition
+  => g -> m g
+user_step g = insist get_transition >>= apply_transition g
+
+step_forever ::
+     RandomGen g
+  => MonadState OnirimState m
+  => MonadFail m
+  => MonadIO m
+  => g -> m b
+step_forever g =
+  do
+    newG <- user_step g
+    step_forever newG
 
 -- FIXME: The user loop is very wonky. If we try to "cheat" we just crash the
 -- program. Additionally, wehn inputing invalid commands we won't see why they
@@ -699,6 +705,6 @@ main :: IO ()
 main = do
   state <- flip execStateT initial_onirim_state $ do
     warmup_history
-    apply_transition InitialSetup
-    forever user_step
+    stdGen <- getStdGen
+    apply_transition stdGen InitialSetup >>= step_forever
   print state

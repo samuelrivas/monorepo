@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 
@@ -20,12 +21,13 @@ import           Prelude                    hiding (head)
 import           Control.Monad              (replicateM_)
 import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.Loops        (whileJust_)
+import           Control.Monad.Random       (RandomGen)
 import           Control.Monad.Reader       (asks, runReaderT)
 import           Control.Monad.Reader.Class (MonadReader)
 import           Control.Monad.State.Class  (MonadState, get, put)
-import           Control.Monad.Trans.Maybe  (MaybeT(..), runMaybeT)
-import           Data.Random                (Distribution (rvar), MonadRandom,
-                                             RVar, sample)
+import           Control.Monad.Trans.Maybe  (MaybeT (..), runMaybeT)
+import           Data.Random                (Distribution (rvar), RVar, sample)
+import           Data.Random.Sample         (samplePure)
 import           Util                       (head)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
@@ -54,16 +56,17 @@ class (Ord score, Bounded score)
   score :: state -> score
 
 apply_transition ::
-     GameState state transition score
+     RandomGen g
+  => GameState state transition score
   => MonadState state m
-  => MonadRandom m
   => MonadFail m
-  => transition -> m ()
-apply_transition transition =
-      get
-  >>= runReaderT (next_state transition)
-  >>= sample
-  >>= put
+  => g -> transition -> m g
+apply_transition g transition =
+  do
+    d <- get >>= runReaderT (next_state transition)
+    let (newState, newG) = samplePure d g
+    put newState
+    return newG
 
 is_final ::
      GameState state transition score
@@ -74,24 +77,30 @@ is_final = asks (not . null . transitions)
 -- Note that @head . transitions@ works by using the basic reader instance,
 -- which happens to be just a function from state to a list of transitions
 force_move ::
-     GameState state transition score
+     RandomGen g
+  => GameState state transition score
   => MonadState state m
-  => MonadRandom m
   => MonadFail m
-  => m ()
-force_move = get >>= head . transitions >>= apply_transition
+  => g -> m g
+force_move g = get >>= head . transitions >>= apply_transition g
 
 force_game ::
-     GameState state transition score
+     RandomGen g
+  => GameState state transition score
   => MonadState state m
-  => MonadRandom m
-  => m ()
-force_game = whileJust_ (runMaybeT force_move) return
+  => g -> m g
+force_game g =
+  runMaybeT (force_move g) >>= \case
+  Just newG -> force_game newG
+  Nothing   -> return g
 
 force_n_steps ::
-     GameState state transition score
+     RandomGen g
+  => GameState state transition score
   => MonadState state m
-  => MonadRandom m
   => MonadFail m
-  => Int -> m ()
-force_n_steps steps = replicateM_ steps force_move
+  => g -> Int -> m g
+force_n_steps g steps
+  | steps < 0 = return g
+  | otherwise = force_move g >>= flip force_n_steps (steps - 1)
+
