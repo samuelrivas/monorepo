@@ -129,7 +129,7 @@ accept_solution new_cost =
          increment_counter "annealing.energy_lowered"
          return True
        else
-       do coin_flip <- lift . Random.sample $ Random.uniform 0 1
+       do coin_flip <- lift $ Random.uniform 0 1
           increment_counter "annealing.energy_increased"
           let accept = p > coin_flip
           when accept $ increment_counter "annealing.random_accept"
@@ -141,7 +141,7 @@ anneal_step = do
   cost <- gets current_cost
   best_cost <- gets min_cost
   gen  <- asks candidate_gen
-  (cost', sol') <- lift . Random.sample $ runCandidateGen gen (cost, sol)
+  (cost', sol') <- lift $ runCandidateGen gen (cost, sol)
   accept <- accept_solution cost'
 
   cooldown
