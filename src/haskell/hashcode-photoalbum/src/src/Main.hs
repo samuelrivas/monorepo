@@ -1,21 +1,22 @@
---{-# OPTIONS -Wno-unused-top-binds #-}
+{-# OPTIONS -Wno-unused-top-binds #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 import           AnnealSlideshow
 import           Control.Monad.Writer
-import           Data.Random          (RVar)
-import qualified Data.Random          as Random
-import           Data.Set             (Set)
-import qualified Data.Set             as Set
-import qualified Data.Text.Lazy       as T
-import qualified Data.Text.Lazy.IO    as TIO
-import           Data.Vector          (Vector)
-import qualified Data.Vector          as V
+import           Data.Random            (RVar, sampleFrom)
+import qualified Data.Random            as Random
+import           Data.Set               (Set)
+import qualified Data.Set               as Set
+import qualified Data.Text.Lazy         as T
+import qualified Data.Text.Lazy.IO      as TIO
+import           Data.Vector            (Vector)
+import qualified Data.Vector            as V
 import           GreedySlideshow
 import           Metrics
 import           Parser
 import           Picture
 import           Slideshow
+import           System.Random.Stateful (globalStdGen)
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
 example :: Set Picture
@@ -136,7 +137,7 @@ sort_gen = Random.uniform minBound maxBound
 line_to_picture :: Int -> T.Text -> IO Picture
 line_to_picture pos' text =
   do
-    sort_key' <- Random.sample sort_gen
+    sort_key' <- sampleIO sort_gen
     return $ parse_picture pos' sort_key' text
 
 parse_lines :: [T.Text] -> WriterT Metrics IO (Set Picture)
@@ -158,10 +159,15 @@ main_with_metrics = do
 --  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
   liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ slideshow)
   liftIO . putStrLn $ "Beginning annealing process"
-  optimised <- mapWriterT Random.sample $ anneal_slideshow slideshow
+  optimised <- mapWriterT sampleIO $ anneal_slideshow slideshow
 --  liftIO . putStrLn . T.unpack . show_slideshow $ slideshow
   liftIO . putStrLn $ "Alleged improvement " ++ (show . fst $ optimised)
   liftIO . putStrLn $ "Total interest: " ++ (show . total_interest $ snd optimised)
+
+-- This is just a quick hack to get random-fu 0.3.0.0 to work. We need to rework
+-- the monadic interface of this whole module
+sampleIO :: MonadIO m => RVar t -> m t
+sampleIO = sampleFrom globalStdGen
 
 main :: IO ()
 main =

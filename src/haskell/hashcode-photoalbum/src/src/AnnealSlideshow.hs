@@ -9,7 +9,7 @@ where
 import qualified Annealing
 import           Control.Monad.Writer
 import           Data.Maybe
-import           Data.Random          (RVar)
+import           Data.Random          (RVar, rvar)
 import qualified Data.Random          as Random
 import qualified Data.Set             as Set
 import           Data.Vector          (Vector, (!), (!?), (//))
@@ -80,8 +80,8 @@ slideshow_gen (cost, slideshow) =
   let len = V.length slideshow
       position_gen = Random.Uniform 0 (len - 1)
   in do
-    position_1 <- Random.sample position_gen
-    position_2 <- Random.sample position_gen
+    position_1 <- rvar position_gen
+    position_2 <- rvar position_gen
     if position_1 == position_2
       then return (cost, slideshow)
       else do

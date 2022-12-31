@@ -162,7 +162,7 @@ let
     boardgamer = pkgs-sam.haskellPackages.boardgamer;
     boollib = pkgs-sam.haskellPackages.boollib;
     clean-clocks = pkgs-sam.haskellPackages.clean-clocks;
-    hashcode-photoalbum = pkgs-sam.haskellPackagesPatched.hashcode-photoalbum;
+    hashcode-photoalbum = pkgs-sam.haskellPackages.hashcode-photoalbum;
     low-battery = pkgs-sam.haskellPackages.low-battery;
     mk-conf-file = pkgs-sam.haskellPackages.mk-conf-file;
     monad-emit = pkgs-sam.haskellPackages.monad-emit;
