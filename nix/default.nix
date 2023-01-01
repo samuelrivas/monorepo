@@ -153,10 +153,6 @@ let
         searchlib = ./../src/haskell/searchlib/nix;
       };
 
-    # We need to run an onder version of random fu for some applications, so
-    # keeping them at haskellPackagesPatched while we don't update them to
-    # compile with the latest verison
-
     adventlib = pkgs-sam.haskellPackages.adventlib;
     adventlib-old-1 = pkgs-sam.haskellPackages.adventlib;
     boardgamer = pkgs-sam.haskellPackages.boardgamer;
