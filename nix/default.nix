@@ -167,7 +167,7 @@ let
     mk-conf-file = pkgs-sam.haskellPackages.mk-conf-file;
     monad-emit = pkgs-sam.haskellPackages.monad-emit;
     name-generator = pkgs-sam.haskellPackages.name-generator;
-    onirim-helper = pkgs-sam.haskellPackagesPatched.onirim-helper;
+    onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
     parselib = pkgs-sam.haskellPackages.parselib;
     perlude = pkgs-sam.haskellPackages.perlude;
     searchlib = pkgs-sam.haskellPackages.searchlib;

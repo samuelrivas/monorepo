@@ -19,7 +19,6 @@ import           Control.Applicative        ((<|>))
 import           Control.Lens               (Lens', assign, lens, modifying,
                                              over, set, toListOf, view)
 import           Control.Monad              (forever, guard, unless, when)
-import           Control.Monad.Fail         (MonadFail)
 import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Loops        (whileM_)
 import           Control.Monad.Reader       (ask, asks)
@@ -34,11 +33,11 @@ import qualified Data.List                  as List
 import           Data.Maybe                 (fromMaybe)
 import           Data.MultiSet              (MultiSet, delete, distinctElems,
                                              empty, insert, member, occur)
-import           Data.Random                (MonadRandom, RVar, sample, shuffle)
-import           GHC.Generics               (Generic)
+import           Data.Random                (RVar, shuffle)
 import           Game
+import           GHC.Generics               (Generic)
 import           Util                       (addHistory, head, last, print,
-                                             readline, uncons)
+                                             readline, sampleRVarIO, uncons)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -165,7 +164,7 @@ showDoors doors =
 instance GameState OnirimState OnirimTransition Bool where
   next_state = next_onirim_state
   transitions = onirim_transitions
-  score = (Won ==) <$> asks osStatus
+  score = asks $ (Won ==) .osStatus
 
 instance Show Labirynth where
   show l = show_cards (view #_past l) <> "|"
@@ -277,6 +276,7 @@ close_door = fmap CloseDoor . distinctElems
 -- abstractions
 next_onirim_state ::
      MonadReader OnirimState m
+  => MonadIO m
   => MonadFail m
   => OnirimTransition
   -> m (StateDistribution OnirimState)
@@ -303,11 +303,19 @@ next_onirim_state (Discard location) = do
 
   if is_key location then
     return . Deterministic $ set #osStatus Prophecy new_state
-  else
-    return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
+  else do
+    -- FIXME The idea here is to return a Stochastic state, but we implemented
+    -- draw wrongly and now that it breaks the new versions of random-fu, it
+    -- requires a big refactoring to do it right
+    newState <- flip execStateT state $ runMaybeT $ do
       put new_state
       draw
+    return . Deterministic $ newState
+
+    -- return . Stochastic $
+    -- flip execStateT state $ runMaybeT $ do
+    --   put new_state
+    --   draw
 
 -- FIXME: Open the doors when possible here
 -- FIXME: Win the game when opening the last door
@@ -316,72 +324,75 @@ next_onirim_state (Place location) = do
   Just hand <- remove_location location <$> asks osHand
   (labirynth, doorM) <- place location
   state <- ask
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      assign #osHand hand
-      assign #osLabirynth labirynth
+  newState <- flip execStateT state $ runMaybeT $ do
+    assign #osHand hand
+    assign #osLabirynth labirynth
 
-      open_door_M doorM
-      draw
+    open_door_M doorM
+    draw
+
+  return . Deterministic $ newState
 
 next_onirim_state (OpenDoor c) = do
   assert_status $ SolvingDoor c
   Just hand <- remove_location (Key c) <$> asks osHand
   state <- ask
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      modifying #osDoors (insert c)
-      modifying #osDiscards ((Location $ Key c) :)
-      assign #osHand hand
-      assign #osStatus Placing
-      draw
+  newState <- flip execStateT state $ runMaybeT $ do
+    modifying #osDoors (insert c)
+    modifying #osDiscards ((Location $ Key c) :)
+    assign #osHand hand
+    assign #osStatus Placing
+    draw
+
+  return . Deterministic $ newState
 
 next_onirim_state (IgnoreDoor c) = do
   assert_status $ SolvingDoor c
   state <- ask
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      modifying #osLimbo (Door c :)
-      assign #osStatus Placing
-      draw
+  newState <- flip execStateT state $ runMaybeT $ do
+    modifying #osLimbo (Door c :)
+    assign #osStatus Placing
+    draw
+
+  return . Deterministic $ newState
 
 next_onirim_state (CloseDoor c) = do
   assert_status SolvingNightmare
   doors <- asks osDoors
   unless (c `member` doors) $ fail "cannot close a door you didn't open"
   state <- ask
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      modifying #osLimbo (Door c :)
-      modifying #osDoors $ delete c
-      modifying #osDiscards (Dream Nightmare :)
-      assign #osStatus Placing
-      draw
+  newState <- flip execStateT state $ runMaybeT $ do
+    modifying #osLimbo (Door c :)
+    modifying #osDoors $ delete c
+    modifying #osDiscards (Dream Nightmare :)
+    assign #osStatus Placing
+    draw
+  return . Deterministic $ newState
 
 next_onirim_state (DiscardKey c) = do
   assert_status SolvingNightmare
   Just hand <- remove_location (Key c) <$> asks osHand
   state <- ask
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      assign #osHand hand
-      assign #osStatus Placing
-      modifying #osDiscards ([Dream Nightmare, Location (Key c)] ++)
-      draw
+  newState <- flip execStateT state $ runMaybeT $ do
+    assign #osHand hand
+    assign #osStatus Placing
+    modifying #osDiscards ([Dream Nightmare, Location (Key c)] ++)
+    draw
+  return . Deterministic $ newState
 
 next_onirim_state DiscardHand = do
   assert_status SolvingNightmare
   hand <- asks osHand
   discards <- asks osDiscards
   state <- ask
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      put $ state
-        { osHand = [],
-          osStatus = Placing,
-          osDiscards = Dream Nightmare : (Location <$> hand) ++ discards
-        }
-      restore_hand
+  newState <- flip execStateT state $ runMaybeT $ do
+    put $ state
+      { osHand = [],
+        osStatus = Placing,
+        osDiscards = Dream Nightmare : (Location <$> hand) ++ discards
+      }
+    restore_hand
+  return . Deterministic $ newState
 
 next_onirim_state Discard5 = do
   assert_status SolvingNightmare
@@ -396,30 +407,31 @@ next_onirim_state Discard5 = do
 
   let
     (ls, ds) = separate_types to_discard
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      put $ state
-        { osStatus = Placing,
-          osDeck = rest,
-          osDiscards = Dream Nightmare : ((Location <$> ls) ++ discards),
-          osLimbo = ds ++ limbo
-        }
-      draw
+  newState <- flip execStateT state $ runMaybeT $ do
+    put $ state
+      { osStatus = Placing,
+        osDeck = rest,
+        osDiscards = Dream Nightmare : ((Location <$> ls) ++ discards),
+        osLimbo = ds ++ limbo
+      }
+    draw
+  return . Deterministic $ newState
 
 next_onirim_state (Rearrange cards) = do
   assert_status Prophecy
   state <- ask
   assert_same_cards cards (take 5 $ view #osDeck state)
 
-  return . Stochastic $
-    flip execStateT state $ runMaybeT $ do
-      to_discard <- last cards
-      modifying #osDeck ((init cards ++) . drop (length cards))
-      modifying #osDiscards (to_discard :)
-      assign #osStatus Placing
-      draw
+  newState <- flip execStateT state $ runMaybeT $ do
+    to_discard <- last cards
+    modifying #osDeck ((init cards ++) . drop (length cards))
+    modifying #osDiscards (to_discard :)
+    assign #osStatus Placing
+    draw
 
-open_door_M :: MonadRandom m => MonadState OnirimState m => Maybe Colour -> m ()
+  return . Deterministic $ newState
+
+open_door_M :: MonadIO m => MonadState OnirimState m => Maybe Colour -> m ()
 open_door_M Nothing = pure ()
 open_door_M (Just c) = do
   doors <- gets osDoors
@@ -460,12 +472,12 @@ initial_hand_and_deck = do
 
 shuffle_cards ::
      MonadState OnirimState m
-  => MonadRandom m
+  => MonadIO m
   => m ()
 shuffle_cards = do
   deck <- gets osDeck
   limbo <- gets osLimbo
-  shuffled <-  sample . shuffle $ deck ++ (Dream <$> limbo)
+  shuffled <- sampleRVarIO . shuffle $ deck ++ (Dream <$> limbo)
   modify $ \s -> s { osDeck = shuffled, osLimbo = [] }
 
 pick_top ::
@@ -481,7 +493,7 @@ pick_top = do
 -- Fill the hand up to 5, stopping if hitting actionable dreams
 draw ::
      MonadState OnirimState m
-  => MonadRandom m
+  => MonadIO m
   => MonadFail m
   => m ()
 draw = do
@@ -507,7 +519,7 @@ draw = do
 
 restore_hand ::
      MonadState OnirimState m
-  => MonadRandom m
+  => MonadIO m
   => MonadFail m
   => m ()
 restore_hand = do
@@ -516,7 +528,7 @@ restore_hand = do
 
 pick_location ::
      MonadState OnirimState m
-  => MonadRandom m
+  => MonadIO m
   => MonadFail m
   => m ()
 pick_location = do
@@ -529,7 +541,7 @@ pick_location = do
 
 reshuffle_limbo ::
      MonadState OnirimState m
-  => MonadRandom m
+  => MonadIO m
   => m ()
 reshuffle_limbo = do
   limbo <- gets osLimbo
@@ -537,7 +549,7 @@ reshuffle_limbo = do
 
 solve_door ::
      MonadState OnirimState m
-  => MonadRandom m
+  => MonadIO m
   => MonadFail m
   => Colour -> m ()
 solve_door c = do
@@ -687,7 +699,6 @@ warmup_history =
 user_step ::
      MonadState OnirimState m
   => MonadFail m
-  => MonadRandom m
   => MonadIO m
   => m ()
 user_step = insist get_transition >>= apply_transition
