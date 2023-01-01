@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 
 module Game
@@ -18,15 +17,14 @@ where
 import           Prelude                    hiding (head)
 
 import           Control.Monad              (replicateM_)
-import           Control.Monad.Fail         (MonadFail)
+import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Loops        (whileJust_)
 import           Control.Monad.Reader       (asks, runReaderT)
 import           Control.Monad.Reader.Class (MonadReader)
 import           Control.Monad.State.Class  (MonadState, get, put)
-import           Control.Monad.Trans.Maybe  (MaybeT(..), runMaybeT)
-import           Data.Random                (Distribution (rvar), MonadRandom,
-                                             RVar, sample)
-import           Util                       (head)
+import           Control.Monad.Trans.Maybe  (MaybeT (..), runMaybeT)
+import           Data.Random                (Distribution, RVar, rvar)
+import           Util                       (head, sampleIO)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -46,9 +44,12 @@ instance Distribution StateDistribution a where
 -- the score function
 --
 -- A state is considered final if the list of transitions from it is empty
+--
+-- FIXME MonadIO is necessary because we borked the implementation of next state
+-- for Onirim
 class (Ord score, Bounded score)
   => GameState state trans score | state -> trans, state -> score where
-  next_state :: (MonadReader state m, MonadFail m) =>
+  next_state :: (MonadIO m, MonadReader state m, MonadFail m) =>
     trans -> m (StateDistribution state)
   transitions :: MonadReader state m => m [trans]
   score :: state -> score
@@ -56,13 +57,13 @@ class (Ord score, Bounded score)
 apply_transition ::
      GameState state transition score
   => MonadState state m
-  => MonadRandom m
+  => MonadIO m
   => MonadFail m
   => transition -> m ()
 apply_transition transition =
       get
   >>= runReaderT (next_state transition)
-  >>= sample
+  >>= sampleIO
   >>= put
 
 is_final ::
@@ -76,7 +77,7 @@ is_final = asks (not . null . transitions)
 force_move ::
      GameState state transition score
   => MonadState state m
-  => MonadRandom m
+  => MonadIO m
   => MonadFail m
   => m ()
 force_move = get >>= head . transitions >>= apply_transition
@@ -84,14 +85,14 @@ force_move = get >>= head . transitions >>= apply_transition
 force_game ::
      GameState state transition score
   => MonadState state m
-  => MonadRandom m
+  => MonadIO m
   => m ()
 force_game = whileJust_ (runMaybeT force_move) return
 
 force_n_steps ::
      GameState state transition score
   => MonadState state m
-  => MonadRandom m
+  => MonadIO m
   => MonadFail m
   => Int -> m ()
 force_n_steps steps = replicateM_ steps force_move

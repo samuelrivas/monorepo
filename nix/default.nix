@@ -153,10 +153,6 @@ let
         searchlib = ./../src/haskell/searchlib/nix;
       };
 
-    # We need to run an onder version of random fu for some applications, so
-    # keeping them at haskellPackagesPatched while we don't update them to
-    # compile with the latest verison
-
     adventlib = pkgs-sam.haskellPackages.adventlib;
     adventlib-old-1 = pkgs-sam.haskellPackages.adventlib;
     boardgamer = pkgs-sam.haskellPackages.boardgamer;
@@ -167,7 +163,7 @@ let
     mk-conf-file = pkgs-sam.haskellPackages.mk-conf-file;
     monad-emit = pkgs-sam.haskellPackages.monad-emit;
     name-generator = pkgs-sam.haskellPackages.name-generator;
-    onirim-helper = pkgs-sam.haskellPackagesPatched.onirim-helper;
+    onirim-helper = pkgs-sam.haskellPackages.onirim-helper;
     parselib = pkgs-sam.haskellPackages.parselib;
     perlude = pkgs-sam.haskellPackages.perlude;
     searchlib = pkgs-sam.haskellPackages.searchlib;
