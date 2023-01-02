@@ -94,5 +94,5 @@ countTrees bidim move =
 main :: IO ()
 main = do
   bidim <- fromText <$> getInput
-  print $ countTrees bidim 1
+  print $ countTrees bidim 2
   print . product $ countTrees bidim <$> [1..5]
