@@ -18,7 +18,7 @@ import           Data.Generics.Labels ()
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet
 import           Data.List            (sortBy)
-import           Data.Maybe           (catMaybes, fromJust)
+import           Data.Maybe           (catMaybes, fromJust, mapMaybe)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, solve)
 import           Text.Parsec.Bidim    (bidim)
@@ -56,7 +56,7 @@ isLowPoint floorMap coord =
   let
     getValue = getHeight floorMap
     positionValue = fromJust $ getValue coord
-    neighbours = catMaybes $ getValue <$> cross coord
+    neighbours = mapMaybe getValue $ cross coord
   in
     all (> positionValue) neighbours
 
