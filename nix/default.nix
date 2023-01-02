@@ -209,7 +209,7 @@ let
     # Contests, puzzles, etc
     # ======================
     adventofcode-2019 = pkgs-sam.haskellPackages.adventofcode-2019;
-    adventofcode-2020 = pkgs-sam.haskellPackagesPatched.adventofcode-2020;
+    adventofcode-2020 = pkgs-sam.haskellPackages.adventofcode-2020;
     adventofcode-2021 = pkgs-sam.haskellPackagesPatched.adventofcode-2021;
   };
 in

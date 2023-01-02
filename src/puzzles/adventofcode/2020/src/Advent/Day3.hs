@@ -86,7 +86,10 @@ path bidim move =
 -- TODO: This is unreadable, arrange it better
 countTrees :: Bidim Char -> Int -> Int
 countTrees bidim move =
-  length . filter (== Just '#') $ flip view bidim . at <$> path bidim move
+  let
+    toChar pos = view (at pos) bidim
+  in
+    length . filter (== Just '#') $ toChar <$> path bidim move
 
 main :: IO ()
 main = do
