@@ -49,7 +49,7 @@ parser :: Parser Parsed
 parser = bidim (subtract 48 . fromEnum)
 
 getHeight :: Bidim Int -> Coord -> Maybe Int
-getHeight =  flip (view . cell)
+getHeight b c = view (cell c) b
 
 isLowPoint :: Bidim Int -> Coord -> Bool
 isLowPoint floorMap coord =
