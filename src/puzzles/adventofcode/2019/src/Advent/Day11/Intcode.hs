@@ -64,7 +64,7 @@ exec :: Monad m => IntcodeT m a -> ComputerState -> m (ComputerState, Text)
 exec = flip execRWST () . unIntcodeT
 
 get_mode :: Integer -> [Mode] -> Mode
-get_mode pos = fromMaybe Position . preview (ix . fromIntegral $ pos)
+get_mode pos = fromMaybe Position . preview (ix $ fromIntegral pos)
 
 get_2_modes :: [Mode] -> (Mode, Mode)
 get_2_modes modes =
@@ -199,7 +199,7 @@ step_program :: Monad m => IntcodeT m ()
 step_program =
   pop_opcode >>= \case
     Just opc -> run_opcode opc
-    Nothing -> abort "could not pop next opcode"
+    Nothing  -> abort "could not pop next opcode"
 
 run_program :: Monad m => IntcodeT m ()
 run_program = whileM_ (uses #status (== Running)) step_program
