@@ -1,8 +1,6 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -11,17 +9,9 @@ module Advent.Day9 where
 
 import           Perlude
 
-import           Control.Lens     (_2, at, both, each, foldlOf, over, view)
-import           Control.Monad    (fmap, guard)
 import           Data.Advent      (Day (..))
-import           Data.IntMultiSet (IntMultiSet)
-import qualified Data.IntMultiSet as IntMultiSet
-import           Data.List        (filter, find, maximum, minimum, splitAt,
-                                   tails, take)
-import           Data.Map         (Map)
-import qualified Data.Map         as Map
-import           Data.Maybe       (fromJust, isJust)
-import qualified Data.Set         as Set
+import           Data.List        (find, tails)
+import           Data.Maybe       (fromJust)
 import qualified Data.Text        as Text
 import qualified System.IO.Advent as IOAdvent
 

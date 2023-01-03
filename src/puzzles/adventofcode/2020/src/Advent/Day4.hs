@@ -1,8 +1,6 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -17,7 +15,7 @@ import qualified Data.Map             as Map
 import           Data.Maybe           (isJust)
 import           Data.Set             (Set, difference, member)
 import qualified Data.Set             as Set
-import           Data.Text            (Text, dropEnd, takeEnd, unpack)
+import           Data.Text            (dropEnd, takeEnd)
 import qualified Data.Text            as Text
 import qualified System.IO.Advent     as IOAdvent
 import           Text.Parsec          (char, letter, noneOf, oneOf, sepBy,

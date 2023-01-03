@@ -1,8 +1,6 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -10,19 +8,13 @@ module Advent.Day11 where
 
 import           Perlude
 
-import           Control.Lens     (_1, _2, at, both, each, foldlOf, over,
-                                   preview, set, view)
-import           Control.Monad    (guard)
+import           Control.Lens     (_1, _2, at, view)
 import           Data.Advent      (Day (..))
 import           Data.Bidim       (Bidim, Coord, plus)
 import qualified Data.Bidim       as Bidim
-import           Data.List        (elem, find, foldl', sort, unfoldr)
-import           Data.Map         (Map)
+import           Data.List        (find)
 import qualified Data.Map         as Map
 import           Data.Maybe       (catMaybes, fromJust, fromMaybe, isJust)
-import           Data.Set         (Set)
-import qualified Data.Set         as Set
-import qualified Data.Text        as Text
 import qualified System.IO.Advent as IOAdvent
 
 -- TODO: Remove the duplication between solution 1 and 2

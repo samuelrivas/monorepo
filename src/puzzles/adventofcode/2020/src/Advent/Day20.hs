@@ -1,8 +1,6 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -10,19 +8,13 @@ module Advent.Day20 where
 
 import           Perlude
 
-import           Control.Lens     (_1, _2, at, both, each, foldlOf, non, over,
-                                   view)
-import           Control.Monad    (guard)
+import           Control.Lens     (_1, _2, at, non, view)
 import           Data.Advent      (Day (..))
-import           Data.Bidim       (Bidim, Coord, boundaries, fromText,
-                                   showBidim)
-import           Data.Hashable    (hash)
-import           Data.IntMultiSet (IntMultiSet)
-import qualified Data.IntMultiSet as IntMultiSet
-import           Data.List        (find, foldl', sort, unfoldr)
+import           Data.Bidim       (Bidim, boundaries, fromText, showBidim)
+import           Data.List        (foldl')
 import           Data.Map.Strict  (Map)
 import qualified Data.Map.Strict  as Map
-import           Data.Maybe       (fromJust, fromMaybe, isJust)
+import           Data.Maybe       (fromJust, fromMaybe)
 import           Data.Set         (Set)
 import qualified Data.Set         as Set
 import qualified Data.Text        as Text
@@ -136,4 +128,4 @@ main = do
   print . solution1 $ input
 
   putStr "Solution 2: "
-  print $ "NA"
+  print ("NA" :: Text)

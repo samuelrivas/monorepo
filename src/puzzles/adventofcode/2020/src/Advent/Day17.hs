@@ -10,20 +10,13 @@ module Advent.Day17 where
 
 import           Perlude
 
-import           Control.Lens        (_1, _2, _3, _4, at, both, each, foldlOf,
-                                      modifying, non, over, set, toListOf, use,
-                                      view)
-import           Control.Monad       (filterM, guard, replicateM_)
+import           Control.Lens        (_1, _2, _3, _4, at, non, toListOf, use)
+import           Control.Monad       (filterM, replicateM_)
 import           Control.Monad.State (MonadState, evalState, get, gets, put)
 import           Data.Advent         (Day (..))
 import           Data.Bidim          (Bidim, fromText, showBidim)
-import           Data.List           (find, foldl', sort, unfoldr)
 import           Data.Map.Strict     (Map)
 import qualified Data.Map.Strict     as Map
-import           Data.Maybe          (fromJust, isJust)
-import           Data.Set            (Set)
-import qualified Data.Set            as Set
-import qualified Data.Text           as Text
 import qualified System.IO.Advent    as IOAdvent
 
 example :: Text

@@ -208,9 +208,9 @@ let
 
     # Contests, puzzles, etc
     # ======================
-    adventofcode-2019 = pkgs-sam.haskellPackagesPatched.adventofcode-2019;
-    adventofcode-2020 = pkgs-sam.haskellPackagesPatched.adventofcode-2020;
-    adventofcode-2021 = pkgs-sam.haskellPackagesPatched.adventofcode-2021;
+    adventofcode-2019 = pkgs-sam.haskellPackages.adventofcode-2019;
+    adventofcode-2020 = pkgs-sam.haskellPackages.adventofcode-2020;
+    adventofcode-2021 = pkgs-sam.haskellPackages.adventofcode-2021;
   };
 in
 # All official packages plus ours. We also add pkgs-sam as a set with all our

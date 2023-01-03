@@ -1,26 +1,20 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Advent.Day3 where
 
-import           Prelude              hiding (lines, putStrLn, read)
+import           Prelude          hiding (lines, putStrLn, read)
 import qualified Prelude
 
-import           Control.Lens         (_2, at, view)
-import           Control.Monad.Reader (MonadReader, asks)
-import           Data.Advent          (Day (..))
-import           Data.Bidim           (Bidim, Coord, boundaries, fromText, plus)
-import           Data.List            (unfoldr)
-import           Data.Maybe           (fromJust)
-import           Data.Text            (Text, count, lines, singleton, splitOn,
-                                       unpack)
-import qualified Data.Text            as Text
-import           Data.Text.IO         (putStrLn)
-import qualified System.IO.Advent     as IOAdvent
+import           Control.Lens     (_2, at, view)
+import           Data.Advent      (Day (..))
+import           Data.Bidim       (Bidim, Coord, boundaries, fromText, plus)
+import           Data.List        (unfoldr)
+import           Data.Text        (Text, unpack)
+import qualified System.IO.Advent as IOAdvent
 
 -- TODO: Move read :: Text -> a to our own prelude
 read :: Read a => Text -> a
@@ -86,10 +80,13 @@ path bidim move =
 -- TODO: This is unreadable, arrange it better
 countTrees :: Bidim Char -> Int -> Int
 countTrees bidim move =
-  length . filter (== Just '#') $ flip view bidim . at <$> path bidim move
+  let
+    toChar pos = view (at pos) bidim
+  in
+    length . filter (== Just '#') $ toChar <$> path bidim move
 
 main :: IO ()
 main = do
   bidim <- fromText <$> getInput
-  print $ countTrees bidim 1
+  print $ countTrees bidim 2
   print . product $ countTrees bidim <$> [1..5]

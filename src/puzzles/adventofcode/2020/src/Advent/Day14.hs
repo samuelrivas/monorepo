@@ -12,10 +12,9 @@ import           Data.Functor          (($>))
 import           Data.Generics.Labels  ()
 import           Data.List             (foldl')
 import qualified Data.Map              as Map
-import qualified Data.Text             as Text
-import           Text.Parsec           (between, char, many1, oneOf, sepEndBy,
-                                        try, (<?>), (<|>))
-import           Text.Parsec.Parselib  (Parser, literal, num, text1)
+import           Text.Parsec           (between, char, many1, sepEndBy, try,
+                                        (<?>), (<|>))
+import           Text.Parsec.Parselib  (Parser, literal, num)
 
 import           Advent.Day14.Internal
 import           Advent.Templib        (Day (..), getInput', getParsedInput)

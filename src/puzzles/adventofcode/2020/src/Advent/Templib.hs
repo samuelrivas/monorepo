@@ -31,8 +31,6 @@ module Advent.Templib (
 import           Perlude
 
 import           Control.Lens               (view)
-import           Control.Monad.Fail         (MonadFail)
-import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Reader       (MonadReader)
 import           Control.Monad.Trans.Class  (MonadTrans)
 import           Control.Monad.Trans.Reader (ReaderT, runReaderT)
@@ -40,10 +38,7 @@ import           Data.Advent                (Day (..))
 import           Data.Functor.Identity      (Identity, runIdentity)
 import           Data.Generics.Labels       ()
 import           System.IO.Advent           (getInput, getParsedInput)
-import           Text.Parsec                (char, sepEndBy)
 import           Text.Parsec.Advent         (listOfNum)
-import           Text.Parsec.Parselib       (num, unsafeParseAll)
-import           Text.Parsec.Text           (Parser)
 
 import           Advent.Templib.Internal
 
