@@ -8,7 +8,6 @@ import           Perlude
 import           Data.List            (foldl1')
 import           Data.Set             (Set)
 import qualified Data.Set             as Set
-import           Data.Text            (unpack)
 import           Text.Parsec          (char, noneOf, sepBy, sepEndBy)
 import           Text.Parsec.Parselib (text1)
 import           Text.Parsec.Text     (Parser)

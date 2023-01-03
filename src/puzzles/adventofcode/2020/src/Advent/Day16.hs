@@ -11,7 +11,6 @@ module Advent.Day16 where
 import           Perlude
 
 import           Control.Lens          (_1, _2, view)
-import           Control.Monad.Fail    (MonadFail)
 import           Data.Generics.Labels  ()
 import           Data.List             (foldl', intersect, sort, transpose)
 import           Data.Text             (isPrefixOf)

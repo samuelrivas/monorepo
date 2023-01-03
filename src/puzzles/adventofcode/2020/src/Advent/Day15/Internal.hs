@@ -10,9 +10,8 @@ module Advent.Day15.Internal (
 
 import           Perlude
 
-import           Data.List      (zip)
-import           Data.Map       (Map, fromList)
-import           GHC.Generics   (Generic)
+import           Data.Map     (Map, fromList)
+import           GHC.Generics (Generic)
 
 data GameState = GameState
     { ages       :: Map Int Int

@@ -1,8 +1,6 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -14,7 +12,8 @@ import           Data.List        (find, tails)
 import           Data.Maybe       (fromJust)
 import           Data.Text        (splitOn)
 
-import           Advent.Templib
+import           Advent.Templib   (Day (..), MonadAdvent, input, runAdventT,
+                                   solutions)
 import qualified System.IO.Advent as IOAdvent
 
 targetValue :: Int
@@ -49,15 +48,13 @@ solve2 = fmap product <$> find ((== targetValue) . sum) . combinations 3
 solve1' :: MonadAdvent [Int] m => m Int
 solve1' = do
   p <- input
-  return $ fromJust . fmap product <$> find ((== targetValue) . sum) . combinations 2 $ p
+  return $ product . fromJust <$> find ((== targetValue) . sum) . combinations 2 $ p
 
 solve2' :: MonadAdvent [Int] m => m Int
 solve2' = do
   p <- input
-  return $ fromJust . fmap product <$> find ((== targetValue) . sum) . combinations 3 $ p
+  return $ product . fromJust <$> find ((== targetValue) . sum) . combinations 3 $ p
 
 main :: IO ()
-main = do
-  input <- parse <$> getInput
-  runAdventT (solutions solve1' solve2') input
+main = getInput >>= runAdventT (solutions solve1' solve2') . parse
 

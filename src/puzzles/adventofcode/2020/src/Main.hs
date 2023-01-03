@@ -15,7 +15,6 @@ import qualified Advent.Day18
 import qualified Advent.Day19
 import qualified Advent.Day2
 import qualified Advent.Day20
-import qualified Advent.Day21
 import qualified Advent.Day3
 import qualified Advent.Day4
 import qualified Advent.Day5

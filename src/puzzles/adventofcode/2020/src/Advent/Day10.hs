@@ -15,8 +15,7 @@ import           Data.List          (sort)
 import           Data.Matrix        (Matrix, getElem, matrix, ncols)
 import           Data.Set           (member)
 import qualified Data.Set           as Set
-import qualified Data.Text          as Text
-import           System.IO.Advent   (getInput, getParsedInput, solve)
+import           System.IO.Advent   (getInput, solve)
 import           Text.Parsec.Advent (listOfNum)
 import           Text.Parsec.Text   (Parser)
 

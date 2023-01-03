@@ -1,6 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Advent.Day13 where
 
@@ -9,7 +11,7 @@ import           Perlude
 import           Advent.Templib       (Day (..), getInput', getParsedInput)
 import           Control.Lens         (_1, _2, over, preview, view)
 import           Data.Functor         (($>))
-import           Data.List            (all, elemIndex, find, maximumBy)
+import           Data.List            (elemIndex, find, maximumBy)
 import           Data.Maybe           (fromJust, mapMaybe)
 import           Text.Parsec          (char, sepBy, (<|>))
 import           Text.Parsec.Parselib (digitsAsNum)
@@ -107,16 +109,16 @@ solveConstrain base multiplier busId shift =
     targetValue = busId - (shift `mod` busId)
   in do
     previousPasses <- elemIndex targetValue $ (`mod` busId) <$> previousSolutions
-    pure $ previousPasses * multiplier
+    _ <- pure $ previousPasses * multiplier
     pure $ take 10 previousSolutions
 
 step previousSol multiplier busId shift =
   let
-    candidates = take busId $ (+ previousSol) . (* multiplier) <$> [0..]
+    candidates' = take busId $ (+ previousSol) . (* multiplier) <$> [0..]
     targetValue = busId - (shift `mod` busId)
-    test = (== targetValue) . (`mod` busId)
+    test' = (== targetValue) . (`mod` busId)
   in
-    (find test candidates, candidates, targetValue)
+    (find test' candidates', candidates', targetValue)
 
 test :: [(Int, Int)] -> Int -> Bool
 test schedule candidate =
@@ -142,10 +144,10 @@ solve2 schedule = head . dropWhile (not . test schedule) . candidates $ schedule
 
 main :: IO ()
 main = do
-  input <- getParsedInput day parser
+  _input <- getParsedInput day parser
 
   putStr "Solution 1: "
-  print $ "NA"
+  print ("NA" :: Text)
 
   putStr "Solution 2: "
   print . solve2 $ zip buses shifts

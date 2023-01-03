@@ -1,7 +1,6 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -14,7 +13,7 @@ import           Control.Lens         (ix, preview)
 import           Data.Advent          (Day (D2))
 import           Data.Bool.Boollib    (xor)
 import           Data.Maybe           (fromJust)
-import           Data.Text            (Text, count, singleton)
+import           Data.Text            (count, singleton)
 import qualified Data.Text            as Text
 import qualified System.IO.Advent     as IOAdvent
 import           Text.Parsec          (anyChar, char, endOfLine, noneOf,
