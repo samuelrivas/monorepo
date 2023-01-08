@@ -9,6 +9,10 @@ rec {
   # Create a haskell package with haskell-mk included and enough meta to create
   # shell environments
   #
+  # We export Werror to fail the build by default (assuming that the package
+  # Makefile does not do GHC-FLAGS := ..., but GHC-FLAGS += ...), but you can
+  # unset that when running in a sandbox for quick iterations.
+  #
   # FIXME: There are "official" ways of doing this in nixpkgs now, may be a good
   # idea to rework this to be more standard
   #
@@ -27,7 +31,7 @@ rec {
       drv-args = {
 
         inherit name src;
-
+        GHC-FLAGS = "-Werror";
         buildInputs = [
           ghc
           haskell-mk
@@ -62,7 +66,7 @@ rec {
       drv-args = {
 
         inherit name src;
-
+        GHC-FLAGS = "-Werror";
         buildInputs = [
           ghc
           haskell-lib-mk
