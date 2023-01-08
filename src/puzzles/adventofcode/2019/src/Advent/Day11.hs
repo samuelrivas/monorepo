@@ -18,11 +18,9 @@ import           Prelude               hiding (Left, Right, concat, getLine,
                                         putStrLn, readFile, show)
 
 import           Control.Lens          (_1, _2, _3, assign, at, modifying, non,
-                                        over, set, toListOf, traverse, use,
-                                        view)
+                                        over, set, toListOf, use, view)
 import           Control.Monad.Loops   (whileM_)
 import           Control.Monad.State   (StateT, lift, runStateT)
-import           Data.Foldable         (maximum, minimum)
 import           Data.Functor.Identity (runIdentity)
 import           Data.Generics.Labels  ()
 import           Data.Map.Strict       (Map, empty, keys, size)

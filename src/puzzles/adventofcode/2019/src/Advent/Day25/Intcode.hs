@@ -39,7 +39,6 @@ import           Prelude                      hiding (getLine, putStr, putStrLn,
 import           Control.Lens                 (assign, at, ix, modifying, non,
                                                preview, use, uses, view)
 import           Control.Monad                (when)
-import           Control.Monad.Fail           (MonadFail)
 import           Control.Monad.IO.Class       (MonadIO (..))
 import           Control.Monad.Loops          (whileM_)
 import           Control.Monad.Reader         (MonadReader)

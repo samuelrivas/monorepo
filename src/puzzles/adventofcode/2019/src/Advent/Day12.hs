@@ -13,8 +13,8 @@
 
 module Advent.Day12 where
 
-import           Control.Lens          (Getter, each, over, set, sumOf, to,
-                                        toListOf, traverse, view, _1, _2, _3)
+import           Control.Lens          (Getter, _1, _2, _3, each, over, set,
+                                        sumOf, to, toListOf, view)
 import           Control.Monad         (replicateM_)
 import           Control.Monad.Loops   (whileM)
 import           Control.Monad.State   (State, evalState, execState, get,

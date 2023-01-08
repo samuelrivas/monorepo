@@ -6,7 +6,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
@@ -23,9 +22,9 @@ import           Control.Monad.IO.Class (liftIO)
 import           Data.Advent            (Day (..))
 import           Data.Functor.Identity  (runIdentity)
 import           Data.Generics.Labels   ()
+import           Data.Hashable          (Hashable)
 import           Data.HashSet           (HashSet)
 import qualified Data.HashSet           as HashSet
-import           Data.Hashable          (Hashable)
 import           Data.List              (find, subsequences)
 import           Data.Text              (Text, pack, splitOn, unlines, unpack)
 import qualified Data.Text              as Text

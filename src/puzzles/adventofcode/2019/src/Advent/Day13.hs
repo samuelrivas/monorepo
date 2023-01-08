@@ -20,12 +20,10 @@ import           Advent.Day13.GameInternal
 import           Advent.Day13.Intcode      hiding (initial_state)
 import           Advent.Day13.Internal     hiding (initial_state)
 import           Control.Lens              (_1, _2, assign, at, ix, modifying,
-                                            set, toListOf, traverse, use, uses,
-                                            view)
+                                            set, toListOf, use, uses, view)
 import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.State       (StateT, get, lift, runStateT)
 import           Data.Advent               (Day (..))
-import           Data.Foldable             (maximum, minimum)
 import           Data.Functor.Identity     (runIdentity)
 import           Data.Generics.Labels      ()
 import           Data.Map.Strict           (Map, keys)

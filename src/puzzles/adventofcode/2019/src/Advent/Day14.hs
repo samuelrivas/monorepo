@@ -6,7 +6,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -15,8 +14,7 @@ module Advent.Day14 where
 
 import           Prelude              hiding (lines, readFile, unlines)
 
-import           Control.Lens         (_1, _2, at, non, over, set, traverse,
-                                       view)
+import           Control.Lens         (_1, _2, at, non, over, set, view)
 import           Data.Advent          (Day (..))
 import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()

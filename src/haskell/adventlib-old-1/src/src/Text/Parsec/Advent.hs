@@ -7,10 +7,9 @@ module Text.Parsec.Advent (
 
 import           Perlude
 
-import           Data.Advent          (Day)
 import           Text.Parsec          (sepEndBy)
 import           Text.Parsec.Char     (char)
-import           Text.Parsec.Parselib (num, unsafeParseAll)
+import           Text.Parsec.Parselib (num)
 import           Text.Parsec.Text     (Parser)
 
 -- | Parse new line separated integers into a list of 'Num'
