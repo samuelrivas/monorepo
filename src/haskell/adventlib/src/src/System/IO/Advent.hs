@@ -11,12 +11,10 @@ module System.IO.Advent (
 
 import           Perlude
 
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Data.Advent            (Day (..))
-import           Data.Text              (Text)
-import           System.FilePath        ((</>))
-import           Text.Parsec.Parselib   (Parser, unsafeParseAll)
-import           UnliftIO.Environment   (getEnv)
+import           Data.Advent          (Day (..))
+import           System.FilePath      ((</>))
+import           Text.Parsec.Parselib (Parser, unsafeParseAll)
+import           UnliftIO.Environment (getEnv)
 
 -- | Given a suitable 'Parser', get the parsed input for a given 'Day'
 getParsedInput :: MonadIO m => MonadFail m => Day -> Parser a -> m a

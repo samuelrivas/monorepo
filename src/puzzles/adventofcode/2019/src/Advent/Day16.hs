@@ -6,7 +6,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -18,7 +17,7 @@ import           Prelude          hiding (lines, putStrLn, readFile, show,
 import qualified Prelude
 
 import           Data.Advent      (Day (..))
-import           Data.List        (concatMap, unfoldr)
+import           Data.List        (unfoldr)
 import           Data.Text        (Text, pack, unpack)
 import qualified Data.Text        as Text
 import           Data.Text.IO     (putStrLn)

@@ -24,8 +24,8 @@ PACKAGE-VERSION ?= 1.0
 PACKAGE-DEPS ?= $(error "you must define PACKAGE-DEPS")
 EXPOSED-MODULES ?= $(error "you must define PACKAGE-MODULES")
 
-GHC-FLAGS ?= -O3 -Wall -j
-GHC-PROF-FLAGS ?= -O3 -Wall -j -prof
+GHC-FLAGS += -O3 -Wall -j
+GHC-PROF-FLAGS += -O3 -Wall -j -prof
 
 # Internal variables
 # ==================

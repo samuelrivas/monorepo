@@ -4,7 +4,6 @@
 
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -14,7 +13,7 @@ import           Prelude          hiding (getLine, lines)
 
 import           Control.Lens     (_1, _2, _3, over, view)
 import           Data.Advent      (Day (..))
-import           Data.Foldable    (concatMap, foldl')
+import           Data.Foldable    (foldl')
 import           Data.Map         (Map, empty, insert, insertWith, keysSet, (!))
 import           Data.Set         (Set, intersection)
 import qualified Data.Set         as Set

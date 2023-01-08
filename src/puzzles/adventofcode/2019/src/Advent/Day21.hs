@@ -1,1 +1,4 @@
-module Advent.Day21 where main = undefined
+module Advent.Day21 where
+
+main :: IO ()
+main = undefined

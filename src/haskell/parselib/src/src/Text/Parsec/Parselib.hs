@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
@@ -29,15 +28,14 @@ module Text.Parsec.Parselib (
   ) where
 
 import           Perlude
-import qualified Prelude
 
 import           Data.Char        (digitToInt)
 import           Data.Foldable    (foldl')
 import           Data.Functor     (($>))
+import qualified Text.Parsec      as Parsec
 import           Text.Parsec      (ParseError, anyChar, char, digit, eof,
                                    getInput, lookAhead, many, many1, manyTill,
                                    option, string, (<|>))
-import qualified Text.Parsec      as Parsec
 import           Text.Parsec.Text (Parser)
 
 -- Parse a single digit and return it as a Num value
