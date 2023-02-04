@@ -79,6 +79,7 @@
 (helm-mode)
 (projectile-mode)
 
+(defvar helm-completing-read-handlers-alist)
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
 (add-to-list 'helm-completing-read-handlers-alist
              '(org-capture . helm-org-completing-read-tags))
@@ -86,6 +87,8 @@
              '(org-set-tags . helm-org-completing-read-tags))
 
 ;; LaTeX mode
+(defvar eglot-mode-map)
+(defvar eglot-ignored-server-capabilities)
 (defun my-latex-mode-hook ()
   "LaTeX mode hook"
   (yas-minor-mode)
@@ -146,6 +149,7 @@
 ;; Haskell mode
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
 (add-hook 'haskell-mode-hook 'eglot-ensure)
+(defvar haskell-stylish-on-save)
 (defun my-haskell-mode-hook ()
   (yas-minor-mode)
   (company-mode)

@@ -48,5 +48,6 @@ stdenv.mkDerivation rec {
     DIR=$out/share/emacs
     mkdir $DIR -p
     cp -r ../build "$DIR/site-lisp"
+    cp *.el "$DIR/site-lisp"
   '';
 }
