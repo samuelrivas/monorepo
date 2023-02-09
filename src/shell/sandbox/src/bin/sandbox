@@ -47,7 +47,6 @@ sandbox() {
     nix-shell                                                   \
         --pure                                                  \
         --show-trace                                            \
-        --indirect --add-root "$roots_dir/$derivation"          \
         --keep XAUTHORITY                                       \
         --command "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK; return" \
         -A "${derivation}.sandbox"                              \
