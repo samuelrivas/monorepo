@@ -6,6 +6,12 @@
  * The movement id is the sha1 of the all the original used fields concatenated
  * using semicolons to separate them. Check the code below for more details
  * (look for sha1 calls)
+ *
+ * The input is a csv with the following format:
+ *
+ * 0  ,1      ,2   ,3                ,4           ,5    ,6          ,7       ,8       ,9   ,10
+ * day,account,type,asset/description,amount asset,value,amount cash,courtage,currency,ISIN,result
+ *
  */
 
 #include <iostream>
@@ -69,8 +75,8 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, ';');
 
-    if (tokens.size() != 10) {
-      cerr << format("Line '%s' produces %d tokens, we want 10\n")
+    if (tokens.size() != 11) {
+      cerr << format("Line '%s' produces %d tokens, we want 11\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
