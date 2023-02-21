@@ -1,6 +1,6 @@
 {
   "nodes": {
-    "nixpkgs-patched": {
+    "nixpkgs-sam": {
       "locked": {
         "lastModified": 1652182392,
         "narHash": "sha256-H9Bmor+kfogrE0X7Fi5sh0gCUWDG4pnmYxedJyIT41A=",
@@ -48,7 +48,7 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs-patched": "nixpkgs-patched",
+        "nixpkgs-sam": "nixpkgs-sam",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixpkgs-upstream": "nixpkgs-upstream"
       }
