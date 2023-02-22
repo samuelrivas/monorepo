@@ -2,7 +2,6 @@
   add-sandbox,
   bc,
   cpplint,
-  empty-builder,
   gdb,
   gcc,
   rndlib,
