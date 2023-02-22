@@ -8,19 +8,22 @@
   };
   outputs = { self, nixpkgs-stable, nixpkgs-upstream, nixpkgs-sam }:
     let
-      supportedSystems = [ "x86_64-linux" ];
+      supported-systems = [ "x86_64-linux" ];
       lib = nixpkgs-stable.lib;
-      forAllSystems = lib.genAttrs supportedSystems;
-      pkgs-sam = nixpkgs: {
-        udp-cat = with nixpkgs;
-          callPackage ./nix/pkgs/applications/networking/tools/udp-cat { };
-      };
+      for-all-systems = lib.genAttrs supported-systems;
+      # pkgs-sam = nixpkgs: {
+      #   udp-cat = with nixpkgs;
+      #     callPackage ./nix/pkgs/applications/networking/tools/udp-cat { };
+      # };
+      pkgs-sam = import ./nix/pkgs-sam.nix;
     in rec {
-      overlays.default = final: prev: pkgs-sam prev;
-      packages = forAllSystems (system:
+      overlays.default = final: prev: (prev // pkgs-sam prev);
+
+      # TODO: use the overlay here, but you will need to have legacyPackages to
+      # avoid cluttering this with all nixpkgs
+      packages = for-all-systems (system:
         let all-pkgs = pkgs-sam (import nixpkgs-stable { inherit system; });
         in all-pkgs // { default = all-pkgs.udp-cat; }
       );
-      # defaultPackage = forAllSystems (system: packages.${system}.udp-cat);
     };
 }
