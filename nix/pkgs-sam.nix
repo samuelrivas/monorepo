@@ -21,6 +21,40 @@ let
     derivations-sam = {
       # Emacs stuff
       # =============
+      emacs-config = callPackage ./../src/elisp/emacs-config/nix {
+        full-user-name = "";
+        extra-config = "";
+      };
+
+      # An emacs wrapper with the needed packages accessible
+      #
+      # FIXME This does not work in the flake, we still need to have a clean way
+      # to feed in configuration, so this is just here so that it builds, but
+      # not everything works as instended. The idea is to mvoe this out of the
+      # monorepo into a private one to avoid poluting this with personal
+      # configuration.
+      my-emacs = callPackage ./pkgs/applications/editors/my-emacs {
+        inherit (final.emacsPackages)
+          colorThemeSolarized
+          company
+          eglot
+          erlangMode
+          flycheck-haskell
+          groovy-mode
+          haskell-mode
+          helm
+          helm-ls-git
+          helm-org
+          htmlize
+          markdown-mode
+          nix-mode
+          projectile
+          terraform-mode
+          yaml-mode
+          yasnippet;
+        emacs-config-options.denylisted-modes = [ "erlang" "ocaml" ];
+      };
+
       # aspell needs to be configured to find the dictionaries
       aspell-wrapped =
         callPackage ./pkgs/development/libraries/aspell-wrapped { };
