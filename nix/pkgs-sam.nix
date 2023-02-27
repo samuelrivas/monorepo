@@ -18,6 +18,44 @@ let
     # do add all our pakcages to the top level namespace though
     inherit libs-sam;
 
+    haskell-lib = import ./lib/haskell.nix {
+      inherit (final) pkgs;
+      inherit (final.pkgs) haskell-test-mk haskell-mk haskell-lib-mk;
+      emacs = pkgs.my-emacs;
+    };
+
+      haskellPackages = final.haskell-lib.mk-haskell-packages
+        prev.haskellPackages final.samsHaskellPackagesGen;
+
+      haskellPackagesPatched = pkgs.haskell-lib.mk-haskell-packages
+        pkgs.pkgs-patched.haskellPackages pkgs.samsHaskellPackagesGen;
+
+      ## For some reason I need to explicitly pass haskellPackages here, otherwise
+      ## the derivations get the version before overriding (i.e. the one without
+      ## my packages)
+      samsHaskellPackagesGen = hp: builtins.mapAttrs
+        (name: path: hp.callPackage path { haskellPackages = hp; })
+        {
+          adventlib-old-1 = ./../src/haskell/adventlib-old-1/nix;
+          adventlib = ./../src/haskell/adventlib/nix;
+          adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
+          adventofcode-2020 = ./../src/puzzles/adventofcode/2020/nix;
+          adventofcode-2021 = ./../src/puzzles/adventofcode/2021/nix;
+          boardgamer = ./../src/haskell/boardgamer/nix;
+          boollib = ./../src/haskell/boollib/nix;
+          clean-clocks = ./../src/haskell/clean-clocks/nix;
+          example-lib =  ./../src/haskell/example-lib/nix;
+          hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
+          low-battery = ./../src/haskell/low-battery/nix;
+          mk-conf-file = ./../src/haskell/mk-conf-file/nix;
+          monad-emit = ./../src/haskell/monad-emit/nix;
+          name-generator =  ./../src/haskell/name-generator/nix;
+          onirim-helper = ./../src/haskell/onirim-helper/nix;
+          parselib = ./../src/haskell/parselib/nix;
+          perlude = ./../src/haskell/perlude/nix;
+          searchlib = ./../src/haskell/searchlib/nix;
+        };
+
     derivations-sam = {
       # Emacs stuff
       # =============
@@ -59,6 +97,37 @@ let
       aspell-wrapped =
         callPackage ./pkgs/development/libraries/aspell-wrapped { };
 
+      # Haskell stuff
+      # =============
+
+      # FIXME: haskell-mk (and maybe emacs) should be passed as arguments to
+      # the derivations, currently we are implicitly adding them as dependencies
+      # because they are part of haskell-lib. The problem with the current setting
+      # is that we cannot change any of them without affecting all our haskell
+      # packages.
+      #
+      # haskell-lib-mk cannot be added to haskell-pkg as mk-conf-file uses
+      # haskell-pkg
+
+      haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
+      haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {  };
+      haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {  };
+
+      adventlib = final.haskellPackages.adventlib;
+      adventlib-old-1 = final.haskellPackages.adventlib;
+      boardgamer = final.haskellPackages.boardgamer;
+      boollib = final.haskellPackages.boollib;
+      clean-clocks = final.haskellPackages.clean-clocks;
+      hashcode-photoalbum = final.haskellPackages.hashcode-photoalbum;
+      low-battery = final.haskellPackages.low-battery;
+      mk-conf-file = final.haskellPackages.mk-conf-file;
+      monad-emit = final.haskellPackages.monad-emit;
+      name-generator = final.haskellPackages.name-generator;
+      onirim-helper = final.haskellPackages.onirim-helper;
+      parselib = final.haskellPackages.parselib;
+      perlude = final.haskellPackages.perlude;
+      searchlib = final.haskellPackages.searchlib;
+
       # Shell-scripts
       # =============
       assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {
@@ -82,6 +151,12 @@ let
       asyncq = callPackage ./../src/c++/asyncq/nix { };
 
       udp-cat = final.callPackage ./pkgs/applications/networking/tools/udp-cat { };
+
+      # Contests, puzzles, etc
+      # ======================
+      adventofcode-2019 = final.haskellPackages.adventofcode-2019;
+      adventofcode-2020 = final.haskellPackages.adventofcode-2020;
+      adventofcode-2021 = final.haskellPackages.adventofcode-2021;
     };
     all-pkgs-sam = final.symlinkJoin {
       name = "pkgs-sam";
@@ -93,4 +168,3 @@ in pkgs // pkgs.derivations-sam // {
   # recursion
   derivations-sam = pkgs.derivations-sam // { inherit (pkgs) all-pkgs-sam; };
 }
-
