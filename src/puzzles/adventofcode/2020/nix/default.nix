@@ -38,7 +38,7 @@ haskell-pkg {
       export ADVENT_INPUT_DIR=inputs
     '';
     postFixup = ''
-      wrapProgram "$out/bin/advent" \
+      wrapProgram "$out/bin/advent-2020" \
       --set ADVENT_INPUT_DIR "${advent-input-dir}"
     '';
 
