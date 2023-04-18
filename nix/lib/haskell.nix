@@ -50,7 +50,14 @@ rec {
       drv = pkgs.stdenv.mkDerivation drv-args;
     in
       drv // {
-        sandbox = haskell-shell drv;
+        # sandbox = haskell-shell drv;
+        getCabalDeps = _: [];
+        sandbox = haskellPackages.shellFor {
+          packages = p: [ p.mk-conf-file ];
+          # extraDependencies = p: [ p.haskell-language-server ];
+          withHoogle = true;
+          # buildInputs = [ emacs ];
+        };
       };
 
   haskell-lib-pkg =
