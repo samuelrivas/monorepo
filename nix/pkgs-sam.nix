@@ -24,59 +24,33 @@ let
       emacs = pkgs.my-emacs;
     };
 
-    haskellPackages-new = prev.haskellPackages.override {
-      overrides = h-final: h-prev: {
-        mk-conf-file = callPackage ./../src/haskell/mk-conf-file/nix {
-          inherit (final.haskell-lib) haskell-pkg;
-        };
-        perlude = callPackage ./../src/haskell/perlude/nix {
-          inherit (final.haskell-lib) haskell-lib-pkg;
-        };
-        boollib = callPackage ./../src/haskell/boollib/nix {
-          inherit (final.haskell-lib) haskell-lib-pkg;
-        };
-        parselib = callPackage ./../src/haskell/parselib/nix {
-          inherit (final.haskell-lib) haskell-lib-pkg;
-          haskellPackages = final.haskellPackages-new;
-        };
-        clean-clocks = callPackage ./../src/haskell/clean-clocks/nix {
-          inherit (final.haskell-lib) haskell-pkg;
-          haskellPackages = final.haskellPackages-new;
-        };
+    haskellPackages = prev.haskellPackages.override {
+      overrides = h-final: h-prev:
+        let
+          h-package = h-final.callPackage;
+        in {
+          inherit (final.haskell-lib) haskell-pkg haskell-lib-pkg;
+
+          adventlib = h-package ./../src/haskell/adventlib/nix { };
+          adventlib-old-1 = h-package ./../src/haskell/adventlib-old-1/nix { };
+          adventofcode-2019 = h-package ./../src/puzzles/adventofcode/2019/nix { };
+          adventofcode-2020 = h-package ./../src/puzzles/adventofcode/2020/nix { };
+          adventofcode-2021 = h-package ./../src/puzzles/adventofcode/2021/nix { };
+          boardgamer = h-package ./../src/haskell/boardgamer/nix { };
+          boollib = h-package ./../src/haskell/boollib/nix { };
+          clean-clocks = h-package ./../src/haskell/clean-clocks/nix { };
+          example-lib = h-package  ./../src/haskell/example-lib/nix { };
+          hashcode-photoalbum = h-package  ./../src/haskell/hashcode-photoalbum/nix { };
+          low-battery = h-package ./../src/haskell/low-battery/nix { };
+          mk-conf-file = h-package ./../src/haskell/mk-conf-file/nix { };
+          monad-emit = h-package ./../src/haskell/monad-emit/nix { };
+          name-generator = h-package  ./../src/haskell/name-generator/nix { };
+          onirim-helper = h-package ./../src/haskell/onirim-helper/nix { };
+          parselib = h-package ./../src/haskell/parselib/nix { };
+          perlude = h-package ./../src/haskell/perlude/nix { };
+          searchlib = h-package ./../src/haskell/searchlib/nix { };
       };
     };
-
-    # haskellPackages = final.haskell-lib.mk-haskell-packages
-    #   prev.haskellPackages final.samsHaskellPackagesGen;
-
-    # haskellPackagesPatched = pkgs.haskell-lib.mk-haskell-packages
-    #   pkgs.pkgs-patched.haskellPackages pkgs.samsHaskellPackagesGen;
-
-    ## For some reason I need to explicitly pass haskellPackages here, otherwise
-    ## the derivations get the version before overriding (i.e. the one without
-    ## my packages)
-    # samsHaskellPackagesGen = hp: builtins.mapAttrs
-    #   (name: path: hp.callPackage path { haskellPackages = hp; })
-    #   {
-    #     adventlib-old-1 = ./../src/haskell/adventlib-old-1/nix;
-    #     adventlib = ./../src/haskell/adventlib/nix;
-    #     adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
-    #     adventofcode-2020 = ./../src/puzzles/adventofcode/2020/nix;
-    #     adventofcode-2021 = ./../src/puzzles/adventofcode/2021/nix;
-    #     boardgamer = ./../src/haskell/boardgamer/nix;
-    #     boollib = ./../src/haskell/boollib/nix;
-    #     clean-clocks = ./../src/haskell/clean-clocks/nix;
-    #     example-lib =  ./../src/haskell/example-lib/nix;
-    #     hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
-    #     low-battery = ./../src/haskell/low-battery/nix;
-    #     mk-conf-file = ./../src/haskell/mk-conf-file/nix;
-    #     monad-emit = ./../src/haskell/monad-emit/nix;
-    #     name-generator =  ./../src/haskell/name-generator/nix;
-    #     onirim-helper = ./../src/haskell/onirim-helper/nix;
-    #     parselib = ./../src/haskell/parselib/nix;
-    #     perlude = ./../src/haskell/perlude/nix;
-    #     searchlib = ./../src/haskell/searchlib/nix;
-    #   };
 
     derivations-sam = {
       # Emacs stuff
@@ -135,26 +109,20 @@ let
       haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {  };
       haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {  };
 
-      # adventlib = final.haskellPackages.adventlib;
-      # adventlib-old-1 = final.haskellPackages.adventlib;
-      # boardgamer = final.haskellPackages.boardgamer;
-      # boollib = final.haskellPackages.boollib;
-      # clean-clocks = final.haskellPackages.clean-clocks;
-      # hashcode-photoalbum = final.haskellPackages.hashcode-photoalbum;
-      # low-battery = final.haskellPackages.low-battery;
-      # mk-conf-file = final.haskellPackages.mk-conf-file;
-      # monad-emit = final.haskellPackages.monad-emit;
-      # name-generator = final.haskellPackages.name-generator;
-      # onirim-helper = final.haskellPackages.onirim-helper;
-      # parselib = final.haskellPackages.parselib;
-      # perlude = final.haskellPackages.perlude;
-      # searchlib = final.haskellPackages.searchlib;
-
-      mk-conf-file = final.haskellPackages-new.mk-conf-file;
-      perlude = final.haskellPackages-new.perlude;
-      boollib = final.haskellPackages-new.boollib;
-      parselib = final.haskellPackages-new.parselib;
-      clean-clocks = final.haskellPackages-new.clean-clocks;
+      adventlib = final.haskellPackages.adventlib;
+      adventlib-old-1 = final.haskellPackages.adventlib;
+      boardgamer = final.haskellPackages.boardgamer;
+      boollib = final.haskellPackages.boollib;
+      clean-clocks = final.haskellPackages.clean-clocks;
+      hashcode-photoalbum = final.haskellPackages.hashcode-photoalbum;
+      low-battery = final.haskellPackages.low-battery;
+      mk-conf-file = final.haskellPackages.mk-conf-file;
+      monad-emit = final.haskellPackages.monad-emit;
+      name-generator = final.haskellPackages.name-generator;
+      onirim-helper = final.haskellPackages.onirim-helper;
+      parselib = final.haskellPackages.parselib;
+      perlude = final.haskellPackages.perlude;
+      searchlib = final.haskellPackages.searchlib;
 
       # Shell-scripts
       # =============
