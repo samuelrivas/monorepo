@@ -1,21 +1,26 @@
 {
   acpi,
   haskell-pkg,
-  haskellPackages,
+  ghcWithPackages,
   pkgs, # we get libnotify from here, if we write libnotify directly we get a haskell library
   writeShellScriptBin,
+  shellFor,
+  HSH,
+  parsec,
+  generic-lens,
+  lens,
 }:
 let
   binary = haskell-pkg {
     name = "low-battery";
     src = ./../src;
-    haskell-libs = with haskellPackages; [
+    haskell-libs = [
       HSH
       parsec
       generic-lens
       lens
     ];
-    inherit haskellPackages;
+    inherit ghcWithPackages shellFor;
   };
   # FIXME The DBUS address should not be hardcoded...
   script = writeShellScriptBin "low-battery-notify" ''

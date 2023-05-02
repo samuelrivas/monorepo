@@ -1,9 +1,18 @@
 {
+  fingertree,
+  generic-lens,
+  ghcWithPackages,
   haskell-lib-pkg,
-  haskellPackages,
+  lens,
+  perlude,
+  shellFor,
+  unordered-containers,
+  writer-cps-mtl,
 }:
-let
-  haskell-libs = with haskellPackages; [
+haskell-lib-pkg {
+  name = "searchlib";
+  src = ./../src;
+  haskell-libs = [
     fingertree
     generic-lens
     lens
@@ -11,9 +20,6 @@ let
     unordered-containers
     writer-cps-mtl
   ];
-in haskell-lib-pkg {
-  name = "searchlib";
-  src = ./../src;
 
-  inherit haskellPackages haskell-libs;
+  inherit ghcWithPackages shellFor;
 }

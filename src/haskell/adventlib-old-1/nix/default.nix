@@ -1,16 +1,19 @@
 {
+  ghcWithPackages,
   haskell-lib-pkg,
-  haskellPackages,
+  lens,
+  parselib,
+  shellFor,
+  unliftio,
 }:
-let
-  haskell-libs = with haskellPackages; [
+haskell-lib-pkg {
+  name = "adventlib";
+  src = ./../src;
+  haskell-libs = [
     lens
     parselib
     unliftio
   ];
-in haskell-lib-pkg {
-  name = "adventlib";
-  src = ./../src;
 
-  inherit haskellPackages haskell-libs;
+  inherit ghcWithPackages shellFor;
 }

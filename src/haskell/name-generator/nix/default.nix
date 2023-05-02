@@ -1,11 +1,13 @@
 {
+  ghcWithPackages,
   haskell-pkg,
-  haskellPackages,
+  random-fu,
+  shellFor,
 }: haskell-pkg {
   name = "name-generator";
   src = ./../src;
   haskell-libs = [
-    haskellPackages.random-fu
+    random-fu
   ];
-  inherit haskellPackages;
+  inherit ghcWithPackages shellFor;
 }

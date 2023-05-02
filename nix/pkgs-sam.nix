@@ -24,37 +24,33 @@ let
       emacs = pkgs.my-emacs;
     };
 
-      haskellPackages = final.haskell-lib.mk-haskell-packages
-        prev.haskellPackages final.samsHaskellPackagesGen;
+    haskellPackages = prev.haskellPackages.override {
+      overrides = h-final: h-prev:
+        let
+          h-package = h-final.callPackage;
+        in {
+          inherit (final.haskell-lib) haskell-pkg haskell-lib-pkg;
 
-      haskellPackagesPatched = pkgs.haskell-lib.mk-haskell-packages
-        pkgs.pkgs-patched.haskellPackages pkgs.samsHaskellPackagesGen;
-
-      ## For some reason I need to explicitly pass haskellPackages here, otherwise
-      ## the derivations get the version before overriding (i.e. the one without
-      ## my packages)
-      samsHaskellPackagesGen = hp: builtins.mapAttrs
-        (name: path: hp.callPackage path { haskellPackages = hp; })
-        {
-          adventlib-old-1 = ./../src/haskell/adventlib-old-1/nix;
-          adventlib = ./../src/haskell/adventlib/nix;
-          adventofcode-2019 = ./../src/puzzles/adventofcode/2019/nix;
-          adventofcode-2020 = ./../src/puzzles/adventofcode/2020/nix;
-          adventofcode-2021 = ./../src/puzzles/adventofcode/2021/nix;
-          boardgamer = ./../src/haskell/boardgamer/nix;
-          boollib = ./../src/haskell/boollib/nix;
-          clean-clocks = ./../src/haskell/clean-clocks/nix;
-          example-lib =  ./../src/haskell/example-lib/nix;
-          hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
-          low-battery = ./../src/haskell/low-battery/nix;
-          mk-conf-file = ./../src/haskell/mk-conf-file/nix;
-          monad-emit = ./../src/haskell/monad-emit/nix;
-          name-generator =  ./../src/haskell/name-generator/nix;
-          onirim-helper = ./../src/haskell/onirim-helper/nix;
-          parselib = ./../src/haskell/parselib/nix;
-          perlude = ./../src/haskell/perlude/nix;
-          searchlib = ./../src/haskell/searchlib/nix;
-        };
+          adventlib = h-package ./../src/haskell/adventlib/nix { };
+          adventlib-old-1 = h-package ./../src/haskell/adventlib-old-1/nix { };
+          adventofcode-2019 = h-package ./../src/puzzles/adventofcode/2019/nix { };
+          adventofcode-2020 = h-package ./../src/puzzles/adventofcode/2020/nix { };
+          adventofcode-2021 = h-package ./../src/puzzles/adventofcode/2021/nix { };
+          boardgamer = h-package ./../src/haskell/boardgamer/nix { };
+          boollib = h-package ./../src/haskell/boollib/nix { };
+          clean-clocks = h-package ./../src/haskell/clean-clocks/nix { };
+          example-lib = h-package  ./../src/haskell/example-lib/nix { };
+          hashcode-photoalbum = h-package  ./../src/haskell/hashcode-photoalbum/nix { };
+          low-battery = h-package ./../src/haskell/low-battery/nix { };
+          mk-conf-file = h-package ./../src/haskell/mk-conf-file/nix { };
+          monad-emit = h-package ./../src/haskell/monad-emit/nix { };
+          name-generator = h-package  ./../src/haskell/name-generator/nix { };
+          onirim-helper = h-package ./../src/haskell/onirim-helper/nix { };
+          parselib = h-package ./../src/haskell/parselib/nix { };
+          perlude = h-package ./../src/haskell/perlude/nix { };
+          searchlib = h-package ./../src/haskell/searchlib/nix { };
+      };
+    };
 
     derivations-sam = {
       # Emacs stuff
@@ -158,10 +154,11 @@ let
       adventofcode-2020 = final.haskellPackages.adventofcode-2020;
       adventofcode-2021 = final.haskellPackages.adventofcode-2021;
     };
-    all-pkgs-sam = final.symlinkJoin {
-      name = "pkgs-sam";
-      paths = builtins.attrValues pkgs.derivations-sam;
-    };
+    all-pkgs-sam = final.linkFarm "pkgs-sam" (
+      final.lib.mapAttrsToList
+        (n: v: { name = n; path = v; })
+        pkgs.derivations-sam
+    );
   };
 in pkgs // pkgs.derivations-sam // {
   # Add all-pkgs-sam here to the set with all derivations to avoid infinite
