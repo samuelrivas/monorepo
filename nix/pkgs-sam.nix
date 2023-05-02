@@ -154,10 +154,11 @@ let
       adventofcode-2020 = final.haskellPackages.adventofcode-2020;
       adventofcode-2021 = final.haskellPackages.adventofcode-2021;
     };
-    all-pkgs-sam = final.symlinkJoin {
-      name = "pkgs-sam";
-      paths = builtins.attrValues pkgs.derivations-sam;
-    };
+    all-pkgs-sam = final.linkFarm "pkgs-sam" (
+      final.lib.mapAttrsToList
+        (n: v: { name = n; path = v; })
+        pkgs.derivations-sam
+    );
   };
 in pkgs // pkgs.derivations-sam // {
   # Add all-pkgs-sam here to the set with all derivations to avoid infinite
