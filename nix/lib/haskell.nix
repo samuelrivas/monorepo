@@ -19,15 +19,16 @@ rec {
   # FIXME: There is a fair amount of duplication between haskell-pkg and
   # haskell-lib-pkg
   haskell-pkg =
-    { haskellPackages,
-      name,
+    { name,
       src,
+      shellFor,
+      ghcWithPackages,
       haskell-libs,
       extra-build-inputs ? [],
       extra-drv ? { },
     }:
     let
-      ghc = haskellPackages.ghcWithPackages (_: haskell-libs);
+      ghc = ghcWithPackages (_: haskell-libs);
       drv-args = {
 
         inherit name src;
@@ -44,32 +45,31 @@ rec {
           '';
 
         meta = {
-          inherit haskellPackages ghc;
+          inherit ghc;
         };
       } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
     in
       drv // {
-        # sandbox = haskell-shell drv;
         getCabalDeps = _: [];
-        sandbox = haskellPackages.shellFor {
+        # XXX the sandbox needs to be fixed, is broken now
+        sandbox = shellFor {
           packages = p: [ p.mk-conf-file ];
-          # extraDependencies = p: [ p.haskell-language-server ];
           withHoogle = true;
-          # buildInputs = [ emacs ];
         };
       };
 
   haskell-lib-pkg =
-    { haskellPackages,
+    { ghcWithPackages,
       name,
+      shellFor,
       src,
       haskell-libs,
       extra-build-inputs ? [],
       extra-drv ? { },
     }:
     let
-      ghc = haskellPackages.ghcWithPackages (_: haskell-libs);
+      ghc = ghcWithPackages (_: haskell-libs);
       drv-args = {
 
         inherit name src;
@@ -89,40 +89,15 @@ rec {
         isHaskellLibrary = true;
 
         meta = {
-          inherit haskellPackages ghc;
+          inherit ghc;
         };
       } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
     in
       drv // {
-        sandbox = haskell-shell drv;
+        sandbox = shellFor {
+          packages = p: [ p.mk-conf-file ];
+          withHoogle = true;
+        };
       };
-
-  # Use the package's meta to create a derivation that can be used to start a
-  # nix shell with a configured emacs and hoogle
-  #
-  # For this to work, haskell-drv need to expose ghc and haskellPackages in the
-  # `meta` argument of the derivation. HAskell packages created with
-  # `haskell-pkg` create a suitable `meta` by default.
-  haskell-shell = haskell-drv:
-    haskell-drv.overrideAttrs (attrs:
-
-      { buildInputs = attrs.buildInputs ++ [
-          emacs
-          haskell-drv.meta.haskellPackages.hoogle
-          haskell-drv.meta.haskellPackages.haskell-language-server
-        ];
-      });
-
-  # Add my haskell libraries to a given set of haskell packages
-  #
-  # packages-to-add is a lambda taking a haskellPackages and returning a set
-  # with new packages to add.
-  mk-haskell-packages =
-    haskellPackages: packages-to-add:
-    (haskellPackages.override {
-      overrides = self: super: {
-        inherit haskell-pkg haskell-lib-pkg haskell-lib-mk;
-      } // (packages-to-add self);
-    });
 }

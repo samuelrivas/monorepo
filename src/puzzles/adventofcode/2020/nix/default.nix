@@ -1,11 +1,34 @@
 {
+  adventlib-old-1,
+  ansi-terminal,
+  boollib,
+  deque,
+  fingertree,
+  generic-lens,
+  ghcWithPackages,
   haskell-pkg,
-  haskellPackages,
+  lens,
   makeWrapper,
-  stdenv,
+  matrix,
+  monad-loops,
+  multiset,
+  parselib,
+  perlude,
+  readline,
+  regex-tdfa,
+  shellFor,
+  unliftio,
+  unordered-containers,
+  writer-cps-mtl,
 }:
 let
-  haskell-libs = with haskellPackages; [
+  advent-input-dir = ./../src/inputs;
+in
+haskell-pkg {
+
+  name = "adventofcode-2020";
+  src = ./../src;
+  haskell-libs = [
     adventlib-old-1
     ansi-terminal
     boollib
@@ -24,12 +47,6 @@ let
     unordered-containers
     writer-cps-mtl
   ];
-  advent-input-dir = ./../src/inputs;
-in
-haskell-pkg {
-
-  name = "adventofcode-2020";
-  src = ./../src;
 
   extra-build-inputs = [ makeWrapper ];
 
@@ -44,5 +61,5 @@ haskell-pkg {
 
   };
 
-  inherit haskellPackages haskell-libs;
+  inherit ghcWithPackages shellFor;
 }

@@ -1,11 +1,13 @@
 {
+  optparse-applicative,
+  ghcWithPackages,
   haskell-pkg,
-  haskellPackages,
+  shellFor
 }: haskell-pkg {
   name = "mk-conf-file";
   src = ./../src;
-  haskell-libs = with haskellPackages; [
+  haskell-libs = [
     optparse-applicative
   ];
-  inherit haskellPackages;
+  inherit shellFor ghcWithPackages;
 }

@@ -1,13 +1,12 @@
 {
+  ghcWithPackages,
   haskell-lib-pkg,
-  haskellPackages,
+  shellFor,
 }:
-let
-  haskell-libs = with haskellPackages; [
-  ];
-in haskell-lib-pkg {
+haskell-lib-pkg {
   name = "boollib";
   src = ./../src;
+  haskell-libs = [ ];
 
-  inherit haskellPackages haskell-libs;
+  inherit ghcWithPackages shellFor;
 }

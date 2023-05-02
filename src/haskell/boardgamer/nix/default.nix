@@ -1,11 +1,13 @@
 {
+  ghcWithPackages,
   haskell-pkg,
-  haskellPackages,
+  random-fu,
+  shellFor,
 }: haskell-pkg {
   name = "boardgamer";
   src = ./../src;
-  haskell-libs = with haskellPackages; [
+  haskell-libs = [
     random-fu
   ];
-  inherit haskellPackages;
+  inherit ghcWithPackages shellFor;
 }

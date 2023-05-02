@@ -1,13 +1,11 @@
 {
+  ghcWithPackages,
   haskell-lib-pkg,
-  haskellPackages,
+  shellFor,
 }:
-let
-  haskell-libs = with haskellPackages; [
-  ];
-in haskell-lib-pkg {
+haskell-lib-pkg {
   name = "perlude";
   src = ./../src;
-
-  inherit haskellPackages haskell-libs;
+  haskell-libs = [ ];
+  inherit ghcWithPackages shellFor;
 }

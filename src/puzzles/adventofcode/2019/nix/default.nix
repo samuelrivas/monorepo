@@ -1,9 +1,25 @@
 {
+  adventlib-old-1,
+  ansi-terminal,
+  fingertree,
+  generic-lens,
+  ghcWithPackages,
   haskell-pkg,
-  haskellPackages,
+  lens,
+  monad-loops,
+  readline,
+  regex-pcre,
+  searchlib,
+  shellFor,
+  unliftio,
+  unordered-containers,
+  writer-cps-mtl,
 }:
-let
-  haskell-libs = with haskellPackages; [
+haskell-pkg {
+
+  name = "adventofcode-2019";
+  src = ./../src;
+  haskell-libs = [
     adventlib-old-1
     ansi-terminal
     fingertree
@@ -17,15 +33,10 @@ let
     unordered-containers
     writer-cps-mtl
   ];
-in
-haskell-pkg {
-
-  name = "adventofcode-2019";
-  src = ./../src;
 
   extra-drv = {
     ADVENT_INPUT_DIR = ./../src/inputs;
   };
 
-  inherit haskellPackages haskell-libs;
+  inherit ghcWithPackages shellFor;
 }

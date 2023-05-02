@@ -1,15 +1,17 @@
 {
+  ghcWithPackages,
   haskell-lib-pkg,
-  haskellPackages,
+  parsec,
+  perlude,
+  shellFor,
 }:
-let
-  haskell-libs = with haskellPackages; [
+haskell-lib-pkg {
+  name = "parselib";
+  src = ./../src;
+  haskell-libs = [
     parsec
     perlude
   ];
-in haskell-lib-pkg {
-  name = "parselib";
-  src = ./../src;
 
-  inherit haskellPackages haskell-libs;
+  inherit shellFor ghcWithPackages;
 }

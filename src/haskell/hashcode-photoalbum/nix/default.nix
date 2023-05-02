@@ -1,12 +1,15 @@
 {
+  ghcWithPackages,
   haskell-pkg,
-  haskellPackages,
+  multiset,
+  random-fu,
+  shellFor,
 }: haskell-pkg {
   name = "photoalbum";
   src = ./../src;
-  haskell-libs = with haskellPackages; [
+  haskell-libs = [
     multiset
     random-fu
   ];
-  inherit haskellPackages;
+  inherit ghcWithPackages shellFor;
 }

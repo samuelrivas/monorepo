@@ -1,18 +1,23 @@
 {
+  generic-lens,
+  ghcWithPackages,
   haskell-lib-pkg,
-  haskellPackages,
+  lens,
+  perlude,
+  shellFor,
+  unliftio,
+  writer-cps-mtl,
 }:
-let
-  haskell-libs = with haskellPackages; [
+haskell-lib-pkg {
+  name = "monad-emit";
+  src = ./../src;
+  haskell-libs = [
     generic-lens
     lens
     perlude
     unliftio
     writer-cps-mtl
   ];
-in haskell-lib-pkg {
-  name = "monad-emit";
-  src = ./../src;
 
-  inherit haskellPackages haskell-libs;
+  inherit ghcWithPackages shellFor;
 }

@@ -1,13 +1,17 @@
 {
+  ghcWithPackages,
   haskell-pkg,
-  haskellPackages,
+  lens,
+  parselib,
+  perlude,
+  shellFor,
 }: haskell-pkg {
   name = "clean-clocks";
   src = ./../src;
-  haskell-libs = with haskellPackages; [
+  haskell-libs = [
     lens
     parselib
     perlude
   ];
-  inherit haskellPackages;
+  inherit ghcWithPackages shellFor;
 }
