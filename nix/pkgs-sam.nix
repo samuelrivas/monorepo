@@ -21,7 +21,6 @@ let
     haskell-lib = import ./lib/haskell.nix {
       inherit (final) pkgs;
       inherit (final.pkgs) haskell-test-mk haskell-mk haskell-lib-mk;
-      emacs = pkgs.my-emacs;
     };
 
     haskellPackages = prev.haskellPackages.override {

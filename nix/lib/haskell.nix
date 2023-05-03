@@ -1,5 +1,4 @@
 {
-  emacs,
   haskell-mk,
   haskell-lib-mk,
   haskell-test-mk,
@@ -15,6 +14,8 @@ rec {
   #
   # FIXME: There is a fair amount of duplication between haskell-pkg and
   # haskell-lib-pkg
+  #
+  # FIXME: ghcWithPackages is probably not necessary
   haskell-pkg =
     { name,
       src,
