@@ -2,11 +2,16 @@
   description = "Sam's monorepo derivation collection";
 
   inputs = {
-    nixpkgs-upstream.url = github:NixOS/nixpkgs;
+    # nixpkgs-upstream.url = github:NixOS/nixpkgs;
     nixpkgs-stable.url = github:NixOS/nixpkgs/nixos-22.11;
-    nixpkgs-sam.url = github:samuelrivas/nixpkgs;
+    # nixpkgs-sam.url = github:samuelrivas/nixpkgs;
   };
-  outputs = { self, nixpkgs-stable, nixpkgs-upstream, nixpkgs-sam }:
+  outputs = {
+    self,
+    nixpkgs-stable,
+    # nixpkgs-upstream,
+    # nixpkgs-sam
+  }:
     let
       supported-systems = [ "x86_64-linux" ];
       lib = nixpkgs-stable.lib;
