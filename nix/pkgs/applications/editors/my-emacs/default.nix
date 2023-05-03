@@ -13,9 +13,7 @@
   company,
   eglot,
   emacs-config,
-  emacs-config-options,
   emacsWithPackages,
-  erlangMode,
   flycheck-haskell,
   git,
   groovy-mode,
@@ -24,7 +22,6 @@
   helm-ls-git,
   helm-org,
   htmlize,
-  lib,
   markdown-mode,
   nix-mode,
   projectile,
@@ -34,24 +31,13 @@
   yaml-mode,
   yasnippet,
 }:
-let
-  deps = {
-    "haskell" = [ flycheck-haskell stylish-haskell ];
-    "erlang"  = [ erlangMode ];
-  };
-
-  mode-deps = mode:
-    if   lib.elem mode emacs-config-options.denylisted-modes
-    then []
-    else builtins.getAttr mode deps;
-
-  # Cheap or always needed, dependencies, just install them no matter what
-  hardcoded-deps = [
+emacsWithPackages [
     aspell-wrapped
     colorThemeSolarized
     company
     eglot
     emacs-config
+    flycheck-haskell
     git
     groovy-mode
     helm
@@ -62,14 +48,8 @@ let
     nix-mode
     projectile
     silver-searcher
+    stylish-haskell
     terraform-mode
     yaml-mode
     yasnippet
-  ];
-
-  dep-packages = lib.concatMap mode-deps [
-    "erlang"
-    "haskell"
-  ];
-in
-emacsWithPackages (hardcoded-deps ++ dep-packages)
+  ]
