@@ -21,7 +21,6 @@ let
     haskell-lib = import ./lib/haskell.nix {
       inherit (final) pkgs;
       inherit (final.pkgs) haskell-test-mk haskell-mk haskell-lib-mk;
-      emacs = pkgs.my-emacs;
     };
 
     haskellPackages = prev.haskellPackages.override {
@@ -55,10 +54,7 @@ let
     derivations-sam = {
       # Emacs stuff
       # =============
-      emacs-config = callPackage ./../src/elisp/emacs-config/nix {
-        full-user-name = "";
-        extra-config = "";
-      };
+      emacs-config = callPackage ./../src/elisp/emacs-config/nix { };
 
       # An emacs wrapper with the needed packages accessible
       #
@@ -72,7 +68,6 @@ let
           colorThemeSolarized
           company
           eglot
-          erlangMode
           flycheck-haskell
           groovy-mode
           haskell-mode
@@ -86,7 +81,6 @@ let
           terraform-mode
           yaml-mode
           yasnippet;
-        emacs-config-options.denylisted-modes = [ "erlang" "ocaml" ];
       };
 
       # aspell needs to be configured to find the dictionaries

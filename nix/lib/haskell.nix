@@ -1,5 +1,4 @@
 {
-  emacs,
   haskell-mk,
   haskell-lib-mk,
   haskell-test-mk,
@@ -13,11 +12,10 @@ rec {
   # Makefile does not do GHC-FLAGS := ..., but GHC-FLAGS += ...), but you can
   # unset that when running in a sandbox for quick iterations.
   #
-  # FIXME: There are "official" ways of doing this in nixpkgs now, may be a good
-  # idea to rework this to be more standard
-  #
   # FIXME: There is a fair amount of duplication between haskell-pkg and
   # haskell-lib-pkg
+  #
+  # FIXME: ghcWithPackages is probably not necessary
   haskell-pkg =
     { name,
       src,
@@ -55,6 +53,7 @@ rec {
         # XXX the sandbox needs to be fixed, is broken now
         sandbox = shellFor {
           packages = p: [ p.mk-conf-file ];
+          nativeBuildInputs = [ pkgs.haskell-language-server ];
           withHoogle = true;
         };
       };
