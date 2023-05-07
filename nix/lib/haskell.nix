@@ -47,16 +47,18 @@ rec {
         };
       } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
-    in
-      drv // {
-        getCabalDeps = _: [];
-        # XXX the sandbox needs to be fixed, is broken now
-        sandbox = shellFor {
-          packages = p: [ p.mk-conf-file ];
-          nativeBuildInputs = [ pkgs.haskell-language-server ];
-          withHoogle = true;
+      self =
+        drv // {
+          # This is needed by shellFor
+          getCabalDeps = { libraryHaskellDepends = haskell-libs; };
+
+          dev-shell = shellFor {
+            packages = _: [ self ];
+            nativeBuildInputs = [ pkgs.haskell-language-server ];
+            withHoogle = false;
+          };
         };
-      };
+      in self;
 
   haskell-lib-pkg =
     { ghcWithPackages,
@@ -92,11 +94,14 @@ rec {
         };
       } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
-    in
-      drv // {
-        sandbox = shellFor {
-          packages = p: [ p.mk-conf-file ];
-          withHoogle = true;
+      self =
+        drv // {
+          getCabalDeps = { libraryHaskellDepends = haskell-libs; };
+          dev-shell = shellFor {
+            packages = _: [ self ];
+            nativeBuildInputs =  [ pkgs.haskell-language-server ];
+            withHoogle = false;
+          };
         };
-      };
+      in self;
 }
