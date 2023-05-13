@@ -1,7 +1,6 @@
 {
   haskell-pkg,
   ghcWithPackages,
-  shellFor,
   generic-lens,
   lens,
   multiset,
@@ -17,5 +16,5 @@
     random-fu
     readline
   ];
-  inherit ghcWithPackages shellFor;
+  inherit ghcWithPackages;
 }

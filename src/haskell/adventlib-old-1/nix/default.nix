@@ -3,7 +3,6 @@
   haskell-lib-pkg,
   lens,
   parselib,
-  shellFor,
   unliftio,
 }:
 haskell-lib-pkg {
@@ -15,5 +14,5 @@ haskell-lib-pkg {
     unliftio
   ];
 
-  inherit ghcWithPackages shellFor;
+  inherit ghcWithPackages;
 }

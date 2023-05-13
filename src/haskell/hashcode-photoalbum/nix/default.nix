@@ -3,7 +3,6 @@
   haskell-pkg,
   multiset,
   random-fu,
-  shellFor,
 }: haskell-pkg {
   name = "photoalbum";
   src = ./../src;
@@ -11,5 +10,5 @@
     multiset
     random-fu
   ];
-  inherit ghcWithPackages shellFor;
+  inherit ghcWithPackages;
 }

@@ -5,7 +5,6 @@
   haskell-lib-pkg,
   lens,
   perlude,
-  shellFor,
   unordered-containers,
   writer-cps-mtl,
 }:
@@ -21,5 +20,5 @@ haskell-lib-pkg {
     writer-cps-mtl
   ];
 
-  inherit ghcWithPackages shellFor;
+  inherit ghcWithPackages;
 }

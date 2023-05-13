@@ -18,7 +18,6 @@
   readline,
   regex-tdfa,
   searchlib,
-  shellFor,
   unliftio,
   unordered-containers,
   writer-cps-mtl,
@@ -67,5 +66,5 @@ haskell-pkg {
 
   };
 
-  inherit ghcWithPackages shellFor;
+  inherit ghcWithPackages;
 }

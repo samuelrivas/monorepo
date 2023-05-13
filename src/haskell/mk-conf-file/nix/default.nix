@@ -9,5 +9,5 @@
   haskell-libs = [
     optparse-applicative
   ];
-  inherit shellFor ghcWithPackages;
+  inherit ghcWithPackages;
 }

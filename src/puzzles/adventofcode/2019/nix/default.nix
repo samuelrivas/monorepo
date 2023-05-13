@@ -10,7 +10,6 @@
   readline,
   regex-pcre,
   searchlib,
-  shellFor,
   unliftio,
   unordered-containers,
   writer-cps-mtl,
@@ -38,5 +37,5 @@ haskell-pkg {
     ADVENT_INPUT_DIR = ./../src/inputs;
   };
 
-  inherit ghcWithPackages shellFor;
+  inherit ghcWithPackages;
 }

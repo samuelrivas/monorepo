@@ -4,7 +4,6 @@
   ghcWithPackages,
   pkgs, # we get libnotify from here, if we write libnotify directly we get a haskell library
   writeShellScriptBin,
-  shellFor,
   HSH,
   parsec,
   generic-lens,
@@ -20,7 +19,7 @@ let
       generic-lens
       lens
     ];
-    inherit ghcWithPackages shellFor;
+    inherit ghcWithPackages;
   };
   # FIXME The DBUS address should not be hardcoded...
   script = writeShellScriptBin "low-battery-notify" ''

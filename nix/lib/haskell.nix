@@ -19,7 +19,6 @@ rec {
   haskell-pkg =
     { name,
       src,
-      shellFor,
       ghcWithPackages,
       haskell-libs,
       extra-build-inputs ? [],
@@ -37,6 +36,10 @@ rec {
           haskell-test-mk
         ] ++ extra-build-inputs;
 
+        # We use overrideAttrs to create the shell derivation, so we need to
+        # explicitly add all the attrs we want to override.  derivation
+        nativeBuildInputs = [ ];
+
         installPhase = ''
             mkdir -p $out/bin
             cp ../build/bin/* $out/bin
@@ -49,21 +52,16 @@ rec {
       drv = pkgs.stdenv.mkDerivation drv-args;
       self =
         drv // {
-          # This is needed by shellFor
-          getCabalDeps = { libraryHaskellDepends = haskell-libs; };
-
-          dev-shell = shellFor {
-            packages = _: [ self ];
-            nativeBuildInputs = [ pkgs.haskell-language-server ];
-            withHoogle = false;
-          };
+          dev-shell = self.overrideAttrs (final: previous: {
+            nativeBuildInputs =
+              previous.nativeBuildInputs ++ [ pkgs.haskell-language-server ];
+          });
         };
       in self;
 
   haskell-lib-pkg =
     { ghcWithPackages,
       name,
-      shellFor,
       src,
       haskell-libs,
       extra-build-inputs ? [],
@@ -81,6 +79,10 @@ rec {
           haskell-test-mk
         ] ++ extra-build-inputs;
 
+        # We use overrideAttrs to create the shell derivation, so we need to
+        # explicitly add all the attrs we want to override.
+        nativeBuildInputs = [ ];
+
         propagatedBuildInputs = haskell-libs;
         installPhase = ''
           make PREFIX="$out" install
@@ -96,12 +98,10 @@ rec {
       drv = pkgs.stdenv.mkDerivation drv-args;
       self =
         drv // {
-          getCabalDeps = { libraryHaskellDepends = haskell-libs; };
-          dev-shell = shellFor {
-            packages = _: [ self ];
-            nativeBuildInputs =  [ pkgs.haskell-language-server ];
-            withHoogle = false;
-          };
+          dev-shell = self.overrideAttrs (final: previous: {
+            nativeBuildInputs =
+              previous.nativeBuildInputs ++ [ pkgs.haskell-language-server ];
+          });
         };
       in self;
 }
