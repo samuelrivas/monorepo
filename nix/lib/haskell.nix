@@ -99,8 +99,15 @@ rec {
       self =
         drv // {
           dev-shell = self.overrideAttrs (final: previous: {
+            # Emacs uses fontconfig, which needs a writable cache directory
+
+            XDG_CACHE_HOME = "/tmp/cache";
             nativeBuildInputs =
-              previous.nativeBuildInputs ++ [ pkgs.haskell-language-server ];
+              previous.nativeBuildInputs ++ [ pkgs.haskell-language-server
+                                              pkgs.my-emacs
+                                              pkgs.git
+                                              pkgs.glibcLocales
+                                            ];
           });
         };
       in self;
