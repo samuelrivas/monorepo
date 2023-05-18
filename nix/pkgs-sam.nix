@@ -87,7 +87,7 @@ let
       haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {  };
 
       adventlib = final.haskellPackages.adventlib;
-      adventlib-old-1 = final.haskellPackages.adventlib;
+      adventlib-old-1 = final.haskellPackages.adventlib-old-1;
       boardgamer = final.haskellPackages.boardgamer;
       boollib = final.haskellPackages.boollib;
       clean-clocks = final.haskellPackages.clean-clocks;
