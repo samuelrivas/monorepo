@@ -1,7 +1,6 @@
 {
   pkgs,
-}:
-rec {
+}: {
   # Create a haskell package with haskell-mk included and enough meta to create
   # shell environments
   #
