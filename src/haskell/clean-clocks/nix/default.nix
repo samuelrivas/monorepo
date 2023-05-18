@@ -1,5 +1,4 @@
 {
-  ghcWithPackages,
   haskell-pkg,
   lens,
   parselib,
@@ -12,5 +11,4 @@
     parselib
     perlude
   ];
-  inherit ghcWithPackages;
 }

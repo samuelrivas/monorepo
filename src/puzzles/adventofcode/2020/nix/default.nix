@@ -5,7 +5,6 @@
   deque,
   fingertree,
   generic-lens,
-  ghcWithPackages,
   haskell-pkg,
   lens,
   makeWrapper,
@@ -59,6 +58,4 @@ haskell-pkg {
     '';
 
   };
-
-  inherit ghcWithPackages;
 }

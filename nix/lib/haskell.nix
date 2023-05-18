@@ -1,7 +1,4 @@
 {
-  haskell-mk,
-  haskell-lib-mk,
-  haskell-test-mk,
   pkgs,
 }:
 rec {
@@ -14,30 +11,25 @@ rec {
   #
   # FIXME: There is a fair amount of duplication between haskell-pkg and
   # haskell-lib-pkg
-  #
-  # FIXME: ghcWithPackages is probably not necessary
   haskell-pkg =
     { name,
       src,
-      ghcWithPackages,
       haskell-libs,
       extra-build-inputs ? [],
       extra-drv ? { },
     }:
     let
-      ghc = ghcWithPackages (_: haskell-libs);
+      ghc = pkgs.haskellPackages.ghcWithPackages (_: haskell-libs);
       drv-args = {
 
         inherit name src;
         GHC-FLAGS = "-Werror";
         buildInputs = [
           ghc
-          haskell-mk
-          haskell-test-mk
+          pkgs.haskell-mk
+          pkgs.haskell-test-mk
         ] ++ extra-build-inputs;
 
-        # We use overrideAttrs to create the shell derivation, so we need to
-        # explicitly add all the attrs we want to override.  derivation
         nativeBuildInputs = [ ];
 
         installPhase = ''
@@ -45,9 +37,6 @@ rec {
             cp ../build/bin/* $out/bin
           '';
 
-        meta = {
-          inherit ghc;
-        };
       } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
       self =
@@ -60,28 +49,27 @@ rec {
       in self;
 
   haskell-lib-pkg =
-    { ghcWithPackages,
+    { extra-build-inputs ? [],
+      extra-native-build-inputs ? [],
+      extra-drv ? { },
+      haskell-libs,
       name,
       src,
-      haskell-libs,
-      extra-build-inputs ? [],
-      extra-drv ? { },
     }:
     let
-      ghc = ghcWithPackages (_: haskell-libs);
+      ghc = pkgs.haskellPackages.ghcWithPackages (_: haskell-libs);
       drv-args = {
 
         inherit name src;
         GHC-FLAGS = "-Werror";
         buildInputs = [
-          ghc
-          haskell-lib-mk
-          haskell-test-mk
         ] ++ extra-build-inputs;
 
-        # We use overrideAttrs to create the shell derivation, so we need to
-        # explicitly add all the attrs we want to override.
-        nativeBuildInputs = [ ];
+        nativeBuildInputs = [
+          ghc
+          pkgs.haskell-lib-mk
+          pkgs.haskell-test-mk
+        ] ++ extra-native-build-inputs;
 
         propagatedBuildInputs = haskell-libs;
         installPhase = ''
@@ -90,25 +78,21 @@ rec {
 
         # Silently required by ghcWithPackages, for some reason
         isHaskellLibrary = true;
-
-        meta = {
-          inherit ghc;
-        };
       } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
-      self =
-        drv // {
-          dev-shell = self.overrideAttrs (final: previous: {
-            # Emacs uses fontconfig, which needs a writable cache directory
+      dev-shell = drv.overrideAttrs (final: previous: {
 
-            XDG_CACHE_HOME = "/tmp/cache";
-            nativeBuildInputs =
-              previous.nativeBuildInputs ++ [ pkgs.haskell-language-server
-                                              pkgs.my-emacs
-                                              pkgs.git
-                                              pkgs.glibcLocales
-                                            ];
-          });
-        };
-      in self;
+        # Emacs uses fontconfig, which needs a writable cache directory
+        XDG_CACHE_HOME = "/tmp/cache";
+        nativeBuildInputs =
+          (builtins.filter (x: x != ghc) previous.nativeBuildInputs)
+          ++ [ pkgs.haskell-language-server
+               pkgs.my-emacs
+               pkgs.git
+               pkgs.glibcLocales
+               (pkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
+             ];
+      });
+    in
+      drv // { inherit dev-shell; };
 }

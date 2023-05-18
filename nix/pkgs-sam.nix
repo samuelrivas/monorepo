@@ -20,7 +20,6 @@ let
 
     haskell-lib = import ./lib/haskell.nix {
       inherit (final) pkgs;
-      inherit (final.pkgs) haskell-test-mk haskell-mk haskell-lib-mk;
     };
 
     haskellPackages = prev.haskellPackages.override {
@@ -57,12 +56,6 @@ let
       emacs-config = callPackage ./../src/elisp/emacs-config/nix { };
 
       # An emacs wrapper with the needed packages accessible
-      #
-      # FIXME This does not work in the flake, we still need to have a clean way
-      # to feed in configuration, so this is just here so that it builds, but
-      # not everything works as instended. The idea is to mvoe this out of the
-      # monorepo into a private one to avoid poluting this with personal
-      # configuration.
       my-emacs = callPackage ./pkgs/applications/editors/my-emacs {
         inherit (final.emacsPackages)
           colorThemeSolarized
@@ -89,16 +82,6 @@ let
 
       # Haskell stuff
       # =============
-
-      # FIXME: haskell-mk (and maybe emacs) should be passed as arguments to
-      # the derivations, currently we are implicitly adding them as dependencies
-      # because they are part of haskell-lib. The problem with the current setting
-      # is that we cannot change any of them without affecting all our haskell
-      # packages.
-      #
-      # haskell-lib-mk cannot be added to haskell-pkg as mk-conf-file uses
-      # haskell-pkg
-
       haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
       haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {  };
       haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {  };

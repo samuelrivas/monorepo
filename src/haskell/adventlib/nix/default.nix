@@ -1,6 +1,5 @@
 {
   generic-lens,
-  ghcWithPackages,
   haskell-lib-pkg,
   lens,
   parselib,
@@ -15,6 +14,4 @@ haskell-lib-pkg {
     parselib
     unliftio
   ];
-
-  inherit ghcWithPackages;
 }

@@ -1,7 +1,6 @@
 {
   fingertree,
   generic-lens,
-  ghcWithPackages,
   haskell-lib-pkg,
   lens,
   perlude,
@@ -19,6 +18,4 @@ haskell-lib-pkg {
     unordered-containers
     writer-cps-mtl
   ];
-
-  inherit ghcWithPackages;
 }

@@ -1,6 +1,5 @@
 {
   generic-lens,
-  ghcWithPackages,
   haskell-lib-pkg,
   lens,
   perlude,
@@ -17,6 +16,4 @@ haskell-lib-pkg {
     unliftio
     writer-cps-mtl
   ];
-
-  inherit ghcWithPackages;
 }

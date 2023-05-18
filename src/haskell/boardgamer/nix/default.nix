@@ -1,5 +1,4 @@
 {
-  ghcWithPackages,
   haskell-pkg,
   random-fu,
 }: haskell-pkg {
@@ -8,5 +7,4 @@
   haskell-libs = [
     random-fu
   ];
-  inherit ghcWithPackages;
 }

@@ -1,5 +1,4 @@
 {
-  ghcWithPackages,
   haskell-lib-pkg,
   parsec,
   perlude,
@@ -11,6 +10,4 @@ haskell-lib-pkg {
     parsec
     perlude
   ];
-
-  inherit ghcWithPackages;
 }

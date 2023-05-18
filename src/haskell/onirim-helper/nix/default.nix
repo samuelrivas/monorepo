@@ -1,6 +1,5 @@
 {
   haskell-pkg,
-  ghcWithPackages,
   generic-lens,
   lens,
   multiset,
@@ -16,5 +15,4 @@
     random-fu
     readline
   ];
-  inherit ghcWithPackages;
 }

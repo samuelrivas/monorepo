@@ -3,7 +3,6 @@
   ansi-terminal,
   fingertree,
   generic-lens,
-  ghcWithPackages,
   haskell-pkg,
   lens,
   monad-loops,
@@ -36,6 +35,4 @@ haskell-pkg {
   extra-drv = {
     ADVENT_INPUT_DIR = ./../src/inputs;
   };
-
-  inherit ghcWithPackages;
 }

@@ -1,5 +1,4 @@
 {
-  ghcWithPackages,
   haskell-pkg,
   multiset,
   random-fu,
@@ -10,5 +9,4 @@
     multiset
     random-fu
   ];
-  inherit ghcWithPackages;
 }
