@@ -112,6 +112,8 @@ let
       commit-hook-ticket-prefix =
         callPackage ./../src/shell/commit-hook-ticket-prefix/nix { };
 
+      sandbox = callPackage ./../src/shell/sandbox/nix { };
+
       # C++ stuff
       # =========
       reservoir = callPackage ./../src/c++/reservoir/nix { };
