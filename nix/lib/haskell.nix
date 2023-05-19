@@ -1,102 +1,63 @@
 {
-  haskell-mk,
-  haskell-lib-mk,
-  haskell-test-mk,
   pkgs,
 }:
-rec {
-  # Create a haskell package with haskell-mk included and enough meta to create
-  # shell environments
-  #
   # We export Werror to fail the build by default (assuming that the package
   # Makefile does not do GHC-FLAGS := ..., but GHC-FLAGS += ...), but you can
   # unset that when running in a sandbox for quick iterations.
-  #
-  # FIXME: There is a fair amount of duplication between haskell-pkg and
-  # haskell-lib-pkg
-  #
-  # FIXME: ghcWithPackages is probably not necessary
-  haskell-pkg =
-    { name,
-      src,
-      shellFor,
-      ghcWithPackages,
-      haskell-libs,
-      extra-build-inputs ? [],
+let
+  haskell-template = is-lib:
+    { extra-build-inputs ? [],
       extra-drv ? { },
-    }:
-    let
-      ghc = ghcWithPackages (_: haskell-libs);
-      drv-args = {
-
-        inherit name src;
-        GHC-FLAGS = "-Werror";
-        buildInputs = [
-          ghc
-          haskell-mk
-          haskell-test-mk
-        ] ++ extra-build-inputs;
-
-        installPhase = ''
-            mkdir -p $out/bin
-            cp ../build/bin/* $out/bin
-          '';
-
-        meta = {
-          inherit ghc;
-        };
-      } // extra-drv;
-      drv = pkgs.stdenv.mkDerivation drv-args;
-    in
-      drv // {
-        getCabalDeps = _: [];
-        # XXX the sandbox needs to be fixed, is broken now
-        sandbox = shellFor {
-          packages = p: [ p.mk-conf-file ];
-          nativeBuildInputs = [ pkgs.haskell-language-server ];
-          withHoogle = true;
-        };
-      };
-
-  haskell-lib-pkg =
-    { ghcWithPackages,
+      extra-native-build-inputs ? [],
+      haskell-libs,
       name,
-      shellFor,
       src,
-      haskell-libs,
-      extra-build-inputs ? [],
-      extra-drv ? { },
     }:
     let
-      ghc = ghcWithPackages (_: haskell-libs);
+      ghc = pkgs.haskellPackages.ghcWithPackages (_: haskell-libs);
+      install-bin = ''
+        mkdir -p $out/bin
+        cp ../build/bin/* $out/bin
+      '';
+      install-lib = ''
+        make PREFIX="$out" install
+      '';
       drv-args = {
 
         inherit name src;
         GHC-FLAGS = "-Werror";
         buildInputs = [
-          ghc
-          haskell-lib-mk
-          haskell-test-mk
         ] ++ extra-build-inputs;
 
-        propagatedBuildInputs = haskell-libs;
-        installPhase = ''
-          make PREFIX="$out" install
-        '';
+        nativeBuildInputs = [
+          ghc
+          (if (is-lib) then pkgs.haskell-lib-mk else pkgs.haskell-mk)
+          pkgs.haskell-test-mk
+        ] ++ extra-native-build-inputs;
 
-        # Silently required by ghcWithPackages, for some reason
-        isHaskellLibrary = true;
+        propagatedBuildInputs = if is-lib then haskell-libs else [];
+        installPhase = if is-lib then install-lib else install-bin;
 
-        meta = {
-          inherit ghc;
-        };
+        # ghcWithPackages needs this to be true for libraries, for non libraries
+        # it could be omitted
+        isHaskellLibrary = is-lib;
       } // extra-drv;
       drv = pkgs.stdenv.mkDerivation drv-args;
-    in
-      drv // {
-        sandbox = shellFor {
-          packages = p: [ p.mk-conf-file ];
-          withHoogle = true;
-        };
-      };
+      dev-shell = drv.overrideAttrs (final: previous: {
+
+        # Emacs uses fontconfig, which needs a writable cache directory
+        XDG_CACHE_HOME = "/tmp/cache";
+        nativeBuildInputs =
+          (builtins.filter (x: x != ghc) previous.nativeBuildInputs)
+          ++ [ pkgs.haskell-language-server
+               pkgs.my-emacs
+               pkgs.git
+               pkgs.glibcLocales
+               (pkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
+             ];
+      });
+    in drv // { inherit dev-shell; };
+in {
+  haskell-pkg = haskell-template false;
+  haskell-lib-pkg = haskell-template true;
 }

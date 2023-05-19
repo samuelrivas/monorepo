@@ -5,7 +5,6 @@
   deque,
   fingertree,
   generic-lens,
-  ghcWithPackages,
   haskell-pkg,
   lens,
   makeWrapper,
@@ -18,7 +17,6 @@
   readline,
   regex-tdfa,
   searchlib,
-  shellFor,
   unliftio,
   unordered-containers,
   writer-cps-mtl,
@@ -66,6 +64,4 @@ haskell-pkg {
     '';
 
   };
-
-  inherit ghcWithPackages shellFor;
 }

@@ -2,7 +2,6 @@
 #
 # This script requires next environmet variables to be set
 #  * SH_LIB: the lib directory to load utils from
-#  * CUSTOM_PKGS the path to custom-pkgs.nix, where the sandboxes reside
 
 source $SH_LIB/prelude.sh
 
@@ -13,63 +12,45 @@ source $SH_LIB/prelude.sh
 ##====================================================================
 usage() {
     echo
-    echo "$PROGNAME [<project-to-sandbox>]"
+    echo "$PROGNAME <flake-url>"
     echo
-    echo "Run without arguments lists the available sandboxed environemtns"
-    echo
-    echo "<project-to-sandbox> must be defined in the expression pointed at by"
-    echo "the CUSTOM_PKGS environment variable"
+    echo "Start a develop shell for <flake-url>"
     echo
 }
 
 validate_env() {
-    if [[ -z "${CUSTOM_PKGS:-}" || ! -f "$CUSTOM_PKGS" ]]; then
-        fail "CUSTOM_PKGS should point to an nix expressions file"
-    fi
-
-    if (($NARGS > 1)); then
+    if (($NARGS != 1)); then
         usage
         exit 1
     fi
 }
 
-nix_env() {
-    local expression="$1"
-    nix-env -qaP -f "$expression" \
-        | awk '{print $1}'
-}
-
 sandbox() {
     local derivation="$1"
-    local expression="$2"
-    local roots_dir="$3"
-
-    nix-shell                                                   \
-        --pure                                                  \
-        --show-trace                                            \
-        --keep XAUTHORITY                                       \
-        --command "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK; return" \
-        -A "${derivation}.sandbox"                              \
-        "$expression"
+    local roots_dir="$2"
+    nix develop                       \
+        --profile "$roots_dir/shell"  \
+        --ignore-environment          \
+        --show-trace                  \
+        --keep XAUTHORITY             \
+        --keep TERM                   \
+        --keep DISPLAY                \
+        --keep SSH_AUTH_SOCK          \
+        "$derivation"
 }
 
 main() {
     validate_env
 
-    ## Write the roots to tmp for now, we should write to var if running the
-    ## nix-installed version of this
-    local roots_dir="/tmp/$PROGNAME/sandboxes"
-    local derivation="${ARGS[0]:-}"
+    ## Create profiles in tmp so that we don't gc them directly. The profiles
+    ## will expire as either gc cleans the old ones or tmp is cleaned up.
+    local derivation="${ARGS[0]}"
+    local derivation_name="$(nix eval --raw "$derivation.name")"
+    local roots_dir="/tmp/sam-nix-shells/$derivation_name"
 
-    if [[ -z "$derivation" ]]; then
-        nix_env "$CUSTOM_PKGS"
-    else
-        mkdir -p "$roots_dir"
-        sandbox "$derivation" "$CUSTOM_PKGS" "$roots_dir"
-    fi
+    mkdir -p "$roots_dir"
+    echo "Saving shell environment into $roots_dir"
+    sandbox "$derivation" "$roots_dir"
 }
-
-## Functions
-##====================================================================
 
 main

@@ -1,11 +1,9 @@
 {
   fingertree,
   generic-lens,
-  ghcWithPackages,
   haskell-lib-pkg,
   lens,
   perlude,
-  shellFor,
   unordered-containers,
   writer-cps-mtl,
 }:
@@ -20,6 +18,4 @@ haskell-lib-pkg {
     unordered-containers
     writer-cps-mtl
   ];
-
-  inherit ghcWithPackages shellFor;
 }

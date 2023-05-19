@@ -1,9 +1,7 @@
 {
-  ghcWithPackages,
   haskell-lib-pkg,
   parsec,
   perlude,
-  shellFor,
 }:
 haskell-lib-pkg {
   name = "parselib";
@@ -12,6 +10,4 @@ haskell-lib-pkg {
     parsec
     perlude
   ];
-
-  inherit shellFor ghcWithPackages;
 }

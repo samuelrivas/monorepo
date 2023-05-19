@@ -31,5 +31,14 @@
         in pkgs-stable.derivations-sam
            // { default = pkgs-stable.derivations-sam.all-pkgs-sam; }
       );
+
+      devShells = for-all-systems (system:
+        builtins.mapAttrs
+          (name: value:
+            if builtins.hasAttr "dev-shell" packages.${system}.${name}
+            then packages.${system}.${name}.dev-shell
+            else packages.${system}.${name})
+          packages.${system}
+      );
     };
 }

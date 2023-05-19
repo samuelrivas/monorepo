@@ -3,14 +3,12 @@
   ansi-terminal,
   fingertree,
   generic-lens,
-  ghcWithPackages,
   haskell-pkg,
   lens,
   monad-loops,
   readline,
   regex-pcre,
   searchlib,
-  shellFor,
   unliftio,
   unordered-containers,
   writer-cps-mtl,
@@ -37,6 +35,4 @@ haskell-pkg {
   extra-drv = {
     ADVENT_INPUT_DIR = ./../src/inputs;
   };
-
-  inherit ghcWithPackages shellFor;
 }

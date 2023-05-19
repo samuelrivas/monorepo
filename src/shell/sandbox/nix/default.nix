@@ -1,18 +1,14 @@
 {
-  gawk,
   makeWrapper,
   nix,
-  nix-root,
   sh-lib,
   stdenv,
 }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   name = "sandbox";
-
-  # TODO fix this so that we don't include ourselves
   src = ./../src;
 
-  buildInputs = [ makeWrapper sh-lib ];
+  nativeBuildInputs = [ makeWrapper sh-lib ];
 
   dontBuild = true;
   dontStrip = true;
@@ -23,13 +19,9 @@ stdenv.mkDerivation rec {
     cp -r bin/sandbox "$out/bin"
   '';
 
-  inherit gawk
-          nix;
-
   postFixup = ''
-    wrapProgram "$out/bin/sandbox"              \
-      --suffix-each PATH : "$nix/bin $gawk/bin" \
-      --set SH_LIB "$SH_LIB"                    \
-      --set CUSTOM_PKGS "${nix-root}"
+    wrapProgram "$out/bin/sandbox"    \
+      --suffix-each PATH : "${nix}/bin" \
+      --set SH_LIB "$SH_LIB"
   '';
 }
