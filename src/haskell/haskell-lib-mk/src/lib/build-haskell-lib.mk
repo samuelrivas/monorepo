@@ -34,6 +34,7 @@ ARCH = x86_64-linux
 
 BUILD-DIR := ../build
 BUILD-OUTPUT-DIR := $(BUILD-DIR)/out
+PREFIX ?= $(BUILD-DIR)/install
 INSTALL-DIR = $(PREFIX)
 GENERATED-DIR := $(BUILD-DIR)/generated
 

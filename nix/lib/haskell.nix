@@ -6,7 +6,8 @@
   # unset that when running in a sandbox for quick iterations.
 let
   haskell-template = is-lib:
-    { extra-build-inputs ? [],
+    { build-doc ? false,
+      extra-build-inputs ? [],
       extra-drv ? { },
       extra-native-build-inputs ? [],
       haskell-libs,
@@ -21,10 +22,13 @@ let
       '';
       install-lib = ''
         make PREFIX="$out" install
-      '';
+      '' + (pkgs.lib.optionalString build-doc ''
+        make PREFIX="$doc/share" install-doc
+      '');
       drv-args = {
-
         inherit name src;
+
+        outputs = [ "out" ] ++ (pkgs.lib.optional build-doc "doc");
         GHC-FLAGS = "-Werror";
         buildInputs = [
         ] ++ extra-build-inputs;
