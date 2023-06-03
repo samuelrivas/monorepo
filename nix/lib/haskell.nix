@@ -15,7 +15,7 @@ let
       src,
     }:
     let
-      ghc = pkgs.haskellPackages.ghcWithPackages (_: haskell-libs);
+      ghc = pkgs.haskellPackages.ghcWithHoogle (_: haskell-libs);
       install-bin = ''
         mkdir -p $out/bin
         cp ../build/bin/* $out/bin
