@@ -11,6 +11,8 @@ DOC-INSTALL-DIR ?= $(PREFIX)/doc/
 BUILD-DOC-DIR := $(DOC-DIR)/$(DOC-RELATIVE-DIR)
 INSTALL-DOC-DIR := $(DOC-INSTALL-DIR)/$(DOC-RELATIVE-DIR)
 
+HADDOCK-DIR := /nix/store/2pd2zd2qzlmsd95b0ix12s8180d2c4z1-ghc-9.0.2-doc/share/doc/ghc/html/libraries/ghc-9.0.2
+
 .PHONY: docs
 doc: | $(BUILD-DOC-DIR)
 	haddock \
@@ -20,7 +22,7 @@ doc: | $(BUILD-DOC-DIR)
 	--odir $(BUILD-DOC-DIR) \
 	--package-name $(PACKAGE-NAME) \
 	--quickjump \
-	-i /nix/store/zcbmzz2drq5cii4ikqynk163v7cg8z97-ghc-9.0.2-doc/share/doc/ghc/html/libraries/ghc-9.0.2,/nix/store/zcbmzz2drq5cii4ikqynk163v7cg8z97-ghc-9.0.2-doc/share/doc/ghc/html/libraries/ghc-9.0.2/ghc.haddock \
+	-i file://$(HADDOCK-DIR),file://$(HADDOCK-DIR)/src,$(HADDOCK-DIR)/ghc.haddock \
 	--dump-interface=$(BUILD-DOC-DIR)/$(PACKAGE-NAME).haddock \
 	$(SRCS)
 
