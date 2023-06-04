@@ -2,19 +2,19 @@
   description = "Sam's monorepo derivation collection";
 
   inputs = {
-    nixpkgs-stable.url = github:NixOS/nixpkgs/nixos-22.11;
+    nixpkgs.url = github:NixOS/nixpkgs/nixos-22.11;
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
   outputs =
     inputs@{
       flake-parts,
-      nixpkgs-stable,
+      nixpkgs,
       self,
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       flake = let
         supported-systems = [ "x86_64-linux" ];
-        lib = nixpkgs-stable.lib;
+        lib = nixpkgs.lib;
         for-all-systems = lib.genAttrs supported-systems;
       in rec {
         overlays.default = import ./nix/pkgs-sam.nix;
@@ -23,7 +23,7 @@
         # avoid cluttering this with all nixpkgs
         packages = for-all-systems (system:
           let
-            pkgs-stable = import nixpkgs-stable {
+            pkgs-stable = import nixpkgs {
               inherit system;
               overlays = [ self.overlays.default ];
               config = { };
