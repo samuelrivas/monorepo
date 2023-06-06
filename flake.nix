@@ -6,62 +6,15 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
   outputs =
-    inputs@{
-      flake-parts,
-      nixpkgs,
-      self,
-    }:
+    inputs@{ flake-parts, nixpkgs, self }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       # See https://flake.parts/options/flake-parts.html#opt-debug
-      # debug = true;
+      debug = true;
 
-      flake = let
-        supported-systems = [ "x86_64-linux" ];
-        lib = nixpkgs.lib;
-        for-all-systems = lib.genAttrs supported-systems;
-      in rec {
-        overlays.default = import ./nix/pkgs-sam.nix;
-
-        # TODO: use the overlay here, but you will need to have legacyPackages to
-        # avoid cluttering this with all nixpkgs
-        # packages = for-all-systems (system:
-        #   let
-        #     pkgs-stable = import nixpkgs {
-        #       inherit system;
-        #       overlays = [ self.overlays.default ];
-        #       config = { };
-        #     };
-        #   in pkgs-stable.derivations-sam
-        #      // { default = pkgs-stable.derivations-sam.all-pkgs-sam; }
-        # );
-
-        # devShells = for-all-systems (system:
-        #   builtins.mapAttrs
-        #     (name: value:
-        #       if builtins.hasAttr "dev-shell" packages.${system}.${name}
-        #       then packages.${system}.${name}.dev-shell
-        #       else packages.${system}.${name})
-        #     packages.${system}
-        # );
-      };
+      flake = { };
       systems = [ "x86_64-linux" ];
-      perSystem = { config, system, lib, specialArgs, options } : {
-        packages =
-          let
-            pkgs-stable = import nixpkgs {
-              inherit system;
-              overlays = [ self.overlays.default ];
-              config = { };
-            };
-          in pkgs-stable.derivations-sam
-             // { default = pkgs-stable.derivations-sam.all-pkgs-sam; };
-        devShells =
-          builtins.mapAttrs
-            (name: value:
-              if builtins.hasAttr "dev-shell" config.packages.${name}
-              then config.packages.${name}.dev-shell
-              else config.packages.${name})
-            config.packages;
+      perSystem = { ... }: {
+        imports = [ ./nix/pkgs-sam.nix ];
       };
     };
 }
