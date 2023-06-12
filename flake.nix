@@ -15,7 +15,8 @@
       _module.args.sam-lib = self.lib;
       imports = [
         ./nix/pkgs-sam.nix
-        ./nix/lib.nix
+        ./nix/modules/lib.nix
+        ./nix/modules/system-lib.nix
       ];
       perSystem = { config, ... }: {
       };
