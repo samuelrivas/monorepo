@@ -12,11 +12,12 @@
       debug = true;
       systems = [ "x86_64-linux" ];
       flake = { };
-
-      imports = [ ./nix/lib.nix ];
+      _module.args.sam-lib = self.lib;
+      imports = [
+        ./nix/pkgs-sam.nix
+        ./nix/lib.nix
+      ];
       perSystem = { config, ... }: {
-        _module.args.sam-lib = self.lib;
-        imports = [ ./nix/pkgs-sam.nix ];
       };
     };
 }

@@ -1,10 +1,9 @@
-{ config,
+{
   lib,
-  pkgs,
   sam-lib,
-  self',
   ...
-}:
+}: {
+perSystem = { config, self', pkgs, ... }:
 let
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
   # derivation-helpers = import ./lib/derivation-helpers.nix;
@@ -153,4 +152,5 @@ in {
         then config.packages.${name}.dev-shell
         else config.packages.${name})
       config.packages;
+};
 }
