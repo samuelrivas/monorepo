@@ -10,10 +10,12 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       # See https://flake.parts/options/flake-parts.html#opt-debug
       debug = true;
-
-      flake = { };
       systems = [ "x86_64-linux" ];
-      perSystem = { ... }: {
+      flake = { };
+
+      imports = [ ./nix/lib.nix ];
+      perSystem = { config, ... }: {
+        _module.args.sam-lib = self.lib;
         imports = [ ./nix/pkgs-sam.nix ];
       };
     };

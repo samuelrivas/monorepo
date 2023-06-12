@@ -1,21 +1,22 @@
 { config,
   lib,
   pkgs,
+  sam-lib,
   self',
   ...
 }:
 let
   builders = pkgs.callPackage ./lib/build-support/builders.nix { };
-  derivation-helpers = import ./lib/derivation-helpers.nix;
-  libs-sam = { inherit builders derivation-helpers; };
+  # derivation-helpers = import ./lib/derivation-helpers.nix;
+  # libs-sam = { inherit builders derivation-helpers; };
   callPackage = lib.callPackageWith
-    (self'.packages // pkgs // builders // derivation-helpers);
+    (self'.packages // pkgs // builders // sam-lib.derivation-helpers);
   selfish = {
 
     # We keep our libraries in a separate attrset and pass them with
     # callPackageWith instead of polluting the top level namespace with them. We
     # do add all our pakcages to the top level namespace though
-    inherit libs-sam;
+    # inherit libs-sam;
 
     haskell-lib = import ./lib/haskell.nix {
       pkgs = pkgs // self'.packages;
