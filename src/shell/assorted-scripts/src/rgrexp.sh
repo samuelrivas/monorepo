@@ -17,5 +17,5 @@ if [ -z "$DIR" ]; then
     DIR="."
 fi
 
-find $DIR -name "$FILES" | xargs grep --color "$PATTERN"
+find -L $DIR -name "$FILES" -type f | xargs -I{} grep -H --color "$PATTERN" "{}"
 
