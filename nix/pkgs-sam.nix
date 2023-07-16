@@ -134,6 +134,4 @@ let
       adventofcode-2021 = final.haskellPackages.adventofcode-2021;
     };
   };
-in pkgs // pkgs.derivations-sam // {
-  derivations-sam = pkgs.derivations-sam;
-}
+in pkgs // pkgs.derivations-sam
