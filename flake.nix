@@ -3,9 +3,11 @@
 
   inputs = {
     nixpkgs-stable.url = github:NixOS/nixpkgs/nixos-23.05;
+    nixpkgs-old.url = github:NixOS/nixpkgs/nixos-22.11;
   };
   outputs = {
     self,
+    nixpkgs-old,
     nixpkgs-stable,
   }:
     let
@@ -20,6 +22,11 @@
       packages = for-all-systems (system:
         let
           pkgs-stable = import nixpkgs-stable {
+            inherit system;
+            overlays = [ self.overlays.default ];
+            config = { };
+          };
+          pkgs-old = import nixpkgs-old {
             inherit system;
             overlays = [ self.overlays.default ];
             config = { };
