@@ -44,8 +44,6 @@ main() {
     wrap_calls "screen-control.sh" "$xset/bin $xbacklight/bin $xrandr/bin"
     wrap_calls "absolute-which" "$which/bin $gawk/bin"
     wrap_calls "join-pdf.sh" "$pdftk/bin"
-    wrap_calls "pp-json.sh" "$python/bin"
-    wrap_calls "http-easy-server" "$python/bin"
     wrap_calls "selection-to-clipboard" "$xclip/bin"
     wrap_calls "git-delete-merged.sh" "$git/bin $gnused/bin $gnugrep/bin"
 }
