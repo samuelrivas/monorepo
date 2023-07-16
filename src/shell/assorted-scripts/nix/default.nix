@@ -7,7 +7,6 @@
   lib,
   makeWrapper,
   pdftk,
-  python,
   sh-lib,
   stdenv,
   which,
@@ -28,7 +27,6 @@ let
       gnugrep
       gnused
       pdftk
-      python
       which
       xbacklight
       xclip
