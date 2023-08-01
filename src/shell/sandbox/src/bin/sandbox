@@ -28,6 +28,10 @@ validate_env() {
 sandbox() {
     local derivation="$1"
     local roots_dir="$2"
+    local xdg_config_home="$3"
+
+    export XDG_CONFIG_HOME="$xdg_config_home"
+
     nix develop                       \
         --profile "$roots_dir/shell"  \
         --ignore-environment          \
@@ -36,6 +40,7 @@ sandbox() {
         --keep TERM                   \
         --keep DISPLAY                \
         --keep SSH_AUTH_SOCK          \
+        --keep XDG_CONFIG_HOME        \
         "$derivation"
 }
 
@@ -50,7 +55,7 @@ main() {
 
     mkdir -p "$roots_dir"
     echo "Saving shell environment into $roots_dir"
-    sandbox "$derivation" "$roots_dir"
+    sandbox "$derivation" "$roots_dir" "$HOME/.config"
 }
 
 main
