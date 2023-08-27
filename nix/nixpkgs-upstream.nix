@@ -4,4 +4,5 @@ let
     url = "https://github.com/NixOS/nixpkgs/archive/${version}.tar.gz";
     sha256 = "16dx12n4fnl5r4k1bbam5fp5bym120g20k675m4xdc9280r0liq7";
   };
-in import pkgs
+in
+  import pkgs

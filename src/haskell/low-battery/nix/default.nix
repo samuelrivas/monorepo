@@ -7,8 +7,7 @@
   parsec,
   generic-lens,
   lens,
-}:
-let
+}: let
   binary = haskell-pkg {
     name = "low-battery";
     src = ./../src;
@@ -27,5 +26,6 @@ let
   '';
   # output binary instead of script if you want to sandbox this
   # TODO fix this guacamole
-# in binary
-in script
+  # in binary
+in
+  script

@@ -1,6 +1,4 @@
-{
-  stdenv,
-}:
+{stdenv}:
 stdenv.mkDerivation {
   src = ./../src;
   name = "asyncq";

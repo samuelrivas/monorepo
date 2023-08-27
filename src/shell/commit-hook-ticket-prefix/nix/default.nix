@@ -4,37 +4,36 @@
   makeWrapper,
   sh-lib,
   stdenv,
-}:
-let
+}: let
   lib-dir = sh-lib + "/lib";
 in
-stdenv.mkDerivation rec {
-  name = "commit-hook-ticket-prefix";
+  stdenv.mkDerivation rec {
+    name = "commit-hook-ticket-prefix";
 
-  src = ./../src;
+    src = ./../src;
 
-  buildInputs = [ makeWrapper ];
+    buildInputs = [makeWrapper];
 
-  dontBuild = true;
-  dontStrip = true;
-  dontPatchELF = true;
+    dontBuild = true;
+    dontStrip = true;
+    dontPatchELF = true;
 
-  installPhase = ''
-    mkdir -p "$out/bin"
-    mkdir -p "$out/lib"
+    installPhase = ''
+      mkdir -p "$out/bin"
+      mkdir -p "$out/lib"
 
-    cp -r "$src/bin/"* "$out/bin"
-    cp -r "$src/lib/"* "$out/lib"
-  '';
+      cp -r "$src/bin/"* "$out/bin"
+      cp -r "$src/lib/"* "$out/lib"
+    '';
 
-  inherit git gnused;
+    inherit git gnused;
 
-  postFixup = ''
-    wrapProgram "$out/bin/commit-hook-ticket-prefix-install" \
-      --suffix-each PATH : "$git/bin"                        \
-      --set SH_LIB "${lib-dir}"
+    postFixup = ''
+      wrapProgram "$out/bin/commit-hook-ticket-prefix-install" \
+        --suffix-each PATH : "$git/bin"                        \
+        --set SH_LIB "${lib-dir}"
 
-    wrapProgram "$out/lib/commit-hook-ticket-prefix" \
-      --suffix-each PATH : "$git/bin $gnused/bin"
-  '';
-}
+      wrapProgram "$out/lib/commit-hook-ticket-prefix" \
+        --suffix-each PATH : "$git/bin $gnused/bin"
+    '';
+  }

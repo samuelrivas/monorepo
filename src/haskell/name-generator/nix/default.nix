@@ -1,7 +1,8 @@
 {
   haskell-pkg,
   random-fu,
-}: haskell-pkg {
+}:
+haskell-pkg {
   name = "name-generator";
   src = ./../src;
   haskell-libs = [

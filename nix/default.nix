@@ -13,19 +13,17 @@
 # number the oldest the copy. Those derivations that are not updated to use the
 # upstream version of the changed derivation stay dependant on the old version
 # that they are compatible with.
-{ system ? builtins.currentSystem }:
-
-let
+{system ? builtins.currentSystem}: let
   home-dir = builtins.getEnv "HOME";
   local-config-file = "${home-dir}/.local-nix-config/configuration.nix";
-  pkgs = import ./nixpkgs.nix { inherit system; };
+  pkgs = import ./nixpkgs.nix {inherit system;};
   pkgs-all = pkgs // pkgs-sam;
-  builders = pkgs.callPackage ./lib/build-support/builders.nix { };
+  builders = pkgs.callPackage ./lib/build-support/builders.nix {};
   derivation-helpers = import ./lib/derivation-helpers.nix;
-  callPackage = pkgs.lib.callPackageWith
+  callPackage =
+    pkgs.lib.callPackageWith
     (pkgs-all // builders // derivation-helpers);
   pkgs-sam = {
-
     # Library functions
     # =================
     # Just so that we can use them when debugging in nix-repl
@@ -49,36 +47,41 @@ let
       inherit (pkgs) lib;
       pkgs = pkgs-all;
       config-file = local-config-file;
-      modules = [ ./modules/emacs-config.nix
-                  ./modules/sams-pkgs.nix
-                ];
+      modules = [
+        ./modules/emacs-config.nix
+        ./modules/sams-pkgs.nix
+      ];
     };
 
     # Master branch of the nixpkgs repo
-    pkgs-upstream = import ./nixpkgs-upstream.nix { inherit system; };
+    pkgs-upstream = import ./nixpkgs-upstream.nix {inherit system;};
 
     # My own fork of nixpkgs, for patches that aren't merged
-    pkgs-patched = import ./nixpkgs-patched.nix { inherit system; };
+    pkgs-patched = import ./nixpkgs-patched.nix {inherit system;};
 
     # Emacs stuff
     # ===========
     emacs-config = callPackage ./../src/elisp/emacs-config/nix {
-      inherit (pkgs-sam.local-config.emacs-config)
+      inherit
+        (pkgs-sam.local-config.emacs-config)
         full-user-name
-        extra-config;
+        extra-config
+        ;
       inherit (pkgs) emacs;
     };
 
     # This is where we can override failing packages
     emacsPackages = pkgs.emacsPackages.overrideScope' (
-      self: super:
-      {
-      });
+      self: super: {
+      }
+    );
 
     # An emacs wrapper with the needed packages accessible
-    emacs = callPackage ./pkgs/applications/editors/my-emacs
+    emacs =
+      callPackage ./pkgs/applications/editors/my-emacs
       (with pkgs; {
-        inherit (pkgs-sam.emacsPackages)
+        inherit
+          (pkgs-sam.emacsPackages)
           colorThemeSolarized
           company
           eglot
@@ -95,12 +98,13 @@ let
           projectile
           terraform-mode
           yaml-mode
-          yasnippet;
+          yasnippet
+          ;
         emacs-config-options = pkgs-sam.local-config.emacs-config;
       });
 
     # aspell needs to be configured to find the dictionaries
-    aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped { };
+    aspell-wrapped = callPackage ./pkgs/development/libraries/aspell-wrapped {};
 
     # Haskell stuff
     # =============
@@ -113,25 +117,30 @@ let
     #
     # haskell-lib-mk cannot be added to haskell-pkg as mk-conf-file uses
     # haskell-pkg
-    haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {  };
-    haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {  };
-    haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {  };
+    haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {};
+    haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {};
+    haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {};
     haskell-lib = import ./lib/haskell.nix {
       inherit pkgs;
       inherit (pkgs-sam) emacs haskell-mk haskell-lib-mk haskell-test-mk;
     };
 
-    haskellPackages = pkgs-sam.haskell-lib.mk-haskell-packages
-      pkgs.haskellPackages pkgs-sam.samsHaskellPackagesGen;
+    haskellPackages =
+      pkgs-sam.haskell-lib.mk-haskell-packages
+      pkgs.haskellPackages
+      pkgs-sam.samsHaskellPackagesGen;
 
-    haskellPackagesPatched = pkgs-sam.haskell-lib.mk-haskell-packages
-      pkgs-sam.pkgs-patched.haskellPackages pkgs-sam.samsHaskellPackagesGen;
+    haskellPackagesPatched =
+      pkgs-sam.haskell-lib.mk-haskell-packages
+      pkgs-sam.pkgs-patched.haskellPackages
+      pkgs-sam.samsHaskellPackagesGen;
 
     ## For some reason I need to explicitly pass haskellPackages here, otherwise
     ## the derivations get the version before overriding (i.e. the one without
     ## my packages)
-    samsHaskellPackagesGen = hp: builtins.mapAttrs
-      (name: path: hp.callPackage path { haskellPackages = hp; })
+    samsHaskellPackagesGen = hp:
+      builtins.mapAttrs
+      (name: path: hp.callPackage path {haskellPackages = hp;})
       {
         adventlib-old-1 = ./../src/haskell/adventlib-old-1/nix;
         adventlib = ./../src/haskell/adventlib/nix;
@@ -141,12 +150,12 @@ let
         boardgamer = ./../src/haskell/boardgamer/nix;
         boollib = ./../src/haskell/boollib/nix;
         clean-clocks = ./../src/haskell/clean-clocks/nix;
-        example-lib =  ./../src/haskell/example-lib/nix;
-        hashcode-photoalbum =  ./../src/haskell/hashcode-photoalbum/nix;
+        example-lib = ./../src/haskell/example-lib/nix;
+        hashcode-photoalbum = ./../src/haskell/hashcode-photoalbum/nix;
         low-battery = ./../src/haskell/low-battery/nix;
         mk-conf-file = ./../src/haskell/mk-conf-file/nix;
         monad-emit = ./../src/haskell/monad-emit/nix;
-        name-generator =  ./../src/haskell/name-generator/nix;
+        name-generator = ./../src/haskell/name-generator/nix;
         onirim-helper = ./../src/haskell/onirim-helper/nix;
         parselib = ./../src/haskell/parselib/nix;
         perlude = ./../src/haskell/perlude/nix;
@@ -174,30 +183,30 @@ let
       inherit (pkgs.xorg) xbacklight xrandr xset;
     };
 
-    sh-lib = callPackage ./../src/shell/sh-lib/nix { };
+    sh-lib = callPackage ./../src/shell/sh-lib/nix {};
 
     sandbox = callPackage ./../src/shell/sandbox/nix {
       nix-root = pkgs-sam.local-config.sams-pkgs.dir + "/default.nix";
     };
 
-    commit-hook-ticket-prefix = callPackage ./../src/shell/commit-hook-ticket-prefix/nix { };
+    commit-hook-ticket-prefix = callPackage ./../src/shell/commit-hook-ticket-prefix/nix {};
 
     # C++ stuff
     # =========
-    reservoir = callPackage ./../src/c++/reservoir/nix { };
+    reservoir = callPackage ./../src/c++/reservoir/nix {};
 
-    monte-carlo = callPackage ./../src/c++/monte-carlo/nix { };
+    monte-carlo = callPackage ./../src/c++/monte-carlo/nix {};
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {
       inherit (pkgs-sam.pkgs-upstream) rapidcheck;
     };
-    finndb = callPackage ./../src/c++/finndb/nix { };
-    graphlib = callPackage ./../src/c++/graphlib/nix { };
-    rndlib = callPackage ./../src/c++/rndlib/nix { };
-    asyncq = callPackage ./../src/c++/asyncq/nix { };
+    finndb = callPackage ./../src/c++/finndb/nix {};
+    graphlib = callPackage ./../src/c++/graphlib/nix {};
+    rndlib = callPackage ./../src/c++/rndlib/nix {};
+    asyncq = callPackage ./../src/c++/asyncq/nix {};
 
     # C stuff
     # =======
-    udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat { };
+    udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat {};
 
     # Latex base
     # ==========
@@ -213,6 +222,6 @@ let
     adventofcode-2021 = pkgs-sam.haskellPackages.adventofcode-2021;
   };
 in
-# All official packages plus ours. We also add pkgs-sam as a set with all our
-# packages so that we can run nix-build -A pkgs-sam and test this monorepo
-pkgs-all // { inherit pkgs-sam; }
+  # All official packages plus ours. We also add pkgs-sam as a set with all our
+  # packages so that we can run nix-build -A pkgs-sam and test this monorepo
+  pkgs-all // {inherit pkgs-sam;}

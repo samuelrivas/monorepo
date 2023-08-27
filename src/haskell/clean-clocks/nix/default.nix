@@ -3,7 +3,8 @@
   lens,
   parselib,
   perlude,
-}: haskell-pkg {
+}:
+haskell-pkg {
   name = "clean-clocks";
   src = ./../src;
   haskell-libs = [

@@ -14,8 +14,7 @@
   xclip,
   xrandr,
   xset,
-}:
-let
+}: let
   drv = stdenv.mkDerivation rec {
     name = "assorted-scripts-0.0.0";
 
@@ -31,7 +30,8 @@ let
       xbacklight
       xclip
       xrandr
-      xset;
+      xset
+      ;
 
     buildInputs = [
       git
@@ -52,7 +52,8 @@ let
       description = "A collection of barely useful scripts";
       homepage = "https://github.com/samuelrivas/monorepo/src/shell/assorted-scripts";
       license = lib.licenses.bsd3;
-      maintainers = [ "Samuel Rivas <samuelrivas@gmail.com>" ];
+      maintainers = ["Samuel Rivas <samuelrivas@gmail.com>"];
     };
   };
-in add-sandbox [ ] drv
+in
+  add-sandbox [] drv

@@ -14,7 +14,6 @@
   writer-cps-mtl,
 }:
 haskell-pkg {
-
   name = "adventofcode-2019";
   src = ./../src;
   haskell-libs = [

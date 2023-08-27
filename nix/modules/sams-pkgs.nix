@@ -3,11 +3,9 @@
   lib,
   options,
   pkgs,
-  specialArgs
-}:
-{
+  specialArgs,
+}: {
   options = {
-
     sams-pkgs = {
       dir = lib.mkOption {
         type = lib.types.path;

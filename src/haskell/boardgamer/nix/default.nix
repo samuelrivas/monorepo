@@ -1,7 +1,8 @@
 {
   haskell-pkg,
   random-fu,
-}: haskell-pkg {
+}:
+haskell-pkg {
   name = "boardgamer";
   src = ./../src;
   haskell-libs = [

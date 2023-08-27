@@ -5,7 +5,8 @@
   multiset,
   random-fu,
   readline,
-}: haskell-pkg {
+}:
+haskell-pkg {
   name = "onirim-helper";
   src = ./../src;
   haskell-libs = [
