@@ -9,8 +9,7 @@
   stdenv,
   strace,
   valgrind,
-}:
-let
+}: let
   extra-sandbox = [
     gdb
     strace
@@ -36,4 +35,5 @@ let
       cp ../build/install/bin/reservoir $out/bin
     '';
   };
-in add-sandbox extra-sandbox drv
+in
+  add-sandbox extra-sandbox drv

@@ -4,8 +4,8 @@
   # all X's build dependencies and some extra utilities, say `[foo bar]`,
   # you can open a nix-shell on `add-sandbox [foo bar] X`
   add-sandbox = extra-deps: drv:
-    drv // {
-      sandbox = drv.overrideAttrs (attrs:
-        { buildInputs = attrs.buildInputs ++ extra-deps; });
+    drv
+    // {
+      sandbox = drv.overrideAttrs (attrs: {buildInputs = attrs.buildInputs ++ extra-deps;});
     };
 }

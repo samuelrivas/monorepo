@@ -11,8 +11,7 @@
   stdenv,
   strace,
   valgrind,
-}:
-let
+}: let
   extra-sandbox = [
     gdb
     strace
@@ -31,4 +30,5 @@ let
 
     builder = empty-builder;
   };
-in add-sandbox extra-sandbox drv
+in
+  add-sandbox extra-sandbox drv

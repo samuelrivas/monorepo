@@ -32,24 +32,24 @@
   yasnippet,
 }:
 emacsWithPackages [
-    aspell-wrapped
-    colorThemeSolarized
-    company
-    eglot
-    emacs-config
-    flycheck-haskell
-    git
-    groovy-mode
-    helm
-    helm-ls-git
-    helm-org
-    htmlize
-    markdown-mode
-    nix-mode
-    projectile
-    silver-searcher
-    stylish-haskell
-    terraform-mode
-    yaml-mode
-    yasnippet
-  ]
+  aspell-wrapped
+  colorThemeSolarized
+  company
+  eglot
+  emacs-config
+  flycheck-haskell
+  git
+  groovy-mode
+  helm
+  helm-ls-git
+  helm-org
+  htmlize
+  markdown-mode
+  nix-mode
+  projectile
+  silver-searcher
+  stylish-haskell
+  terraform-mode
+  yaml-mode
+  yasnippet
+]

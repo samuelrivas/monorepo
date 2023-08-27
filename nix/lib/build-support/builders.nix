@@ -1,8 +1,4 @@
-{
-  writeScript,
-}:
-
-rec {
+{writeScript}: rec {
   # Generate an empty $out, useful for derivations where we care only about
   # sandboxing
   empty-builder = writeScript "empty-builder" ''

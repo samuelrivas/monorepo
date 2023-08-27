@@ -8,8 +8,7 @@
   stdenv,
   strace,
   valgrind,
-}:
-let
+}: let
   extra-sandbox = [
     gdb
     strace
@@ -29,4 +28,5 @@ let
       mkdir -p "$out/bin"
     '';
   };
-in add-sandbox extra-sandbox drv
+in
+  add-sandbox extra-sandbox drv

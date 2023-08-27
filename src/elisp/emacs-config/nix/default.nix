@@ -2,9 +2,7 @@
   emacs,
   stdenv,
 }:
-
 stdenv.mkDerivation rec {
-
   name = "emacs-config";
   src = ./../src;
 

@@ -3,16 +3,13 @@
 #
 # Thus scripts in derivations depending on this one can do, for example,
 # `source $SH_LIB/prelude.sh`
-{
-  stdenv,
-}:
-
+{stdenv}:
 stdenv.mkDerivation rec {
   name = "sh-lib";
 
   src = ./../src;
 
-  buildInputs = [ ];
+  buildInputs = [];
 
   dontBuild = true;
   dontStrip = true;

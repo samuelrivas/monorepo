@@ -8,7 +8,7 @@ stdenv.mkDerivation {
   name = "sandbox";
   src = ./../src;
 
-  nativeBuildInputs = [ makeWrapper sh-lib ];
+  nativeBuildInputs = [makeWrapper sh-lib];
 
   dontBuild = true;
   dontStrip = true;

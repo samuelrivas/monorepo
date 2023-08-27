@@ -2,7 +2,8 @@
   haskell-pkg,
   multiset,
   random-fu,
-}: haskell-pkg {
+}:
+haskell-pkg {
   name = "photoalbum";
   src = ./../src;
   haskell-libs = [

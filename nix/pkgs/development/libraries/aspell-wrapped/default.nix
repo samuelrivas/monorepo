@@ -1,6 +1,5 @@
 ## Just collect the dictionaries I want so that I can configure aspell to use
 ## them
-
 {
   aspell,
   aspellDicts,
@@ -10,7 +9,6 @@
   writeScript,
   writeText,
 }:
-
 stdenv.mkDerivation rec {
   name = "aspell-wrapped-0.0.0";
   dicts = symlinkJoin {
@@ -37,5 +35,5 @@ stdenv.mkDerivation rec {
     mkdir $out/bin -p
     makeWrapper $aspell/bin/aspell $out/bin/aspell \
       --suffix "ASPELL_CONF" ";" 'per-conf ${conf_file}'
-   '';
+  '';
 }

@@ -6,8 +6,7 @@
   rubber,
   stdenv,
   texlive,
-}:
-let
+}: let
   tex = texlive.combine {
     inherit (texlive) scheme-small;
   };
@@ -26,4 +25,5 @@ let
       cp ../build/*.pdf "$out"
     '';
   };
-in add-sandbox [emacs digestif inotify-tools] drv
+in
+  add-sandbox [emacs digestif inotify-tools] drv

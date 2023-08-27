@@ -3,18 +3,15 @@
   lib,
   options,
   pkgs,
-  specialArgs
-}:
-let
+  specialArgs,
+}: let
   configured-modes = [
     "erlang"
     "haskell"
     "ocaml"
   ];
-in
-{
+in {
   options = {
-
     emacs-config = {
       full-user-name = lib.mkOption {
         type = lib.types.str;
@@ -32,14 +29,14 @@ in
       };
       denylisted-modes = lib.mkOption {
         type = lib.types.listOf (lib.types.enum configured-modes);
-        default = [ ];
+        default = [];
         description = ''
           You can prevent installing the dependencies of heavy modules by
           denylisting them here. The configuration will still be present,
           but all the needed packages will not, so those modes will not work
           if you require them.
         '';
-        example = [ "erlang" "haskell" ];
+        example = ["erlang" "haskell"];
       };
     };
   };
