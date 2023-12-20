@@ -2,7 +2,7 @@
   description = "Sam's monorepo derivation collection";
 
   inputs = {
-    nixpkgs-stable.url = github:NixOS/nixpkgs/nixos-23.05;
+    nixpkgs-stable.url = github:NixOS/nixpkgs/nixos-23.11;
     nixpkgs-22-11.url = github:NixOS/nixpkgs/nixos-22.11;
   };
   outputs = {
