@@ -80,6 +80,13 @@ final: prev: let
       aspell-wrapped =
         callPackage ./pkgs/development/libraries/aspell-wrapped {};
 
+      # VCS stuff
+      # =========
+      my-vscode = callPackage ./pkgs/applications/editors/my-vscode {
+        inherit (final.vscode-extensions.github) copilot;
+        inherit (final.vscode-extensions.tuttieee) emacs-mcx;
+      };
+
       # Haskell stuff
       # =============
       haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {};
