@@ -84,6 +84,7 @@ final: prev: let
       # =========
       my-vscode = callPackage ./pkgs/applications/editors/my-vscode {
         inherit (final.vscode-extensions.github) copilot;
+        inherit (final.vscode-extensions.tuttieee) emacs-mcx;
       };
 
       # Haskell stuff
