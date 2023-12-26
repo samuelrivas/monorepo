@@ -3,12 +3,13 @@
   editorconfig,
   emacs,
   fetchFromGitHub,
+  nodejs,
   s,
   trivialBuild,
 }:
 trivialBuild {
   pname = "copilot-el";
-  version = "1.0.0";
+  version = "unstable-2023-12-26";
   src = fetchFromGitHub {
     owner = "zerolfx";
     repo = "copilot.el";
@@ -18,7 +19,10 @@ trivialBuild {
   packageRequires = [
     dash
     editorconfig
+    nodejs
     s
   ];
+  postInstall = ''
+    cp -r $src/dist $LISPDIR
+  '';
 }
-
