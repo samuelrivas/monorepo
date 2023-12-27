@@ -125,6 +125,8 @@
 (defun my-text-mode-hook ()
   (ispell-change-dictionary "british")
   (auto-fill-mode t)
+  (require 'copilot)
+  (copilot-mode t)
   (flyspell-mode t))
 
 (add-to-list 'auto-mode-alist '("COMMIT_EDITMSG\\'" . text-mode))
