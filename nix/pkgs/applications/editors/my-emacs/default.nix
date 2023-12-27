@@ -11,6 +11,7 @@
   aspell-wrapped,
   colorThemeSolarized,
   company,
+  copilot-el,
   eglot,
   emacs-config,
   emacsWithPackages,
@@ -35,6 +36,7 @@ emacsWithPackages [
   aspell-wrapped
   colorThemeSolarized
   company
+  copilot-el
   eglot
   emacs-config
   flycheck-haskell

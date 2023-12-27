@@ -125,6 +125,8 @@
 (defun my-text-mode-hook ()
   (ispell-change-dictionary "british")
   (auto-fill-mode t)
+  (require 'copilot)
+  (copilot-mode t)
   (flyspell-mode t))
 
 (add-to-list 'auto-mode-alist '("COMMIT_EDITMSG\\'" . text-mode))
@@ -173,3 +175,9 @@
   (flyspell-prog-mode))
 
 (add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
+
+;; Copilot mode
+(defun my-copilot-mode-hook ()
+  (define-key copilot-mode-map (kbd "C-M-e") 'copilot-accept-completion))
+
+(add-hook 'copilot-mode-hook 'my-copilot-mode-hook)

@@ -53,6 +53,16 @@ final: prev: let
       # =============
       emacs-config = callPackage ./../src/elisp/emacs-config/nix {};
 
+      copilot-el = callPackage ./pkgs/applications/editors/copilot-el {
+        inherit
+          (final.emacsPackages)
+          dash
+          editorconfig
+          s
+          trivialBuild
+          ;
+      };
+
       # An emacs wrapper with the needed packages accessible
       my-emacs = callPackage ./pkgs/applications/editors/my-emacs {
         inherit
@@ -80,7 +90,7 @@ final: prev: let
       aspell-wrapped =
         callPackage ./pkgs/development/libraries/aspell-wrapped {};
 
-      # VCS stuff
+      # VSC stuff
       # =========
       my-vscode = callPackage ./pkgs/applications/editors/my-vscode {
         inherit (final.vscode-extensions.github) copilot;
