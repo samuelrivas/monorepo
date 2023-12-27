@@ -175,3 +175,9 @@
   (flyspell-prog-mode))
 
 (add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
+
+;; Copilot mode
+(defun my-copilot-mode-hook ()
+  (define-key copilot-mode-map (kbd "C-M-e") 'copilot-accept-completion))
+
+(add-hook 'copilot-mode-hook 'my-copilot-mode-hook)
