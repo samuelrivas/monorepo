@@ -1,7 +1,7 @@
 {
   alejandra,
   lib,
-  nixd,
+  nil,
   vscode-marketplace,
   vscode-with-extensions,
   vscodium,
@@ -19,6 +19,6 @@
 in
   writeShellScriptBin "codium"
   ''
-    export PATH=${lib.makeBinPath [alejandra nixd]}:$PATH
+    export PATH=${lib.makeBinPath [alejandra nil]}:$PATH
     exec ${executable}/bin/codium "$@"
   ''
