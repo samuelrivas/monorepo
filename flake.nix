@@ -43,7 +43,7 @@
           pkgs-stable.derivations-sam
           // {
             # These don't build with nixpkgs-stable. We will be eventually fix
-            # them to avoid carrying old versions of nixpkgs arounc
+            # them to avoid carrying old versions of nixpkgs around
             adventofcode-2019 = pkgs-22-11.derivations-sam.adventofcode-2019;
           };
 
