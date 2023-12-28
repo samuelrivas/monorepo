@@ -166,8 +166,9 @@
 (add-hook 'nix-mode-hook 'my-nix-mode-hook)
 (defun my-nix-mode-hook ()
   (eglot-ensure)
-  (add-to-list 'eglot-server-programs
-               '(nix-mode . ("nil"))))
+  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
+  (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
 ;; Octave mode
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
