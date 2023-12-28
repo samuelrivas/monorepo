@@ -167,7 +167,7 @@
 (defun my-nix-mode-hook ()
   (eglot-ensure)
   (add-to-list 'eglot-server-programs
-               '(nix-mode . ("nixd"))))
+               '(nix-mode . ("nil"))))
 
 ;; Octave mode
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))

@@ -24,7 +24,7 @@
   helm-org,
   htmlize,
   markdown-mode,
-  nixd,
+  nil,
   nix-mode,
   projectile,
   silver-searcher,
@@ -48,7 +48,7 @@ emacsWithPackages [
   helm-org
   htmlize
   markdown-mode
-  nixd
+  nil
   nix-mode
   projectile
   silver-searcher
