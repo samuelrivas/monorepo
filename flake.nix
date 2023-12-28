@@ -4,11 +4,13 @@
   inputs = {
     nixpkgs-stable.url = github:NixOS/nixpkgs/nixos-23.11;
     nixpkgs-22-11.url = github:NixOS/nixpkgs/nixos-22.11;
+    vscode-extensions.url = github:nix-community/nix-vscode-extensions/master;
   };
   outputs = {
     self,
     nixpkgs-22-11,
     nixpkgs-stable,
+    vscode-extensions,
   }: let
     supported-systems = ["x86_64-linux"];
     lib = nixpkgs-stable.lib;
@@ -16,7 +18,7 @@
     instantiate-nixpkgs = nixpkgs-version: system:
       import nixpkgs-version {
         inherit system;
-        overlays = [self.overlays.default];
+        overlays = [self.overlays.default vscode-extensions.overlays.default];
         config = {};
       };
   in rec {
