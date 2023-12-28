@@ -1,13 +1,13 @@
 {
-  copilot,
-  emacs-mcx,
+  vscode-marketplace,
   vscode-with-extensions,
   vscodium,
 }:
 vscode-with-extensions.override {
   vscode = vscodium;
-  vscodeExtensions = [
-    copilot
-    emacs-mcx
+  vscodeExtensions = with vscode-marketplace; [
+    github.copilot
+    jnoortheen.nix-ide
+    tuttieee.emacs-mcx
   ];
 }
