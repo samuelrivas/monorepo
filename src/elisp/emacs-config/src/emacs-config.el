@@ -133,7 +133,6 @@
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
-
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
 (add-to-list 'auto-mode-alist '("\\.[he]rl\\'" . erlang-mode))
@@ -146,7 +145,6 @@
   (ispell-change-dictionary "british"))
 
 (add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
-
 
 ;; Haskell mode
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
@@ -165,6 +163,11 @@
 ;; Nix mode
 (autoload 'nix-mode "nix-mode" "nix-mode" t)
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
+(add-hook 'nix-mode-hook 'my-nix-mode-hook)
+(defun my-nix-mode-hook ()
+  (eglot-ensure)
+  (add-to-list 'eglot-server-programs
+               '(nix-mode . ("nixd"))))
 
 ;; Octave mode
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
