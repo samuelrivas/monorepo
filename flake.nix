@@ -2,9 +2,9 @@
   description = "Sam's monorepo derivation collection";
 
   inputs = {
-    nixpkgs-stable.url = github:NixOS/nixpkgs/nixos-23.11;
-    nixpkgs-22-11.url = github:NixOS/nixpkgs/nixos-22.11;
-    vscode-extensions.url = github:nix-community/nix-vscode-extensions/master;
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs-22-11.url = "github:NixOS/nixpkgs/nixos-22.11";
+    vscode-extensions.url = "github:nix-community/nix-vscode-extensions/master";
   };
   outputs = {
     self,

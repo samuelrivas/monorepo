@@ -133,7 +133,6 @@
 
 (add-hook 'text-mode-hook 'my-text-mode-hook)
 
-
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
 (add-to-list 'auto-mode-alist '("\\.[he]rl\\'" . erlang-mode))
@@ -146,7 +145,6 @@
   (ispell-change-dictionary "british"))
 
 (add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
-
 
 ;; Haskell mode
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
@@ -165,6 +163,12 @@
 ;; Nix mode
 (autoload 'nix-mode "nix-mode" "nix-mode" t)
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
+(add-hook 'nix-mode-hook 'my-nix-mode-hook)
+(add-hook 'nix-mode-hook 'eglot-ensure)
+(defun my-nix-mode-hook ()
+  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
+  (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
 ;; Octave mode
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
@@ -177,6 +181,7 @@
 (add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
 
 ;; Copilot mode
+(defvar copilot-mode-map)
 (defun my-copilot-mode-hook ()
   (define-key copilot-mode-map (kbd "C-M-e") 'copilot-accept-completion))
 
