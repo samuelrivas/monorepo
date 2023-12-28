@@ -164,8 +164,8 @@
 (autoload 'nix-mode "nix-mode" "nix-mode" t)
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
 (add-hook 'nix-mode-hook 'my-nix-mode-hook)
+(add-hook 'nix-mode-hook 'eglot-ensure)
 (defun my-nix-mode-hook ()
-  (eglot-ensure)
   (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
   (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
@@ -181,6 +181,7 @@
 (add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
 
 ;; Copilot mode
+(defvar copilot-mode-map)
 (defun my-copilot-mode-hook ()
   (define-key copilot-mode-map (kbd "C-M-e") 'copilot-accept-completion))
 
