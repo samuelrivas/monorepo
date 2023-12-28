@@ -166,6 +166,8 @@
 (add-hook 'nix-mode-hook 'my-nix-mode-hook)
 (add-hook 'nix-mode-hook 'eglot-ensure)
 (defun my-nix-mode-hook ()
+  (require 'copilot)
+  (copilot-mode t)
   (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
   (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
@@ -183,6 +185,11 @@
 ;; Copilot mode
 (defvar copilot-mode-map)
 (defun my-copilot-mode-hook ()
-  (define-key copilot-mode-map (kbd "C-M-e") 'copilot-accept-completion))
+  (define-key copilot-mode-map (kbd "<tab>") 'my-copilot-tab))
+
+(defun my-copilot-tab ()
+  (interactive)
+  (or (copilot-accept-completion)
+      (indent-for-tab-command)))
 
 (add-hook 'copilot-mode-hook 'my-copilot-mode-hook)
