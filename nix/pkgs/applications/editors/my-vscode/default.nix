@@ -9,5 +9,6 @@ vscode-with-extensions.override {
     github.copilot
     jnoortheen.nix-ide
     tuttieee.emacs-mcx
+    yzhang.markdown-all-in-one
   ];
 }
