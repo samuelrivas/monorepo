@@ -185,11 +185,8 @@
 ;; Copilot mode
 (defvar copilot-mode-map)
 (defun my-copilot-mode-hook ()
-  (define-key copilot-mode-map (kbd "<tab>") 'my-copilot-tab))
-
-(defun my-copilot-tab ()
-  (interactive)
-  (or (copilot-accept-completion)
-      (indent-for-tab-command)))
+  (define-key copilot-mode-map (kbd "M-o") 'copilot-accept-completion)
+  (define-key copilot-mode-map (kbd "M-n") 'copilot-next-completion)
+  (define-key copilot-mode-map (kbd "M-p") 'copilot-previous-completion))
 
 (add-hook 'copilot-mode-hook 'my-copilot-mode-hook)
