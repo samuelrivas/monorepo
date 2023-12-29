@@ -13,6 +13,7 @@
     vscode = vscodium;
     vscodeExtensions = with vscode-marketplace; [
       github.copilot
+      hashicorp.terraform
       haskell.haskell
       jnoortheen.nix-ide
       justusadam.language-haskell
