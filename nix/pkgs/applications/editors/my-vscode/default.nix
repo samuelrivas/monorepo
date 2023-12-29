@@ -4,6 +4,7 @@
   lib,
   nil,
   haskellPackages,
+  python3,
   vscode-marketplace,
   vscode-with-extensions,
   vscodium,
@@ -17,6 +18,8 @@
       haskell.haskell
       jnoortheen.nix-ide
       justusadam.language-haskell
+      ms-python.python
+      ms-python.vscode-pylance
       tuttieee.emacs-mcx
       yzhang.markdown-all-in-one
     ];
@@ -26,6 +29,7 @@
     haskell-language-server
     haskellPackages.ghc
     haskellPackages.ormolu.bin
+    python3
     nil
   ];
 in
