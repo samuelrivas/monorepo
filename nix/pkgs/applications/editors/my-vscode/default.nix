@@ -5,24 +5,39 @@
   nil,
   haskellPackages,
   python3,
+  vscode-utils,
   vscode-marketplace,
   vscode-with-extensions,
   vscodium,
   writeShellScriptBin,
 }: let
+  build-extension = ext:
+    vscode-utils.buildVscodeMarketplaceExtension {
+      mktplcRef = ext;
+    };
+  standard-exceptions = with vscode-marketplace; [
+    github.copilot
+    hashicorp.terraform
+    haskell.haskell
+    jnoortheen.nix-ide
+    justusadam.language-haskell
+    ms-python.python
+    tuttieee.emacs-mcx
+    yzhang.markdown-all-in-one
+  ];
+  patched-exceptions =
+    builtins.map build-extension
+    [
+      {
+        publisher = "ms-python";
+        name = "vscode-pylance";
+        version = "2023.6.40";
+        sha256 = "sha256-J5nRoQjUVKaMqs0QJFY0vzutjWZ9dH6O7FXI+ZZIaBQ=";
+      }
+    ];
   executable = vscode-with-extensions.override {
     vscode = vscodium;
-    vscodeExtensions = with vscode-marketplace; [
-      github.copilot
-      hashicorp.terraform
-      haskell.haskell
-      jnoortheen.nix-ide
-      justusadam.language-haskell
-      ms-python.python
-      ms-python.vscode-pylance
-      tuttieee.emacs-mcx
-      yzhang.markdown-all-in-one
-    ];
+    vscodeExtensions = standard-exceptions ++ patched-exceptions;
   };
   path = lib.makeBinPath [
     alejandra
