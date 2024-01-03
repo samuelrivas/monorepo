@@ -53,7 +53,7 @@ final: prev: let
       # =============
       emacs-config = callPackage ./../src/elisp/emacs-config/nix {};
 
-      copilot-el = callPackage ./pkgs/applications/editors/copilot-el {
+      copilot = callPackage ./pkgs/applications/editors/copilot {
         inherit
           (final.emacsPackages)
           dash
