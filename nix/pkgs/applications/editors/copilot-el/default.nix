@@ -1,7 +1,6 @@
 {
   dash,
   editorconfig,
-  emacs,
   fetchFromGitHub,
   nodejs,
   s,
