@@ -184,7 +184,6 @@
 
 ;; Copilot mode
 (defvar copilot-mode-map)
-;; (defvar warning-suppress-types)
 (defun my-copilot-mode-hook ()
   (add-to-list 'warning-suppress-types '(copilot copilot-no-mode-indent))
   (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
@@ -193,3 +192,9 @@
   (define-key copilot-mode-map (kbd "M-p") 'copilot-previous-completion))
 
 (add-hook 'copilot-mode-hook 'my-copilot-mode-hook)
+
+;; Terraform mode
+(add-hook 'terraform-mode-hook 'eglot-ensure)
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(terraform-mode . ("terraform-ls" "serve"))))

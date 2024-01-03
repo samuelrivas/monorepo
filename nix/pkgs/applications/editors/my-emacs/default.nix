@@ -29,6 +29,7 @@
   silver-searcher,
   stylish-haskell,
   terraform-mode,
+  terraform-ls,
   yaml-mode,
   yasnippet,
 }:
@@ -52,6 +53,7 @@ emacsWithPackages [
   projectile
   silver-searcher
   stylish-haskell
+  terraform-ls
   terraform-mode
   yaml-mode
   yasnippet
