@@ -72,7 +72,6 @@ final: prev: let
           eglot
           flycheck-haskell
           groovy-mode
-          haskell-mode
           helm
           helm-ls-git
           helm-org

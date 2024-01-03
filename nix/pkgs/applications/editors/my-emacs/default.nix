@@ -18,7 +18,6 @@
   flycheck-haskell,
   git,
   groovy-mode,
-  haskell-mode,
   helm,
   helm-ls-git,
   helm-org,
