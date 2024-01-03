@@ -198,3 +198,7 @@
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
                '(terraform-mode . ("terraform-ls" "serve"))))
+
+
+;; Python mode
+(add-hook 'python-mode-hook 'eglot-ensure)

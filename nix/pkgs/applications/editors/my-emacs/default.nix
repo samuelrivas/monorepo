@@ -16,6 +16,7 @@
   emacs-config,
   emacsWithPackages,
   flycheck-haskell,
+  jedi-language-server,
   git,
   groovy-mode,
   helm,
@@ -41,6 +42,7 @@ emacsWithPackages [
   eglot
   emacs-config
   flycheck-haskell
+  jedi-language-server
   git
   groovy-mode
   helm
