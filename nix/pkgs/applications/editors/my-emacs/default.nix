@@ -11,14 +11,13 @@
   aspell-wrapped,
   colorThemeSolarized,
   company,
-  copilot-el,
+  copilot,
   eglot,
   emacs-config,
   emacsWithPackages,
   flycheck-haskell,
   git,
   groovy-mode,
-  haskell-mode,
   helm,
   helm-ls-git,
   helm-org,
@@ -37,7 +36,7 @@ emacsWithPackages [
   aspell-wrapped
   colorThemeSolarized
   company
-  copilot-el
+  copilot
   eglot
   emacs-config
   flycheck-haskell
