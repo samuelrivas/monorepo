@@ -83,6 +83,7 @@ final: prev: let
           yaml-mode
           yasnippet
           ;
+        inherit (final.python3Packages) jedi-language-server;
       };
 
       # aspell needs to be configured to find the dictionaries
