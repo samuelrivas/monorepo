@@ -19,7 +19,7 @@
       import nixpkgs-version {
         inherit system;
         overlays = [self.overlays.default vscode-extensions.overlays.default];
-        config = {};
+        config = {allowUnfree = true;};
       };
   in rec {
     overlays.default = import ./nix/pkgs-sam.nix;
