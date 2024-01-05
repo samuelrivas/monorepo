@@ -5,6 +5,7 @@
   nil,
   haskellPackages,
   python3,
+  terraform,
   vscode-utils,
   vscode-marketplace,
   vscode-with-extensions,
@@ -45,6 +46,7 @@
     haskellPackages.ghc
     haskellPackages.ormolu.bin
     python3
+    terraform
     nil
   ];
 in

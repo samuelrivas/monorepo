@@ -92,7 +92,9 @@ final: prev: let
 
       # VSC stuff
       # =========
-      my-vscode = callPackage ./pkgs/applications/editors/my-vscode {};
+      my-vscode = callPackage ./pkgs/applications/editors/my-vscode {
+        terraform = final.terraform.withPlugins (p: [p.aws]);
+      };
 
       # Haskell stuff
       # =============
