@@ -23,6 +23,7 @@
     jnoortheen.nix-ide
     justusadam.language-haskell
     ms-python.python
+    stkb.rewrap
     tuttieee.emacs-mcx
     yzhang.markdown-all-in-one
   ];
