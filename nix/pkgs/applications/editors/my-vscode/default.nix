@@ -24,6 +24,7 @@
     justusadam.language-haskell
     ms-python.python
     stkb.rewrap
+    tamasfe.even-better-toml
     tuttieee.emacs-mcx
     yzhang.markdown-all-in-one
   ];
