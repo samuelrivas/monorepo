@@ -17,6 +17,7 @@
       mktplcRef = ext;
     };
   standard-exceptions = with vscode-marketplace; [
+    charliermarsh.ruff
     github.copilot
     hashicorp.terraform
     haskell.haskell
