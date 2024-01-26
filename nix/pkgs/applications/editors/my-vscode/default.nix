@@ -16,7 +16,7 @@
     vscode-utils.buildVscodeMarketplaceExtension {
       mktplcRef = ext;
     };
-  standard-exceptions = with vscode-marketplace; [
+  standard-extensions = with vscode-marketplace; [
     charliermarsh.ruff
     github.copilot
     hashicorp.terraform
@@ -26,10 +26,11 @@
     ms-python.python
     stkb.rewrap
     tamasfe.even-better-toml
+    tsandall.opa
     tuttieee.emacs-mcx
     yzhang.markdown-all-in-one
   ];
-  patched-exceptions =
+  patched-extensions =
     builtins.map build-extension
     [
       {
@@ -41,7 +42,7 @@
     ];
   executable = vscode-with-extensions.override {
     vscode = vscodium;
-    vscodeExtensions = standard-exceptions ++ patched-exceptions;
+    vscodeExtensions = standard-extensions ++ patched-extensions;
   };
   path = lib.makeBinPath [
     alejandra
