@@ -26,6 +26,7 @@
     ms-python.python
     stkb.rewrap
     tamasfe.even-better-toml
+    tsandall.opa
     tuttieee.emacs-mcx
     yzhang.markdown-all-in-one
   ];
