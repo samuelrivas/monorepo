@@ -21,6 +21,7 @@
     github.copilot
     hashicorp.terraform
     haskell.haskell
+    jmaxwilson.vscode-povray
     jnoortheen.nix-ide
     justusadam.language-haskell
     ms-python.python
