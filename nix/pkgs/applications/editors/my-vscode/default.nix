@@ -27,6 +27,7 @@
     justusadam.language-haskell
     ms-python.python
     stkb.rewrap
+    streetsidesoftware.code-spell-checker
     tamasfe.even-better-toml
     tsandall.opa
     tuttieee.emacs-mcx
