@@ -26,6 +26,7 @@
     jnoortheen.nix-ide
     justusadam.language-haskell
     ms-python.python
+    nicolasvuillamy.vscode-groovy-lint
     stkb.rewrap
     streetsidesoftware.code-spell-checker
     tamasfe.even-better-toml
