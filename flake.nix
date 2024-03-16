@@ -13,13 +13,18 @@
     vscode-extensions,
   }: let
     supported-systems = ["x86_64-linux"];
-    lib = nixpkgs-stable.lib;
-    for-all-systems = lib.genAttrs supported-systems;
+    nixpkgs-lib = nixpkgs-stable.lib;
+    for-all-systems = nixpkgs-lib.genAttrs supported-systems;
     instantiate-nixpkgs = nixpkgs-version: system:
       import nixpkgs-version {
         inherit system;
-        overlays = [self.overlays.default vscode-extensions.overlays.default];
-        config = {allowUnfree = true;};
+        overlays = [
+          self.overlays.default
+          vscode-extensions.overlays.default
+        ];
+        config = {
+          allowUnfree = true;
+        };
       };
   in rec {
     overlays.default = import ./nix/pkgs-sam.nix;
@@ -32,7 +37,7 @@
         pkgs-22-11 = instantiate-nixpkgs nixpkgs-22-11 system;
         bundle-pkgs-sam = pkgs:
           pkgs-stable.linkFarm "all-pkgs-sam" (
-            lib.mapAttrsToList
+            nixpkgs-lib.mapAttrsToList
             (n: v: {
               name = n;
               path = v;
