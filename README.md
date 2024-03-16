@@ -30,25 +30,6 @@ that can be used to create a nix shell. That is, for a package `foo`, `nix-sell
 foo.sandbox` drops you in de dev enviromnet for `foo`. `X.sandbox` value is
 typically the same as `X`, with some `buildInputs` added.
 
-## Configuration
-
-Some packages can be configured, you can personalize some options by writing a
-nix expression in
-
-    $HOME/.local-nix-config/configuration.nix
-
-For example:
-
-    {
-      emacs-config = {
-        user = "samuel";
-        full-user-name = "Samuel Rivas";
-        blacklisted-modes = [ "ocaml" ];
-      };
-    }
-
-All possible configuration options are defined in nix/modules
-
 ## Conventions for contributions
 
 Avoid generating files along with the sources. nix will rebuild things that have
