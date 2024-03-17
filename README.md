@@ -25,9 +25,9 @@ You can obviously install any of those packages in your environemnt by running
 
     nix-env -iA pkgs-sam.<package> -f nix
 
-By convention, my derivations may include a `sandbox` value with a derivation
+By convention, our derivations may include a `dev-shell` value with a derivation
 that can be used to create a nix shell. That is, for a package `foo`, `nix-sell
-foo.sandbox` drops you in de dev enviromnet for `foo`. `X.sandbox` value is
+foo.sandbox` drops you in de dev enviromnet for `foo`. `X.dev-shell` value is
 typically the same as `X`, with some `buildInputs` added.
 
 ## Conventions for contributions
