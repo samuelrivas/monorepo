@@ -14,7 +14,6 @@
   }: let
     supported-systems = ["x86_64-linux"];
     nixpkgs-lib = nixpkgs-stable.lib;
-    for-all-systems = nixpkgs-lib.genAttrs supported-systems;
     instantiate-nixpkgs = nixpkgs-version: system:
       import nixpkgs-version {
         inherit system;
@@ -26,6 +25,7 @@
           allowUnfree = true;
         };
       };
+    for-all-systems = nixpkgs-lib.genAttrs supported-systems;
   in rec {
     overlays.default = import ./nix/pkgs-sam.nix;
     formatter =
