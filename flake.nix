@@ -14,6 +14,7 @@
   }: let
     supported-systems = ["x86_64-linux"];
     nixpkgs-lib = nixpkgs-stable.lib;
+    sam-lib = import ./lib.nix;
     instantiate-nixpkgs = nixpkgs-version: system:
       import nixpkgs-version {
         inherit system;

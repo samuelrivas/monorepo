@@ -5,8 +5,9 @@
 # legacy nix/default.nix. We'll keep migrating those to here and eventually
 # deprecate nix/default.nix.
 final: prev: let
+  sam-lib = import ./lib.nix;
   builders = final.callPackage ./lib/build-support/builders.nix {};
-  derivation-helpers = import ./lib/derivation-helpers.nix;
+  derivation-helpers = sam-lib.legacy.derivation-helpers;
   libs-sam = {inherit builders derivation-helpers;};
   callPackage =
     final.lib.callPackageWith
