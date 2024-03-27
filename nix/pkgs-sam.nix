@@ -9,6 +9,7 @@ final: prev: let
   builders = final.callPackage ./lib/build-support/builders.nix {};
   derivation-helpers = sam-lib.legacy.derivation-helpers;
   libs-sam = {inherit builders derivation-helpers;};
+  system-lib = import ./system-lib.nix {inherit final;};
   callPackage =
     final.lib.callPackageWith
     (final.pkgs // builders // derivation-helpers);
@@ -16,7 +17,7 @@ final: prev: let
     # We keep our libraries in a separate attrset and pass them with
     # callPackageWith instead of polluting the top level namespace with them. We
     # do add all our pakcages to the top level namespace though
-    inherit libs-sam;
+    inherit libs-sam system-lib;
 
     haskell-lib = import ./lib/haskell.nix {
       inherit (final) pkgs;
