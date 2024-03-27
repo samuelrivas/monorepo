@@ -14,7 +14,6 @@
   }: let
     supported-systems = ["x86_64-linux"];
     nixpkgs-lib = nixpkgs-stable.lib;
-    sam-lib = import ./lib.nix;
     instantiate-nixpkgs = nixpkgs-version: system:
       import nixpkgs-version {
         inherit system;
@@ -32,6 +31,13 @@
     formatter =
       for-all-systems (system:
         nixpkgs-stable.legacyPackages.${system}.alejandra);
+    # TODO: Deduplicate this and packages
+    system-lib = for-all-systems (system: let
+      pkgs-stable = instantiate-nixpkgs nixpkgs-stable system;
+    in {
+      sam = pkgs-stable.system-lib;
+    });
+
     packages = for-all-systems (
       system: let
         pkgs-stable = instantiate-nixpkgs nixpkgs-stable system;
