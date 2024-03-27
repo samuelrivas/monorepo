@@ -9,7 +9,7 @@ final: prev: let
   builders = final.callPackage ./lib/build-support/builders.nix {};
   derivation-helpers = sam-lib.legacy.derivation-helpers;
   libs-sam = {inherit builders derivation-helpers;};
-  system-lib = import ./system-lib.nix {pkgs = final;};
+  system-lib = import ./system-lib.nix {inherit (final) pkgs;};
   callPackage =
     final.lib.callPackageWith
     (final.pkgs // builders // derivation-helpers);
@@ -20,9 +20,7 @@ final: prev: let
     inherit libs-sam system-lib;
 
     sam.system-lib = system-lib;
-    haskell-lib = import ./lib/haskell.nix {
-      inherit (final) pkgs;
-    };
+    haskell-lib = system-lib.haskell;
 
     haskellPackages = prev.haskellPackages.override {
       overrides = h-final: h-prev: let

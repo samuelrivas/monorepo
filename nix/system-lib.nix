@@ -1,3 +1,3 @@
 {pkgs}: {
-  haskell = import ./lib/haskell.nix {inherit pkgs;};
+  haskell = import ./system-lib/haskell.nix {inherit pkgs;};
 }
