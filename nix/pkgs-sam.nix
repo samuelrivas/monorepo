@@ -6,10 +6,10 @@
 # deprecate nix/default.nix.
 final: prev: let
   sam-lib = import ./lib.nix;
-  builders = final.callPackage ./lib/build-support/builders.nix {};
   derivation-helpers = sam-lib.legacy.derivation-helpers;
   libs-sam = {inherit builders derivation-helpers;};
   system-lib = import ./system-lib.nix {inherit (final) pkgs;};
+  builders = system-lib.builders;
   callPackage =
     final.lib.callPackageWith
     (final.pkgs // builders // derivation-helpers);
