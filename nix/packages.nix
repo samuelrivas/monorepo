@@ -5,6 +5,7 @@
   vscode-extensions,
 }: let
   builders = system-lib.sam.builders;
+  # TODO: remove this use of legacy, we are not using it for anything necessary
   legacy-lib = import ./legacy/lib.nix;
   derivation-helpers = legacy-lib.derivation-helpers;
   libs-sam = {inherit builders derivation-helpers;};
@@ -92,6 +93,7 @@
       # VSC stuff
       # =========
       my-vscode = callPackage ./pkgs/applications/editors/my-vscode {
+        # TODO: pass marketplace directly instead of the whole extensions package
         inherit (vscode-extensions) vscode-marketplace;
         terraform = nixpkgs.terraform.withPlugins (p: [p.aws]);
       };
