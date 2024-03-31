@@ -15,49 +15,6 @@ final: prev: let
     # set of overlaid packages
     vscode-extensions = final.pkgs;
   };
-  pkgs = {
-    derivations-sam = {
-      inherit
-        (packages)
-        assorted-scripts
-        sh-lib
-        sandbox
-        reservoir
-        monte-carlo
-        algos-n-fun
-        finndb
-        graphlib
-        rndlib
-        asyncq
-        udp-cat
-        emacs-config
-        copilot
-        my-emacs
-        aspell-wrapped
-        haskell-mk
-        haskell-lib-mk
-        haskell-test-mk
-        commit-hook-ticket-prefix
-        adventlib
-        adventlib-old-1
-        boardgamer
-        boollib
-        clean-clocks
-        hashcode-photoalbum
-        low-battery
-        mk-conf-file
-        monad-emit
-        name-generator
-        onirim-helper
-        parselib
-        perlude
-        searchlib
-        adventofcode-2019
-        adventofcode-2020
-        adventofcode-2021
-        my-vscode
-        ;
-    };
-  };
 in
-  pkgs // pkgs.derivations-sam
+  # pkgs // pkgs.derivations-sam
+  packages // {derivations-sam = packages;}
