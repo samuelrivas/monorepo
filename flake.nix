@@ -31,13 +31,14 @@
     formatter =
       for-all-systems (system:
         nixpkgs-stable.legacyPackages.${system}.alejandra);
-    # TODO: Deduplicate this and packages
+    # TODO: Remove this
     system-lib = for-all-systems (system: let
       pkgs-stable = instantiate-nixpkgs nixpkgs-stable system;
     in {
       sam = pkgs-stable.system-lib;
     });
-
+    legacy.lib.sam = import ./nix/legacy/lib.nix;
+    lib.sam = import ./nix/lib.nix;
     packages = for-all-systems (
       system: let
         pkgs-stable = instantiate-nixpkgs nixpkgs-stable system;
