@@ -2,10 +2,10 @@
   packages-nixpkgs,
   packages-sam,
 }: {
-  haskell = import ./system-lib/haskell.nix {
+  haskell = import ./system/haskell.nix {
     inherit packages-nixpkgs packages-sam;
   };
-  builders = import ./system-lib/builders.nix {
+  builders = import ./system/builders.nix {
     inherit (packages-nixpkgs) writeScript;
   };
 }

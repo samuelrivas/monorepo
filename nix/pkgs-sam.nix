@@ -5,7 +5,7 @@
 # legacy nix/default.nix. We'll keep migrating those to here and eventually
 # deprecate nix/default.nix.
 final: prev: let
-  system-lib = import ./system-lib.nix {
+  system-lib = import ./lib/system.nix {
     # TODO make packages-xxx actually refer to the specific set that they should refer to
     packages-nixpkgs = final.pkgs;
     packages-sam = final.pkgs;
