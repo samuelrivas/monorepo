@@ -1,8 +1,11 @@
-{pkgs}: {
+{
+  packages-nixpkgs,
+  packages-sam,
+}: {
   haskell = import ./system-lib/haskell.nix {
-    inherit pkgs;
+    inherit packages-nixpkgs packages-sam;
   };
   builders = import ./system-lib/builders.nix {
-    inherit (pkgs) writeScript;
+    inherit (packages-nixpkgs) writeScript;
   };
 }

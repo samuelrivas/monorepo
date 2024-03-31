@@ -5,7 +5,11 @@
 # legacy nix/default.nix. We'll keep migrating those to here and eventually
 # deprecate nix/default.nix.
 final: prev: let
-  system-lib = import ./system-lib.nix {inherit (final) pkgs;};
+  system-lib = import ./system-lib.nix {
+    # TODO make packages-xxx actually refer to the specific set that they should refer to
+    packages-nixpkgs = final.pkgs;
+    packages-sam = final.pkgs;
+  };
   packages = import ./packages.nix {
     lib = prev.lib;
     # TODO: The flake should pass this already overlayed
