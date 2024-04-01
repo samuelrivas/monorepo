@@ -37,16 +37,16 @@
     lib.sam = import ./nix/lib.nix;
 
     # TODO Go over these input parameters and make sense of them according to The Principles
-    packages-2 = for-all-systems (
+    packages = for-all-systems (
       system: let
-        bundle-packages = packages:
+        bundle-packages = p:
           nixpkgs-stable.outputs.legacyPackages.${system}.linkFarm "all-packages" (
             nixpkgs-lib.mapAttrsToList
             (n: v: {
               name = n;
               path = v;
             })
-            packages
+            p
           );
         instantiate-packages-sam = flake-nixpkgs:
           import ./nix/packages.nix {
@@ -54,7 +54,7 @@
             system-lib = {
               sam = lib.sam.system {
                 packages-nixpkgs = flake-nixpkgs.outputs.legacyPackages.${system};
-                packages-sam = packages-2.${system};
+                packages-sam = packages.${system};
               };
             };
             nixpkgs = flake-nixpkgs.outputs.legacyPackages.${system};
@@ -62,49 +62,19 @@
           };
         packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
         packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;
-        packages = packages-sam-stable
-        // {
-          # These don't build with nixpkgs-stable. We will be eventually fix
-          # them to avoid carrying old versions of nixpkgs around
-          adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
-        };
-        all-packages = bundle-packages packages;
-        in
-        packages // {
-          inherit all-packages;
-          default = all-packages;
-        }
-    );
-    packages = for-all-systems (
-      system: let
-        pkgs-stable = instantiate-nixpkgs nixpkgs-stable system;
-        pkgs-22-11 = instantiate-nixpkgs nixpkgs-22-11 system;
-        bundle-pkgs-sam = pkgs:
-          pkgs-stable.linkFarm "all-pkgs-sam" (
-            nixpkgs-lib.mapAttrsToList
-            (n: v: {
-              name = n;
-              path = v;
-            })
-            pkgs
-          );
-        pkgs-sam =
-          pkgs-stable.derivations-sam
+        final-packages =
+          packages-sam-stable
           // {
             # These don't build with nixpkgs-stable. We will be eventually fix
             # them to avoid carrying old versions of nixpkgs around
-            adventofcode-2019 = pkgs-22-11.derivations-sam.adventofcode-2019;
+            adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
           };
-
-        # This is a derivation that installs all our derivations under a
-        # single directory as a link farm. Useful mainly to build all of the
-        # for testing purposes. e.g with nix build .#all-pkgs-sam
-        all-pkgs-sam = bundle-pkgs-sam pkgs-sam;
+        all-packages = bundle-packages final-packages;
       in
-        pkgs-sam
+        final-packages
         // {
-          inherit all-pkgs-sam;
-          default = all-pkgs-sam;
+          inherit all-packages;
+          default = all-packages;
         }
     );
 
