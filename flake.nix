@@ -14,13 +14,13 @@
   }: let
     supported-systems = ["x86_64-linux"];
     nixpkgs-lib = nixpkgs-stable.lib;
+
+    # nixpkgs flakes outputs are already configured, so unfree packages are not
+    # directly accessible without running `nix` with `--impure`. We instantiate
+    # nixpkgs configured with access to unfree to avoid that
     instantiate-nixpkgs = nixpkgs-version: system:
       import nixpkgs-version {
         inherit system;
-        overlays = [
-          self.overlays.default
-          vscode-extensions.overlays.default
-        ];
         config = {
           allowUnfree = true;
         };
@@ -48,20 +48,20 @@
             })
             p
           );
-        instantiate-packages-sam = flake-nixpkgs:
+        instantiate-packages-sam = nixpkgs:
           import ./nix/packages.nix {
-            lib = flake-nixpkgs.lib;
+            lib = nixpkgs.lib;
             system-lib = {
               sam = lib.sam.system {
-                packages-nixpkgs = flake-nixpkgs.outputs.legacyPackages.${system};
+                packages-nixpkgs = nixpkgs;
                 packages-sam = packages.${system};
               };
             };
-            nixpkgs = flake-nixpkgs.outputs.legacyPackages.${system};
+            inherit nixpkgs;
             vscode-extensions = vscode-extensions.outputs.extensions.${system};
           };
-        packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
-        packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;
+        packages-sam-stable = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-stable system);
+        packages-sam-22-11 = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-22-11 system);
         final-packages =
           packages-sam-stable
           // {
