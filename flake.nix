@@ -39,6 +39,15 @@
     # TODO Go over these input parameters and make sense of them according to The Principles
     packages-2 = for-all-systems (
       system: let
+        bundle-packages = packages:
+          nixpkgs-stable.outputs.legacyPackages.${system}.linkFarm "all-packages" (
+            nixpkgs-lib.mapAttrsToList
+            (n: v: {
+              name = n;
+              path = v;
+            })
+            packages
+          );
         instantiate-packages-sam = flake-nixpkgs:
           import ./nix/packages.nix {
             lib = flake-nixpkgs.lib;
@@ -53,12 +62,17 @@
           };
         packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
         packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;
-      in
-        packages-sam-stable
+        packages = packages-sam-stable
         // {
           # These don't build with nixpkgs-stable. We will be eventually fix
           # them to avoid carrying old versions of nixpkgs around
           adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
+        };
+        all-packages = bundle-packages packages;
+        in
+        packages // {
+          inherit all-packages;
+          default = all-packages;
         }
     );
     packages = for-all-systems (
