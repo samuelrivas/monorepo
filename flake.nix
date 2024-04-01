@@ -38,17 +38,27 @@
 
     # TODO Go over these input parameters and make sense of them according to The Principles
     packages-2 = for-all-systems (
-      system:
-        import ./nix/packages.nix {
-          lib = nixpkgs-stable.lib;
-          system-lib = {
-            sam = lib.sam.system {
-              packages-nixpkgs = nixpkgs-stable.outputs.legacyPackages.${system};
-              packages-sam = packages-2.${system};
+      system: let
+        instantiate-packages-sam = flake-nixpkgs:
+          import ./nix/packages.nix {
+            lib = flake-nixpkgs.lib;
+            system-lib = {
+              sam = lib.sam.system {
+                packages-nixpkgs = flake-nixpkgs.outputs.legacyPackages.${system};
+                packages-sam = packages-2.${system};
+              };
             };
+            nixpkgs = flake-nixpkgs.outputs.legacyPackages.${system};
+            vscode-extensions = vscode-extensions.outputs.extensions.${system};
           };
-          nixpkgs = nixpkgs-stable.outputs.legacyPackages.${system};
-          vscode-extensions = vscode-extensions.outputs.extensions.${system};
+        packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
+        packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;
+      in
+        packages-sam-stable
+        // {
+          # These don't build with nixpkgs-stable. We will be eventually fix
+          # them to avoid carrying old versions of nixpkgs around
+          adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
         }
     );
     packages = for-all-systems (
