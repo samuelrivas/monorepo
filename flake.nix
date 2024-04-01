@@ -36,6 +36,21 @@
 
     lib.sam = import ./nix/lib.nix;
 
+    # TODO Go over these input parameters and make sense of them according to The Principles
+    packages-2 = for-all-systems (
+      system:
+        import ./nix/packages.nix {
+          lib = nixpkgs-stable.lib;
+          system-lib = {
+            sam = lib.sam.system {
+              packages-nixpkgs = nixpkgs-stable.outputs.legacyPackages.${system};
+              packages-sam = packages-2.${system};
+            };
+          };
+          nixpkgs = nixpkgs-stable.outputs.legacyPackages.${system};
+          vscode-extensions = vscode-extensions.outputs.extensions.${system};
+        }
+    );
     packages = for-all-systems (
       system: let
         pkgs-stable = instantiate-nixpkgs nixpkgs-stable system;
