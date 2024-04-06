@@ -1,4 +1,5 @@
 {
+  legacy-lib,
   lib, # system indepentent libs, including nixpkgs lib plus our overlaid sam lib
   system-lib, # system dependent libs
   nixpkgs, # official nixpkgs set
@@ -6,7 +7,6 @@
 }: let
   builders = system-lib.sam.builders;
   # TODO: remove this use of legacy, we are not using it for anything necessary
-  legacy-lib = import ./legacy/lib.nix;
   derivation-helpers = legacy-lib.derivation-helpers;
   libs-sam = {inherit builders derivation-helpers;};
   callPackage =

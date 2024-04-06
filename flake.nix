@@ -49,6 +49,7 @@
           );
         instantiate-packages-sam = nixpkgs:
           import ./nix/packages.nix {
+            legacy-lib = legacy.lib.sam;
             lib = nixpkgs.lib;
             system-lib = {
               sam = lib.sam.system {
