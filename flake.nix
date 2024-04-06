@@ -12,23 +12,15 @@
     nixpkgs-stable,
     vscode-extensions,
   }: let
-    supported-systems = ["x86_64-linux"];
     nixpkgs-lib = nixpkgs-stable.lib;
-
-    # nixpkgs flakes outputs are already configured, so unfree packages are not
-    # directly accessible without running `nix` with `--impure`. We instantiate
-    # nixpkgs configured with access to unfree to avoid that
-    instantiate-nixpkgs = nixpkgs-version: system:
-      import nixpkgs-version {
-        inherit system;
-        config = {
-          allowUnfree = true;
-        };
-      };
-    for-all-systems = nixpkgs-lib.genAttrs supported-systems;
+    sam-lib = import ./nix/lib.nix;
+    sam-lib-flake = sam-lib.flake {
+      inherit nixpkgs-lib;
+      supported-systems = ["x86_64-linux"];
+    };
   in rec {
     formatter =
-      for-all-systems (system:
+      sam-lib-flake.for-all-systems (system:
         nixpkgs-stable.legacyPackages.${system}.alejandra);
 
     legacy.lib.sam = import ./nix/legacy/lib.nix;
@@ -36,7 +28,7 @@
     lib.sam = import ./nix/lib.nix;
 
     # TODO Go over these input parameters and make sense of them according to The Principles
-    packages = for-all-systems (
+    packages = sam-lib-flake.for-all-systems (
       system: let
         bundle-packages = p:
           nixpkgs-stable.outputs.legacyPackages.${system}.linkFarm "all-packages" (
@@ -60,8 +52,8 @@
             inherit nixpkgs;
             vscode-extensions = vscode-extensions.outputs.extensions.${system};
           };
-        packages-sam-stable = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-stable system);
-        packages-sam-22-11 = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-22-11 system);
+        packages-sam-stable = instantiate-packages-sam (sam-lib-flake.instantiate-nixpkgs nixpkgs-stable system);
+        packages-sam-22-11 = instantiate-packages-sam (sam-lib-flake.instantiate-nixpkgs nixpkgs-22-11 system);
         final-packages =
           packages-sam-stable
           // {
@@ -78,7 +70,7 @@
         }
     );
 
-    devShells = for-all-systems (
+    devShells = sam-lib-flake.for-all-systems (
       system:
         builtins.mapAttrs
         (name: value:
