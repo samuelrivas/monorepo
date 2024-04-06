@@ -27,7 +27,6 @@
       };
     for-all-systems = nixpkgs-lib.genAttrs supported-systems;
   in rec {
-    overlays.default = import ./nix/pkgs-sam.nix;
     formatter =
       for-all-systems (system:
         nixpkgs-stable.legacyPackages.${system}.alejandra);
