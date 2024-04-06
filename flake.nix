@@ -13,22 +13,23 @@
     vscode-extensions,
   }: let
     nixpkgs-lib = nixpkgs-stable.lib;
-    sam-lib = import ./nix/lib.nix;
-    sam-lib-flake = sam-lib.flake {
+    lib-sam = import ./nix/lib.nix {
       inherit nixpkgs-lib;
-      supported-systems = ["x86_64-linux"];
     };
+    supported-systems = ["x86_64-linux"];
+    for-all-systems = lib-sam.flake.for-all-systems supported-systems;
+    instantiate-nixpkgs = lib-sam.flake.instantiate-nixpkgs supported-systems;
   in rec {
     formatter =
-      sam-lib-flake.for-all-systems (system:
+      for-all-systems (system:
         nixpkgs-stable.legacyPackages.${system}.alejandra);
 
     legacy.lib.sam = import ./nix/legacy/lib.nix;
 
-    lib.sam = import ./nix/lib.nix;
+    lib.sam = lib-sam;
 
     # TODO Go over these input parameters and make sense of them according to The Principles
-    packages = sam-lib-flake.for-all-systems (
+    packages = for-all-systems (
       system: let
         bundle-packages = p:
           nixpkgs-stable.outputs.legacyPackages.${system}.linkFarm "all-packages" (
@@ -52,8 +53,8 @@
             inherit nixpkgs;
             vscode-extensions = vscode-extensions.outputs.extensions.${system};
           };
-        packages-sam-stable = instantiate-packages-sam (sam-lib-flake.instantiate-nixpkgs nixpkgs-stable system);
-        packages-sam-22-11 = instantiate-packages-sam (sam-lib-flake.instantiate-nixpkgs nixpkgs-22-11 system);
+        packages-sam-stable = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-stable system);
+        packages-sam-22-11 = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-22-11 system);
         final-packages =
           packages-sam-stable
           // {
@@ -70,7 +71,7 @@
         }
     );
 
-    devShells = sam-lib-flake.for-all-systems (
+    devShells = for-all-systems (
       system:
         builtins.mapAttrs
         (name: value:
