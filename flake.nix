@@ -31,22 +31,18 @@
     # TODO Go over these input parameters and make sense of them according to The Principles
     packages = for-all-systems (
       system: let
-        bundle-packages = p:
-          nixpkgs-stable.outputs.legacyPackages.${system}.linkFarm "all-packages" (
-            nixpkgs-lib.mapAttrsToList
-            (n: v: {
-              name = n;
-              path = v;
-            })
-            p
-          );
+        lib-system = lib.sam.system {
+          packages-nixpkgs = nixpkgs-stable.legacyPackages.${system};
+          packages-sam = packages;
+        };
+        bundle-packages = lib-system.packages.bundle {name = "all-packages";};
         instantiate-packages-sam = nixpkgs:
           import ./nix/packages.nix {
             legacy-lib = legacy.lib.sam;
             lib = nixpkgs.lib;
             system-lib = {
               sam = lib.sam.system {
-                packages-nixpkgs = nixpkgs;
+                packages-nixpkgs = instantiate-nixpkgs nixpkgs-stable system;
                 packages-sam = packages.${system};
               };
             };
@@ -62,7 +58,8 @@
             # them to avoid carrying old versions of nixpkgs around
             adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
           };
-        all-packages = bundle-packages final-packages;
+        # TODO Fix whatever broke in 2019
+        all-packages = bundle-packages (builtins.removeAttrs final-packages ["adventofcode-2019"]);
       in
         final-packages
         // {
