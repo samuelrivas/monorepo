@@ -9,8 +9,8 @@
  *
  * The input is a csv with the following format:
  *
- * 0  ,1      ,2   ,3                ,4           ,5    ,6          ,7       ,8       ,9   ,10
- * day,account,type,asset/description,amount asset,value,amount cash,courtage,currency,ISIN,result
+ * 0  ,1      ,2   ,3                ,4           ,5          ,6          ,7       ,8       ,9   ,10
+ * day,account,type,asset/description,amount asset,asset value,amount cash,courtage,currency,ISIN,result
  *
  */
 
@@ -32,12 +32,16 @@ using std::string;
 using std::vector;
 using boost::format;
 
-// At some point avanza removed types, so we need to infer them here
+// At some point avanza removed types, so we need to infer them here, but
+// currently the only "Övrigt" types are taxes
 TransactionType parse_misc(const string& description) {
-  if (description.find("skatt") == 0) {
+  if (description.find("skatt") != string::npos) {
     return TransactionType::TAX;
   } else {
-    return TransactionType::ASSET_TRANSFER;
+    cerr << format("Cannot infer transaction type for description '%s'\n")
+      % description;
+    std::flush(cerr);
+    assert(false);
   }
 }
 
@@ -48,15 +52,17 @@ TransactionType parse_type(const string& type_text, const string& description) {
   } else if (type_text == "Sälj") {
     return TransactionType::SELL;
   } else if (type_text == "Preliminärskatt"
-             || type_text.find("Utländsk källskatt") == 0) {
+             || type_text == "Utländsk källskatt") {
     return TransactionType::TAX;
-  } else if (type_text == "Räntor") {
+  } else if (type_text == "Ränta") {
     return TransactionType::INTEREST;
   } else if (type_text == "Utdelning") {
     return TransactionType::DIVIDEND;
   } else if (type_text == "Insättning"
              || type_text == "Uttag") {
     return TransactionType::CASH_TRANSFER;
+  } else if (type_text == "Värdepappersöverföring") {
+    return TransactionType::ASSET_TRANSFER;
   } else if (type_text == "Övrigt") {
     return parse_misc(description);
   } else {
@@ -66,6 +72,22 @@ TransactionType parse_type(const string& type_text, const string& description) {
     std::flush(cerr);
     assert(false);
   }
+}
+
+string isin_to_asset(const string& isin) {
+  if (isin == "SE0000993560") {
+    return "ÖHMAN REALOBLIGATIONSFOND";
+  }
+  if (isin == "SE0001472952") {
+    return "Öhman Realräntefond A";
+  }
+  if (isin == "NO0010736879") {
+    return "Schibsted B";
+  }
+  cerr << format("Unknown ISIN '%s'\n")
+    % isin;
+  std::flush(cerr);
+  assert(false);
 }
 
 int main() {
@@ -99,10 +121,17 @@ int main() {
 
     // Movements and transactions
     if (type == TransactionType::BUY
-        || type == TransactionType::SELL
-        || type == TransactionType::ASSET_TRANSFER) {
+        || type == TransactionType::SELL) {
       // Asset movement
       cout << movement_line(tokens[0], tokens[3], tokens[1], "Avanza",
+                            tokens[4], transaction_id);
+
+    } else if (type == TransactionType::ASSET_TRANSFER) {
+      // This is also an asset movement, but Avanza codifies the asset name in
+      // the description field. For now we hardcode the assets using the ISIN,
+      // but we may want to move to always use the ISIN and have another table
+      // to translate ISINs to asset names
+      cout << movement_line(tokens[0], isin_to_asset(tokens[9]), tokens[1], "Avanza",
                             tokens[4], transaction_id);
     } else {
 
