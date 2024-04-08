@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 #include <cassert>
-#include <unordered_map>
 #include <boost/format.hpp>
 
 #include "lib/sha1.hpp"
