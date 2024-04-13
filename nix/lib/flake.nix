@@ -1,6 +1,6 @@
 {
   # lib from nixpkgs
-  nixpkgs-lib,
+  lib-nixpkgs,
 }: {
   # nixpkgs flakes outputs are already configured, so unfree packages are not
   # directly accessible without running `nix` with `--impure`. We instantiate
@@ -15,5 +15,5 @@
         allowUnfree = true;
       };
     };
-  for-all-systems = nixpkgs-lib.genAttrs;
+  for-all-systems = lib-nixpkgs.genAttrs;
 }
