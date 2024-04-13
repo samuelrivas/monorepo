@@ -21,6 +21,13 @@
     for-all-systems = lib-sam.flake.for-all-systems supported-systems;
 
     inherit (lib-sam.flake) instantiate-nixpkgs;
+
+    instantiate-lib-system = input-nixpkgs: packages-sam: system:
+      lib-sam.system {
+        packages-nixpkgs = instantiate-nixpkgs input-nixpkgs system;
+        packages-sam = packages-sam.${system};
+      };
+
     outputs = rec {
       formatter =
         for-all-systems (system:
@@ -38,21 +45,18 @@
             packages-sam = packages;
           };
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
-          instantiate-packages-sam = nixpkgs:
+          instantiate-packages-sam = input-nixpkgs:
             import ./nix/packages.nix {
               legacy-lib = legacy.lib.sam;
-              lib = nixpkgs.lib;
+              lib = nixpkgs-stable.outputs.lib;
               system-lib = {
-                sam = lib.sam.system {
-                  packages-nixpkgs = instantiate-nixpkgs nixpkgs-stable system;
-                  packages-sam = packages.${system};
-                };
+                sam = instantiate-lib-system input-nixpkgs packages system;
               };
-              inherit nixpkgs;
+              nixpkgs = instantiate-nixpkgs input-nixpkgs system;
               vscode-extensions = vscode-extensions.outputs.extensions.${system};
             };
-          packages-sam-stable = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-stable system);
-          packages-sam-22-11 = instantiate-packages-sam (instantiate-nixpkgs nixpkgs-22-11 system);
+          packages-sam-stable = instantiate-packages-sam nixpkgs-stable; # (instantiate-nixpkgs nixpkgs-stable system);
+          packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11; # (instantiate-nixpkgs nixpkgs-22-11 system);
           final-packages =
             packages-sam-stable
             // {
@@ -61,7 +65,7 @@
               adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
             };
           # TODO Fix whatever broke in 2019
-          all-packages = bundle-packages (builtins.removeAttrs final-packages ["adventofcode-2019"]);
+          all-packages = bundle-packages (builtins.removeAttrs final-packages []);#["adventofcode-2019"]);
         in
           final-packages
           // {
