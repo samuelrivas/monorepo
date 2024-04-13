@@ -1,4 +1,4 @@
-{nixpkgs-lib}: {
+{lib-nixpkgs}: {
   system = import ./lib/system.nix;
-  flake = import ./lib/flake.nix {inherit nixpkgs-lib;};
+  flake = import ./lib/flake.nix {nixpkgs-lib = lib-nixpkgs;};
 }
