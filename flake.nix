@@ -12,15 +12,15 @@
     nixpkgs-stable,
     vscode-extensions,
   }: let
+    inherit (lib-sam.flake) instantiate-nixpkgs;
+
     lib-nixpkgs = nixpkgs-stable.lib;
     lib-sam = import ./nix/lib.nix {
       inherit lib-nixpkgs;
     };
+
     supported-systems = ["x86_64-linux"];
     for-all-systems = lib-sam.flake.for-all-systems supported-systems;
-
-    # This is a lambda taking a nixpkgs flake input and a system.
-    instantiate-nixpkgs = lib-sam.flake.instantiate-nixpkgs;
   in rec {
     formatter =
       for-all-systems (system:
