@@ -1,31 +1,30 @@
 {
   legacy-lib,
-  lib, # system indepentent libs, including nixpkgs lib plus our overlaid sam lib
-  system-lib, # system dependent libs
+  lib-nixpkgs, # lib from nixpkgs
+  lib-system, # system dependent libs
   nixpkgs, # official nixpkgs set
   vscode-extensions,
 }: let
-  builders = system-lib.sam.builders;
+  builders = lib-system.sam.builders;
   # TODO: remove this use of legacy, we are not using it for anything necessary
   derivation-helpers = legacy-lib.derivation-helpers;
   libs-sam = {inherit builders derivation-helpers;};
   callPackage =
-    lib.callPackageWith
+    lib-nixpkgs.callPackageWith
     (nixpkgs // pkgs.derivations-sam // builders // derivation-helpers);
   pkgs = {
     # We keep our libraries in a separate attrset and pass them with
     # callPackageWith instead of polluting the top level namespace with them. We
     # do add all our pakcages to the top level namespace though
-    inherit libs-sam system-lib;
+    inherit libs-sam lib-system;
 
-    sam.system-lib = system-lib;
-    haskell-lib = system-lib.haskell;
+    haskell-lib = lib-system.haskell;
 
     haskellPackages = nixpkgs.haskellPackages.override {
       overrides = h-pkgs: h-prev: let
         h-package = h-pkgs.callPackage;
       in {
-        inherit (system-lib.sam.haskell) haskell-pkg haskell-lib-pkg;
+        inherit (lib-system.sam.haskell) haskell-pkg haskell-lib-pkg;
 
         adventlib = h-package ./../src/haskell/adventlib/nix {};
         adventlib-old-1 = h-package ./../src/haskell/adventlib-old-1/nix {};

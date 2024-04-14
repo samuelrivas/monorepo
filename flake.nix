@@ -40,16 +40,14 @@
       # TODO Go over these input parameters and make sense of them according to The Principles
       packages = for-all-systems (
         system: let
-          lib-system = lib.sam.system {
-            packages-nixpkgs = nixpkgs-stable.legacyPackages.${system};
-            packages-sam = packages;
-          };
+          lib-system = instantiate-lib-system nixpkgs-stable packages system;
+
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
           instantiate-packages-sam = input-nixpkgs:
             import ./nix/packages.nix {
               legacy-lib = legacy.lib.sam;
-              lib = nixpkgs-stable.outputs.lib;
-              system-lib = {
+              lib-nixpkgs = nixpkgs-stable.outputs.lib;
+              lib-system = {
                 sam = instantiate-lib-system input-nixpkgs packages system;
               };
               nixpkgs = instantiate-nixpkgs input-nixpkgs system;
