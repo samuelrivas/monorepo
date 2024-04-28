@@ -16,6 +16,7 @@
     lib-sam = import ./nix/lib.nix {
       inherit lib-nixpkgs;
     };
+    legacy-lib = import ./nix/legacy/lib.nix;
 
     supported-systems = ["x86_64-linux"];
     for-all-systems = lib-sam.flake.for-all-systems supported-systems;
@@ -33,7 +34,7 @@
         for-all-systems (system:
           nixpkgs-stable.legacyPackages.${system}.alejandra);
 
-      legacy.lib.sam = import ./nix/legacy/lib.nix;
+      legacy.lib.sam = legacy-lib;
 
       lib.sam = lib-sam;
 
@@ -45,16 +46,15 @@
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
           instantiate-packages-sam = input-nixpkgs:
             import ./nix/packages.nix {
-              legacy-lib = legacy.lib.sam;
-              lib-nixpkgs = nixpkgs-stable.outputs.lib;
+              inherit legacy-lib lib-nixpkgs;
               lib-system = {
                 sam = instantiate-lib-system input-nixpkgs packages system;
               };
               nixpkgs = instantiate-nixpkgs input-nixpkgs system;
               vscode-extensions = vscode-extensions.outputs.extensions.${system};
             };
-          packages-sam-stable = instantiate-packages-sam nixpkgs-stable; # (instantiate-nixpkgs nixpkgs-stable system);
-          packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11; # (instantiate-nixpkgs nixpkgs-22-11 system);
+          packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
+          packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;
           final-packages =
             packages-sam-stable
             // {
