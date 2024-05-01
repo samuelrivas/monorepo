@@ -25,6 +25,7 @@
 
     instantiate-lib-system = input-nixpkgs: packages-sam: system:
       lib-sam.system {
+        inherit lib-nixpkgs;
         packages-nixpkgs = instantiate-nixpkgs input-nixpkgs system;
         packages-sam = packages-sam.${system};
       };

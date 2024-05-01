@@ -9,15 +9,13 @@
 
   # Generates a dev shell for a package.
   #
-  # By convention, we put an atrribute `dev-shell` in the package that depends
+  # By convention, we put an atrribute `passthru.dev-shell` in the package that depends
   # on the derivations that we want to have when developing. This is alternative
   # to, for example numtide's devshell. When a package contains a dev-shell, we
   # use that for the flake devShell output, otherwise we pass the package itself.
-  #
-  # TODO: move this to use passthru
   make-dev-shell = package:
-    if builtins.hasAttr "dev-shell" package
-    then package.dev-shell
+    if package ? passthru.dev-shell
+    then package.passthru.dev-shell
     else package;
 in {
   inherit make-dev-shell for-all-systems;

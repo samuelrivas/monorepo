@@ -1,4 +1,5 @@
 {
+  lib-nixpkgs,
   packages-sam,
   packages-nixpkgs,
 }:
@@ -72,7 +73,7 @@ let
         ];
     });
   in
-    drv // {inherit dev-shell;};
+    lib-nixpkgs.recursiveUpdate drv {passthru.dev-shell = dev-shell;};
 in {
   haskell-pkg = haskell-template false;
   haskell-lib-pkg = haskell-template true;
