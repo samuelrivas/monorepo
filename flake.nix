@@ -19,7 +19,7 @@
     legacy-lib = import ./nix/legacy/lib.nix;
 
     supported-systems = ["x86_64-linux"];
-    for-all-systems = lib-sam.flake.for-all-systems supported-systems;
+    for-all-supported-systems = lib-sam.flake.for-all-systems supported-systems;
 
     inherit (lib-sam.flake) instantiate-nixpkgs;
 
@@ -31,7 +31,7 @@
 
     outputs = rec {
       formatter =
-        for-all-systems (system:
+        for-all-supported-systems (system:
           nixpkgs-stable.legacyPackages.${system}.alejandra);
 
       legacy.lib.sam = legacy-lib;
@@ -39,7 +39,7 @@
       lib.sam = lib-sam;
 
       # TODO Go over these input parameters and make sense of them according to The Principles
-      packages = for-all-systems (
+      packages = for-all-supported-systems (
         system: let
           lib-system = instantiate-lib-system nixpkgs-stable packages system;
 
@@ -62,8 +62,7 @@
               # them to avoid carrying old versions of nixpkgs around
               adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
             };
-          # TODO Fix whatever broke in 2019
-          all-packages = bundle-packages (builtins.removeAttrs final-packages []);#["adventofcode-2019"]);
+          all-packages = bundle-packages (builtins.removeAttrs final-packages []);
         in
           final-packages
           // {
@@ -72,15 +71,7 @@
           }
       );
 
-      devShells = for-all-systems (
-        system:
-          builtins.mapAttrs
-          (name: value:
-            if builtins.hasAttr "dev-shell" packages.${system}.${name}
-            then packages.${system}.${name}.dev-shell
-            else packages.${system}.${name})
-          packages.${system}
-      );
+      devShells = lib-sam.flake.make-dev-shells packages;
     };
   in
     outputs;
