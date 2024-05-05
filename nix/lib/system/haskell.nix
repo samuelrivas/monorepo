@@ -1,6 +1,9 @@
 {
   lib-nixpkgs,
-  packages-sam,
+  my-emacs,
+  haskell-mk,
+  haskell-lib-mk,
+  haskell-test-mk,
   packages-nixpkgs,
 }:
 # We export Werror to fail the build by default (assuming that the package
@@ -37,10 +40,10 @@ let
             ghc
             (
               if is-lib
-              then packages-sam.haskell-lib-mk
-              else packages-sam.haskell-mk
+              then haskell-lib-mk
+              else haskell-mk
             )
-            packages-sam.haskell-test-mk
+            haskell-test-mk
           ]
           ++ extra-native-build-inputs;
 
@@ -66,7 +69,7 @@ let
         (builtins.filter (x: x != ghc) previous.nativeBuildInputs)
         ++ [
           packages-nixpkgs.haskell-language-server
-          packages-sam.my-emacs
+          my-emacs
           packages-nixpkgs.git
           packages-nixpkgs.glibcLocales
           (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
