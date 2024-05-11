@@ -11,41 +11,34 @@
   callPackage =
     lib-nixpkgs.callPackageWith
     (nixpkgs // pkgs.derivations-sam // builders // derivation-helpers);
-  pkgs = {
-    # We keep our libraries in a separate attrset and pass them with
-    # callPackageWith instead of polluting the top level namespace with them. We
-    # do add all our pakcages to the top level namespace though
-    inherit libs-sam lib-system;
+  haskellPackages = nixpkgs.haskellPackages.override {
+    overrides = h-pkgs: h-prev: let
+      h-package = h-pkgs.callPackage;
+    in {
+      inherit (lib-system.sam.haskell) haskell-pkg haskell-lib-pkg;
 
-    haskell-lib = lib-system.haskell;
-
-    haskellPackages = nixpkgs.haskellPackages.override {
-      overrides = h-pkgs: h-prev: let
-        h-package = h-pkgs.callPackage;
-      in {
-        inherit (lib-system.sam.haskell) haskell-pkg haskell-lib-pkg;
-
-        adventlib = h-package ./../src/haskell/adventlib/nix {};
-        adventlib-old-1 = h-package ./../src/haskell/adventlib-old-1/nix {};
-        adventofcode-2019 = h-package ./../src/puzzles/adventofcode/2019/nix {};
-        adventofcode-2020 = h-package ./../src/puzzles/adventofcode/2020/nix {};
-        adventofcode-2021 = h-package ./../src/puzzles/adventofcode/2021/nix {};
-        boardgamer = h-package ./../src/haskell/boardgamer/nix {};
-        boollib = h-package ./../src/haskell/boollib/nix {};
-        clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
-        example-lib = h-package ./../src/haskell/example-lib/nix {};
-        hashcode-photoalbum = h-package ./../src/haskell/hashcode-photoalbum/nix {};
-        low-battery = h-package ./../src/haskell/low-battery/nix {};
-        mk-conf-file = h-package ./../src/haskell/mk-conf-file/nix {};
-        monad-emit = h-package ./../src/haskell/monad-emit/nix {};
-        name-generator = h-package ./../src/haskell/name-generator/nix {};
-        onirim-helper = h-package ./../src/haskell/onirim-helper/nix {};
-        parselib = h-package ./../src/haskell/parselib/nix {};
-        perlude = h-package ./../src/haskell/perlude/nix {};
-        searchlib = h-package ./../src/haskell/searchlib/nix {};
-      };
+      adventlib = h-package ./../src/haskell/adventlib/nix {};
+      adventlib-old-1 = h-package ./../src/haskell/adventlib-old-1/nix {};
+      adventofcode-2019 = h-package ./../src/puzzles/adventofcode/2019/nix {};
+      adventofcode-2020 = h-package ./../src/puzzles/adventofcode/2020/nix {};
+      adventofcode-2021 = h-package ./../src/puzzles/adventofcode/2021/nix {};
+      boardgamer = h-package ./../src/haskell/boardgamer/nix {};
+      boollib = h-package ./../src/haskell/boollib/nix {};
+      clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
+      example-lib = h-package ./../src/haskell/example-lib/nix {};
+      hashcode-photoalbum = h-package ./../src/haskell/hashcode-photoalbum/nix {};
+      low-battery = h-package ./../src/haskell/low-battery/nix {};
+      mk-conf-file = h-package ./../src/haskell/mk-conf-file/nix {};
+      monad-emit = h-package ./../src/haskell/monad-emit/nix {};
+      name-generator = h-package ./../src/haskell/name-generator/nix {};
+      onirim-helper = h-package ./../src/haskell/onirim-helper/nix {};
+      parselib = h-package ./../src/haskell/parselib/nix {};
+      perlude = h-package ./../src/haskell/perlude/nix {};
+      searchlib = h-package ./../src/haskell/searchlib/nix {};
     };
+  };
 
+  pkgs = {
     derivations-sam = {
       # Emacs stuff
       # =============
@@ -102,20 +95,20 @@
       haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {};
       haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {};
 
-      adventlib = pkgs.haskellPackages.adventlib;
-      adventlib-old-1 = pkgs.haskellPackages.adventlib-old-1;
-      boardgamer = pkgs.haskellPackages.boardgamer;
-      boollib = pkgs.haskellPackages.boollib;
-      clean-clocks = pkgs.haskellPackages.clean-clocks;
-      hashcode-photoalbum = pkgs.haskellPackages.hashcode-photoalbum;
-      low-battery = pkgs.haskellPackages.low-battery;
-      mk-conf-file = pkgs.haskellPackages.mk-conf-file;
-      monad-emit = pkgs.haskellPackages.monad-emit;
-      name-generator = pkgs.haskellPackages.name-generator;
-      onirim-helper = pkgs.haskellPackages.onirim-helper;
-      parselib = pkgs.haskellPackages.parselib;
-      perlude = pkgs.haskellPackages.perlude;
-      searchlib = pkgs.haskellPackages.searchlib;
+      adventlib = haskellPackages.adventlib;
+      adventlib-old-1 = haskellPackages.adventlib-old-1;
+      boardgamer = haskellPackages.boardgamer;
+      boollib = haskellPackages.boollib;
+      clean-clocks = haskellPackages.clean-clocks;
+      hashcode-photoalbum = haskellPackages.hashcode-photoalbum;
+      low-battery = haskellPackages.low-battery;
+      mk-conf-file = haskellPackages.mk-conf-file;
+      monad-emit = haskellPackages.monad-emit;
+      name-generator = haskellPackages.name-generator;
+      onirim-helper = haskellPackages.onirim-helper;
+      parselib = haskellPackages.parselib;
+      perlude = haskellPackages.perlude;
+      searchlib = haskellPackages.searchlib;
 
       # Shell-scripts
       # =============
@@ -145,9 +138,9 @@
 
       # Contests, puzzles, etc
       # ======================
-      adventofcode-2019 = pkgs.haskellPackages.adventofcode-2019;
-      adventofcode-2020 = pkgs.haskellPackages.adventofcode-2020;
-      adventofcode-2021 = pkgs.haskellPackages.adventofcode-2021;
+      adventofcode-2019 = haskellPackages.adventofcode-2019;
+      adventofcode-2020 = haskellPackages.adventofcode-2020;
+      adventofcode-2021 = haskellPackages.adventofcode-2021;
     };
   };
 in
