@@ -8,7 +8,6 @@
   builders = lib-system.sam.builders;
   # TODO: remove this use of legacy, we are not using it for anything necessary
   derivation-helpers = legacy-lib.derivation-helpers;
-  libs-sam = {inherit builders derivation-helpers;};
   callPackage =
     lib-nixpkgs.callPackageWith
     (nixpkgs // pkgs.derivations-sam // builders // derivation-helpers);
