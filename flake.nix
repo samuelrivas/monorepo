@@ -47,11 +47,11 @@
           instantiate-packages-sam = input-nixpkgs:
             import ./nix/packages.nix {
               inherit legacy-lib lib-nixpkgs;
+              inherit (vscode-extensions.outputs.extensions.${system}) vscode-marketplace;
               lib-system = {
                 sam = instantiate-lib-system input-nixpkgs packages system;
               };
               nixpkgs = instantiate-nixpkgs input-nixpkgs system;
-              vscode-extensions = vscode-extensions.outputs.extensions.${system};
             };
           packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
           packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;

@@ -3,10 +3,10 @@
   lib-nixpkgs, # lib from nixpkgs
   lib-system, # system dependent libs
   nixpkgs, # official nixpkgs set
-  vscode-extensions,
+  vscode-marketplace,
 }: let
   builders = lib-system.sam.builders;
-  # TODO: remove this use of legacy, we are not using it for anything necessary
+  # We'll remove this use of legacy, we are not using it for anything necessary
   derivation-helpers = legacy-lib.derivation-helpers;
   callPackage =
     lib-nixpkgs.callPackageWith
@@ -83,8 +83,7 @@
     # VSC stuff
     # =========
     my-vscode = callPackage ./pkgs/applications/editors/my-vscode {
-      # TODO: pass marketplace directly instead of the whole extensions package
-      inherit (vscode-extensions) vscode-marketplace;
+      inherit vscode-marketplace;
       terraform = nixpkgs.terraform.withPlugins (p: [p.aws]);
     };
 
