@@ -39,7 +39,6 @@
 
       lib.sam = lib-sam;
 
-      # TODO Go over these input parameters and make sense of them according to The Principles
       packages = for-all-supported-systems (
         system: let
           lib-system = instantiate-lib-system nixpkgs-stable packages system;
@@ -56,16 +55,18 @@
             };
           packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
           packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;
-          final-packages =
+          packages-final =
             packages-sam-stable
             // {
               # These don't build with nixpkgs-stable. We will be eventually fix
               # them to avoid carrying old versions of nixpkgs around
               adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
             };
-          all-packages = bundle-packages (builtins.removeAttrs final-packages []);
+          # If something is failing, you can temporarily remove packages from this
+          # list by adding to the removeAttrs list below
+          all-packages = bundle-packages (builtins.removeAttrs packages-final []);
         in
-          final-packages
+          packages-final
           // {
             inherit all-packages;
             default = all-packages;
