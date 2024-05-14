@@ -36,7 +36,7 @@
       import ./nix/lib-internal/instantiate-packages-sam.nix {
         inherit legacy-lib lib-sam lib-nixpkgs system input-nixpkgs;
         input-vscode-extensions = vscode-extensions;
-        packages-file = ./nix/packages.nix;
+        packages-generator = import ./nix/packages.nix;
       };
 
     outputs = rec {
