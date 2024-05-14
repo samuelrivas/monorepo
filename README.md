@@ -6,48 +6,29 @@
 
 From the top level, you can build everything by running
 
-    nix build -f nix pkgs-sam
+    nix build .#all-pkgs-sam
 
 provided you have nix installed. It will take a while the first time you run it,
 but nix will only rebuild what's necessary afterwards.
 
 You can see all available packages by running
 
-    nix-env -qaPA pkgs-sam -f nix
+    nix flake show
 
 And build any of them by running
 
-    nix-build -f nix pkgs-sam.<package>
+    nix .#<package>
 
 After that, `result` contains a link to the built package
 
-You can obviously install any of those packages in your environemnt by running
+You can obviously install any of those packages in your environment by running
 
-    nix-env -iA pkgs-sam.<package> -f nix
+    nix profile install .#<package>
 
-By convention, my derivations may include a `sandbox` value with a derivation
+By convention, our derivations may include a `dev-shell` value with a derivation
 that can be used to create a nix shell. That is, for a package `foo`, `nix-sell
-foo.sandbox` drops you in de dev enviromnet for `foo`. `X.sandbox` value is
+foo.sandbox` drops you in de dev enviromnet for `foo`. `X.dev-shell` value is
 typically the same as `X`, with some `buildInputs` added.
-
-## Configuration
-
-Some packages can be configured, you can personalize some options by writing a
-nix expression in
-
-    $HOME/.local-nix-config/configuration.nix
-
-For example:
-
-    {
-      emacs-config = {
-        user = "samuel";
-        full-user-name = "Samuel Rivas";
-        blacklisted-modes = [ "ocaml" ];
-      };
-    }
-
-All possible configuration options are defined in nix/modules
 
 ## Conventions for contributions
 

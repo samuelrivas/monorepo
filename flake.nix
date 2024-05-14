@@ -12,61 +12,72 @@
     nixpkgs-stable,
     vscode-extensions,
   }: let
+    lib-nixpkgs = nixpkgs-stable.lib;
+    lib-sam = import ./nix/lib.nix {
+      inherit lib-nixpkgs;
+    };
+    legacy-lib = import ./nix/legacy/lib.nix;
+
     supported-systems = ["x86_64-linux"];
-    lib = nixpkgs-stable.lib;
-    for-all-systems = lib.genAttrs supported-systems;
-    instantiate-nixpkgs = nixpkgs-version: system:
-      import nixpkgs-version {
-        inherit system;
-        overlays = [self.overlays.default vscode-extensions.overlays.default];
-        config = {allowUnfree = true;};
+    for-all-supported-systems = lib-sam.flake.for-all-systems supported-systems;
+
+    inherit (lib-sam.flake) instantiate-nixpkgs;
+
+    instantiate-lib-system = input-nixpkgs: packages-sam: system:
+      lib-sam.system {
+        inherit lib-nixpkgs;
+        packages-nixpkgs = instantiate-nixpkgs input-nixpkgs system;
+        packages-sam = packages-sam.${system};
       };
-  in rec {
-    overlays.default = import ./nix/pkgs-sam.nix;
-    formatter =
-      for-all-systems (system:
-        nixpkgs-stable.legacyPackages.${system}.alejandra);
-    packages = for-all-systems (
-      system: let
-        pkgs-stable = instantiate-nixpkgs nixpkgs-stable system;
-        pkgs-22-11 = instantiate-nixpkgs nixpkgs-22-11 system;
-        bundle-pkgs-sam = pkgs:
-          pkgs-stable.linkFarm "all-pkgs-sam" (
-            lib.mapAttrsToList
-            (n: v: {
-              name = n;
-              path = v;
-            })
-            pkgs
-          );
-        pkgs-sam =
-          pkgs-stable.derivations-sam
+
+    # We parametereize on the nixpkgs input so that we can build packages that
+    # are broken in nixpkgs-stable until we fix them
+    instantiate-packages-sam = input-nixpkgs: system:
+      import ./nix/lib-internal/instantiate-packages-sam.nix {
+        inherit legacy-lib lib-sam lib-nixpkgs system input-nixpkgs;
+        input-vscode-extensions = vscode-extensions;
+        packages-generator = import ./nix/packages.nix;
+      };
+
+    outputs = rec {
+      formatter =
+        for-all-supported-systems (system:
+          nixpkgs-stable.legacyPackages.${system}.alejandra);
+
+      legacy.lib.sam = legacy-lib;
+
+      lib.sam = lib-sam;
+
+      packages = for-all-supported-systems (
+        system: let
+          lib-system = instantiate-lib-system nixpkgs-stable packages system;
+          bundle-packages = lib-system.packages.bundle {name = "all-packages";};
+
+          # Some packages are broken with nixpkgs-stable, so instantiate them with
+          # for now nixpkgs-22-11
+          packages-sam-stable = instantiate-packages-sam nixpkgs-stable system;
+          packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11 system;
+          packages-final =
+            packages-sam-stable
+            // {
+              adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
+            };
+
+          # all-packages is a derivation that builds all packages in the monorepo
+          #
+          # If something is failing, you can temporarily remove packages from this
+          # list by adding to the removeAttrs list below
+          all-packages = bundle-packages (builtins.removeAttrs packages-final []);
+        in
+          packages-final
           // {
-            # These don't build with nixpkgs-stable. We will be eventually fix
-            # them to avoid carrying old versions of nixpkgs around
-            adventofcode-2019 = pkgs-22-11.derivations-sam.adventofcode-2019;
-          };
+            inherit all-packages;
+            default = all-packages;
+          }
+      );
 
-        # This is a derivation that installs all our derivations under a
-        # single directory as a link farm. Useful mainly to build all of the
-        # for testing purposes. e.g with nix build .#all-pkgs-sam
-        all-pkgs-sam = bundle-pkgs-sam pkgs-sam;
-      in
-        pkgs-sam
-        // {
-          inherit all-pkgs-sam;
-          default = all-pkgs-sam;
-        }
-    );
-
-    devShells = for-all-systems (
-      system:
-        builtins.mapAttrs
-        (name: value:
-          if builtins.hasAttr "dev-shell" packages.${system}.${name}
-          then packages.${system}.${name}.dev-shell
-          else packages.${system}.${name})
-        packages.${system}
-    );
-  };
+      devShells = lib-sam.flake.make-dev-shells packages;
+    };
+  in
+    outputs;
 }

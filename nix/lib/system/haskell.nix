@@ -1,4 +1,11 @@
-{pkgs}:
+{
+  lib-nixpkgs,
+  my-emacs,
+  haskell-mk,
+  haskell-lib-mk,
+  haskell-test-mk,
+  packages-nixpkgs,
+}:
 # We export Werror to fail the build by default (assuming that the package
 # Makefile does not do GHC-FLAGS := ..., but GHC-FLAGS += ...), but you can
 # unset that when running in a sandbox for quick iterations.
@@ -11,7 +18,7 @@ let
     name,
     src,
   }: let
-    ghc = pkgs.haskellPackages.ghcWithPackages (_: haskell-libs);
+    ghc = packages-nixpkgs.haskellPackages.ghcWithPackages (_: haskell-libs);
     install-bin = ''
       mkdir -p $out/bin
       cp ../build/bin/* $out/bin
@@ -33,10 +40,10 @@ let
             ghc
             (
               if is-lib
-              then pkgs.haskell-lib-mk
-              else pkgs.haskell-mk
+              then haskell-lib-mk
+              else haskell-mk
             )
-            pkgs.haskell-test-mk
+            haskell-test-mk
           ]
           ++ extra-native-build-inputs;
 
@@ -54,22 +61,22 @@ let
         isHaskellLibrary = is-lib;
       }
       // extra-drv;
-    drv = pkgs.stdenv.mkDerivation drv-args;
+    drv = packages-nixpkgs.stdenv.mkDerivation drv-args;
     dev-shell = drv.overrideAttrs (final: previous: {
       # Emacs uses fontconfig, which needs a writable cache directory
       XDG_CACHE_HOME = "/tmp/cache";
       nativeBuildInputs =
         (builtins.filter (x: x != ghc) previous.nativeBuildInputs)
         ++ [
-          pkgs.haskell-language-server
-          pkgs.my-emacs
-          pkgs.git
-          pkgs.glibcLocales
-          (pkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
+          packages-nixpkgs.haskell-language-server
+          my-emacs
+          packages-nixpkgs.git
+          packages-nixpkgs.glibcLocales
+          (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
         ];
     });
   in
-    drv // {inherit dev-shell;};
+    lib-nixpkgs.recursiveUpdate drv {passthru.dev-shell = dev-shell;};
 in {
   haskell-pkg = haskell-template false;
   haskell-lib-pkg = haskell-template true;
