@@ -30,6 +30,15 @@
         packages-sam = packages-sam.${system};
       };
 
+    # We parametereize on the nixpkgs input so that we can build packages that
+    # are broken in nixpkgs-stable until we fix them
+    instantiate-packages-sam = input-nixpkgs: system:
+      import ./nix/lib-internal/instantiate-packages-sam.nix {
+        inherit legacy-lib lib-sam lib-nixpkgs system input-nixpkgs;
+        input-vscode-extensions = vscode-extensions;
+        packages-file = ./nix/packages.nix;
+      };
+
     outputs = rec {
       formatter =
         for-all-supported-systems (system:
@@ -42,26 +51,20 @@
       packages = for-all-supported-systems (
         system: let
           lib-system = instantiate-lib-system nixpkgs-stable packages system;
-
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
-          instantiate-packages-sam = input-nixpkgs:
-            import ./nix/packages.nix {
-              inherit legacy-lib lib-nixpkgs;
-              inherit (vscode-extensions.outputs.extensions.${system}) vscode-marketplace;
-              lib-system = {
-                sam = instantiate-lib-system input-nixpkgs packages system;
-              };
-              nixpkgs = instantiate-nixpkgs input-nixpkgs system;
-            };
-          packages-sam-stable = instantiate-packages-sam nixpkgs-stable;
-          packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11;
+
+          # Some packages are broken with nixpkgs-stable, so instantiate them with
+          # for now nixpkgs-22-11
+          packages-sam-stable = instantiate-packages-sam nixpkgs-stable system;
+          packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11 system;
           packages-final =
             packages-sam-stable
             // {
-              # These don't build with nixpkgs-stable. We will be eventually fix
-              # them to avoid carrying old versions of nixpkgs around
               adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
             };
+
+          # all-packages is a derivation that builds all packages in the monorepo
+          #
           # If something is failing, you can temporarily remove packages from this
           # list by adding to the removeAttrs list below
           all-packages = bundle-packages (builtins.removeAttrs packages-final []);

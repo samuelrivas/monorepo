@@ -2,7 +2,6 @@
   # lib from nixpkgs
   lib-nixpkgs,
 }: let
-
   # You can use this in the flake to create a "for-all-supported-systems" passing
   # list of supported systems.
   for-all-systems = lib-nixpkgs.genAttrs;
