@@ -11,6 +11,7 @@
 # unset that when running in a sandbox for quick iterations.
 let
   haskell-template = is-lib: {
+    build-doc ? false,
     extra-build-inputs ? [],
     extra-drv ? {},
     extra-native-build-inputs ? [],
@@ -23,12 +24,18 @@ let
       mkdir -p $out/bin
       cp ../build/bin/* $out/bin
     '';
-    install-lib = ''
-      make PREFIX="$out" install
-    '';
+    install-lib =
+      ''
+        make PREFIX="$out" install
+      ''
+      + (lib-nixpkgs.optionalString build-doc ''
+        make PREFIX="$doc/share" install-doc
+      '');
     drv-args =
       {
         inherit name src;
+
+        outputs = ["out"] ++ (lib-nixpkgs.optional build-doc "doc");
         GHC-FLAGS = "-Werror";
         buildInputs =
           [

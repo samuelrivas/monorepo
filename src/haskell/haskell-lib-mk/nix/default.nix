@@ -19,12 +19,12 @@ stdenv.mkDerivation {
     addEnvHooks "$hostOffset" addHaskellLibMkPath
     EOF
   '';
-  setupHook = ''
-    anEnvHook() {
-      local pkg=$1
-      echo "I'm depending on \"$pkg\""
-    }
+  # setupHook = ''
+  #   anEnvHook() {
+  #     local pkg=$1
+  #     echo "I'm depending on \"$pkg\""
+  #   }
 
-    addEnvHooks "$hostOffset" anEnvHook
-  '';
+  #   addEnvHooks "$hostOffset" anEnvHook
+  # '';
 }

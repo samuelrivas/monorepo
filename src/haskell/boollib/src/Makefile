@@ -11,7 +11,7 @@ DOC-INSTALL-DIR ?= $(PREFIX)/doc/
 BUILD-DOC-DIR := $(DOC-DIR)/$(DOC-RELATIVE-DIR)
 INSTALL-DOC-DIR := $(DOC-INSTALL-DIR)/$(DOC-RELATIVE-DIR)
 
-HADDOCK-DIR := /nix/store/2pd2zd2qzlmsd95b0ix12s8180d2c4z1-ghc-9.0.2-doc/share/doc/ghc/html/libraries/ghc-9.0.2
+HADDOCK-DIR := /nix/store/p9siph1wf0vkb86lhcb7m8l0blmjhmbi-ghc-9.4.8-doc/share/doc/ghc/html/libraries/ghc-9.4.8
 
 .PHONY: docs
 doc: | $(BUILD-DOC-DIR)
