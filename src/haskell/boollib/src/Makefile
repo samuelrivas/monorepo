@@ -11,9 +11,12 @@ DOC-INSTALL-DIR ?= $(PREFIX)/doc/
 BUILD-DOC-DIR := $(DOC-DIR)/$(DOC-RELATIVE-DIR)
 INSTALL-DOC-DIR := $(DOC-INSTALL-DIR)/$(DOC-RELATIVE-DIR)
 
-HADDOCK-DIR := /nix/store/p9siph1wf0vkb86lhcb7m8l0blmjhmbi-ghc-9.4.8-doc/share/doc/ghc/html/libraries/ghc-9.4.8
+# FIXME: finding the haddock file with a star is not correct, though it works in practice, what we want is the haddock-interfaces field
+HADDOCK-HTML-DIRS := $(shell ghc-pkg field '*' haddock-html --simple-output)
+HADDOCK-INTERFACE-FLAGS := $(foreach dir,$(HADDOCK-HTML-DIRS),-i file://$(dir),file://$(dir)/src,$(wildcard $(dir)/*.haddock))
 
-.PHONY: docs
+
+.PHONY: doc
 doc: | $(BUILD-DOC-DIR)
 	haddock \
 	--html \
@@ -22,8 +25,8 @@ doc: | $(BUILD-DOC-DIR)
 	--odir $(BUILD-DOC-DIR) \
 	--package-name $(PACKAGE-NAME) \
 	--quickjump \
-	-i file://$(HADDOCK-DIR),file://$(HADDOCK-DIR)/src,$(HADDOCK-DIR)/ghc.haddock \
 	--dump-interface=$(BUILD-DOC-DIR)/$(PACKAGE-NAME).haddock \
+	$(HADDOCK-INTERFACE-FLAGS) \
 	$(SRCS)
 
 .PHONY: install-doc
