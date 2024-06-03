@@ -8,22 +8,26 @@ module Main where
 import           Prelude             hiding (unlines)
 
 import qualified Data.ByteString     as BS
+import           Data.Maybe          (fromMaybe)
 import           Data.Text           (Text, pack, unpack)
 import qualified Data.Text           as Text
 import           Data.Text.Encoding  (encodeUtf8)
 import           Options.Applicative (Parser, ReadM, execParser, fullDesc, help,
                                       helper, info, long, maybeReader, metavar,
-                                      option, progDesc, strArgument, strOption)
+                                      option, optional, progDesc, strArgument,
+                                      strOption, value)
 import           System.Process      (readProcess)
 
 data LibInfo = LibInfo
-  { name           :: Text
-  , version        :: Text
-  , exposedModules :: [Text]
-  , importDir      :: Text
-  , staticLibDir   :: Text
-  , dynamicLibDir  :: Text
-  , dependencies   :: [Text]
+  { name              :: Text
+  , version           :: Text
+  , exposedModules    :: [Text]
+  , importDir         :: Text
+  , staticLibDir      :: Text
+  , dynamicLibDir     :: Text
+  , dependencies      :: [Text]
+  , haddockInterfaces :: [Text]
+  , haddockHtml       :: Maybe Text
   } deriving Show
 
 toIds :: [Text] -> IO [Text]
@@ -52,7 +56,10 @@ render LibInfo {..} =
     "dynamic-library-dirs: " <> dynamicLibDir,
     "hs-libraries: HS" <> name,
     "depends:",
-    multivalue dependencies
+    multivalue dependencies,
+    "haddock-interfaces: ",
+    multivalue haddockInterfaces,
+    "haddock-html: " <> fromMaybe "" haddockHtml
   ]
 
 multiReader :: ReadM [Text]
@@ -79,6 +86,14 @@ cmdParser =
        (long "dependencies"
          <> help "Package dependencies. They must be quoted, and separated by spaces"
          <> metavar "\"package1 package1 ...\"")
+  <*> option multiReader
+       (long "haddock-interfaces"
+        <> help ".haddock files exposed by this package"
+        <> metavar "\"/path/to/foo.haddock /path/to/bar.haddock ...\""
+        <> value [])
+  <*> optional
+       (strOption
+        (long "haddock-html" <> help "Haddock html directory"))
 
 main :: IO ()
 main =
