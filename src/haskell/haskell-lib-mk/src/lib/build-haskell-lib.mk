@@ -35,6 +35,7 @@ ARCH = x86_64-linux
 BUILD-DIR := ../build
 BUILD-OUTPUT-DIR := $(BUILD-DIR)/out
 PREFIX ?= $(BUILD-DIR)/install
+PREFIX-DOCS ?= $(BUILD-DIR)/install
 INSTALL-DIR = $(PREFIX)
 GENERATED-DIR := $(BUILD-DIR)/generated
 
@@ -59,12 +60,11 @@ INSTALLED-STATIC-LIB-DIR := $(INSTALL-PACKAGE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(
 
 PACKAGE-CONF := $(PACKAGE-CONF-DIR)/$(PACKAGE-NAME).conf
 
+DOC-OUTPUT-DIR := $(BUILD-DIR)/out-doc
 DOC-RELATIVE-DIR := $(PACKAGE-NAME)/html
-DOC-DIR := $(BUILD-DIR)/doc
-DOC-INSTALL-DIR ?= $(PREFIX)/doc/
-
-BUILD-DOC-DIR := $(DOC-DIR)/$(DOC-RELATIVE-DIR)
-INSTALL-DOC-DIR := $(DOC-INSTALL-DIR)/$(DOC-RELATIVE-DIR)
+DOC-INSTALL-DIR ?= $(PREFIX-DOCS)/share/doc
+BUILD-DOC-DIR := $(DOC-OUTPUT-DIR)/$(DOC-RELATIVE-DIR)
+INSTALLED-DOC-HTML := $(DOC-INSTALL-DIR)/$(DOC-RELATIVE-DIR)
 
 # FIXME: finding the haddock file with a star is not correct, though it works in practice, what we want is the haddock-interfaces field
 HADDOCK-HTML-DIRS := $(shell ghc-pkg field '*' haddock-html --simple-output)
@@ -77,7 +77,7 @@ HADDOCK-INTERFACE-FLAGS := $(foreach dir,$(HADDOCK-HTML-DIRS),-i file://$(dir),f
 .PHONY: all
 all: compile
 
-$(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-STATIC-LIB-DIR)
+$(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-STATIC-LIB-DIR) $(INSTALLED-DOC-HTML)
 	mk-conf-file $(PACKAGE-NAME) \
 		--version "$(PACKAGE-VERSION)" \
 		--exposed "$(EXPOSED-MODULES)" \
@@ -85,6 +85,8 @@ $(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-
 		--static-lib-path "$(realpath $(INSTALLED-STATIC-LIB-DIR))" \
 		--dynamic-lib-path "$(realpath $(INSTALLED-DYNAMIC-LIB-DIR))" \
 		--dependencies "$(PACKAGE-DEPS)" \
+		--haddock-interfaces "$(realpath $(INSTALLED-DOC-HTML))/$(PACKAGE-NAME).haddock" \
+		--haddock-html "$(realpath $(INSTALLED-DOC-HTML))" \
 		> $@
 
 .PHONY: compile
@@ -109,21 +111,18 @@ doc: | $(BUILD-DOC-DIR)
 	$(HADDOCK-INTERFACE-FLAGS) \
 	$(SRCS)
 
-.PHONY: install-doc
-install-doc: doc | $(INSTALL-DOC-DIR)
-	cp -r $(BUILD-DOC-DIR)/* $(INSTALL-DOC-DIR)
-
-$(INSTALL-DOC-DIR) \
-$(BUILD-DOC-DIR):
-	mkdir -p $@
-
 .PHONY: clean
 clean:
 	rm -rf $(BUILD-DIR)
 
 .PHONY: install
-install: compile $(PACKAGE-CONF)
-	cd $(BUILD-DIR)/out; tar c --exclude "*.o" --exclude "*.dyn_o" * | tar x -C $(INSTALL-DIR)
+install: compile $(PACKAGE-CONF) | $(INSTALL-DIR)
+	cd $(BUILD-OUTPUT-DIR); tar c --exclude "*.o" --exclude "*.dyn_o" * \
+		| tar x -C $(realpath $(INSTALL-DIR))
+
+.PHONY: install-doc
+install-doc: doc $(PACKAGE-CONF) | $(DOC-INSTALL-DIR)
+	cp -r $(BUILD-DOC-DIR)/* $(INSTALLED-DOC-HTML)
 
 $(PACKAGE-DIR) \
 $(PACKAGE-CONF-DIR) \
@@ -133,6 +132,7 @@ $(DYNAMIC-LIB-DIR) \
 $(STATIC-LIB-DIR) \
 $(INSTALLED-DYNAMIC-LIB-DIR) \
 $(INSTALLED-STATIC-LIB-DIR) \
-$(INSTALL-DOC-DIR) \
-$(BUILD-DOC-DIR):
+$(DOC-INSTALL-DIR) \
+$(BUILD-DOC-DIR) \
+$(INSTALLED-DOC-HTML):
 	mkdir -p $@

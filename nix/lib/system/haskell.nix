@@ -11,7 +11,7 @@
 # unset that when running in a sandbox for quick iterations.
 let
   haskell-template = is-lib: {
-    build-doc ? false,
+    build-doc ? is-lib,
     extra-build-inputs ? [],
     extra-drv ? {},
     extra-native-build-inputs ? [],
@@ -26,10 +26,10 @@ let
     '';
     install-lib =
       ''
-        make PREFIX="$out" install
+        make PREFIX="$out" PREFIX-DOCS="$doc" install
       ''
       + (lib-nixpkgs.optionalString build-doc ''
-        make PREFIX="$doc/share" install-doc
+        make prefix="$out" PREFIX-DOCS="$doc" install-doc
       '');
     drv-args =
       {
