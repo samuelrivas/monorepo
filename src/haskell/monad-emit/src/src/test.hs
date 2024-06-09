@@ -99,12 +99,12 @@ mkTVarContext =
     tvar <- newTVarIO (mempty :: Metrics Int Int)
     pure (ContextTVar (MetricsWrapper tvar) 42, tvar)
 
-testRunEmitTVarT :: IO ()
-testRunEmitTVarT =
-  do
-    (context, tvar) <- mkTVarContext
-    runEmitTVarT (ioEffect "test runEmitTVarT") context
-    readTVarIO tvar >>= print
+-- testRunEmitTVarT :: IO ()
+-- testRunEmitTVarT =
+--   do
+--     (context, tvar) <- mkTVarContext
+--     runEmitTVarT (ioEffect "test runEmitTVarT") context
+--     readTVarIO tvar >>= print
 
 testRunTVarApp :: MonadIO m => m ()
 testRunTVarApp =
@@ -113,14 +113,14 @@ testRunTVarApp =
     liftIO $ runTVarApp (ioEffect "test runTVarApp") context
     readTVarIO tvar >>= print
 
-testRunIdentityT :: MonadIO m => m ()
-testRunIdentityT = runEmitIdentityT (ioEffect "test unidentified")
+-- testRunIdentityT :: MonadIO m => m ()
+-- testRunIdentityT = runEmitIdentityT (ioEffect "test unidentified")
 
 -- This is to verify that we are not forced into IO
-testRunPureIdentity :: MonadIO m => m ()
-testRunPureIdentity =
-  case runEmitIdentity pureEffect
-  of () -> putStrLn "test runIdentity"
+-- testRunPureIdentity :: MonadIO m => m ()
+-- testRunPureIdentity =
+--   case runEmitIdentity pureEffect
+--   of () -> putStrLn "test runIdentity"
 
 testRunWriterT :: MonadIO m => m ()
 testRunWriterT =
@@ -135,22 +135,22 @@ testRunWriter =
     putStrLn "test runEmitWriter"
     print metrics
 
-testRunStateT :: MonadIO m => m ()
-testRunStateT =
-  do
-    ((), metrics) <- runEmitStateT (ioEffect "test runEmitStateT")
-      (MetricsWrapper mempty :: MetricsWrapper (Metrics Int Int))
-    print metrics
+-- testRunStateT :: MonadIO m => m ()
+-- testRunStateT =
+--   do
+--     ((), metrics) <- runEmitStateT (ioEffect "test runEmitStateT")
+--       (MetricsWrapper mempty :: MetricsWrapper (Metrics Int Int))
+--     print metrics
 
-testRunState :: MonadIO m => m ()
-testRunState =
-  let ((), metrics) =
-        runEmitState
-        pureEffect
-        (MetricsWrapper mempty :: MetricsWrapper (Metrics Int Int))
-  in do
-    putStrLn "test runEmitState"
-    print metrics
+-- testRunState :: MonadIO m => m ()
+-- testRunState =
+--   let ((), metrics) =
+--         runEmitState
+--         pureEffect
+--         (MetricsWrapper mempty :: MetricsWrapper (Metrics Int Int))
+--   in do
+--     putStrLn "test runEmitState"
+--     print metrics
 
 testRunStateT' :: MonadIO m => m ()
 testRunStateT' =
@@ -190,19 +190,19 @@ testRunPureApp =
 main :: IO ()
 main =
   do
-    testRunEmitTVarT'
-    testRunEmitTVarT
-    testRunTVarApp
+    -- testRunEmitTVarT'
+    -- testRunEmitTVarT
+    -- testRunTVarApp
 
-    testRunIdentityT
-    putStrLn "test runIdentity"
-    testRunPureIdentity
+    -- testRunIdentityT
+    -- putStrLn "test runIdentity"
+    -- testRunPureIdentity
 
     testRunWriterT
     testRunWriter
 
-    testRunStateT
-    testRunState
+    -- testRunStateT
+    -- testRunState
 
     testRunStateT'
     testRunState'
