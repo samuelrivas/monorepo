@@ -66,8 +66,13 @@ DOC-INSTALL-DIR ?= $(PREFIX-DOCS)/share/doc
 BUILD-DOC-DIR := $(DOC-OUTPUT-DIR)/$(DOC-RELATIVE-DIR)
 INSTALLED-DOC-HTML := $(DOC-INSTALL-DIR)/$(DOC-RELATIVE-DIR)
 
+# Some packages export the `haddock-html` field even when the docs are not built, haddock
+# fails to build if we pass a non-existent directory to the `-i` flag, so we need to filter
+# out with `realpath`
+HADDOCK-HTML-DIRS-RAW := $(shell ghc-pkg field '*' haddock-html --simple-output)
+HADDOCK-HTML-DIRS := $(foreach dir,$(HADDOCK-HTML-DIRS-RAW),$(reapath $(dir)))
+
 # FIXME: finding the haddock file with a star is not correct, though it works in practice, what we want is the haddock-interfaces field
-HADDOCK-HTML-DIRS := $(shell ghc-pkg field '*' haddock-html --simple-output)
 HADDOCK-INTERFACE-FLAGS := $(foreach dir,$(HADDOCK-HTML-DIRS),-i file://$(dir),file://$(dir)/src,$(wildcard $(dir)/*.haddock))
 
 # Targets
