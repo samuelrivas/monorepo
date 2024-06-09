@@ -67,6 +67,12 @@ let
         # it could be omitted
         isHaskellLibrary = is-lib;
       }
+      // lib-nixpkgs.optionalAttrs build-doc {
+        # pname and haddocDir are used by ghcWithHoogle to build the
+        # documentation index
+        pname = name;
+        passthru.haddockDir = p: "${p.doc}/share/doc/${p.name}/html";
+      }
       // extra-drv;
     drv = packages-nixpkgs.stdenv.mkDerivation drv-args;
     dev-shell = drv.overrideAttrs (final: previous: {
