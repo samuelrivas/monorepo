@@ -3,7 +3,6 @@
   lens,
   parselib,
   perlude,
-  boollib,
 }:
 haskell-pkg {
   name = "clean-clocks";
@@ -12,6 +11,5 @@ haskell-pkg {
     lens
     parselib
     perlude
-    boollib
   ];
 }
