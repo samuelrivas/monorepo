@@ -82,7 +82,9 @@ HADDOCK-INTERFACE-FLAGS := $(foreach dir,$(HADDOCK-HTML-DIRS),-i file://$(dir),f
 .PHONY: all
 all: compile
 
-$(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-STATIC-LIB-DIR) $(INSTALLED-DOC-HTML)
+# We create the installed doc directory conditionally, as destination may not
+# exist if we are not installing the docs
+$(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-STATIC-LIB-DIR) $(if $(PREFIX-DOCS),$(INSTALLED-DOC-HTML),)
 	mk-conf-file $(PACKAGE-NAME) \
 		--version "$(PACKAGE-VERSION)" \
 		--exposed "$(EXPOSED-MODULES)" \
@@ -90,8 +92,8 @@ $(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-
 		--static-lib-path "$(realpath $(INSTALLED-STATIC-LIB-DIR))" \
 		--dynamic-lib-path "$(realpath $(INSTALLED-DYNAMIC-LIB-DIR))" \
 		--dependencies "$(PACKAGE-DEPS)" \
-		--haddock-interfaces "$(realpath $(INSTALLED-DOC-HTML))/$(PACKAGE-NAME).haddock" \
-		--haddock-html "$(realpath $(INSTALLED-DOC-HTML))" \
+		$(if $(PREFIX-DOCS),--haddock-interfaces "$(realpath $(INSTALLED-DOC-HTML))/$(PACKAGE-NAME).haddock",) \
+		$(if $(PREFIX-DOCS),--haddock-html "$(realpath $(INSTALLED-DOC-HTML))") \
 		> $@
 
 .PHONY: compile
