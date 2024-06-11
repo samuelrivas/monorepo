@@ -72,7 +72,12 @@ INSTALLED-DOC-HTML := $(DOC-INSTALL-DIR)/$(DOC-RELATIVE-DIR)
 HADDOCK-HTML-DIRS-RAW := $(shell ghc-pkg field '*' haddock-html --simple-output)
 HADDOCK-HTML-DIRS := $(foreach dir,$(HADDOCK-HTML-DIRS-RAW),$(realpath $(dir)))
 
-# FIXME: finding the haddock file with a star is not correct, though it works in practice, what we want is the haddock-interfaces field
+# Finding the haddock file with a star is not correct, though it works in
+# practice, what we want is the haddock-interfaces field. An option would be to
+# read dep by dep and use the correct fields, but that is slow, and makes it
+# harder to filter out documentation directories that don't exist. A better
+# option is wo write a tool to generate these flags. As this is fast adn works
+# in practice, we will leave it like this for now.
 HADDOCK-INTERFACE-FLAGS := $(foreach dir,$(HADDOCK-HTML-DIRS),-i file://$(dir),file://$(dir)/src,$(wildcard $(dir)/*.haddock))
 
 # Targets
