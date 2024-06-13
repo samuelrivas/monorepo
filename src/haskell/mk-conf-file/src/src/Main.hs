@@ -8,22 +8,26 @@ module Main where
 import           Prelude             hiding (unlines)
 
 import qualified Data.ByteString     as BS
+import           Data.Maybe          (catMaybes, fromMaybe)
 import           Data.Text           (Text, pack, unpack)
 import qualified Data.Text           as Text
 import           Data.Text.Encoding  (encodeUtf8)
 import           Options.Applicative (Parser, ReadM, execParser, fullDesc, help,
                                       helper, info, long, maybeReader, metavar,
-                                      option, progDesc, strArgument, strOption)
+                                      option, optional, progDesc, strArgument,
+                                      strOption, value)
 import           System.Process      (readProcess)
 
 data LibInfo = LibInfo
-  { name           :: Text
-  , version        :: Text
-  , exposedModules :: [Text]
-  , importDir      :: Text
-  , staticLibDir   :: Text
-  , dynamicLibDir  :: Text
-  , dependencies   :: [Text]
+  { name              :: Text
+  , version           :: Text
+  , exposedModules    :: [Text]
+  , importDir         :: Text
+  , staticLibDir      :: Text
+  , dynamicLibDir     :: Text
+  , dependencies      :: [Text]
+  , haddockInterfaces :: Maybe [Text]
+  , haddockHtml       :: Maybe Text
   } deriving Show
 
 toIds :: [Text] -> IO [Text]
@@ -34,12 +38,15 @@ addIds libInfo = do
   ids <- toIds . dependencies $ libInfo
   pure $ libInfo { dependencies = ids }
 
+optionalField :: Text -> Maybe Text -> Maybe Text
+optionalField name = fmap (name <>)
+
 render :: LibInfo -> Text
 render LibInfo {..} =
   let
     multivalue = Text.intercalate "\n" . fmap ("    " <>)
   in
-    Text.intercalate "\n" [
+    Text.intercalate "\n" $ [
     "name: " <> name,
     "version: " <> version,
     "id: " <> name,
@@ -53,7 +60,12 @@ render LibInfo {..} =
     "hs-libraries: HS" <> name,
     "depends:",
     multivalue dependencies
-  ]
+  ] <>
+  catMaybes [
+    optionalField "haddock-interfaces: \n" (multivalue <$> haddockInterfaces),
+    optionalField "haddock-html: " haddockHtml
+    ]
+
 
 multiReader :: ReadM [Text]
 multiReader = fmap pack <$> maybeReader (Just . words)
@@ -79,6 +91,13 @@ cmdParser =
        (long "dependencies"
          <> help "Package dependencies. They must be quoted, and separated by spaces"
          <> metavar "\"package1 package1 ...\"")
+  <*> optional (option multiReader
+       (long "haddock-interfaces"
+        <> help ".haddock files exposed by this package"
+        <> metavar "\"/path/to/foo.haddock /path/to/bar.haddock ...\""))
+  <*> optional
+       (strOption
+        (long "haddock-html" <> help "Haddock html directory"))
 
 main :: IO ()
 main =

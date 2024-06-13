@@ -11,6 +11,7 @@
 # unset that when running in a sandbox for quick iterations.
 let
   haskell-template = is-lib: {
+    build-doc ? is-lib,
     extra-build-inputs ? [],
     extra-drv ? {},
     extra-native-build-inputs ? [],
@@ -23,12 +24,18 @@ let
       mkdir -p $out/bin
       cp ../build/bin/* $out/bin
     '';
-    install-lib = ''
-      make PREFIX="$out" install
-    '';
+    install-lib =
+      ''
+        make PREFIX="$out" PREFIX-DOCS="$doc" install
+      ''
+      + (lib-nixpkgs.optionalString build-doc ''
+        make prefix="$out" PREFIX-DOCS="$doc" install-doc
+      '');
     drv-args =
       {
         inherit name src;
+
+        outputs = ["out"] ++ (lib-nixpkgs.optional build-doc "doc");
         GHC-FLAGS = "-Werror";
         buildInputs =
           [
@@ -59,6 +66,12 @@ let
         # ghcWithPackages needs this to be true for libraries, for non libraries
         # it could be omitted
         isHaskellLibrary = is-lib;
+      }
+      // lib-nixpkgs.optionalAttrs build-doc {
+        # pname and haddocDir are used by ghcWithHoogle to build the
+        # documentation index
+        pname = name;
+        passthru.haddockDir = p: "${p.doc}/share/doc/${p.name}/html";
       }
       // extra-drv;
     drv = packages-nixpkgs.stdenv.mkDerivation drv-args;
