@@ -24,7 +24,8 @@ import           Control.Monad.MonadEmit    (EmitIdentity, EmitIdentityT (..),
                                              MetricsWrapper (..), MonadEmit,
                                              emitCount, emitGauge,
                                              runEmitIdentity, runEmitIdentityT,
-                                             runEmitState', runEmitState'',
+                                             runEmitState, runEmitState',
+                                             runEmitState'', runEmitStateT,
                                              runEmitStateT', runEmitStateT'',
                                              runEmitTVarT, runEmitTVarT',
                                              runEmitWriter, runEmitWriterT)
@@ -140,22 +141,25 @@ testRunWriter =
     putStrLn "test runEmitWriter"
     print metrics
 
--- testRunStateT :: MonadIO m => m ()
--- testRunStateT =
---   do
---     ((), metrics) <- runEmitStateT (ioEffect "test runEmitStateT")
---       (MetricsWrapper mempty :: MetricsWrapper (Metrics Int Int))
---     print metrics
+testRunStateT :: forall m.MonadIO m => m ()
+testRunStateT =
+  let
+    effect =
+      ioEffect "test runEmitStateT"
+      :: EmitStateT (Metrics Int Int) (MetricsWrapper (Metrics Int Int)) m ()
+  in do
+    ((), metrics) <- runEmitStateT effect $ MetricsWrapper mempty
+    print metrics
 
--- testRunState :: MonadIO m => m ()
--- testRunState =
---   let ((), metrics) =
---         runEmitState
---         pureEffect
---         (MetricsWrapper mempty :: MetricsWrapper (Metrics Int Int))
---   in do
---     putStrLn "test runEmitState"
---     print metrics
+testRunState :: MonadIO m => m ()
+testRunState =
+  let ((), metrics) =
+        runEmitState
+        (pureEffect :: EmitState (Metrics Int Int) (MetricsWrapper (Metrics Int Int)) ())
+        (MetricsWrapper mempty)
+  in do
+    putStrLn "test runEmitState"
+    print metrics
 
 testRunStateT' :: MonadIO m => m ()
 testRunStateT' =
@@ -206,8 +210,8 @@ main =
     testRunWriterT
     testRunWriter
 
-    -- testRunStateT
-    -- testRunState
+    testRunStateT
+    testRunState
 
     testRunStateT'
     testRunState'
