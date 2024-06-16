@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
 {-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedLabels    #-}
