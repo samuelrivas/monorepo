@@ -18,16 +18,16 @@ module Main where
 import           Perlude
 
 import           Control.Lens               (view)
-import           Control.Monad.MonadEmit    (EmitState, EmitStateT (..),
+import           Control.Monad.MonadEmit    (EmitIdentity, EmitIdentityT (..),
+                                             EmitState, EmitStateT (..),
                                              EmitTVarT (..),
                                              MetricsWrapper (..), MonadEmit,
                                              emitCount, emitGauge,
                                              runEmitIdentity, runEmitIdentityT,
-                                             runEmitState, runEmitState',
-                                             runEmitState'', runEmitStateT,
+                                             runEmitState', runEmitState'',
                                              runEmitStateT', runEmitStateT'',
-                                             runEmitTVarT, runEmitTVarT',
-                                             runEmitWriter, runEmitWriterT)
+                                             runEmitTVarT', runEmitWriter,
+                                             runEmitWriterT)
 import           Control.Monad.Reader       (MonadReader, ReaderT (..),
                                              runReaderT)
 import           Control.Monad.State.Strict (State, runState)
@@ -113,14 +113,15 @@ testRunTVarApp =
     liftIO $ runTVarApp (ioEffect "test runTVarApp") context
     readTVarIO tvar >>= print
 
--- testRunIdentityT :: MonadIO m => m ()
--- testRunIdentityT = runEmitIdentityT (ioEffect "test unidentified")
+testRunIdentityT :: forall m.MonadIO m => m ()
+testRunIdentityT =
+  runEmitIdentityT (ioEffect "test runIdentityT" :: EmitIdentityT (Metrics Int Int) m ())
 
 -- This is to verify that we are not forced into IO
--- testRunPureIdentity :: MonadIO m => m ()
--- testRunPureIdentity =
---   case runEmitIdentity pureEffect
---   of () -> putStrLn "test runIdentity"
+testRunPureIdentity :: MonadIO m => m ()
+testRunPureIdentity =
+  case runEmitIdentity (pureEffect :: EmitIdentity (Metrics Int Int) ())
+  of () -> putStrLn "test testRunPureIdentity"
 
 testRunWriterT :: MonadIO m => m ()
 testRunWriterT =
@@ -194,9 +195,9 @@ main =
     -- testRunEmitTVarT
     -- testRunTVarApp
 
-    -- testRunIdentityT
-    -- putStrLn "test runIdentity"
-    -- testRunPureIdentity
+    testRunIdentityT
+    putStrLn "test runIdentity"
+    testRunPureIdentity
 
     testRunWriterT
     testRunWriter
