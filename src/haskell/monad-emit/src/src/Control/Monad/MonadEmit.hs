@@ -6,7 +6,6 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE NoImplicitPrelude      #-}
-{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module Control.Monad.MonadEmit
