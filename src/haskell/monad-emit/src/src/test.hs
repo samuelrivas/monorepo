@@ -26,8 +26,8 @@ import           Control.Monad.MonadEmit    (EmitIdentity, EmitIdentityT (..),
                                              runEmitIdentity, runEmitIdentityT,
                                              runEmitState', runEmitState'',
                                              runEmitStateT', runEmitStateT'',
-                                             runEmitTVarT', runEmitWriter,
-                                             runEmitWriterT)
+                                             runEmitTVarT, runEmitTVarT',
+                                             runEmitWriter, runEmitWriterT)
 import           Control.Monad.Reader       (MonadReader, ReaderT (..),
                                              runReaderT)
 import           Control.Monad.State.Strict (State, runState)
@@ -99,12 +99,16 @@ mkTVarContext =
     tvar <- newTVarIO (mempty :: Metrics Int Int)
     pure (ContextTVar (MetricsWrapper tvar) 42, tvar)
 
--- testRunEmitTVarT :: IO ()
--- testRunEmitTVarT =
---   do
---     (context, tvar) <- mkTVarContext
---     runEmitTVarT (ioEffect "test runEmitTVarT") context
---     readTVarIO tvar >>= print
+testRunEmitTVarT :: IO ()
+testRunEmitTVarT =
+  let
+    effect =
+      ioEffect "test runEmitTVarT"
+      :: EmitTVarT (Metrics Int Int) (ContextTVar (Metrics Int Int)) IO ()
+  in do
+    (context, tvar) <- mkTVarContext
+    runEmitTVarT effect context
+    readTVarIO tvar >>= print
 
 testRunTVarApp :: MonadIO m => m ()
 testRunTVarApp =
@@ -191,9 +195,9 @@ testRunPureApp =
 main :: IO ()
 main =
   do
-    -- testRunEmitTVarT'
-    -- testRunEmitTVarT
-    -- testRunTVarApp
+    testRunEmitTVarT'
+    testRunEmitTVarT
+    testRunTVarApp
 
     testRunIdentityT
     putStrLn "test runIdentity"
