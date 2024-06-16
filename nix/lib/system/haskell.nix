@@ -87,6 +87,9 @@ let
           packages-nixpkgs.glibcLocales
           (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
         ];
+      shellHook = ''
+        hoogle server --local > /dev/null &
+      '';
     });
   in
     lib-nixpkgs.recursiveUpdate drv {passthru.dev-shell = dev-shell;};
