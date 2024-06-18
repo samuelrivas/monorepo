@@ -61,6 +61,7 @@
         company
         eglot
         flycheck-haskell
+        go-mode
         groovy-mode
         helm
         helm-ls-git
