@@ -210,9 +210,6 @@
   (cdr project))
 
 (add-hook 'project-find-functions #'project-find-go-module)
-
-;; (require 'go-mode)
-;; (require 'eglot)
 (add-hook 'go-mode-hook 'eglot-ensure)
 
 ;; Optional: install eglot-format-buffer as a save hook.
