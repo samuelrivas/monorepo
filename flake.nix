@@ -18,7 +18,7 @@
     };
     legacy-lib = import ./nix/legacy/lib.nix;
 
-    supported-systems = ["x86_64-linux"];
+    supported-systems = ["x86_64-linux" "aarch64-darwin"];
     for-all-supported-systems = lib-sam.flake.for-all-systems supported-systems;
 
     inherit (lib-sam.flake) instantiate-nixpkgs;
