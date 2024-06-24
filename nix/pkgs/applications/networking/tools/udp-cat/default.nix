@@ -1,4 +1,5 @@
 {
+  lib,
   fetchFromGitHub,
   gcc,
   stdenv,
@@ -19,4 +20,8 @@ stdenv.mkDerivation rec {
     mkdir -p "$out/bin"
     cp udp-cat "$out/bin"
   '';
+
+  # It used to work for Solaris, but I haven't tested in years, doesn't
+  # definitely compiel on mac with
+  meta.platforms = lib.platforms.linux;
 }
