@@ -14,7 +14,7 @@ stdenv.mkDerivation rec {
     sha256 = "18s55yhxkwh6vhq3gn5v10q5c791x8ca3qs31pw4a0phxc5mr6qz";
   };
 
-  nativeBuildInputs = [ gcc ];
+  nativeBuildInputs = [gcc];
 
   installPhase = ''
     mkdir -p "$out/bin"
