@@ -75,6 +75,7 @@
         yasnippet
         ;
       inherit (nixpkgs.python3Packages) jedi-language-server;
+      emacsWithPackages = nixpkgs.emacs-macport.pkgs.emacsWithPackages;
     };
 
     # aspell needs to be configured to find the dictionaries
