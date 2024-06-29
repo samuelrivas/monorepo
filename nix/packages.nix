@@ -54,7 +54,14 @@
     };
 
     # An emacs wrapper with the needed packages accessible
-    my-emacs = callPackage ./pkgs/applications/editors/my-emacs {
+    my-emacs =
+      let
+        emacs-package =
+          if nixpkgs.stdenv.isDarwin
+          then nixpkgs.emacs-macport
+          else nixpkgs.emacs;
+      in
+callPackage ./pkgs/applications/editors/my-emacs {
       inherit
         (nixpkgs.emacsPackages)
         colorThemeSolarized
@@ -75,7 +82,7 @@
         yasnippet
         ;
       inherit (nixpkgs.python3Packages) jedi-language-server;
-      emacsWithPackages = nixpkgs.emacs-macport.pkgs.emacsWithPackages;
+      emacsWithPackages = emacs-package.pkgs.emacsWithPackages;
     };
 
     # aspell needs to be configured to find the dictionaries
