@@ -52,8 +52,10 @@
 (setq-default indent-tabs-mode nil)
 
 (defvar browse-url-generic-program)
-(setq browse-url-browser-function 'browse-url-generic
-      browse-url-generic-program "chromium-browser")
+(if (string-equal system-type "linux")
+    nil
+  (setq browse-url-browser-function 'browse-url-generic
+        browse-url-generic-program "chromium-browser"))
 
 (setq backup-by-copying t)
 (setq backup-directory-alist '(("." . "~/.emacs-backups")))
