@@ -1,12 +1,14 @@
 {
   cpplint,
+  gcc,
   stdenv,
 }:
 stdenv.mkDerivation {
   src = ./../src;
   name = "rndlib";
-  buildInputs = [
+  nativeBuildInputs = [
     cpplint
+    gcc
   ];
   installPhase = ''
     mkdir -p "$out/include"
