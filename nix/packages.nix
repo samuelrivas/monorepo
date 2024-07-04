@@ -54,36 +54,35 @@
     };
 
     # An emacs wrapper with the needed packages accessible
-    my-emacs =
-      let
-        emacs-package =
-          if nixpkgs.stdenv.isDarwin
-          then nixpkgs.emacs-macport
-          else nixpkgs.emacs;
-      in
-callPackage ./pkgs/applications/editors/my-emacs {
-      inherit
-        (nixpkgs.emacsPackages)
-        colorThemeSolarized
-        company
-        eglot
-        flycheck-haskell
-        go-mode
-        groovy-mode
-        helm
-        helm-ls-git
-        helm-org
-        htmlize
-        markdown-mode
-        nix-mode
-        projectile
-        terraform-mode
-        yaml-mode
-        yasnippet
-        ;
-      inherit (nixpkgs.python3Packages) jedi-language-server;
-      emacsWithPackages = emacs-package.pkgs.emacsWithPackages;
-    };
+    my-emacs = let
+      emacs-package =
+        if nixpkgs.stdenv.isDarwin
+        then nixpkgs.emacs-macport
+        else nixpkgs.emacs;
+    in
+      callPackage ./pkgs/applications/editors/my-emacs {
+        inherit
+          (nixpkgs.emacsPackages)
+          colorThemeSolarized
+          company
+          eglot
+          flycheck-haskell
+          go-mode
+          groovy-mode
+          helm
+          helm-ls-git
+          helm-org
+          htmlize
+          markdown-mode
+          nix-mode
+          projectile
+          terraform-mode
+          yaml-mode
+          yasnippet
+          ;
+        inherit (nixpkgs.python3Packages) jedi-language-server;
+        emacsWithPackages = emacs-package.pkgs.emacsWithPackages;
+      };
 
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped =
