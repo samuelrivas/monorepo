@@ -2,17 +2,17 @@
   description = "Sam's monorepo derivation collection";
 
   inputs = {
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-22-11.url = "github:NixOS/nixpkgs/nixos-22.11";
     vscode-extensions.url = "github:nix-community/nix-vscode-extensions/master";
   };
   outputs = {
     self,
     nixpkgs-22-11,
-    nixpkgs-stable,
+    nixpkgs-unstable,
     vscode-extensions,
   }: let
-    lib-nixpkgs = nixpkgs-stable.lib;
+    lib-nixpkgs = nixpkgs-unstable.lib;
     lib-sam = import ./nix/lib.nix {
       inherit lib-nixpkgs;
     };
@@ -42,7 +42,7 @@
     outputs = rec {
       formatter =
         for-all-supported-systems (system:
-          nixpkgs-stable.legacyPackages.${system}.alejandra);
+          nixpkgs-unstable.legacyPackages.${system}.alejandra);
 
       legacy.lib.sam = legacy-lib;
 
@@ -50,12 +50,12 @@
 
       packages = for-all-supported-systems (
         system: let
-          lib-system = instantiate-lib-system nixpkgs-stable packages system;
+          lib-system = instantiate-lib-system nixpkgs-unstable packages system;
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
 
           # Some packages are broken with nixpkgs-stable, so instantiate them with
           # for now nixpkgs-22-11
-          packages-sam-stable = instantiate-packages-sam nixpkgs-stable system;
+          packages-sam-stable = instantiate-packages-sam nixpkgs-unstable system;
           packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11 system;
           packages-final =
             packages-sam-stable
