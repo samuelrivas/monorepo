@@ -147,6 +147,9 @@
     adventofcode-2019 = haskellPackages.adventofcode-2019;
     adventofcode-2020 = haskellPackages.adventofcode-2020;
     adventofcode-2021 = haskellPackages.adventofcode-2021;
+
+    # External tools that are broken upstream
+    cpplint = callPackage ./pkgs/development/tools/cpplint {};
   };
 in
   packages
