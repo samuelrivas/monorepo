@@ -1,6 +1,6 @@
 {
   fetchurl,
-  python,
+  python3,
   stdenv,
   writeScriptBin,
 }: let
@@ -13,5 +13,5 @@ in
   writeScriptBin "cpplint"
   ''
     #!${stdenv.shell}
-    ${python}/bin/python ${src} "$@"
+    ${python3}/bin/python ${src} "$@"
   ''
