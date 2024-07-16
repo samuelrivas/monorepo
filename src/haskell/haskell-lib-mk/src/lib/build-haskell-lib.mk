@@ -23,6 +23,8 @@ PACKAGE-NAME ?= $(error "you must define PACKAGE-NAME")
 PACKAGE-VERSION ?= 1.0
 PACKAGE-DEPS ?= $(error "you must define PACKAGE-DEPS")
 EXPOSED-MODULES ?= $(error "you must define PACKAGE-MODULES")
+#ARCH ?= $(error "you must define the architecture of the build")
+ARCH := aarch64-osx
 
 GHC-FLAGS += -O3 -Wall -j
 GHC-PROF-FLAGS += -O3 -Wall -j -prof
@@ -30,7 +32,6 @@ GHC-PROF-FLAGS += -O3 -Wall -j -prof
 # Internal variables
 # ==================
 GHC-VERSION := $(shell ghc --numeric-version)
-ARCH = x86_64-linux
 
 BUILD-DIR := ../build
 BUILD-OUTPUT-DIR := $(BUILD-DIR)/out
@@ -45,7 +46,8 @@ OBJ-NAMES = $(SRC-NAMES:%.hs=%.o)
 PROF-OBJ-NAMES = $(SRC-NAMES:%.hs=%.p_o)
 
 PACKAGE-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/lib
-PACKAGE-CONF-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/package-conf.d
+# XXX Seems that we dont use this:
+#PACKAGE-CONF-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/package-conf.d
 DYNAMIC-LIBRARY-RELATIVE-DIR := $(PACKAGE-RELATIVE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
 STATIC-LIBRARY-RELATIVE-DIR := $(PACKAGE-RELATIVE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
 

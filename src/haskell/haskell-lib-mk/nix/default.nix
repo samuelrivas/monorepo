@@ -16,7 +16,11 @@ stdenv.mkDerivation {
       export HASKELL_LIB_MK="$out/lib/build-haskell-lib.mk"
     }
 
-    addEnvHooks "$hostOffset" addHaskellLibMkPath
+    exportArch() {
+      export ARCH="${stdenv.system}"
+    }
+
+    addEnvHooks "$hostOffset" addHaskellLibMkPath exportArch
     EOF
   '';
 }
