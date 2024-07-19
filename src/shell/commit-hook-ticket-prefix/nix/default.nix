@@ -30,10 +30,10 @@ in
 
     postFixup = ''
       wrapProgram "$out/bin/commit-hook-ticket-prefix-install" \
-        --suffix-each PATH : "$git/bin"                        \
+        --prefix-each PATH : "$git/bin"                        \
         --set SH_LIB "${lib-dir}"
 
       wrapProgram "$out/lib/commit-hook-ticket-prefix" \
-        --suffix-each PATH : "$git/bin $gnused/bin"
+        --prefix-each PATH : "$git/bin $gnused/bin"
     '';
   }
