@@ -50,8 +50,7 @@
     writeShellScriptBin
     "emacs"
     ''
-      # The original emacs binary is in ${drv}/bin/emacs
-      exec "/Applications/Nix Apps/Emacs.app/Contents/MacOS/Emacs" "$@"
+      exec "${drv}/Applications/Emacs.app/Contents/MacOS/Emacs" "$@"
     '';
   wrap =
     if stdenv.isDarwin
