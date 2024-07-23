@@ -2,7 +2,8 @@
   description = "Sam's monorepo derivation collection";
 
   inputs = {
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs-unstable.url = "github:samuelrivas/nixpkgs/fix-haskell-with-packages";
     nixpkgs-22-11.url = "github:NixOS/nixpkgs/nixos-22.11";
     vscode-extensions.url = "github:nix-community/nix-vscode-extensions/master";
   };
