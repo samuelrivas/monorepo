@@ -130,7 +130,7 @@ clean:
 
 .PHONY: install
 install: compile $(PACKAGE-CONF) | $(INSTALL-DIR)
-	cd $(BUILD-OUTPUT-DIR); tar c --exclude "*.o" --exclude "*.dyn_o" * \
+	cd $(BUILD-OUTPUT-DIR); tar c --exclude "*.o" --exclude "*.*_o" * \
 		| tar x -C $(realpath $(INSTALL-DIR))
 
 .PHONY: install-doc
