@@ -2,6 +2,9 @@
   mk-conf-file,
   stdenv,
 }:
+let
+  arch = builtins.replaceStrings ["darwin"] ["osx"] stdenv.targetPlatform.system;
+in
 stdenv.mkDerivation {
   name = "haskell-lib-mk";
   src = ./../src;
@@ -16,7 +19,13 @@ stdenv.mkDerivation {
       export HASKELL_LIB_MK="$out/lib/build-haskell-lib.mk"
     }
 
+    addArchInfo() {
+      export ARCH="${arch}"
+      export SHARED_LIB_EXTENSION="${stdenv.targetPlatform.extensions.sharedLibrary}"
+    }
+
     addEnvHooks "$hostOffset" addHaskellLibMkPath
+    addEnvHooks "$hostOffset" addArchInfo
     EOF
   '';
 }

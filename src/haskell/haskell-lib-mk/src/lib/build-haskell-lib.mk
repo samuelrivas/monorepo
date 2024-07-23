@@ -23,6 +23,8 @@ PACKAGE-NAME ?= $(error "you must define PACKAGE-NAME")
 PACKAGE-VERSION ?= 1.0
 PACKAGE-DEPS ?= $(error "you must define PACKAGE-DEPS")
 EXPOSED-MODULES ?= $(error "you must define PACKAGE-MODULES")
+ARCH ?= $(error "you must define ARCH")
+SHARED_LIB_EXTENSION ?= $(error "you must define SHARED_LIB_EXTENSION")
 
 GHC-FLAGS += -O3 -Wall -j
 GHC-PROF-FLAGS += -O3 -Wall -j -prof
@@ -30,7 +32,6 @@ GHC-PROF-FLAGS += -O3 -Wall -j -prof
 # Internal variables
 # ==================
 GHC-VERSION := $(shell ghc --numeric-version)
-ARCH = x86_64-linux
 
 BUILD-DIR := ../build
 BUILD-OUTPUT-DIR := $(BUILD-DIR)/out
@@ -44,7 +45,7 @@ SRC-NAMES = $(filter-out ./test.hs ./Test/%,$(SRCS:./src/%=./%))
 OBJ-NAMES = $(SRC-NAMES:%.hs=%.o)
 PROF-OBJ-NAMES = $(SRC-NAMES:%.hs=%.p_o)
 
-PACKAGE-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)
+PACKAGE-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/lib
 PACKAGE-CONF-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/package-conf.d
 DYNAMIC-LIBRARY-RELATIVE-DIR := $(PACKAGE-RELATIVE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
 STATIC-LIBRARY-RELATIVE-DIR := $(PACKAGE-RELATIVE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)/$(PACKAGE-NAME)-$(PACKAGE-VERSION)
@@ -103,10 +104,10 @@ $(PACKAGE-CONF): | $(PACKAGE-CONF-DIR) $(INSTALLED-DYNAMIC-LIB-DIR) $(INSTALLED-
 
 .PHONY: compile
 compile: | $(DYNAMIC-LIB-DIR) $(STATIC-LIB-DIR)
-	cd src; ghc $(GHC-FLAGS) -outputdir $(realpath $(STATIC-LIB-DIR)) --make -dynamic -shared -fPIC -package-name $(PACKAGE-NAME) $(SRC-NAMES) -osuf dyn_o -hisuf dyn_hi -o libHS$(PACKAGE-NAME)-ghc$(GHC-VERSION).so
+	cd src; ghc $(GHC-FLAGS) -outputdir $(realpath $(STATIC-LIB-DIR)) --make -dynamic -shared -fPIC -package-name $(PACKAGE-NAME) $(SRC-NAMES) -osuf dyn_o -hisuf dyn_hi -o libHS$(PACKAGE-NAME)-ghc$(GHC-VERSION)$(SHARED_LIB_EXTENSION)
 	cd src; ghc $(GHC-FLAGS) -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name $(PACKAGE-NAME) $(SRC-NAMES)
 	cd src; ghc $(GHC-PROF-FLAGS) -c --make -outputdir $(realpath $(STATIC-LIB-DIR)) -package-name $(PACKAGE-NAME) $(SRC-NAMES) -osuf p_o -hisuf p_hi
-	mv src/*.so $(DYNAMIC-LIB-DIR)
+	mv src/*$(SHARED_LIB_EXTENSION) $(DYNAMIC-LIB-DIR)
 	ar cqs $(STATIC-LIB-DIR)/libHS$(PACKAGE-NAME).a $(addprefix $(STATIC-LIB-DIR)/,$(OBJ-NAMES))
 	ar cqs $(STATIC-LIB-DIR)/libHS$(PACKAGE-NAME)_p.a $(addprefix $(STATIC-LIB-DIR)/,$(PROF-OBJ-NAMES))
 
@@ -129,7 +130,7 @@ clean:
 
 .PHONY: install
 install: compile $(PACKAGE-CONF) | $(INSTALL-DIR)
-	cd $(BUILD-OUTPUT-DIR); tar c --exclude "*.o" --exclude "*.dyn_o" * \
+	cd $(BUILD-OUTPUT-DIR); tar c --exclude "*.o" --exclude "*.*_o" * \
 		| tar x -C $(realpath $(INSTALL-DIR))
 
 .PHONY: install-doc
