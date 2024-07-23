@@ -16,10 +16,9 @@
   emacs-config,
   emacsWithPackages,
   flycheck-haskell,
-
   # FIXME: go is not properly added as a dependency, it ends up as a broken link
   # in the depenedencies derivation, this nix fixing in emacsWithPackages. At
-  # the moment, you need to install go in your profile, with tout that eglot
+  # the moment, you need to install go in your profile, without that eglot
   # cannot start
   go,
   go-mode,
@@ -36,38 +35,55 @@
   nix-mode,
   projectile,
   silver-searcher,
+  stdenv,
   stylish-haskell,
   terraform-mode,
   terraform-ls,
+  writeShellScriptBin,
   yaml-mode,
   yasnippet,
-}:
-emacsWithPackages [
-  aspell-wrapped
-  colorThemeSolarized
-  company
-  copilot
-  eglot
-  emacs-config
-  flycheck-haskell
-  go
-  go-mode
-  jedi-language-server
-  git
-  gopls
-  groovy-mode
-  helm
-  helm-ls-git
-  helm-org
-  htmlize
-  markdown-mode
-  nil
-  nix-mode
-  projectile
-  silver-searcher
-  stylish-haskell
-  terraform-ls
-  terraform-mode
-  yaml-mode
-  yasnippet
-]
+}: let
+  # If we call the regular `emacs` file on darwin, it won't behave correctly
+  # with the window manager. Thus, we substitute `emacs` with a script that runs
+  # the installed mac application, which does behave correctly.
+  wrapDarwin = drv:
+    writeShellScriptBin
+    "emacs"
+    ''
+      # The original emacs binary is in ${drv}/bin/emacs
+      exec "/Applications/Nix Apps/Emacs.app/Contents/MacOS/Emacs" "$@"
+    '';
+  wrap =
+    if stdenv.isDarwin
+    then wrapDarwin
+    else (x: x);
+in
+  wrap (emacsWithPackages [
+    aspell-wrapped
+    colorThemeSolarized
+    company
+    copilot
+    eglot
+    emacs-config
+    flycheck-haskell
+    go
+    go-mode
+    jedi-language-server
+    git
+    gopls
+    groovy-mode
+    helm
+    helm-ls-git
+    helm-org
+    htmlize
+    markdown-mode
+    nil
+    nix-mode
+    projectile
+    silver-searcher
+    stylish-haskell
+    terraform-ls
+    terraform-mode
+    yaml-mode
+    yasnippet
+  ])
