@@ -61,6 +61,7 @@
         else nixpkgs.emacs;
     in
       callPackage ./pkgs/applications/editors/my-emacs {
+        inherit (nixpkgs) stdenv;
         inherit
           (nixpkgs.emacsPackages)
           colorThemeSolarized
