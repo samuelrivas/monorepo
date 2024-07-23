@@ -18,7 +18,7 @@
   flycheck-haskell,
   # FIXME: go is not properly added as a dependency, it ends up as a broken link
   # in the depenedencies derivation, this nix fixing in emacsWithPackages. At
-  # the moment, you need to install go in your profile, with tout that eglot
+  # the moment, you need to install go in your profile, without that eglot
   # cannot start
   go,
   go-mode,
