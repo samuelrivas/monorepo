@@ -61,6 +61,7 @@
             packages-sam-stable
             // {
               adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
+              finndb = packages-sam-22-11.finndb;
             };
 
           # all-packages is a derivation that builds all packages in the monorepo
