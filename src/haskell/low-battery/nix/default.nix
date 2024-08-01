@@ -1,6 +1,7 @@
 {
   acpi,
   haskell-pkg,
+  lib,
   pkgs, # we get libnotify from here, if we write libnotify directly we get a haskell library
   writeShellScriptBin,
   HSH,
@@ -17,6 +18,7 @@
       generic-lens
       lens
     ];
+    extra-drv = {meta.platforms = lib.platforms.linux;};
   };
   # FIXME The DBUS address should not be hardcoded...
   script = writeShellScriptBin "low-battery-notify" ''
@@ -28,4 +30,4 @@
   # TODO fix this guacamole
   # in binary
 in
-  script
+  script // {meta.platforms = lib.platforms.linux;}
