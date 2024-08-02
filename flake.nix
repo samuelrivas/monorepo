@@ -60,7 +60,7 @@
           packages-final =
             packages-sam-stable
             // {
-              adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
+              hashcode-photoalbum = packages-sam-22-11.hashcode-photoalbum;
               finndb = packages-sam-22-11.finndb;
             };
 
