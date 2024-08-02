@@ -2,9 +2,10 @@
   generic-lens,
   haskell-lib-pkg,
   lens,
+  mtl,
   perlude,
+  transformers,
   unliftio,
-  writer-cps-mtl,
 }:
 haskell-lib-pkg {
   name = "monad-emit";
@@ -12,8 +13,9 @@ haskell-lib-pkg {
   haskell-libs = [
     generic-lens
     lens
+    mtl
     perlude
+    transformers
     unliftio
-    writer-cps-mtl
   ];
 }

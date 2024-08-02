@@ -70,8 +70,8 @@ import           Control.Monad.State              (MonadState)
 import qualified Control.Monad.State.Lazy         as StateLazy
 import qualified Control.Monad.State.Strict       as StateStrict
 import           Control.Monad.Trans              (MonadTrans (lift))
-import           Control.Monad.Writer.CPS         (MonadWriter, WriterT,
-                                                   runWriterT)
+import           Control.Monad.Trans.Writer.CPS   (WriterT, runWriterT)
+import           Control.Monad.Writer.CPS         (MonadWriter)
 import           Data.Generics.Labels             ()
 import           Data.Generics.Product            (HasType, typed)
 import qualified Data.HashMap.Strict              as HashMap
