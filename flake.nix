@@ -72,27 +72,15 @@
           # If something is failing, you can temporarily remove packages from this
           # list by adding to the removeAttrs list below
           all-packages = bundle-packages (builtins.removeAttrs packages-final [
-            "adventlib"
-            "adventlib-old-1"
             "adventofcode-2019"
             "adventofcode-2020"
             "adventofcode-2021"
             "algos-n-fun"
-            "boardgamer"
-            "boollib"
             "clean-clocks"
-            "example-lib"
-            "hashcode-photoalbum"
             "low-battery"
-            "mk-conf-file"
             "monad-emit"
             "monte-carlo"
-            "name-generator"
-            "onirim-helper"
-            "parselib"
-            "perlude"
             "searchlib"
-            "searhlib"
             "udp-cat"
             "graphlib"
           ]);
