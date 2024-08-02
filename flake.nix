@@ -55,8 +55,8 @@
           lib-system = instantiate-lib-system nixpkgs-unstable packages system;
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
 
-          # Some packages are broken with nixpkgs-stable, so instantiate them with
-          # for now nixpkgs-22-11
+          # Some packages are broken with nixpkgs-stable, so instantiate them
+          # with older for now
           packages-sam-stable = instantiate-packages-sam nixpkgs-unstable system;
           packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11 system;
           packages-sam-24-05 = instantiate-packages-sam nixpkgs-24-05 system;
@@ -78,7 +78,6 @@
             "algos-n-fun"
             "clean-clocks"
             "low-battery"
-            "monad-emit"
             "monte-carlo"
             "searchlib"
             "udp-cat"
