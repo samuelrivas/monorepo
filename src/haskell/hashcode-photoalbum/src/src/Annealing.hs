@@ -13,6 +13,7 @@ module Annealing
     default_config
   ) where
 
+import           Control.Monad         (when)
 import           Control.Monad.Loops
 import           Control.Monad.Reader  (runReader)
 import           Control.Monad.RWS
