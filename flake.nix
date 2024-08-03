@@ -74,7 +74,6 @@
           all-packages = bundle-packages (builtins.removeAttrs packages-final [
             "adventofcode-2019"
             "adventofcode-2020"
-            "adventofcode-2021"
             "algos-n-fun"
             "clean-clocks"
             "low-battery"
