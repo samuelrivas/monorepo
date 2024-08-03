@@ -11,15 +11,16 @@
   matrix,
   monad-emit,
   monad-loops,
+  mtl,
   multiset,
   parselib,
   perlude,
   readline,
   regex-tdfa,
   searchlib,
+  transformers,
   unliftio,
   unordered-containers,
-  writer-cps-mtl,
   zippers,
 }: let
   advent-input-dir = ./../src/inputs;
@@ -38,15 +39,16 @@ in
       matrix
       monad-emit
       monad-loops
+      mtl
       multiset
       parselib
       perlude
       readline
       regex-tdfa
       searchlib
+      transformers
       unliftio
       unordered-containers
-      writer-cps-mtl
       zippers
     ];
 
