@@ -3,9 +3,10 @@
   generic-lens,
   haskell-lib-pkg,
   lens,
+  mtl,
   perlude,
+  transformers,
   unordered-containers,
-  writer-cps-mtl,
 }:
 haskell-lib-pkg {
   name = "searchlib";
@@ -14,8 +15,9 @@ haskell-lib-pkg {
     fingertree
     generic-lens
     lens
+    mtl
     perlude
+    transformers
     unordered-containers
-    writer-cps-mtl
   ];
 }

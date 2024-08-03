@@ -79,7 +79,6 @@
             "clean-clocks"
             "low-battery"
             "monte-carlo"
-            "searchlib"
             "udp-cat"
             "graphlib"
           ]);
