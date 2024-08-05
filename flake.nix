@@ -3,14 +3,12 @@
 
   inputs = {
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs-24-05.url = "github:NixOS/nixpkgs/nixos-24.05";
     nixpkgs-22-11.url = "github:NixOS/nixpkgs/nixos-22.11";
     vscode-extensions.url = "github:nix-community/nix-vscode-extensions/master";
   };
   outputs = {
     self,
     nixpkgs-22-11,
-    nixpkgs-24-05,
     nixpkgs-unstable,
     vscode-extensions,
   }: let
@@ -59,11 +57,9 @@
           # with older for now
           packages-sam-stable = instantiate-packages-sam nixpkgs-unstable system;
           packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11 system;
-          packages-sam-24-05 = instantiate-packages-sam nixpkgs-24-05 system;
           packages-final =
             packages-sam-stable
             // {
-              hashcode-photoalbum = packages-sam-24-05.hashcode-photoalbum;
               finndb = packages-sam-22-11.finndb;
             };
 

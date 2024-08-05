@@ -66,22 +66,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-24-05": {
-      "locked": {
-        "lastModified": 1722372011,
-        "narHash": "sha256-B2xRiC3NEJy/82ugtareBkRqEkPGpMyjaLxaR8LBxNs=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "cf05eeada35e122770c5c14add958790fcfcbef5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-24.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1722415718,
@@ -101,7 +85,6 @@
     "root": {
       "inputs": {
         "nixpkgs-22-11": "nixpkgs-22-11",
-        "nixpkgs-24-05": "nixpkgs-24-05",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "vscode-extensions": "vscode-extensions"
       }
