@@ -21,6 +21,7 @@ import           Advent.Day23.Intcode
 import           Advent.Day23.Internal
 import           Control.Lens          (_2, _Just, assign, at, modifying, set,
                                         use, uses, view)
+import           Control.Monad         (unless, when)
 import           Control.Monad.Loops   (untilJust)
 import           Control.Monad.State
 import           Data.Advent           (Day (..))

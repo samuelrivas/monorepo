@@ -11,7 +11,6 @@
   searchlib,
   unliftio,
   unordered-containers,
-  writer-cps-mtl,
 }:
 haskell-pkg {
   name = "adventofcode-2019";
@@ -28,7 +27,6 @@ haskell-pkg {
     searchlib
     unliftio
     unordered-containers
-    writer-cps-mtl
   ];
 
   extra-drv = {
