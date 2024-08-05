@@ -72,7 +72,6 @@
             "low-battery"
             "monte-carlo"
             "udp-cat"
-            "graphlib"
           ]);
         in
           packages-final
