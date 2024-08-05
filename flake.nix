@@ -69,7 +69,6 @@
           # list by adding to the removeAttrs list below
           all-packages = bundle-packages (builtins.removeAttrs packages-final [
             "algos-n-fun"
-            "clean-clocks"
             "low-battery"
             "monte-carlo"
             "udp-cat"
