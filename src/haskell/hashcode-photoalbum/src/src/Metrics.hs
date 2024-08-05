@@ -14,6 +14,7 @@ import           Data.IntMultiSet     (IntMultiSet)
 import qualified Data.IntMultiSet     as IntMultiSet
 import           Data.Map             (Map)
 import qualified Data.Map             as Map
+import           Data.Monoid          (Sum (..))
 import           Numeric.Natural      (Natural)
 
 {-# ANN module "HLint: ignore Use camelCase" #-}

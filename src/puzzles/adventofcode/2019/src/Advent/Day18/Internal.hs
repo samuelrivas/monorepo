@@ -8,7 +8,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedLabels      #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
@@ -68,10 +67,9 @@ initialNode startingPoints numberOfKeys =
   }
 
 toMemory :: MazeNode -> MazeMemory
-toMemory node =
-  let movedRobot = robotIx (node :: MazeNode)
-  in MazeMemory {
-    robotIx = movedRobot,
-    pos = fromJust $ preview (ix movedRobot) $ pos (node :: MazeNode),
-    keys = keys (node :: MazeNode)
+toMemory (MazeNode {robotIx = movedRobot, keys = keys, pos = pos}) =
+  MazeMemory {
+  robotIx = movedRobot,
+  pos = fromJust $ preview (ix movedRobot) pos,
+  keys = keys
   }

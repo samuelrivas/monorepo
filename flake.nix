@@ -53,14 +53,13 @@
           lib-system = instantiate-lib-system nixpkgs-unstable packages system;
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
 
-          # Some packages are broken with nixpkgs-stable, so instantiate them with
-          # for now nixpkgs-22-11
+          # Some packages are broken with nixpkgs-stable, so instantiate them
+          # with older for now
           packages-sam-stable = instantiate-packages-sam nixpkgs-unstable system;
           packages-sam-22-11 = instantiate-packages-sam nixpkgs-22-11 system;
           packages-final =
             packages-sam-stable
             // {
-              adventofcode-2019 = packages-sam-22-11.adventofcode-2019;
               finndb = packages-sam-22-11.finndb;
             };
 
@@ -69,27 +68,10 @@
           # If something is failing, you can temporarily remove packages from this
           # list by adding to the removeAttrs list below
           all-packages = bundle-packages (builtins.removeAttrs packages-final [
-            "adventlib"
-            "adventlib-old-1"
-            "adventofcode-2019"
-            "adventofcode-2020"
-            "adventofcode-2021"
             "algos-n-fun"
-            "boardgamer"
-            "boollib"
             "clean-clocks"
-            "example-lib"
-            "hashcode-photoalbum"
             "low-battery"
-            "mk-conf-file"
-            "monad-emit"
             "monte-carlo"
-            "name-generator"
-            "onirim-helper"
-            "parselib"
-            "perlude"
-            "searchlib"
-            "searhlib"
             "udp-cat"
             "graphlib"
           ]);

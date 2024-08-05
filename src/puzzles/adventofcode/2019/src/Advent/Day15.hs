@@ -1,6 +1,5 @@
--- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
--- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
--- {-# OPTIONS_GHC -fno-warn-orphans #-}
+-- FIXME rewwrite this to avoid non exhaustive patterns
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}

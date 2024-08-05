@@ -10,14 +10,15 @@
   makeWrapper,
   matrix,
   monad-loops,
+  mtl,
   multiset,
   parselib,
   perlude,
   readline,
   regex-tdfa,
+  transformers,
   unliftio,
   unordered-containers,
-  writer-cps-mtl,
 }: let
   advent-input-dir = ./../src/inputs;
 in
@@ -35,13 +36,14 @@ in
       matrix
       monad-loops
       multiset
+      mtl
       parselib
       perlude
       readline
       regex-tdfa
+      transformers
       unliftio
       unordered-containers
-      writer-cps-mtl
     ];
 
     extra-build-inputs = [makeWrapper];

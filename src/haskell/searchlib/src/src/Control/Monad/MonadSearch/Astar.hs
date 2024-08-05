@@ -48,7 +48,8 @@ instance
    Eq nodeMem,
    Hashable nodeMem,
    Hashable node,
-   Monad m) =>
+   Monad m,
+   Monoid w) =>
   MonadSearch node (AstarT node nodeMem pc w m) where
   popNode = popBest
   pushNode = astarPushNode
@@ -100,7 +101,7 @@ runInAstarT x astarConfig initialNode =
        initialContext
 
 popBest ::
-  Show node => Eq node => Hashable node => Monad m =>
+  Show node => Eq node => Hashable node => Monad m => Monoid w =>
   AstarT node nodeMem pc w m (Maybe node)
 popBest =
   uses #openNodes PQueue.minView >>= \case
@@ -110,42 +111,52 @@ popBest =
     Nothing -> pure Nothing
 
 peekBest ::
-  Show node => Eq node => Hashable node => Monad m =>
+  Show node => Eq node => Hashable node => Monad m => Monoid w =>
   AstarT node nodeMem pc w m (Maybe node)
 peekBest = uses #openNodes $ fmap fst . PQueue.minView
 
-valueNode :: Monad m => node -> AstarT node nodeMem pc w m Int
+valueNode :: Monad m => Monoid w => node -> AstarT node nodeMem pc w m Int
 valueNode node = do
   hReader <- view #h <*> pure node
   cReader <- view #c <*> pure node
   runInPrivateContext $ (+) <$> hReader <*> cReader
 
 astarMarkSeen ::
-  Eq nodeMem => Hashable nodeMem => Monad m =>
+  Eq nodeMem => Hashable nodeMem => Monad m => Monoid w =>
   node -> AstarT node nodeMem pc w m ()
 astarMarkSeen node = do
   toMem <- view #nodeToMem
   mem <- runInPrivateContext $ toMem node
   modifying #seenNodes (HashSet.insert mem)
 
-astarGetGoalNode :: Monad m => node -> AstarT node nodeMem pc w m Bool
+astarGetGoalNode ::
+  Monad m =>
+  Monoid w =>
+  node -> AstarT node nodeMem pc w m Bool
 astarGetGoalNode node = view #isGoal <*> pure node >>= runInPrivateContext
 
-astarExplodeNode :: Monad m => node -> AstarT node nodeMem pc w m [node]
+astarExplodeNode ::
+  Monad m =>
+  Monoid w =>
+  node -> AstarT node nodeMem pc w m [node]
 astarExplodeNode node = view #explode <*> pure node >>= runInPrivateContext
 
-runInPrivateContext :: Monad m => Reader pc a -> AstarT node nodeMem pc w m a
+runInPrivateContext :: Monad m => Monoid w => Reader pc a -> AstarT node nodeMem pc w m a
 runInPrivateContext reader = runReader reader <$> view #privateContext
 
 astarSeenNode ::
-  Eq nodeMem => Hashable nodeMem => Monad m =>
+  Eq nodeMem => Hashable nodeMem => Monad m => Monoid w =>
   node -> AstarT node nodeMem pc w m Bool
 astarSeenNode node = do
   toMem <- view #nodeToMem
   mem <- runInPrivateContext $ toMem node
   uses #seenNodes (HashSet.member mem)
 
-astarPushNode :: Show node => Monad m => node -> AstarT node nodeMem pc w m ()
+astarPushNode ::
+  Show node =>
+  Monad m =>
+  Monoid w =>
+  node -> AstarT node nodeMem pc w m ()
 astarPushNode node = do
   value <- valueNode node
   modifying #openNodes $ PQueue.insert value node

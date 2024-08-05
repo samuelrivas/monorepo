@@ -25,7 +25,6 @@
       boardgamer = h-package ./../src/haskell/boardgamer/nix {};
       boollib = h-package ./../src/haskell/boollib/nix {};
       clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
-      example-lib = h-package ./../src/haskell/example-lib/nix {};
       hashcode-photoalbum = h-package ./../src/haskell/hashcode-photoalbum/nix {};
       low-battery = h-package ./../src/haskell/low-battery/nix {};
       mk-conf-file = h-package ./../src/haskell/mk-conf-file/nix {};
