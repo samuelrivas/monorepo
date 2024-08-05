@@ -72,7 +72,6 @@
           # If something is failing, you can temporarily remove packages from this
           # list by adding to the removeAttrs list below
           all-packages = bundle-packages (builtins.removeAttrs packages-final [
-            "adventofcode-2019"
             "algos-n-fun"
             "clean-clocks"
             "low-battery"
