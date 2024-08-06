@@ -1,5 +1,4 @@
 {
-  add-sandbox,
   boost,
   cpplint,
   lib,
@@ -19,10 +18,12 @@
     buildInputs = [
       boost
     ];
-    nativeBuildInputs = [
-      cpplint
-      gcc
-    ] ++ lib.optional (!stdenv.isDarwin) valgrind;
+    nativeBuildInputs =
+      [
+        cpplint
+        gcc
+      ]
+      ++ lib.optional (!stdenv.isDarwin) valgrind;
 
     # FIXME: Tests require valgrind, which is not available for Darwin in
     # nixpkgs. We could still refactor them to run without valgrind on mac
@@ -32,4 +33,13 @@
     '';
   };
 in
-  add-sandbox extra-sandbox drv
+  drv
+  // {
+    passthru.dev-shell =
+      drv
+      // {
+        nativeBuildInputs =
+          drv.nativeBuildInputs
+          ++ lib.optionals (!stdenv.isDarwin) extra-sandbox;
+      };
+  }
