@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <exception>
 #include <set>
+#include <limits>
 
 #include "lib/circular-array.hpp"
 #include "lib/coord.hpp"

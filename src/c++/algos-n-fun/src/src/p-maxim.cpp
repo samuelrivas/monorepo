@@ -72,7 +72,7 @@ int main() {
     bool success = get_seed(&seed);
     assert(success);
 
-    default_random_engine random_engine { seed };
+    default_random_engine random_engine { static_cast<unsigned int>(seed) };
 
     thread(task, i, random_engine, &mprint, &results).detach();
 
