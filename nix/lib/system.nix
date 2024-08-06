@@ -2,6 +2,7 @@
   lib-nixpkgs,
   packages-nixpkgs,
   packages-sam,
+  system,
 }: {
   haskell = import ./system/haskell.nix {
     inherit lib-nixpkgs packages-nixpkgs;
@@ -18,6 +19,8 @@
   };
   packages = import ./system/packages.nix {
     inherit (packages-nixpkgs) linkFarm;
-    inherit (packages-nixpkgs.lib) mapAttrsToList;
+    inherit (packages-nixpkgs.lib) mapAttrsToList filterAttrs;
+    inherit (packages-nixpkgs.lib.meta) availableOn;
+    inherit system;
   };
 }

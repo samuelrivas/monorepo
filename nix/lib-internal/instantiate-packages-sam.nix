@@ -9,14 +9,17 @@
 }: let
   nixpkgs = lib-sam.flake.instantiate-nixpkgs input-nixpkgs system;
   lib-system.sam = lib-sam.system {
-    inherit lib-nixpkgs;
+    inherit lib-nixpkgs system;
     packages-nixpkgs = nixpkgs;
     packages-sam = packages;
   };
 
   packages = packages-generator {
     inherit legacy-lib lib-nixpkgs nixpkgs lib-system;
-    inherit (input-vscode-extensions.outputs.extensions.${system}) vscode-marketplace;
+    inherit
+      (input-vscode-extensions.outputs.extensions.${system})
+      vscode-marketplace
+      ;
   };
 in
   packages

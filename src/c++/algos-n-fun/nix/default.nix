@@ -18,16 +18,19 @@
 add-sandbox [] (stdenv.mkDerivation {
   src = ./../src;
   name = "algos-n-fun";
-  nativeBuildInputs = [
-    asyncq
-    cpplint
-    gcc
-    graphlib
-    less
-    rapidcheck
-    rndlib
-  ] ++ lib.optionals (!stdenv.isDarwin)
-    [ gdb
+  nativeBuildInputs =
+    [
+      asyncq
+      cpplint
+      gcc
+      graphlib
+      less
+      rapidcheck
+      rndlib
+    ]
+    ++ lib.optionals (!stdenv.isDarwin)
+    [
+      gdb
       kcachegrind
       strace
       valgrind
