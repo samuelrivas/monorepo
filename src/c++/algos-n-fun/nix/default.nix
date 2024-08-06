@@ -8,6 +8,7 @@
   graphlib,
   kcachegrind, # Needs the enviornment in PATH to work ATM
   less,
+  lib,
   rapidcheck,
   rndlib,
   stdenv,
@@ -17,18 +18,19 @@
 add-sandbox [] (stdenv.mkDerivation {
   src = ./../src;
   name = "algos-n-fun";
-  buildInputs = [
+  nativeBuildInputs = [
     asyncq
     cpplint
     gcc
-    gdb
     graphlib
-    kcachegrind
     less
     rapidcheck
     rndlib
-    strace
-    valgrind
-  ];
+  ] ++ lib.optionals (!stdenv.isDarwin)
+    [ gdb
+      kcachegrind
+      strace
+      valgrind
+    ];
   builder = empty-builder;
 })
