@@ -25,7 +25,7 @@
 
     instantiate-lib-system = input-nixpkgs: packages-sam: system:
       lib-sam.system {
-        inherit lib-nixpkgs;
+        inherit lib-nixpkgs system;
         packages-nixpkgs = instantiate-nixpkgs input-nixpkgs system;
         packages-sam = packages-sam.${system};
       };
@@ -67,10 +67,9 @@
           #
           # If something is failing, you can temporarily remove packages from this
           # list by adding to the removeAttrs list below
-          all-packages = bundle-packages (builtins.removeAttrs packages-final [
-            "low-battery"
-            "udp-cat"
-          ]);
+          all-packages =
+            bundle-packages (builtins.removeAttrs packages-final [
+              ]);
         in
           packages-final
           // {
