@@ -1,8 +1,7 @@
 {
-  add-sandbox,
   boost,
   cpplint,
-  empty-builder,
+  lib,
   gdb,
   gcc,
   stdenv,
@@ -18,15 +17,29 @@
     name = "monte-carlo";
     buildInputs = [
       boost
-      cpplint
-      gcc
-      valgrind
     ];
+    nativeBuildInputs =
+      [
+        cpplint
+        gcc
+      ]
+      ++ lib.optional (!stdenv.isDarwin) valgrind;
 
-    doCheck = true;
+    # FIXME: Tests require valgrind, which is not available for Darwin in
+    # nixpkgs. We could still refactor them to run without valgrind on mac
+    doCheck = !stdenv.isDarwin;
     installPhase = ''
       mkdir -p "$out/bin"
     '';
   };
 in
-  add-sandbox extra-sandbox drv
+  drv
+  // {
+    passthru.dev-shell =
+      drv
+      // {
+        nativeBuildInputs =
+          drv.nativeBuildInputs
+          ++ lib.optionals (!stdenv.isDarwin) extra-sandbox;
+      };
+  }

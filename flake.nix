@@ -70,7 +70,6 @@
           all-packages = bundle-packages (builtins.removeAttrs packages-final [
             "algos-n-fun"
             "low-battery"
-            "monte-carlo"
             "udp-cat"
           ]);
         in
