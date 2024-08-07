@@ -1,8 +1,9 @@
 {
-  add-sandbox,
+  add-dev-shell,
   digestif,
   emacs,
   inotify-tools,
+  lib,
   rubber,
   stdenv,
   texlive,
@@ -13,7 +14,8 @@
   drv = stdenv.mkDerivation {
     src = ./../src;
     name = "latex-base";
-    buildInputs = [
+    buildInputs = [];
+    nativeBuildInputs = [
       rubber
       tex
     ];
@@ -26,4 +28,9 @@
     '';
   };
 in
-  add-sandbox [emacs digestif inotify-tools] drv
+  add-dev-shell drv
+  {
+    native-build-inputs =
+      [emacs digestif]
+      ++ lib.optional (!stdenv.isDarwin) inotify-tools;
+  }
