@@ -90,6 +90,13 @@ let
       shellHook =
         ''
           hoogle server --local > /dev/null &
+          HOOGLE_PID=$(jobs -p %1)
+
+          kill_hoogle () {
+            kill $HOOGLE_PID
+          }
+
+          trap kill_hoogle exit
         ''
         + lib-nixpkgs.optionalString (drv ? "shellHook") drv.shellHook;
     });
