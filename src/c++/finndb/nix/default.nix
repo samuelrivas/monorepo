@@ -1,27 +1,24 @@
 {
-  add-sandbox,
-  bc,
+  add-dev-shell,
   boost,
   cpplint,
   csvkit,
   empty-builder,
   gcc,
   gdb,
+  lib,
   sqlite,
   stdenv,
   strace,
   valgrind,
 }: let
-  extra-sandbox = [
-    gdb
-    strace
-    valgrind
-  ];
   drv = stdenv.mkDerivation {
     src = ./../src;
     name = "finndb";
     buildInputs = [
       boost
+    ];
+    natvieBuildInputs = [
       cpplint
       csvkit
       gcc
@@ -31,4 +28,10 @@
     builder = empty-builder;
   };
 in
-  add-sandbox extra-sandbox drv
+  add-dev-shell drv {
+    native-build-inputs = lib.optionals (!stdenv.isDarwin) [
+      gdb
+      strace
+      valgrind
+    ];
+  }

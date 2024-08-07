@@ -1,5 +1,5 @@
 {
-  add-sandbox,
+  add-dev-shell,
   bc,
   cpplint,
   gdb,
@@ -12,7 +12,7 @@
   strace,
   valgrind,
 }: let
-  extra-sandbox = [
+  extra-sandbox.native-build-inputs = lib.optionals (!stdenv.isDarwin) [
     gdb
     strace
   ];
@@ -52,4 +52,4 @@
       '';
     });
 in
-  add-sandbox extra-sandbox drv
+  add-dev-shell drv extra-sandbox

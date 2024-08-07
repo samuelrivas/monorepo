@@ -1,13 +1,12 @@
 {
-  legacy-lib,
   lib-nixpkgs, # lib from nixpkgs
+  lib-sam, # lib from this monorepo
   lib-system, # system dependent libs
   nixpkgs, # official nixpkgs set
   vscode-marketplace,
 }: let
   builders = lib-system.sam.builders;
-  # We'll remove this use of legacy, we are not using it for anything necessary
-  derivation-helpers = legacy-lib.derivation-helpers;
+  derivation-helpers = lib-sam.derivation-helpers;
   callPackage =
     lib-nixpkgs.callPackageWith
     (nixpkgs // packages // builders // derivation-helpers);
@@ -141,6 +140,11 @@
     asyncq = callPackage ./../src/c++/asyncq/nix {};
 
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat {};
+
+    # LaTeX stuff
+    latex-base = callPackage ./../src/docs/latex-base/nix {
+      inherit (nixpkgs.texlivePackages) digestif;
+    };
 
     # Contests, puzzles, etc
     # ======================

@@ -1,5 +1,4 @@
 {
-  add-sandbox,
   asyncq,
   cpplint,
   empty-builder,
@@ -15,7 +14,7 @@
   strace,
   valgrind,
 }:
-add-sandbox [] (stdenv.mkDerivation {
+stdenv.mkDerivation {
   src = ./../src;
   name = "algos-n-fun";
   nativeBuildInputs =
@@ -36,4 +35,4 @@ add-sandbox [] (stdenv.mkDerivation {
       valgrind
     ];
   builder = empty-builder;
-})
+}

@@ -1,5 +1,4 @@
 {
-  add-sandbox,
   gawk,
   git,
   gnugrep,
@@ -15,7 +14,7 @@
   xrandr,
   xset,
 }: let
-  drv = stdenv.mkDerivation rec {
+  drv = stdenv.mkDerivation {
     name = "assorted-scripts-0.0.0";
 
     src = ./../src;
@@ -33,7 +32,7 @@
       xset
       ;
 
-    buildInputs = [
+    nativeBuildInputs = [
       git
       gnugrep
       gnused
@@ -55,5 +54,4 @@
       maintainers = ["Samuel Rivas <samuelrivas@gmail.com>"];
     };
   };
-in
-  add-sandbox [] drv
+in drv

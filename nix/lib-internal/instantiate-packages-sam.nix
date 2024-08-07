@@ -1,7 +1,6 @@
 {
   input-nixpkgs,
   input-vscode-extensions,
-  legacy-lib,
   lib-nixpkgs,
   lib-sam,
   packages-generator,
@@ -15,7 +14,7 @@
   };
 
   packages = packages-generator {
-    inherit legacy-lib lib-nixpkgs nixpkgs lib-system;
+    inherit lib-nixpkgs lib-sam lib-system nixpkgs;
     inherit
       (input-vscode-extensions.outputs.extensions.${system})
       vscode-marketplace
