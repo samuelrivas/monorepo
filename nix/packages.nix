@@ -142,6 +142,11 @@
 
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat {};
 
+    # LaTeX stuff
+    latex-base = callPackage ./../src/docs/latex-base/nix {
+      inherit (nixpkgs.texlivePackages) digestif;
+    };
+
     # Contests, puzzles, etc
     # ======================
     adventofcode-2019 = haskellPackages.adventofcode-2019;
