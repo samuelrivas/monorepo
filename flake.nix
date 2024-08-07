@@ -16,7 +16,6 @@
     lib-sam = import ./nix/lib.nix {
       inherit lib-nixpkgs;
     };
-    legacy-lib = import ./nix/legacy/lib.nix;
 
     supported-systems = ["x86_64-linux" "aarch64-darwin"];
     for-all-supported-systems = lib-sam.flake.for-all-systems supported-systems;
@@ -34,7 +33,7 @@
     # are broken in nixpkgs-stable until we fix them
     instantiate-packages-sam = input-nixpkgs: system:
       import ./nix/lib-internal/instantiate-packages-sam.nix {
-        inherit legacy-lib lib-sam lib-nixpkgs system input-nixpkgs;
+        inherit lib-sam lib-nixpkgs system input-nixpkgs;
         input-vscode-extensions = vscode-extensions;
         packages-generator = import ./nix/packages.nix;
       };
@@ -43,8 +42,6 @@
       formatter =
         for-all-supported-systems (system:
           nixpkgs-unstable.legacyPackages.${system}.alejandra);
-
-      legacy.lib.sam = legacy-lib;
 
       lib.sam = lib-sam;
 

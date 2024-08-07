@@ -1,5 +1,4 @@
 {
-  legacy-lib,
   lib-nixpkgs, # lib from nixpkgs
   lib-sam, # lib from this monorepo
   lib-system, # system dependent libs
@@ -7,12 +6,10 @@
   vscode-marketplace,
 }: let
   builders = lib-system.sam.builders;
-  # We'll remove this use of legacy, we are not using it for anything necessary
-  legacy-derivation-helpers = legacy-lib.derivation-helpers;
   derivation-helpers = lib-sam.derivation-helpers;
   callPackage =
     lib-nixpkgs.callPackageWith
-    (nixpkgs // packages // builders // derivation-helpers // legacy-derivation-helpers);
+    (nixpkgs // packages // builders // derivation-helpers);
   haskellPackages = nixpkgs.haskellPackages.override {
     overrides = h-pkgs: h-prev: let
       h-package = h-pkgs.callPackage;
