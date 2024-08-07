@@ -4,9 +4,13 @@
     native-build-inputs ? [],
     shell-hook ? "",
   }: let
-    dev-shell = drv.overrideAttrs (attrs: {
-      buildInputs = attrs.buildInputs ++ build-inputs;
-      nativeBuildInputs = attrs.nativeBuildInputs ++ native-build-inputs;
+    dev-shell = drv.overrideAttrs (attrs: let
+      base-build-inputs = lib-nixpkgs.attrByPath ["buildInputs"] [] attrs;
+      base-native-build-inputs =
+        lib-nixpkgs.attrByPath ["nativeBuildInputs"] [] attrs;
+    in {
+      buildInputs = base-build-inputs ++ build-inputs;
+      nativeBuildInputs = base-native-build-inputs ++ native-build-inputs;
       shellHook = shell-hook;
     });
   in

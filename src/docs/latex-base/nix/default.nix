@@ -14,7 +14,6 @@
   drv = stdenv.mkDerivation {
     src = ./../src;
     name = "latex-base";
-    buildInputs = [];
     nativeBuildInputs = [
       rubber
       tex
