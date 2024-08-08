@@ -9,7 +9,6 @@
       base-native-build-inputs =
         lib-nixpkgs.attrByPath ["nativeBuildInputs"] [] attrs;
       base-shell-hook = lib-nixpkgs.attrByPath ["shellHook"] "" attrs;
-
     in {
       # we are assuming that later packages in the list have precedence. For
       # example, haskell.nix overrides ghc in the dev shell using this

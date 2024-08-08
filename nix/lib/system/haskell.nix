@@ -79,27 +79,27 @@ let
   in
     lib-sam.derivation-helpers.add-dev-shell drv {
       native-build-inputs = [
-          packages-nixpkgs.haskell-language-server
-          my-emacs
-          packages-nixpkgs.git
-          packages-nixpkgs.glibcLocales
-          (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))];
-      shell-hook =
-        ''
-          # Emacs uses fontconfig, which needs a writable cache directory
-          export XDG_CACHE_HOME="/tmp/cache";
+        packages-nixpkgs.haskell-language-server
+        my-emacs
+        packages-nixpkgs.git
+        packages-nixpkgs.glibcLocales
+        (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
+      ];
+      shell-hook = ''
+        # Emacs uses fontconfig, which needs a writable cache directory
+        export XDG_CACHE_HOME="/tmp/cache";
 
-          hoogle server --local > /dev/null &
-          HOOGLE_PID=$(jobs -p %1)
-          echo "Hoogle server started with PID $HOOGLE_PID"
+        hoogle server --local > /dev/null &
+        HOOGLE_PID=$(jobs -p %1)
+        echo "Hoogle server started with PID $HOOGLE_PID"
 
-          kill_hoogle () {
-            kill $HOOGLE_PID
-            echo "Hoogle server terminated"
-          }
+        kill_hoogle () {
+          kill $HOOGLE_PID
+          echo "Hoogle server terminated"
+        }
 
-          trap kill_hoogle exit
-        '';
+        trap kill_hoogle exit
+      '';
     };
 in {
   haskell-pkg = haskell-template false;

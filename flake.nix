@@ -49,9 +49,9 @@
         system: let
           lib-system =
             instantiate-lib-system
-              nixpkgs-unstable
-              packages.${system}
-              system;
+            nixpkgs-unstable
+            packages.${system}
+            system;
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
 
           # Some packages are broken with nixpkgs-stable, so instantiate them
