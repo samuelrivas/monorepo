@@ -76,20 +76,19 @@ let
       }
       // extra-drv;
     drv = packages-nixpkgs.stdenv.mkDerivation drv-args;
-    dev-shell = drv.overrideAttrs (final: previous: {
-      # Emacs uses fontconfig, which needs a writable cache directory
-      XDG_CACHE_HOME = "/tmp/cache";
-      nativeBuildInputs =
-        (builtins.filter (x: x != ghc) previous.nativeBuildInputs)
-        ++ [
+  in
+    lib-sam.derivation-helpers.add-dev-shell drv {
+      native-build-inputs = [
           packages-nixpkgs.haskell-language-server
           my-emacs
           packages-nixpkgs.git
           packages-nixpkgs.glibcLocales
-          (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
-        ];
-      shellHook =
+          (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))];
+      shell-hook =
         ''
+          # Emacs uses fontconfig, which needs a writable cache directory
+          export XDG_CACHE_HOME="/tmp/cache";
+
           hoogle server --local > /dev/null &
           HOOGLE_PID=$(jobs -p %1)
           echo "Hoogle server started with PID $HOOGLE_PID"
@@ -100,11 +99,8 @@ let
           }
 
           trap kill_hoogle exit
-        ''
-        + lib-nixpkgs.optionalString (drv ? "shellHook") drv.shellHook;
-    });
-  in
-    lib-nixpkgs.recursiveUpdate drv {passthru.dev-shell = dev-shell;};
+        '';
+    };
 in {
   haskell-pkg = haskell-template false;
   haskell-lib-pkg = haskell-template true;
