@@ -8,12 +8,12 @@
       base-build-inputs = lib-nixpkgs.attrByPath ["buildInputs"] [] attrs;
       base-native-build-inputs =
         lib-nixpkgs.attrByPath ["nativeBuildInputs"] [] attrs;
-      base-shell-hook = lib-nixpkgs.attrByPath ["shellHook"] [] attrs;
+      base-shell-hook = lib-nixpkgs.attrByPath ["shellHook"] "" attrs;
 
     in {
       buildInputs = base-build-inputs ++ build-inputs;
       nativeBuildInputs = base-native-build-inputs ++ native-build-inputs;
-      shellHook = base-shell-hook ++ shell-hook;
+      shellHook = base-shell-hook + shell-hook;
     });
   in
     lib-nixpkgs.recursiveUpdate drv
