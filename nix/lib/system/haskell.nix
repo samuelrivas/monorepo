@@ -91,9 +91,11 @@ let
         ''
           hoogle server --local > /dev/null &
           HOOGLE_PID=$(jobs -p %1)
+          echo "Hoogle server started with PID $HOOGLE_PID"
 
           kill_hoogle () {
             kill $HOOGLE_PID
+            echo "Hoogle server terminated"
           }
 
           trap kill_hoogle exit
