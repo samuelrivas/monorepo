@@ -24,16 +24,16 @@
 
     instantiate-lib-system = input-nixpkgs: packages-sam: system:
       lib-sam.system {
-        inherit lib-nixpkgs system;
+        inherit lib-nixpkgs lib-sam system;
         packages-nixpkgs = instantiate-nixpkgs input-nixpkgs system;
-        packages-sam = packages-sam.${system};
+        packages-sam = packages-sam;
       };
 
     # We parametereize on the nixpkgs input so that we can build packages that
     # are broken in nixpkgs-stable until we fix them
     instantiate-packages-sam = input-nixpkgs: system:
       import ./nix/lib-internal/instantiate-packages-sam.nix {
-        inherit lib-sam lib-nixpkgs system input-nixpkgs;
+        inherit lib-sam lib-nixpkgs system input-nixpkgs instantiate-lib-system;
         input-vscode-extensions = vscode-extensions;
         packages-generator = import ./nix/packages.nix;
       };
@@ -47,7 +47,11 @@
 
       packages = for-all-supported-systems (
         system: let
-          lib-system = instantiate-lib-system nixpkgs-unstable packages system;
+          lib-system =
+            instantiate-lib-system
+              nixpkgs-unstable
+              packages.${system}
+              system;
           bundle-packages = lib-system.packages.bundle {name = "all-packages";};
 
           # Some packages are broken with nixpkgs-stable, so instantiate them

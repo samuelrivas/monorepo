@@ -1,5 +1,6 @@
 {
   lib-nixpkgs,
+  lib-sam,
   my-emacs,
   haskell-mk,
   haskell-lib-mk,

@@ -1,11 +1,12 @@
 {
   lib-nixpkgs,
+  lib-sam,
   packages-nixpkgs,
   packages-sam,
   system,
 }: {
   haskell = import ./system/haskell.nix {
-    inherit lib-nixpkgs packages-nixpkgs;
+    inherit lib-nixpkgs lib-sam packages-nixpkgs;
     inherit
       (packages-sam)
       my-emacs

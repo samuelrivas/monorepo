@@ -1,5 +1,6 @@
 {
   input-nixpkgs,
+  instantiate-lib-system,
   input-vscode-extensions,
   lib-nixpkgs,
   lib-sam,
@@ -7,11 +8,7 @@
   system,
 }: let
   nixpkgs = lib-sam.flake.instantiate-nixpkgs input-nixpkgs system;
-  lib-system.sam = lib-sam.system {
-    inherit lib-nixpkgs system;
-    packages-nixpkgs = nixpkgs;
-    packages-sam = packages;
-  };
+  lib-system.sam = instantiate-lib-system input-nixpkgs packages system;
 
   packages = packages-generator {
     inherit lib-nixpkgs lib-sam lib-system nixpkgs;
