@@ -182,9 +182,7 @@
 (defun my-copilot-mode-hook ()
   (add-to-list 'warning-suppress-types '(copilot copilot-no-mode-indent))
   (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
-  (define-key copilot-mode-map (kbd "M-o") 'copilot-accept-completion)
-  (define-key copilot-mode-map (kbd "M-n") 'copilot-next-completion)
-  (define-key copilot-mode-map (kbd "M-p") 'copilot-previous-completion))
+  (define-key copilot-mode-map (kbd "M-o") 'copilot-accept-completion-by-word))
 
 (add-hook 'copilot-mode-hook 'my-copilot-mode-hook)
 
