@@ -18,7 +18,7 @@
     buildInputs = [
       boost
     ];
-    natvieBuildInputs = [
+    nativeBuildInputs = [
       cpplint
       csvkit
       gcc
