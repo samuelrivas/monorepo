@@ -29,6 +29,7 @@
   helm,
   helm-ls-git,
   helm-org,
+  helm-projectile,
   htmlize,
   markdown-mode,
   nil,
@@ -74,6 +75,7 @@ in
     helm
     helm-ls-git
     helm-org
+    helm-projectile
     htmlize
     markdown-mode
     nil
