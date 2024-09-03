@@ -71,6 +71,7 @@
           helm
           helm-ls-git
           helm-org
+          helm-projectile
           htmlize
           markdown-mode
           nix-mode
