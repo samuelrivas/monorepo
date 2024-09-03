@@ -33,6 +33,7 @@
 (show-paren-mode t)
 (blink-cursor-mode -1)
 (auto-fill-mode t)
+(global-hl-line-mode t)
 
 ;; Key bindings
 (global-set-key "\M-g" 'goto-line)
