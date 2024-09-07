@@ -64,12 +64,16 @@
 ;; Assorted modes
 (add-to-list 'auto-mode-alist '("Makefile\\..*\\'" . makefile-mode))
 
+;; Whitespace mode is currently broken, when enabled several things fail with
+;; "Marker does not point to anywhere". For example creating LaTeX previews
+;; does't work
+
 ;; Whitespace mode
-(global-whitespace-mode t)
-(defvar whitespace-line-column)
-(defvar whitespace-style)
-(setq whitespace-line-column 80)
-(setq whitespace-style '(face trailing empty tabs lines-tail))
+;; (global-whitespace-mode t)
+;; (defvar whitespace-line-column)
+;; (defvar whitespace-style)
+;; (setq whitespace-line-column 80)
+;; (setq whitespace-style '(face trailing empty tabs lines-tail))
 
 ;; helm, projectile, etc
 (helm-mode)
