@@ -38,12 +38,23 @@
   silver-searcher,
   stdenv,
   stylish-haskell,
+  symlinkJoin,
   terraform-mode,
   terraform-ls,
+  texliveMedium,
   writeShellScriptBin,
   yaml-mode,
   yasnippet,
 }: let
+  # Emacs sometimes uses its own `exec-path` to launc binaries and sometimes it
+  # fires up a shell and launches binaries from there. At least latex preview
+  # cannot find dvipng
+  exec-deps = symlinkJoin {
+    name = "my-emacs-exec-deps";
+    paths = [
+      texliveMedium
+    ];
+  };
   # If we call the regular `emacs` file on darwin, it won't behave correctly
   # with the window manager. Thus, we substitute `emacs` with a script that runs
   # the installed mac application, which does behave correctly.
@@ -51,12 +62,20 @@
     writeShellScriptBin
     "emacs"
     ''
+      export PATH=$PATH:${exec-deps}/bin
       exec "${drv}/Applications/Emacs.app/Contents/MacOS/Emacs" "$@"
+    '';
+  wrapLinux = drv:
+    writeShellScriptBin
+    "emacs"
+    ''
+      export PATH=$PATH:${exec-deps}/bin
+      exec "${drv}/bin/emacs" "$@"
     '';
   wrap =
     if stdenv.isDarwin
     then wrapDarwin
-    else (x: x);
+    else wrapLinux;
 in
   wrap (emacsWithPackages [
     aspell-wrapped
