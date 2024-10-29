@@ -3,6 +3,7 @@
   generic-lens,
   haskell-lib-pkg,
   lens,
+  monad-emit,
   mtl,
   perlude,
   transformers,
@@ -15,6 +16,7 @@ haskell-lib-pkg {
     fingertree
     generic-lens
     lens
+    monad-emit
     mtl
     perlude
     transformers

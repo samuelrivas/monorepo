@@ -1,5 +1,8 @@
-{-# LANGUAGE FunctionalDependencies     #-}
-{-# LANGUAGE LambdaCase                 #-}
+{-# OPTIONS_GHC -Wall #-}
+
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE NoImplicitPrelude      #-}
 
 module Control.Monad.MonadSearch (
   MonadSearch (..),
@@ -7,7 +10,9 @@ module Control.Monad.MonadSearch (
   step
   ) where
 
-import           Control.Monad             (filterM, unless)
+import           Perlude
+
+import           Control.Monad (filterM, unless)
 
 data SearchStatus node = Failed | Exploring | Found node
   deriving Show
@@ -24,7 +29,7 @@ step :: MonadSearch node m => m (SearchStatus node)
 step =
   popNode >>= \case
     Just node -> checkNode node
-    Nothing -> pure Failed
+    Nothing   -> pure Failed
 
 checkNode :: MonadSearch node m => node -> m (SearchStatus node)
 checkNode node =
@@ -41,12 +46,12 @@ pushNodes nodes = filterSeen nodes >>= mapM_ pushNode
 
 -- Not necessary, but can save quite some memory
 --
--- Todo evaluate the trad off between CPU and saved memory here
+-- TODO evaluate the trade off between CPU and saved memory here
 filterSeen :: MonadSearch node m => [node] -> m [node]
 filterSeen = filterM (fmap not . seenNode)
 
 search :: MonadSearch node m => m (Maybe node)
 search = step >>= \case
   Found node -> pure $ Just node
-  Failed -> pure Nothing
-  Exploring -> search
+  Failed     -> pure Nothing
+  Exploring  -> search
