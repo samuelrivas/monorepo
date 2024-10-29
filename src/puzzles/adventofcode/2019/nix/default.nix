@@ -9,7 +9,6 @@
   monad-loops,
   readline,
   regex-pcre,
-  searchlib,
   unliftio,
   unordered-containers,
 }: let
@@ -27,7 +26,6 @@ in
       monad-loops
       readline
       regex-pcre
-      searchlib
       unliftio
       unordered-containers
     ];
