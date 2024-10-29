@@ -76,7 +76,7 @@ mkConfig ::
   (node -> Reader pc [node]) -> -- explode
   (node -> Reader pc Bool) -> -- isGoal
   (nodeStore -> node -> Reader pc nodeStore) -> -- rememberNode
-  (nodeStore -> node -> Reader pc Bool) -> -- rememberNode
+  (nodeStore -> node -> Reader pc Bool) -> -- seenNode
   pc ->
   AstarConfig n node nodeStore pc
 mkConfig = AstarConfig
