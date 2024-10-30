@@ -3,10 +3,8 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 
 {-# LANGUAGE DeriveGeneric       #-}
 module Advent.Day8 where
@@ -18,10 +16,10 @@ import           Control.Lens                  (_2, to, toListOf)
 import           Data.Advent                   (Day (..))
 import           Data.Functor                  (($>))
 import           Data.Generics.Labels          ()
-import           Data.HashSet                  (HashSet)
-import qualified Data.HashSet                  as HashSet
 import           Data.Hashable                 (Hashable (..))
 import           Data.Hashable.Generic         (genericHashWithSalt)
+import           Data.HashSet                  (HashSet)
+import qualified Data.HashSet                  as HashSet
 import           Data.Maybe                    (fromJust)
 import           Data.Text                     (intercalate)
 import           GHC.Generics                  (Generic)
