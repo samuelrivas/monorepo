@@ -9,17 +9,18 @@ The intention of this alternative -Prelude- is to remove any references to
 -- normally use.
 module Perlude (
   appendFile,
+  error,
   fail,
   getArgs,
   getContents,
   getLine,
+  hPrint,
+  hPutStr,
+  hPutStrLn,
   interact,
   print,
   putStr,
   putStrLn,
-  hPrint,
-  hPutStr,
-  hPutStrLn,
   read,
   readFile,
   show,
@@ -32,10 +33,11 @@ module Perlude (
 import           Control.Monad.IO.Class
 import           Data.Text              (Text, lines, pack, unlines, unpack)
 import qualified Data.Text.IO           as TextIO
-import           Prelude                hiding (appendFile, fail, getContents,
-                                         getLine, interact, lines, print,
-                                         putStr, putStrLn, read, readFile, show,
-                                         unlines, writeFile)
+import           GHC.Stack              (HasCallStack)
+import           Prelude                hiding (appendFile, error, fail,
+                                         getContents, getLine, interact, lines,
+                                         print, putStr, putStrLn, read,
+                                         readFile, show, unlines, writeFile)
 import qualified Prelude
 import qualified System.Environment
 import qualified System.IO
@@ -75,6 +77,9 @@ getLine = liftIO TextIO.getLine
 
 interact :: MonadIO m => (Text -> Text) -> m ()
 interact = liftIO . TextIO.interact
+
+error :: HasCallStack => Text -> a
+error = Prelude.error . unpack
 
 fail :: MonadFail m => Text -> m a
 fail = Prelude.fail . unpack
