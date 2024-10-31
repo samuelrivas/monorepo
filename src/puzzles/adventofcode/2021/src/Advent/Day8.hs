@@ -6,18 +6,19 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-{-# LANGUAGE DeriveGeneric       #-}
 module Advent.Day8 where
 
 import           Perlude
 
 import           Advent.Templib                (linesOf)
-import           Control.Lens                  (_2, to, toListOf)
+import           Control.Lens                  (_2, at, over, to, toListOf)
 import           Data.Advent                   (Day (..))
 import           Data.Functor                  (($>))
 import           Data.Generics.Labels          ()
 import           Data.Hashable                 (Hashable (..))
 import           Data.Hashable.Generic         (genericHashWithSalt)
+import           Data.HashMap.Strict           (HashMap)
+import qualified Data.HashMap.Strict           as HashMap
 import           Data.HashSet                  (HashSet)
 import qualified Data.HashSet                  as HashSet
 import           Data.Maybe                    (fromJust)
@@ -28,9 +29,12 @@ import           Text.Parsec                   (char, sepBy, sepEndBy, (<|>))
 import           Text.Parsec.Parselib          (Parser, literal, unsafeParseAll)
 import           Text.ParserCombinators.Parsec (many1)
 
-data Wire = A | B | C | D | E | F | G deriving stock (Show, Eq, Generic)
+data Wire = A | B | C | D | E | F | G deriving stock (Show, Eq, Generic, Enum)
 instance Hashable Wire where
   hashWithSalt = genericHashWithSalt
+
+-- Each output can be mapped to multiple inputs
+type PossibleConnections = HashMap Wire (HashSet Wire)
 
 type Parsed = [([HashSet Wire], [HashSet Wire])]
 
@@ -78,6 +82,18 @@ wireParser =
   <|> char 'e' $>  E
   <|> char 'f' $>  F
   <|> char 'g' $>  G
+
+allWires :: HashSet Wire
+allWires = HashSet.fromList [A .. G]
+
+initialState :: PossibleConnections
+initialState = HashMap.fromList $ (, allWires) <$> [A .. G]
+
+constrainOutput :: Wire -> HashSet Wire -> PossibleConnections -> PossibleConnections
+constrainOutput w ws = over (at w) (fmap $ HashSet.intersection ws)
+
+negateWires :: HashSet Wire -> HashSet Wire
+negateWires = HashSet.difference allWires
 
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
