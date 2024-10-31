@@ -95,6 +95,24 @@ constrainOutput w ws = over (at w) (fmap $ HashSet.intersection ws)
 negateWires :: HashSet Wire -> HashSet Wire
 negateWires = HashSet.difference allWires
 
+-- Return the inputs that have been matched to a single output
+solvedInputs :: PossibleConnections -> [Wire]
+solvedInputs = HashMap.keys . HashMap.filter ((== 1) . HashSet.size)
+
+-- Given a set of inputs, get the outputs that can be constrained by that input
+-- set and the outputs that can be constrained as the negation of that same
+-- input set.
+constrainSet :: HashSet Wire -> ([Wire], [Wire])
+constrainSet inputs =
+  case HashSet.size inputs of
+    6 -> ([A, B, F, G], []) -- 0, 6, 9
+    2 -> ([C, F], [A, B, D, E, G]) -- 1
+    5 -> ([A, D, G], []) -- 2, 3, 5
+    4 -> ([B, C, D, F], [A, E, G]) -- 4
+    3 -> ([A, C, F], [B, D, E, G]) -- 7
+    7 -> ([A .. G], []) -- 8
+    _ -> error $ "invalid input set:" <> show inputs
+
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
 solver1 = length . filter (`elem` [2, 3, 4, 7]) . toListOf (traverse . _2 . traverse . to HashSet.size)
