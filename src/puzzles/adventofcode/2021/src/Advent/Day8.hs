@@ -11,8 +11,8 @@ module Advent.Day8 where
 import           Perlude
 
 import           Advent.Templib                (linesOf)
-import           Control.Lens                  (_2, at, filtered, over, to,
-                                                toListOf)
+import           Control.Lens                  (_1, _2, at, filtered, over, to,
+                                                toListOf, view)
 import           Data.Advent                   (Day (..))
 import           Data.Functor                  (($>))
 import           Data.Generics.Labels          ()
@@ -24,6 +24,7 @@ import           Data.HashSet                  (HashSet)
 import qualified Data.HashSet                  as HashSet
 import           Data.Maybe                    (fromJust)
 import           Data.Text                     (intercalate)
+import           Data.Tuple                    (swap)
 import           GHC.Generics                  (Generic)
 import           System.IO.Advent              (getInput, solve)
 import           Text.Parsec                   (char, sepBy, sepEndBy, (<|>))
@@ -129,10 +130,9 @@ getConstrainedOutputs inputs =
 
 -- TODO: Make this prettier
 --
--- FIXME: remove solved iputns the wires that are set from possible connections
--- on other outputs
-constrainSolution :: PossibleConnections -> HashSet Wire -> PossibleConnections
-constrainSolution pcs inputs =
+-- Given an input set, constrain the solution so that the input set has support (i.e. that
+constrainFromInputs :: PossibleConnections -> HashSet Wire -> PossibleConnections
+constrainFromInputs pcs inputs =
   let
     (positiveOutputs, negativeOutputs) = getConstrainedOutputs inputs
     negatedInputs = negateWires inputs
@@ -140,11 +140,61 @@ constrainSolution pcs inputs =
     updateNegConnections pcs' negOutput = constrainOutput negOutput negatedInputs pcs'
     update1 = foldl updateConnections pcs positiveOutputs
     update2 = foldl updateNegConnections update1 negativeOutputs
-      in
+  in
     update2
 
+-- Remove outputs that are solved from possible solutions from other inputs
+--
+-- TODO Make this less ugly
+constrainFromSolved :: PossibleConnections -> PossibleConnections
+constrainFromSolved pcs =
+  let
+    f x = if HashSet.size x > 1
+          then HashSet.intersection (negateWires . solvedInputs $ pcs) x
+          else x
+  in
+    HashMap.map f pcs
+
 constrain :: PossibleConnections -> [HashSet Wire] -> PossibleConnections
-constrain = foldl constrainSolution
+constrain pcs = constrainFromSolved . foldl constrainFromInputs pcs
+
+singletonToElement :: Show a => HashSet a -> a
+singletonToElement xs =
+  case HashSet.toList xs of
+    [x] -> x
+    _   -> error $ "set's too large: " <> show xs
+
+-- From a solved state, get a mapping from input to output
+solvedToConnections :: PossibleConnections -> HashMap Wire Wire
+solvedToConnections pcs =
+  let
+    transposedPairs = swap <$> HashMap.toList pcs
+  in
+    HashMap.fromList $ over (traverse . _1) singletonToElement transposedPairs
+
+inputListToCabling :: [HashSet Wire] -> HashMap Wire Wire
+inputListToCabling samples =
+  let
+    constrained = constrain initialState samples
+  in
+    solvedToConnections constrained
+
+decodingTable :: HashMap (HashSet Wire) Int
+decodingTable = HashMap.fromList [
+  (HashSet.fromList [A, B, C, E, F, G], 0),
+  (HashSet.fromList [C, F], 1),
+  (HashSet.fromList [A, C, D, E, G], 2),
+  (HashSet.fromList [A, C, D, F, G], 3),
+  (HashSet.fromList [B, C, D, F], 4),
+  (HashSet.fromList [A, B, D, F, G], 5),
+  (HashSet.fromList [A, B, D, E, F, G], 6),
+  (HashSet.fromList [A, C, F], 7),
+  (HashSet.fromList [A, B, C, D, E, F, G], 8),
+  (HashSet.fromList [A, B, C, D, F, G], 9)
+  ]
+
+decodeInput :: HashSet Wire -> Int
+decodeInput input = fromJust $ view (at input) decodingTable
 
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
