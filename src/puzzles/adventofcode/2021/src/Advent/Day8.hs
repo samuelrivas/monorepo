@@ -172,8 +172,8 @@ solvedToConnections pcs =
   in
     HashMap.fromList $ over (traverse . _1) singletonToElement transposedPairs
 
-inputListToCabling :: [HashSet Wire] -> HashMap Wire Wire
-inputListToCabling samples =
+inputListToConnections :: [HashSet Wire] -> HashMap Wire Wire
+inputListToConnections samples =
   let
     constrained = constrain initialState samples
   in
@@ -193,8 +193,23 @@ decodingTable = HashMap.fromList [
   (HashSet.fromList [A, B, C, D, F, G], 9)
   ]
 
-decodeInput :: HashSet Wire -> Int
-decodeInput input = fromJust $ view (at input) decodingTable
+-- FIXME do this with a single decoding table instead that you translate using cabling
+decodeDigit :: HashSet Wire -> Int
+decodeDigit input = fromJust $ view (at input) decodingTable
+
+translate :: HashMap Wire Wire -> HashSet Wire -> HashSet Wire
+translate connections inputs =
+  let
+    f x = fromJust $ view (at x) connections
+  in
+    HashSet.map f inputs
+
+solveLine :: ([HashSet Wire], [HashSet Wire]) -> [Int]
+solveLine (samples, outputs) =
+  let
+    cabling = inputListToConnections samples
+  in
+    decodeDigit . translate cabling <$> outputs
 
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
