@@ -10,7 +10,7 @@ module Advent.Day8 where
 
 import           Perlude
 
-import           Advent.Templib                (linesOf)
+import           Advent.Templib                (linesOf, numListToNum)
 import           Control.Lens                  (_2, at, filtered, over, to,
                                                 toListOf, view)
 import           Data.Advent                   (Day (..))
@@ -48,7 +48,6 @@ rawInput = getInput day
 example :: Text
 example = intercalate "\n"
   [
-
    "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf",
    "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe",
    "edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc",
@@ -106,8 +105,6 @@ negateWires = HashSet.difference allWires
 solvedInputs :: PossibleConnections -> HashSet Wire
 solvedInputs =
   HashSet.unions . toListOf (traverse . filtered ((== 1) . HashSet.size))
-
-
 
 -- Given a set of inputs, get the outputs that can be constrained by that input
 -- set and the outputs that can be constrained as the negation of that same
@@ -184,19 +181,19 @@ decodingTable connections =
     (HashSet.fromList [A, B, C, D, F, G], 9)
     ]
 
-solveLine :: ([HashSet Wire], [HashSet Wire]) -> [Int]
+solveLine :: ([HashSet Wire], [HashSet Wire]) -> Int
 solveLine (samples, outputs) =
   let
     table = decodingTable $ deduceConnections samples
   in
-    fromJust . flip HashMap.lookup table <$> outputs
+    numListToNum $ fromJust . flip HashMap.lookup table <$> outputs
 
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
 solver1 = length . filter (`elem` [2, 3, 4, 7]) . toListOf (traverse . _2 . traverse . to HashSet.size)
 
 solver2 :: Parsed -> Int
-solver2 = undefined
+solver2 x = sum $ solveLine <$> x
 
 main :: IO ()
 main = solve day parser solver1 solver2
