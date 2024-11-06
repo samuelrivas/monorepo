@@ -99,9 +99,6 @@ negateWires :: HashSet Wire -> HashSet Wire
 negateWires = HashSet.difference allWires
 
 -- Return the inputs that are assigned to an output
---
--- TODO rewrite this as a single optics application, the bind operation is
--- rather ugly here
 solvedInputs :: PossibleConnections -> HashSet Wire
 solvedInputs =
   HashSet.unions . toListOf (traverse . filtered ((== 1) . HashSet.size))
@@ -131,9 +128,8 @@ constrainFromInputs pcs inputs =
     updateConnections pcs' positiveOutput = constrainOutput positiveOutput inputs pcs'
     updateNegConnections pcs' negOutput = constrainOutput negOutput negatedInputs pcs'
     update1 = foldl updateConnections pcs positiveOutputs
-    update2 = foldl updateNegConnections update1 negativeOutputs
   in
-    update2
+    foldl updateNegConnections update1 negativeOutputs
 
 -- Remove outputs that are solved from possible solutions from other inputs
 --
@@ -141,9 +137,10 @@ constrainFromInputs pcs inputs =
 constrainFromSolved :: PossibleConnections -> PossibleConnections
 constrainFromSolved pcs =
   let
-    f x = if HashSet.size x > 1
-          then HashSet.intersection (negateWires . solvedInputs $ pcs) x
-          else x
+    f x =
+      if HashSet.size x > 1
+      then HashSet.intersection (negateWires . solvedInputs $ pcs) x
+      else x
   in
     HashMap.map f pcs
 
@@ -190,7 +187,10 @@ solveLine (samples, outputs) =
 
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
-solver1 = length . filter (`elem` [2, 3, 4, 7]) . toListOf (traverse . _2 . traverse . to HashSet.size)
+solver1 =
+  length
+  . filter (`elem` [2, 3, 4, 7])
+  . toListOf (traverse . _2 . traverse . to HashSet.size)
 
 solver2 :: Parsed -> Int
 solver2 x = sum $ solveLine <$> x
