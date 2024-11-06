@@ -16,6 +16,7 @@ module Advent.Templib (
   conv,
   linesOf,
   matrix,
+  numListToNum,
   solveM
   ) where
 import           Perlude
@@ -40,6 +41,9 @@ conv f l = f <$> tails l
 
 binToDec :: [Bool] -> Int
 binToDec = foldl' (\acc b -> fromEnum b + 2*acc) 0
+
+numListToNum :: Num x => [x] -> x
+numListToNum = foldl (\acc x -> acc * 10 + x) 0
 
 -- Parsers
 

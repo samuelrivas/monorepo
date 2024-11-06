@@ -1,0 +1,2 @@
+Solution 1: 493
+Solution 2: 1010460
