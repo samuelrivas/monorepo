@@ -11,7 +11,7 @@ module Advent.Day8 where
 import           Perlude
 
 import           Advent.Templib                (linesOf)
-import           Control.Lens                  (_1, _2, at, filtered, over, to,
+import           Control.Lens                  (_2, at, filtered, over, to,
                                                 toListOf, view)
 import           Data.Advent                   (Day (..))
 import           Data.Functor                  (($>))
@@ -24,7 +24,6 @@ import           Data.HashSet                  (HashSet)
 import qualified Data.HashSet                  as HashSet
 import           Data.Maybe                    (fromJust)
 import           Data.Text                     (intercalate)
-import           Data.Tuple                    (swap)
 import           GHC.Generics                  (Generic)
 import           System.IO.Advent              (getInput, solve)
 import           Text.Parsec                   (char, sepBy, sepEndBy, (<|>))
@@ -100,10 +99,6 @@ constrainOutput w ws = over (at w) (fmap $ HashSet.intersection ws)
 negateWires :: HashSet Wire -> HashSet Wire
 negateWires = HashSet.difference allWires
 
--- -- Return the outputs that are matched to a single input
--- solvedOutputs :: PossibleConnections -> [Wire]
--- solvedOutputs = HashMap.keys . HashMap.filter ((== 1) . HashSet.size)
-
 -- Return the inputs that are assigned to an output
 --
 -- TODO rewrite this as a single optics application, the bind operation is
@@ -164,52 +159,37 @@ singletonToElement xs =
     [x] -> x
     _   -> error $ "set's too large: " <> show xs
 
--- From a solved state, get a mapping from input to output
+-- From a solved state, get a mapping from output to input
 solvedToConnections :: PossibleConnections -> HashMap Wire Wire
-solvedToConnections pcs =
+solvedToConnections = HashMap.map singletonToElement
+
+deduceConnections :: [HashSet Wire] -> HashMap Wire Wire
+deduceConnections = solvedToConnections . constrain initialState
+
+decodingTable :: HashMap Wire Wire -> HashMap (HashSet Wire) Int
+decodingTable connections =
   let
-    transposedPairs = swap <$> HashMap.toList pcs
+    translate x = fromJust $ view (at x) connections
   in
-    HashMap.fromList $ over (traverse . _1) singletonToElement transposedPairs
-
-inputListToConnections :: [HashSet Wire] -> HashMap Wire Wire
-inputListToConnections samples =
-  let
-    constrained = constrain initialState samples
-  in
-    solvedToConnections constrained
-
-decodingTable :: HashMap (HashSet Wire) Int
-decodingTable = HashMap.fromList [
-  (HashSet.fromList [A, B, C, E, F, G], 0),
-  (HashSet.fromList [C, F], 1),
-  (HashSet.fromList [A, C, D, E, G], 2),
-  (HashSet.fromList [A, C, D, F, G], 3),
-  (HashSet.fromList [B, C, D, F], 4),
-  (HashSet.fromList [A, B, D, F, G], 5),
-  (HashSet.fromList [A, B, D, E, F, G], 6),
-  (HashSet.fromList [A, C, F], 7),
-  (HashSet.fromList [A, B, C, D, E, F, G], 8),
-  (HashSet.fromList [A, B, C, D, F, G], 9)
-  ]
-
--- FIXME do this with a single decoding table instead that you translate using cabling
-decodeDigit :: HashSet Wire -> Int
-decodeDigit input = fromJust $ view (at input) decodingTable
-
-translate :: HashMap Wire Wire -> HashSet Wire -> HashSet Wire
-translate connections inputs =
-  let
-    f x = fromJust $ view (at x) connections
-  in
-    HashSet.map f inputs
+    HashMap.mapKeys (HashSet.map translate) $ HashMap.fromList [
+    (HashSet.fromList [A, B, C, E, F, G], 0),
+    (HashSet.fromList [C, F], 1),
+    (HashSet.fromList [A, C, D, E, G], 2),
+    (HashSet.fromList [A, C, D, F, G], 3),
+    (HashSet.fromList [B, C, D, F], 4),
+    (HashSet.fromList [A, B, D, F, G], 5),
+    (HashSet.fromList [A, B, D, E, F, G], 6),
+    (HashSet.fromList [A, C, F], 7),
+    (HashSet.fromList [A, B, C, D, E, F, G], 8),
+    (HashSet.fromList [A, B, C, D, F, G], 9)
+    ]
 
 solveLine :: ([HashSet Wire], [HashSet Wire]) -> [Int]
 solveLine (samples, outputs) =
   let
-    cabling = inputListToConnections samples
+    table = decodingTable $ deduceConnections samples
   in
-    decodeDigit . translate cabling <$> outputs
+    fromJust . flip HashMap.lookup table <$> outputs
 
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
