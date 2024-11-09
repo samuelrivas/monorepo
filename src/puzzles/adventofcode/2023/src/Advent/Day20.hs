@@ -8,7 +8,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
-module Advent.DayX where
+module Advent.Day20 where
 
 import           Perlude
 
@@ -21,7 +21,7 @@ import           Text.Parsec.Parselib (Parser, unsafeParseAll)
 type Parsed = ()
 
 day :: Day
-day = DX
+day = D20
 
 rawInput :: IO Text
 rawInput = getInput day
