@@ -89,8 +89,7 @@ bitString = many1 bit
 matrix :: Parser a -> Parser [[a]]
 matrix p =
   let cell = many (char ' ') *> p
-  in many1 cell `sepEndBy` char '\n'
-
+  in linesOf $ many1 cell
 
 -- | Run a parser over a 'Text'. Returns 'Left' if the parser fails.
 parse :: Parser a -> Text -> Either ParseError a
