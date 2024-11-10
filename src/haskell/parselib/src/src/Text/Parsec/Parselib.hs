@@ -11,15 +11,21 @@
 -- TODO: Generalise to ParsecT where it makes sense
 
 module Text.Parsec.Parselib (
+  -- * Parsers
   digitAsNum,
   digitsAsNum,
   num,
   literal,
+  linesOf,
+  bit,
+  bitString,
+  matrix,
+  text,
+  text1,
+  -- * Parsing functions
   parse,
   parseAll,
   parsePart,
-  text,
-  text1,
   unsafeParse,
   unsafeParseAll,
   Parser
@@ -32,7 +38,7 @@ import           Data.Foldable    (foldl')
 import           Data.Functor     (($>))
 import qualified Text.Parsec      as Parsec
 import           Text.Parsec      (ParseError, char, digit, eof, getInput, many,
-                                   many1, option, string, (<|>))
+                                   many1, option, sepEndBy, string, (<|>))
 import           Text.Parsec.Text (Parser)
 
 -- | Parse a single digit and return it as a 'Num' value.
@@ -65,6 +71,26 @@ text1 = fmap pack . many1
 -- | Consumes a literal, returning that literal.
 literal :: Text -> Parser Text
 literal = fmap pack . string . unpack
+
+-- | Consumes an input line by line, parsing each line with the given parser.
+linesOf :: Parser a -> Parser [a]
+linesOf p = p `sepEndBy` char '\n'
+
+-- | Parses 1 as 'True' and 0 as 'False'.
+bit :: Parser Bool
+bit = (literal "1" $> True) <|> (literal "0" $> False)
+
+-- | Parses a input of 1s or 0s as a list of bits.
+bitString :: Parser [Bool]
+bitString = many1 bit
+
+-- | Consumes input as a matrix, where columns are separated by one or many
+-- spaces and rows by exactly one end of line.
+matrix :: Parser a -> Parser [[a]]
+matrix p =
+  let cell = many (char ' ') *> p
+  in many1 cell `sepEndBy` char '\n'
+
 
 -- | Run a parser over a 'Text'. Returns 'Left' if the parser fails.
 parse :: Parser a -> Text -> Either ParseError a
