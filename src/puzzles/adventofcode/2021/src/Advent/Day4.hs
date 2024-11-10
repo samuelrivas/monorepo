@@ -15,8 +15,6 @@ import           Perlude
 
 import           Advent.Day4.Internal
 
-import           Advent.Templib       (linesOf, matrix)
-
 import           Control.Lens         (_1, _2, _3, _Just, _head, assign, at,
                                        folded, non, over, preview, toListOf,
                                        use, uses, view)
@@ -34,8 +32,8 @@ import           Data.Maybe           (fromJust, isJust)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, solve)
 import           Text.Parsec          (char, sepBy)
-import           Text.Parsec.Parselib (Parser, digitsAsNum, literal,
-                                       unsafeParseAll)
+import           Text.Parsec.Parselib (Parser, digitsAsNum, linesOf, literal,
+                                       matrix, unsafeParseAll)
 
 -- TODO This is a horrible mess, redo it in a better way
 
