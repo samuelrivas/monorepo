@@ -36,7 +36,7 @@ import qualified Advent.Day9
 dispatcher :: HashMap String (IO ())
 dispatcher =
   HashMap.fromList
-  [("1", Advent.Day1.main)
+  [("1", Advent.Day1.main),
    ("2", Advent.Day2.main),
    ("3", Advent.Day3.main),
    ("4", Advent.Day4.main),
@@ -60,7 +60,7 @@ dispatcher =
    ("22", Advent.Day22.main),
    ("23", Advent.Day23.main),
    ("24", Advent.Day24.main),
-   ("25", Advent.Day24.main)
+   ("25", Advent.Day25.main)
   ]
 
 dispatch :: [String] -> Maybe [IO ()]
