@@ -11,28 +11,23 @@
 
 module Advent.Templib (
   binToDec,
-  bitString,
-  bit,
   conv,
-  linesOf,
-  matrix,
   numListToNum,
-  solveM
+  solveM,
+  linesOf,
+  bitString
   ) where
 import           Perlude
 
 
-import           Control.Applicative     ((<|>))
 import           Control.Monad.MonadEmit (EmitTVarT',
                                           runEmitTVarTWithPrinterThread')
 import           Data.Advent             (Day)
 import           Data.Foldable           (foldl')
-import           Data.Functor            (($>))
 import           Data.Generics.Labels    ()
 import           Data.List               (tails)
 import           System.IO.Advent        (getParsedInput)
-import           Text.Parsec             (char, many, many1, sepEndBy)
-import           Text.Parsec.Parselib    (Parser, literal)
+import           Text.Parsec.Parselib    (Parser, bitString, linesOf)
 import           UnliftIO                (MonadUnliftIO)
 
 -- TODO use this in day 2 or delete
@@ -44,22 +39,6 @@ binToDec = foldl' (\acc b -> fromEnum b + 2*acc) 0
 
 numListToNum :: Num x => [x] -> x
 numListToNum = foldl (\acc x -> acc * 10 + x) 0
-
--- Parsers
-
-linesOf :: Parser a -> Parser [a]
-linesOf p = p `sepEndBy` char '\n'
-
-bit :: Parser Bool
-bit = (literal "1" $> True) <|> (literal "0" $> False)
-
-bitString :: Parser [Bool]
-bitString = many1 bit
-
-matrix :: Parser a -> Parser [[a]]
-matrix p =
-  let cell = many (char ' ') *> p
-  in many1 cell `sepEndBy` char '\n'
 
 -- Advent templates
 solveM ::
