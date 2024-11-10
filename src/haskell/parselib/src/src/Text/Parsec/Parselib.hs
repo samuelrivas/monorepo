@@ -6,9 +6,6 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
--- TODO: Move this to a lib, these are here so that we don't need to keep
--- recompiling adventlib while experimenting
-
 -- TODO: Generalise to ParsecT where it makes sense
 
 module Text.Parsec.Parselib (
