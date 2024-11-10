@@ -20,7 +20,6 @@ module Text.Parsec.Parselib (
   parsePart,
   text,
   text1,
-  textUntil,
   unsafeParse,
   unsafeParseAll,
   Parser
@@ -32,9 +31,8 @@ import           Data.Char        (digitToInt)
 import           Data.Foldable    (foldl')
 import           Data.Functor     (($>))
 import qualified Text.Parsec      as Parsec
-import           Text.Parsec      (ParseError, anyChar, char, digit, eof,
-                                   getInput, lookAhead, many, many1, manyTill,
-                                   option, string, (<|>))
+import           Text.Parsec      (ParseError, char, digit, eof, getInput, many,
+                                   many1, option, string, (<|>))
 import           Text.Parsec.Text (Parser)
 
 -- | Parse a single digit and return it as a 'Num' value.
@@ -53,18 +51,6 @@ num =
   in do
     mult <- option (* 1) sign
     mult <$> digitsAsNum
-
--- | Return the characters until 'terminator' succeeds, as text. Doesn't consume
--- 'terminator'.
---
--- This parser is not a good idea: it leaves the separator as not consumes,
--- which goes against the principle of consuming all you parse rather than
--- expecting "external" separators. This makes this parser more difficult to
--- compose with other parsers following that principle
-
-{-# DEPRECATED textUntil "Don't use this, use text with a parser that doesn't consume the terminator instead" #-}
-textUntil :: Parser a -> Parser Text
-textUntil terminator = pack <$> manyTill anyChar (lookAhead terminator)
 
 -- | Consumes characters into a 'Text' until the character parser fails. Can
 -- return an empty 'Text'.
