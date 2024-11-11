@@ -14,16 +14,18 @@ import           Control.Applicative  ((<|>))
 import           Data.Advent          (Day (..))
 import           Data.Char            (digitToInt, isDigit)
 import           Data.Functor         (($>))
-import           Data.Maybe           (fromJust)
+import           Data.Maybe           (catMaybes, fromJust)
 import           Data.Num.Advent      (numListToDec)
 import           Data.Text            as Text
 import           System.IO.Advent     (getInput, getParsedInput)
-import           Text.Parsec          (many1, oneOf, try)
+import           Text.Parsec          (many1, oneOf, sepEndBy, try)
 import           Text.Parsec.Char     (noneOf)
 import           Text.Parsec.Parselib (Parser, linesOf, literal, text,
                                        unsafeParseAll)
+data Digit = Literal Int | Textual Int
+  deriving Show
 
-type Parsed = [Text]
+type Parsed = [[Digit]]
 
 day :: Day
 day = D1
@@ -55,37 +57,56 @@ parsedExample = fromJust $ unsafeParseAll parser example
 parsedInput :: IO Parsed
 parsedInput = getParsedInput day parser
 
-parser :: Parser Parsed
-parser = linesOf $ text (noneOf ['\n'])
+-- parser :: Parser Parsed
+-- parser = linesOf $ text (noneOf ['\n'])
 
-parser2 :: Parser [[(Text, Maybe Int)]]
-parser2 = linesOf $ many1 token
+parser :: Parser [[Digit]]
+parser = linesOf $ catMaybes <$> many1 maybeDigit
 
-token :: Parser (Text, Maybe Int)
-token =
-  (, Just 1) <$> try (literal "one")
-  <|> (, Just 2) <$> try (literal "two")
-  <|> (, Just 3) <$> try (literal "three")
-  <|> (, Just 4) <$> try (literal "four")
-  <|> (, Just 5) <$> try (literal "five")
-  <|> (, Just 6) <$> try (literal "six")
-  <|> (, Just 7) <$> try (literal "seven")
-  <|> (, Just 8) <$> try (literal "eight")
-  <|> (oneOf ['0'..'1'] >>= \x -> return (Text.singleton x, Just $ digitToInt x))
-  <|> (noneOf ['\n']  >>= \x -> return (Text.singleton x, Nothing))
+whitespace :: Parser ()
+whitespace = noneOf ['\n'] $> ()
 
-calibrationValue :: Text -> Int
-calibrationValue txt =
-  numListToDec. fromJust $ do
-  low <- find isDigit txt
-  high <- find isDigit (Text.reverse txt)
-  return $ digitToInt <$> [low, high]
+maybeDigit :: Parser (Maybe Digit)
+maybeDigit =
+  Just <$> digit
+  <|> noneOf  ['\n'] $> Nothing
+
+digit :: Parser Digit
+digit =
+  try (literal "one") $> Textual 1
+  <|> try (literal "two") $> Textual 2
+  <|> try (literal "three") $> Textual 3
+  <|> try (literal "four") $> Textual 4
+  <|> try (literal "five") $> Textual 5
+  <|> try (literal "six") $> Textual 6
+  <|> try (literal "seven") $> Textual 7
+  <|> try (literal "eight") $> Textual 8
+  <|> try (literal "nine") $> Textual 9
+  <|> Literal . digitToInt <$> try (oneOf ['0'..'9'])
+
+firstLiteral :: [Digit] -> Int
+firstLiteral ((Literal x) : _) = x
+firstLiteral (_ : t)           = firstLiteral t
+firstLiteral _                 = error "can't find digit"
+
+toInt :: Digit -> Int
+toInt (Literal x) = x
+toInt (Textual x) = x
+
+calibrationValue :: [Digit] -> Int
+calibrationValue digits =
+  10 * (firstLiteral digits) + firstLiteral (Perlude.reverse digits)
+
+calibrationValue2 :: [Digit] -> Int
+calibrationValue2 digits =
+  10 * (toInt $ Perlude.head digits) + (toInt . Perlude.last $ digits)
+
 
 solve1 :: Parsed -> Int
 solve1 = sum . fmap calibrationValue
 
-solve2 :: Parsed -> ()
-solve2 = const ()
+solve2 :: Parsed -> Int
+solve2 = sum . fmap calibrationValue2
 
 main :: IO ()
 main = do
