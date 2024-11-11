@@ -10,14 +10,18 @@ module Advent.Day1 where
 
 import           Perlude
 
+import           Control.Applicative  ((<|>))
 import           Data.Advent          (Day (..))
 import           Data.Char            (digitToInt, isDigit)
+import           Data.Functor         (($>))
 import           Data.Maybe           (fromJust)
 import           Data.Num.Advent      (numListToDec)
 import           Data.Text            as Text
 import           System.IO.Advent     (getInput, getParsedInput)
+import           Text.Parsec          (many1, oneOf, try)
 import           Text.Parsec.Char     (noneOf)
-import           Text.Parsec.Parselib (Parser, linesOf, text, unsafeParseAll)
+import           Text.Parsec.Parselib (Parser, linesOf, literal, text,
+                                       unsafeParseAll)
 
 type Parsed = [Text]
 
@@ -35,6 +39,16 @@ example = intercalate "\n" [
   "treb7uchet"
   ]
 
+example2 :: Text
+example2 = intercalate "\n" [
+  "two1nine",
+  "eightwothree",
+  "abcone2threexyz",
+  "xtwone3four",
+  "4nineeightseven2",
+  "zoneight234",
+  "7pqrstsixteen"
+  ]
 parsedExample :: Parsed
 parsedExample = fromJust $ unsafeParseAll parser example
 
@@ -43,6 +57,22 @@ parsedInput = getParsedInput day parser
 
 parser :: Parser Parsed
 parser = linesOf $ text (noneOf ['\n'])
+
+parser2 :: Parser [[(Text, Maybe Int)]]
+parser2 = linesOf $ many1 token
+
+token :: Parser (Text, Maybe Int)
+token =
+  (, Just 1) <$> try (literal "one")
+  <|> (, Just 2) <$> try (literal "two")
+  <|> (, Just 3) <$> try (literal "three")
+  <|> (, Just 4) <$> try (literal "four")
+  <|> (, Just 5) <$> try (literal "five")
+  <|> (, Just 6) <$> try (literal "six")
+  <|> (, Just 7) <$> try (literal "seven")
+  <|> (, Just 8) <$> try (literal "eight")
+  <|> (oneOf ['0'..'1'] >>= \x -> return (Text.singleton x, Just $ digitToInt x))
+  <|> (noneOf ['\n']  >>= \x -> return (Text.singleton x, Nothing))
 
 calibrationValue :: Text -> Int
 calibrationValue txt =
