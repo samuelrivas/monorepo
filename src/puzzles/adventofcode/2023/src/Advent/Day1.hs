@@ -12,17 +12,14 @@ import           Perlude
 
 import           Control.Applicative  ((<|>))
 import           Data.Advent          (Day (..))
-import           Data.Char            (digitToInt, isDigit)
+import           Data.Char            (digitToInt)
 import           Data.Functor         (($>))
 import           Data.Maybe           (catMaybes, fromJust)
-import           Data.Num.Advent      (numListToDec)
 import           Data.Text            as Text
 import           System.IO.Advent     (getInput, getParsedInput)
-import           Text.Parsec          (anyChar, char, lookAhead, many1, oneOf,
-                                       sepEndBy, try)
+import           Text.Parsec          (anyChar, lookAhead, many1, oneOf, try)
 import           Text.Parsec.Char     (noneOf)
-import           Text.Parsec.Parselib (Parser, linesOf, literal, text,
-                                       unsafeParseAll)
+import           Text.Parsec.Parselib (Parser, linesOf, literal, unsafeParseAll)
 data Digit = Literal Int | Textual Int
   deriving Show
 
@@ -88,7 +85,7 @@ digit =
   <|> try (consumeOne "seven") $> Textual 7
   <|> try (consumeOne "eight") $> Textual 8
   <|> try (consumeOne "nine") $> Textual 9
-  <|> Literal . digitToInt <$> try (oneOf ['0'..'9'])
+  <|> Literal . digitToInt <$> oneOf ['0'..'9']
 
 firstLiteral :: [Digit] -> Int
 firstLiteral ((Literal x) : _) = x
