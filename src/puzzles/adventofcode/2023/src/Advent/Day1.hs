@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
@@ -10,18 +11,24 @@ module Advent.Day1 where
 
 import           Perlude
 
-import           Control.Applicative  ((<|>))
-import           Data.Advent          (Day (..))
-import           Data.Char            (digitToInt)
-import           Data.Functor         (($>))
-import           Data.Maybe           (catMaybes, fromJust)
-import           Data.Text            as Text
-import           System.IO.Advent     (getInput, getParsedInput)
-import           Text.Parsec          (anyChar, lookAhead, many1, oneOf, try)
-import           Text.Parsec.Char     (noneOf)
-import           Text.Parsec.Parselib (Parser, linesOf, literal, unsafeParseAll)
+import           Control.Applicative            ((<|>))
+import           Control.Lens                   (firstOf)
+import           Data.Advent                    (Day (..))
+import           Data.Char                      (digitToInt)
+import           Data.Functor                   (($>))
+import           Data.Generics.Sum.Constructors (_Ctor)
+import           Data.Maybe                     (catMaybes, fromJust)
+import           Data.Text                      as Text
+import           GHC.Generics                   (Generic)
+import           System.IO.Advent               (getInput, getParsedInput)
+import           Text.Parsec                    (anyChar, lookAhead, many1,
+                                                 oneOf, try)
+import           Text.Parsec.Char               (noneOf)
+import           Text.Parsec.Parselib           (Parser, linesOf, literal,
+                                                 unsafeParseAll)
+
 data Digit = Literal Int | Textual Int
-  deriving Show
+  deriving stock (Show, Generic)
 
 type Parsed = [[Digit]]
 
@@ -88,9 +95,7 @@ digit =
   <|> Literal . digitToInt <$> oneOf ['0'..'9']
 
 firstLiteral :: [Digit] -> Int
-firstLiteral ((Literal x) : _) = x
-firstLiteral (_ : t)           = firstLiteral t
-firstLiteral _                 = error "can't find digit"
+firstLiteral = fromJust . firstOf (traverse . _Ctor @"Literal")
 
 toInt :: Digit -> Int
 toInt (Literal x) = x
