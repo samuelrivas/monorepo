@@ -76,10 +76,14 @@ whitespace = noneOf ['\n'] $> ()
 maybeDigit :: Parser (Maybe Digit)
 maybeDigit =
   Just <$> digit
-  <|> noneOf  ['\n'] $> Nothing
+  <|> whitespace $> Nothing
 
 consumeOne :: Text -> Parser Text
-consumeOne t = (lookAhead . literal $ t) >> anyChar $> t
+consumeOne t = (lookAhead . literal $ t) <* anyChar
+
+skipUntil :: Parser a -> Parser b -> Parser b
+skipUntil a b =
+  b <|> a *> skipUntil a b
 
 digit :: Parser Digit
 digit =
