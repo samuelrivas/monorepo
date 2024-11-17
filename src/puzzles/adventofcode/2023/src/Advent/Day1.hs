@@ -21,8 +21,10 @@ import           Data.Maybe                     (catMaybes, fromJust)
 import           Data.Text                      as Text
 import           GHC.Generics                   (Generic)
 import           System.IO.Advent               (getInput, getParsedInput)
-import           Text.Parsec                    (anyChar, lookAhead, many1,
-                                                 oneOf, try)
+import           Text.Parsec                    (alphaNum, anyChar, choice,
+                                                 digit, lookAhead, many, many1,
+                                                 notFollowedBy, oneOf, optional,
+                                                 sepEndBy, try)
 import           Text.Parsec.Char               (noneOf)
 import           Text.Parsec.Parselib           (Parser, linesOf, literal,
                                                  unsafeParseAll)
@@ -68,35 +70,43 @@ parsedInput :: IO Parsed
 parsedInput = getParsedInput day parser
 
 parser :: Parser [[Digit]]
-parser = linesOf $ catMaybes <$> many1 maybeDigit
+parser = linesOf line
+
+line :: Parser [Digit]
+line = optional whitespace *> digitToken `sepEndBy` whitespace
 
 whitespace :: Parser ()
-whitespace = noneOf ['\n'] $> ()
+whitespace =
+  let
+    whitespaceChar = notFollowedBy digitToken <* noneOf ['\n']
+  in
+    many whitespaceChar $> ()
 
-maybeDigit :: Parser (Maybe Digit)
-maybeDigit =
-  Just <$> digit
-  <|> whitespace $> Nothing
+digitToken :: Parser Digit
+digitToken = textualDigit <|> literalDigit
 
-consumeOne :: Text -> Parser Text
-consumeOne t = (lookAhead . literal $ t) <* anyChar
+literalDigit :: Parser Digit
+literalDigit =  Literal . digitToInt <$> digit
 
-skipUntil :: Parser a -> Parser b -> Parser b
-skipUntil a b =
-  b <|> a *> skipUntil a b
-
-digit :: Parser Digit
-digit =
-  try (consumeOne "one") $> Textual 1
-  <|> try (consumeOne "two") $> Textual 2
-  <|> try (consumeOne "three") $> Textual 3
-  <|> try (consumeOne "four") $> Textual 4
-  <|> try (consumeOne "five") $> Textual 5
-  <|> try (consumeOne "six") $> Textual 6
-  <|> try (consumeOne "seven") $> Textual 7
-  <|> try (consumeOne "eight") $> Textual 8
-  <|> try (consumeOne "nine") $> Textual 9
-  <|> Literal . digitToInt <$> oneOf ['0'..'9']
+-- Digits can overlap, for example twone should be read as 2, 1. This parser
+-- consumes only one character to achieve that
+textualDigit :: Parser Digit
+textualDigit =
+  let
+    digits = [
+      ("one", 1),
+      ("two", 2),
+      ("three", 3),
+      ("four", 4),
+      ("five", 5),
+      ("six", 6),
+      ("seven", 7),
+      ("eight", 8),
+      ("nine", 9)
+      ]
+    toParser (txt, n) = (try . literal $ txt) $> Textual n
+  in
+    lookAhead (choice (toParser <$> digits)) <* anyChar
 
 firstLiteral :: [Digit] -> Int
 firstLiteral = fromJust . firstOf (traverse . _Ctor @"Literal")
