@@ -17,14 +17,13 @@ import           Data.Advent                    (Day (..))
 import           Data.Char                      (digitToInt)
 import           Data.Functor                   (($>))
 import           Data.Generics.Sum.Constructors (_Ctor)
-import           Data.Maybe                     (catMaybes, fromJust)
+import           Data.Maybe                     (fromJust)
 import           Data.Text                      as Text
 import           GHC.Generics                   (Generic)
 import           System.IO.Advent               (getInput, getParsedInput)
-import           Text.Parsec                    (alphaNum, anyChar, choice,
-                                                 digit, lookAhead, many, many1,
-                                                 notFollowedBy, oneOf, optional,
-                                                 sepEndBy, try)
+import           Text.Parsec                    (anyChar, choice, digit,
+                                                 lookAhead, many, notFollowedBy,
+                                                 optional, sepEndBy, try)
 import           Text.Parsec.Char               (noneOf)
 import           Text.Parsec.Parselib           (Parser, linesOf, literal,
                                                  unsafeParseAll)
