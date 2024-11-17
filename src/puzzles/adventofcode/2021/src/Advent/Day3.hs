@@ -18,7 +18,8 @@ import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, solve)
 import           Text.Parsec.Parselib (Parser)
 
-import           Advent.Templib       (binToDec, bitString, linesOf)
+import           Advent.Templib       (bitString, linesOf)
+import           Data.Num.Advent      (bitListToDec)
 
 type Parsed =  [[Bool]]
 
@@ -53,7 +54,7 @@ solver1 l =
     gamma = (> entries `div` 2) <$> (length . filter id <$> transpose l)
     epsilon = not <$> gamma
   in
-    binToDec gamma * binToDec epsilon
+    bitListToDec gamma * bitListToDec epsilon
 
 -- candidates and position to filter
 filterOxygen :: [[Bool]] -> Int -> [[Bool]]
@@ -89,7 +90,7 @@ solver2 l =
     oxygen = getOxygen l 0
     co2 = getCo2 l 0
   in
-    binToDec oxygen * binToDec co2
+    bitListToDec oxygen * bitListToDec co2
 
 main :: IO ()
 main = solve day parser solver1 solver2

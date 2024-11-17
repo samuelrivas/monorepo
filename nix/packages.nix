@@ -21,6 +21,7 @@
       adventofcode-2019 = h-package ./../src/puzzles/adventofcode/2019/nix {};
       adventofcode-2020 = h-package ./../src/puzzles/adventofcode/2020/nix {};
       adventofcode-2021 = h-package ./../src/puzzles/adventofcode/2021/nix {};
+      adventofcode-2023 = h-package ./../src/puzzles/adventofcode/2023/nix {};
       boardgamer = h-package ./../src/haskell/boardgamer/nix {};
       boollib = h-package ./../src/haskell/boollib/nix {};
       clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
@@ -152,6 +153,7 @@
     adventofcode-2019 = haskellPackages.adventofcode-2019;
     adventofcode-2020 = haskellPackages.adventofcode-2020;
     adventofcode-2021 = haskellPackages.adventofcode-2021;
+    adventofcode-2023 = haskellPackages.adventofcode-2023;
 
     # External tools that are broken upstream
     cpplint = callPackage ./pkgs/development/tools/cpplint {};

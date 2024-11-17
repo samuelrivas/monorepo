@@ -10,7 +10,7 @@ module Advent.Day8 where
 
 import           Perlude
 
-import           Advent.Templib                (linesOf, numListToNum)
+import           Advent.Templib                (linesOf)
 import           Control.Lens                  (_2, at, filtered, over, to,
                                                 toListOf, view)
 import           Data.Advent                   (Day (..))
@@ -23,6 +23,7 @@ import qualified Data.HashMap.Strict           as HashMap
 import           Data.HashSet                  (HashSet)
 import qualified Data.HashSet                  as HashSet
 import           Data.Maybe                    (fromJust)
+import           Data.Num.Advent               (numListToDec)
 import           Data.Text                     (intercalate)
 import           GHC.Generics                  (Generic)
 import           System.IO.Advent              (getInput, solve)
@@ -183,7 +184,7 @@ solveLine (samples, outputs) =
   let
     table = decodingTable $ deduceConnections samples
   in
-    numListToNum $ fromJust . flip HashMap.lookup table <$> outputs
+    numListToDec $ fromJust . flip HashMap.lookup table <$> outputs
 
 -- use filtered lens to shorten this
 solver1 :: Parsed -> Int
