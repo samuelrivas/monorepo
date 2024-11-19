@@ -8,10 +8,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
+-- Re-solve stretch: Use only algebraic datatypes, do not rely on lists of
+-- colours
+
 module Advent.Day2 where
 
 import           Perlude
 
+import           Control.Lens         (allOf)
 import           Data.Advent          (Day (..))
 import           Data.Functor         (($>))
 import           Data.Maybe           (fromJust)
@@ -26,6 +30,10 @@ data Colour = Red | Green | Blue
 
 data Game = Game Int [[(Int, Colour)]]
   deriving stock Show
+
+-- TODO: lens this
+gameNumber :: Game -> Int
+gameNumber (Game n _) = n
 
 type Parsed = [Game]
 
@@ -82,8 +90,16 @@ gameP =
   <$> gameNumberP <* literal ": "
   <*> subsetsP
 
-solve1 :: Parsed -> ()
-solve1 = const ()
+underMax :: (Int, Colour) -> Bool
+underMax (x, Red)   = x <= 12
+underMax (x, Green) = x <= 13
+underMax (x, Blue)  = x <= 14
+
+validGame :: Game -> Bool
+validGame (Game _ rounds) = allOf (traverse . traverse) underMax rounds
+
+solve1 :: Parsed -> Int
+solve1 = sum . fmap gameNumber . filter validGame
 
 solve2 :: Parsed -> ()
 solve2 = const ()
