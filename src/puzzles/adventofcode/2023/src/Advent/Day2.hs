@@ -1,12 +1,9 @@
-{-# OPTIONS_GHC -Wall #-}
-
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 
 -- Re-solve stretch: Use only algebraic datatypes, do not rely on lists of
 -- colours
@@ -17,16 +14,17 @@ import           Perlude
 
 import           Control.Lens         (allOf)
 import           Data.Advent          (Day (..))
+import           Data.Foldable        (foldl')
 import           Data.Functor         (($>))
 import           Data.Maybe           (fromJust)
 import           Data.Text            (intercalate)
 import           System.IO.Advent     (getInput, getParsedInput)
-import           Text.Parsec          (anyChar, choice, sepBy, skipMany)
-import           Text.Parsec.Parselib (Parser, digitAsNum, digitsAsNum, linesOf,
-                                       literal, unsafeParseAll)
+import           Text.Parsec          (choice, sepBy)
+import           Text.Parsec.Parselib (Parser, digitsAsNum, linesOf, literal,
+                                       unsafeParseAll)
 
 data Colour = Red | Green | Blue
-  deriving stock Show
+  deriving stock (Show, Eq)
 
 data Game = Game Int [[(Int, Colour)]]
   deriving stock Show
@@ -34,6 +32,9 @@ data Game = Game Int [[(Int, Colour)]]
 -- TODO: lens this
 gameNumber :: Game -> Int
 gameNumber (Game n _) = n
+
+gameRounds :: Game -> [[(Int, Colour)]]
+gameRounds (Game _ rs) = rs
 
 type Parsed = [Game]
 
@@ -98,11 +99,29 @@ underMax (x, Blue)  = x <= 14
 validGame :: Game -> Bool
 validGame (Game _ rounds) = allOf (traverse . traverse) underMax rounds
 
+-- TODO deuglify this
+maxes :: [(Int, Colour)] -> (Int, Int, Int)
+maxes l =
+  let
+    f (r, g, b) = \case
+      (r', Red) -> (max r' r, g, b)
+      (g', Green) -> (r, max g' g, b)
+      (b', Blue) -> (r, g, max b' b)
+  in
+    foldl' f (0, 0, 0) l
+
+power :: (Int, Int, Int) -> Int
+power (r, g, b) = r * g * b
+
 solve1 :: Parsed -> Int
 solve1 = sum . fmap gameNumber . filter validGame
 
-solve2 :: Parsed -> ()
-solve2 = const ()
+solve2 :: Parsed -> Int
+solve2 x =
+  let
+    allRounds = concat . gameRounds <$> x
+  in
+    sum $ power . maxes <$> allRounds
 
 main :: IO ()
 main = do
