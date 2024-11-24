@@ -29,6 +29,13 @@ data Colour = Red | Green | Blue
 data Game = Game Int [[(Int, Colour)]]
   deriving stock Show
 
+-- Ongoing algebraisation
+data Round = Round Red' Green' Blue'
+
+newtype Red' = Red' Int
+newtype Green' = Green' Int
+newtype Blue' = Blue' Int
+
 -- TODO: lens this
 gameNumber :: Game -> Int
 gameNumber (Game n _) = n
