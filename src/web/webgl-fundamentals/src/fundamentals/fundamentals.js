@@ -58,10 +58,6 @@ function createShader(gl, type, source) {
   gl.deleteShader(shader);
 }
 
-// Create both shaders
-var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-
 function createProgram(gl, vertexShader, fragmentShader) {
   var program = gl.createProgram();
   gl.attachShader(program, vertexShader);
@@ -75,44 +71,6 @@ function createProgram(gl, vertexShader, fragmentShader) {
   console.log(gl.getProgramInfoLog(program));
   gl.deleteProgram(program);
 }
-
-// Create the program linking both shaders
-var program = createProgram(gl, vertexShader, fragmentShader);
-
-// Create a buffer to hold the positions and bind it as ARRAY_BUFFER
-var positionBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-// Put 3 2D points into the ARRAY_BUFFER
-var positions = [
-  10, 20,
-  80, 20,
-  10, 30,
-  10, 30,
-  80, 20,
-  80, 30,
-];
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-// Get the location of the input attribute for the vertex shader. This contains
-// the input coordinates
-var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-
-// Create a vertex array, bind it and enable it in the position bound to a_position
-var vao = gl.createVertexArray();
-gl.bindVertexArray(vao);
-gl.enableVertexAttribArray(positionAttributeLocation);
-
-// Set up how to pull data from the buffer into the vertex array
-var size = 2;          // 2 components per iteration
-var type = gl.FLOAT;   // the data is 32bit floats
-var normalize = false; // don't normalize the data
-var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-var offset = 0;        // start at the beginning of the buffer
-
-// This also binds positionBuffer (the current ARRAY_BUFFER) to the a_position attribute
-gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset)
-
 
 function resizeCanvasToDisplaySize(canvas) {
   // Lookup the size the browser is displaying the canvas in CSS pixels.
@@ -132,7 +90,50 @@ function resizeCanvasToDisplaySize(canvas) {
   return needResize;
 }
 
-// Not quite needed, but will fix things if we resize the canvas.
+// Create both shaders
+var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+// Create the program linking both shaders
+var program = createProgram(gl, vertexShader, fragmentShader);
+
+// Get the location of the input attribute for the vertex shader. This gets the
+// input coordinates
+var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+
+var positions = [
+  10, 20,
+  80, 20,
+  10, 30,
+  10, 30,
+  80, 20,
+  80, 30,
+];
+
+// Create a buffer to hold the positions and bind it as ARRAY_BUFFER
+var positionBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+// Put 3 2D points into the ARRAY_BUFFER
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+// Create a vertex array, bind it and enable it in the position bound to a_position
+var vao = gl.createVertexArray();
+gl.bindVertexArray(vao);
+gl.enableVertexAttribArray(positionAttributeLocation);
+
+// Set up how to pull data from the buffer into the vertex array
+var size = 2;          // 2 components per iteration
+var type = gl.FLOAT;   // the data is 32bit floats
+var normalize = false; // don't normalize the data
+var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+var offset = 0;        // start at the beginning of the buffer
+
+// This also binds positionBuffer (the current ARRAY_BUFFER) to the a_position attribute
+gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset)
+
+// Not quite needed, but will fix things if we resized the canvas
 resizeCanvasToDisplaySize(gl.canvas)
 
 // Set viewport to the whole canvas
@@ -145,18 +146,16 @@ gl.clear(gl.COLOR_BUFFER_BIT);
 // Tell it to use our program (pair of shaders)
 gl.useProgram(program);
 
+// XXX probably not needed
+gl.bindVertexArray(vao);
+
 // Set the resolution
-var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
 
 // XXX Do we need this after "useProgram"? In principle you can set them after
 // linking, I think
-
-
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-// Bind the attribute/buffer set we want.
-// XXX Do we need this? It was called already
-// gl.bindVertexArray(vao);
 
 // draw
 var primitiveType = gl.TRIANGLES;
