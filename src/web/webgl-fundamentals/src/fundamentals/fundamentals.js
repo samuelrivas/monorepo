@@ -15,17 +15,10 @@ uniform vec2 u_resolution;
  
 // all shaders have a main function
 void main() {
-  // convert the position from pixels to 0.0 to 1.0
-  vec2 zeroToOne = a_position / u_resolution;
- 
-  // convert from 0->1 to 0->2
-  vec2 zeroToTwo = zeroToOne * 2.0;
- 
-  // convert from 0->2 to -1->+1 (clip space)
-  vec2 clipSpace = zeroToTwo - 1.0;
+  vec2 clipSpace = a_position / u_resolution * 2.0 - 1.0;
  
   // Special variable to connect to the fragment shader
-  gl_Position = vec4(clipSpace, 0, 1);
+  gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 }
 `;
  
@@ -103,12 +96,12 @@ var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
 
 var positions = [
-  10, 20,
-  80, 20,
-  10, 30,
-  10, 30,
-  80, 20,
-  80, 30,
+    10, 20,
+    80, 20,
+    10, 30,
+    10, 30,
+    80, 20,
+    80, 30,
 ];
 
 // Create a buffer to hold the positions and bind it as ARRAY_BUFFER
@@ -152,5 +145,5 @@ gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 // draw
 var primitiveType = gl.TRIANGLES;
 var offset = 0;
-var count = 6;
-gl.drawArrays(primitiveType, offset, count);
+var count = positions.length / 2;
+gl.drawArraysInstanced(primitiveType, offset, count, 1);
