@@ -6,34 +6,36 @@ if (!gl) {
 }
 
 var vertexShaderSource = `#version 300 es
- 
+
 // an attribute is an input (in) to a vertex shader.
 // It will receive data from a buffer
 in vec2 a_position;
 
 uniform vec2 u_resolution;
- 
+
 // all shaders have a main function
 void main() {
   vec2 clipSpace = a_position / u_resolution * 2.0 - 1.0;
- 
+
   // Special variable to connect to the fragment shader
   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 }
 `;
- 
+
 var fragmentShaderSource = `#version 300 es
- 
+
 // fragment shaders don't have a default precision so we need
 // to pick one. highp is a good default. It means "high precision"
 precision highp float;
- 
+
+// input colour
+uniform vec4 u_color;
+
 // we need to declare an output for the fragment shader
 out vec4 outColor;
- 
+
 void main() {
-  // Just set the output to a constant reddish-purple
-  outColor = vec4(1, 0, 0.5, 1);
+  outColor = u_color;
 }
 `;
 
@@ -46,7 +48,7 @@ function createShader(gl, type, source) {
   if (success) {
     return shader;
   }
- 
+
   console.log(gl.getShaderInfoLog(shader));
   gl.deleteShader(shader);
 }
@@ -60,7 +62,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
   if (success) {
     return program;
   }
- 
+
   console.log(gl.getProgramInfoLog(program));
   gl.deleteProgram(program);
 }
@@ -69,18 +71,41 @@ function resizeCanvasToDisplaySize(canvas) {
   // Lookup the size the browser is displaying the canvas in CSS pixels.
   const displayWidth  = canvas.clientWidth;
   const displayHeight = canvas.clientHeight;
- 
+
   // Check if the canvas is not the same size.
   const needResize = canvas.width  !== displayWidth ||
                      canvas.height !== displayHeight;
- 
+
   if (needResize) {
     // Make the canvas the same size
     canvas.width  = displayWidth;
     canvas.height = displayHeight;
   }
- 
+
   return needResize;
+}
+
+function setRectangle(gl, x, y, width, height) {
+    var x1 = x;
+    var x2 = x + width;
+    var y1 = y;
+    var y2 = y + height;
+
+    // NOTE: gl.bufferData(gl.ARRAY_BUFFER, ...) will affect whatever buffer is
+    // bound to the `ARRAY_BUFFER` bind point
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        x1, y1,
+        x2, y1,
+        x1, y2,
+        x1, y2,
+        x2, y1,
+        x2, y2]), gl.STATIC_DRAW);
+}
+
+// Returns a random integer from 0 to range - 1.
+function randomInt(range) {
+    return Math.floor(Math.random() * range);
 }
 
 // Create both shaders
@@ -94,22 +119,14 @@ var program = createProgram(gl, vertexShader, fragmentShader);
 // input coordinates
 var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-
-var positions = [
-    10, 20,
-    80, 20,
-    10, 30,
-    10, 30,
-    80, 20,
-    80, 30,
-];
+var colorUniformLocation = gl.getUniformLocation(program, "u_color");
 
 // Create a buffer to hold the positions and bind it as ARRAY_BUFFER
 var positionBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-// Put 3 2D points into the ARRAY_BUFFER
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+// Push the vertices for a rectangle into the buffer
+setRectangle(gl, 10, 20, 70, 10)
 
 // Create a vertex array, bind it and enable it in the position bound to a_position
 var vao = gl.createVertexArray();
@@ -141,6 +158,9 @@ gl.useProgram(program);
 
 // Set the resolution
 gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+// Set the color
+gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1)
 
 // draw
 var primitiveType = gl.TRIANGLES;
