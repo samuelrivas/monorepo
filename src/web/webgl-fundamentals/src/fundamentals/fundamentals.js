@@ -146,14 +146,8 @@ gl.clear(gl.COLOR_BUFFER_BIT);
 // Tell it to use our program (pair of shaders)
 gl.useProgram(program);
 
-
 // Set the resolution
 gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-
-
-// XXX Do we need this after "useProgram"? In principle you can set them after
-// linking, I think
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
 // draw
 var primitiveType = gl.TRIANGLES;
