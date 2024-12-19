@@ -125,8 +125,6 @@ var colorUniformLocation = gl.getUniformLocation(program, "u_color");
 var positionBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-// Push the vertices for a rectangle into the buffer
-setRectangle(gl, 10, 20, 70, 10)
 
 // Create a vertex array, bind it and enable it in the position bound to a_position
 var vao = gl.createVertexArray();
@@ -159,11 +157,17 @@ gl.useProgram(program);
 // Set the resolution
 gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-// Set the color
-gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1)
+// Draw 50 random rectangles
+for (var ii = 0; ii < 1000; ++ii) {
+    // Set a random color
+    gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1)
 
-// draw
-var primitiveType = gl.TRIANGLES;
-var offset = 0;
-var count = positions.length / 2;
-gl.drawArraysInstanced(primitiveType, offset, count, 1);
+    // Push the vertices for a random rectangle into the buffer
+    setRectangle(gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300))
+
+    // draw
+    var primitiveType = gl.TRIANGLES;
+    var offset = 0;
+    var count = 6;
+    gl.drawArraysInstanced(primitiveType, offset, count, 1);
+}
