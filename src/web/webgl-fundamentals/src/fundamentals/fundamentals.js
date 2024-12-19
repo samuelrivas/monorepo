@@ -146,8 +146,6 @@ gl.clear(gl.COLOR_BUFFER_BIT);
 // Tell it to use our program (pair of shaders)
 gl.useProgram(program);
 
-// XXX probably not needed
-gl.bindVertexArray(vao);
 
 // Set the resolution
 gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
