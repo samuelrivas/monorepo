@@ -1,5 +1,4 @@
 const canvas = document.getElementById("canvas");
-// const ctx = canvas.getContext("2d");
 const gl = canvas.getContext("webgl2")
 
 if (!gl) {
@@ -10,14 +9,23 @@ var vertexShaderSource = `#version 300 es
  
 // an attribute is an input (in) to a vertex shader.
 // It will receive data from a buffer
-in vec4 a_position;
+in vec2 a_position;
+
+uniform vec2 u_resolution;
  
 // all shaders have a main function
 void main() {
+  // convert the position from pixels to 0.0 to 1.0
+  vec2 zeroToOne = a_position / u_resolution;
  
-  // gl_Position is a special variable a vertex shader
-  // is responsible for setting
-  gl_Position = a_position;
+  // convert from 0->1 to 0->2
+  vec2 zeroToTwo = zeroToOne * 2.0;
+ 
+  // convert from 0->2 to -1->+1 (clip space)
+  vec2 clipSpace = zeroToTwo - 1.0;
+ 
+  // Special variable to connect to the fragment shader
+  gl_Position = vec4(clipSpace, 0, 1);
 }
 `;
  
@@ -77,9 +85,12 @@ gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
 // Put 3 2D points into the ARRAY_BUFFER
 var positions = [
-  0, 0,
-  0, 0.5,
-  0.7, 0,
+  10, 20,
+  80, 20,
+  10, 30,
+  10, 30,
+  80, 20,
+  80, 30,
 ];
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
@@ -131,9 +142,17 @@ gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 gl.clearColor(0, 0, 0, 0);
 gl.clear(gl.COLOR_BUFFER_BIT);
 
-
 // Tell it to use our program (pair of shaders)
 gl.useProgram(program);
+
+// Set the resolution
+var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+
+// XXX Do we need this after "useProgram"? In principle you can set them after
+// linking, I think
+
+
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
 // Bind the attribute/buffer set we want.
 // XXX Do we need this? It was called already
@@ -142,5 +161,5 @@ gl.useProgram(program);
 // draw
 var primitiveType = gl.TRIANGLES;
 var offset = 0;
-var count = 3;
+var count = 6;
 gl.drawArrays(primitiveType, offset, count);
