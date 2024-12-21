@@ -55,18 +55,21 @@ function createShader(gl, type, source) {
   gl.deleteShader(shader);
 }
 
-function createProgram(gl, vertexShader, fragmentShader) {
-  var program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
-  if (success) {
-    return program;
-  }
+function createProgram(gl, vertexShaderSource, fragmentShaderSource) {
+    var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
-  console.log(gl.getProgramInfoLog(program));
-  gl.deleteProgram(program);
+    var program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+    if (success) {
+        return program;
+    }
+
+    console.log(gl.getProgramInfoLog(program));
+    gl.deleteProgram(program);
 }
 
 function resizeCanvasToDisplaySize(canvas) {
@@ -125,14 +128,12 @@ function resizeAndClear(gl) {
 }
 
 // TODO Kill this one too
-function drawScene(program, vao, positionAttributeLocation, resolutionUniformLocation, positionBuffer, translation, width, height, colorUniformLocation, color, size, type, normalize, stride) {
-    resizeAndClear(gl)
+function drawScene(program, vao, positionAttributeLocation, resolutionUniformLocation, translation, width, height, colorUniformLocation, color, size, type, normalize, stride) {
 
     gl.useProgram(program);
     gl.bindVertexArray(vao);
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     setRectangle(gl, translation[0], translation[1], width, height);
     gl.uniform4fv(colorUniformLocation, color);
     gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset)
@@ -143,13 +144,15 @@ function drawScene(program, vao, positionAttributeLocation, resolutionUniformLoc
     gl.drawArrays(primitiveType, offset, count);
 }
 
-function main() {
-    // Create both shaders
-    var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+function bindPositionBuffer() {
+    var positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+}
 
-    // Create the program linking both shaders
-    var program = createProgram(gl, vertexShader, fragmentShader);
+function main() {
+    resizeAndClear(gl)
+
+    var program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
 
     // Get the location of the input attribute for the vertex shader. This gets the
     // input coordinates
@@ -158,14 +161,10 @@ function main() {
     var colorUniformLocation = gl.getUniformLocation(program, "u_color");
 
     // Create a buffer to hold the positions and bind it as ARRAY_BUFFER
-    var positionBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
+    bindPositionBuffer();
 
     // Create a vertex array, bind it and enable it in the position bound to a_position
     var vao = gl.createVertexArray();
-    // gl.bindVertexArray(vao);
-    // gl.enableVertexAttribArray(positionAttributeLocation);
 
     // Set up how to pull data from the buffer into the vertex array
     var size = 2;          // 2 components per iteration
@@ -182,7 +181,7 @@ function main() {
     var height = 30;
     var color = [Math.random(), Math.random(), Math.random(), 1];
 
-    drawScene(program, vao, positionAttributeLocation, resolutionUniformLocation, positionBuffer, translation, width, height, colorUniformLocation, color, size, type, normalize, stride)
+    drawScene(program, vao, positionAttributeLocation, resolutionUniformLocation, translation, width, height, colorUniformLocation, color, size, type, normalize, stride)
 }
 
 main()
