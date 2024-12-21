@@ -7,7 +7,8 @@ if (!gl) {
     throw new Error("No gl for you")
 }
 
-var vertexShaderSource = `#version 300 es
+function getVertexShaderSource() {
+    return `#version 300 es
 
 // an attribute is an input (in) to a vertex shader.
 // It will receive data from a buffer
@@ -23,8 +24,10 @@ void main() {
   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 }
 `;
+}
 
-var fragmentShaderSource = `#version 300 es
+function getFragmentShaderSource() {
+    return `#version 300 es
 
 // fragment shaders don't have a default precision so we need
 // to pick one. highp is a good default. It means "high precision"
@@ -40,6 +43,7 @@ void main() {
   outColor = u_color;
 }
 `;
+}
 
 function createShader(gl, type, source) {
   var shader = gl.createShader(type);
@@ -55,9 +59,9 @@ function createShader(gl, type, source) {
   gl.deleteShader(shader);
 }
 
-function createProgram(gl, vertexShaderSource, fragmentShaderSource) {
-    var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+function createProgram(gl) {
+    var vertexShader = createShader(gl, gl.VERTEX_SHADER, getVertexShaderSource());
+    var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, getFragmentShaderSource());
 
     var program = gl.createProgram();
     gl.attachShader(program, vertexShader);
@@ -161,7 +165,7 @@ function drawScene(gl, nVertices, iterationSize) {
 function drawGl(translation) {
     resizeAndClear(gl)
 
-    var program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+    var program = createProgram(gl);
     gl.useProgram(program);
 
     // Set uniforms
