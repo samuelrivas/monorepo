@@ -1,12 +1,5 @@
 "use strict";
 
-const canvas = document.getElementById("canvas");
-const gl = canvas.getContext("webgl2")
-
-if (!gl) {
-    throw new Error("No gl for you")
-}
-
 function getVertexShaderSource() {
     return `#version 300 es
 
@@ -162,7 +155,7 @@ function drawScene(gl, nVertices, iterationSize) {
     gl.drawArrays(primitiveType, offset, count);
 }
 
-function drawGl(translation) {
+function drawGl(gl, translation) {
     resizeAndClear(gl)
 
     var program = createProgram(gl);
@@ -184,8 +177,8 @@ function drawGl(translation) {
     drawScene(gl, vertices.length, iterationSize);
 }
 
-function redraw(translation) {
-    drawGl(translation);
+function redraw(gl, translation) {
+    drawGl(gl, translation);
 }
 
 function getSlider(id) {
@@ -201,24 +194,31 @@ function getTranslationSliders() {
     };
 }
 
-function setUI() {
+function setUI(gl) {
     var translationSliders = getTranslationSliders()
-    translationSliders.x.oninput = () => updateTranslation(translationSliders);
-    translationSliders.y.oninput = () => updateTranslation(translationSliders);
+    translationSliders.x.oninput = () => updateTranslation(gl, translationSliders);
+    translationSliders.y.oninput = () => updateTranslation(gl, translationSliders);
 }
 
 function getTranslation(sliders) {
     return [sliders.x.value, sliders.y.value];
 }
 
-function updateTranslation(sliders) {
-    redraw(getTranslation(sliders));
+function updateTranslation(gl, sliders) {
+    redraw(gl, getTranslation(sliders));
     
 }
 
 function main() {
-    setUI();
-    drawGl(getTranslation(getTranslationSliders()));
+    const canvas = document.getElementById("canvas");
+    const gl = canvas.getContext("webgl2")
+
+    if (!gl) {
+        throw new Error("No gl for you")
+    }
+
+    setUI(gl);
+    drawGl(gl, getTranslation(getTranslationSliders()));
 }
 
-main()
+main();
