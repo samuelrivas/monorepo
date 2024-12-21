@@ -180,6 +180,10 @@ function drawGl(translation) {
     drawScene(gl, vertices.length, iterationSize);
 }
 
+function redraw(translation) {
+    drawGl(translation);
+}
+
 function getSlider(id) {
     return document.getElementById(id);
 }
@@ -193,7 +197,7 @@ function getTranslationSliders() {
     };
 }
 
-function setUI(updateX, updateY) {
+function setUI() {
     var translationSliders = getTranslationSliders()
     translationSliders.x.oninput = () => updateTranslation(translationSliders);
     translationSliders.y.oninput = () => updateTranslation(translationSliders);
@@ -204,12 +208,12 @@ function getTranslation(sliders) {
 }
 
 function updateTranslation(sliders) {
-    console.log(`translation: ${getTranslation(sliders)}`);
+    redraw(getTranslation(sliders));
     
 }
 
 function main() {
-    setUI(() => console.log("x"), () => console.log("y"));
+    setUI();
     drawGl(getTranslation(getTranslationSliders()));
 }
 
