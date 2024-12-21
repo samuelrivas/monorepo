@@ -158,7 +158,7 @@ function drawScene(gl, nVertices, iterationSize) {
     gl.drawArrays(primitiveType, offset, count);
 }
 
-function main() {
+function drawGl(translation) {
     resizeAndClear(gl)
 
     var program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
@@ -170,7 +170,6 @@ function main() {
     setResolutionUniform(gl, program, gl.canvas.width, gl.canvas.height)
 
     // Set attributes
-    var translation = [0, 0];
     var width = 100;
     var height = 30;
     var vertices = createRectangleCoordinateArray(translation[0], translation[1], width, height);
@@ -179,6 +178,35 @@ function main() {
 
     // Draw the scene
     drawScene(gl, vertices.length, iterationSize);
+}
+
+function getSlider(id) {
+    return document.getElementById(id);
+}
+
+function setUI(updateX, updateY) {
+    var sliderX = getSlider("xValue");
+    var sliderY = getSlider("yValue");
+    var sliders = {
+        "x" : sliderX,
+        "y" : sliderY,
+    };
+    sliderX.oninput = () => updateTranslation(sliders);
+    sliderY.oninput = () => updateTranslation(sliders);
+}
+
+function getTranslation(sliders) {
+    return [sliders.slider-x.value, sliders.slider-y.value];
+}
+
+function updateTranslation(sliders) {
+    
+}
+
+function main() {
+    var translation = [0, 0];
+    setUI(() => console.log("x"), () => console.log("y"));
+    drawGl(translation);
 }
 
 main()
