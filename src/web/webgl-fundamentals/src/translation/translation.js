@@ -184,29 +184,33 @@ function getSlider(id) {
     return document.getElementById(id);
 }
 
-function setUI(updateX, updateY) {
-    var sliderX = getSlider("xValue");
-    var sliderY = getSlider("yValue");
-    var sliders = {
+function getTranslationSliders() {
+    var sliderX = getSlider("x-value");
+    var sliderY = getSlider("y-value");
+    return {
         "x" : sliderX,
         "y" : sliderY,
     };
-    sliderX.oninput = () => updateTranslation(sliders);
-    sliderY.oninput = () => updateTranslation(sliders);
+}
+
+function setUI(updateX, updateY) {
+    var translationSliders = getTranslationSliders()
+    translationSliders.x.oninput = () => updateTranslation(translationSliders);
+    translationSliders.y.oninput = () => updateTranslation(translationSliders);
 }
 
 function getTranslation(sliders) {
-    return [sliders.slider-x.value, sliders.slider-y.value];
+    return [sliders.x.value, sliders.y.value];
 }
 
 function updateTranslation(sliders) {
+    console.log(`translation: ${getTranslation(sliders)}`);
     
 }
 
 function main() {
-    var translation = [0, 0];
     setUI(() => console.log("x"), () => console.log("y"));
-    drawGl(translation);
+    drawGl(getTranslation(getTranslationSliders()));
 }
 
 main()
