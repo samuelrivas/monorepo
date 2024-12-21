@@ -106,15 +106,6 @@ function createRectangleCoordinateArray(x, y, w, h) {
     ]);
 }
 
-// TODO: KILL this one
-function setRectangle(gl, x, y, width, height) {
-    // NOTE: gl.bufferData(gl.ARRAY_BUFFER, ...) will affect whatever buffer is
-    // bound to the `ARRAY_BUFFER` bind point
-
-    gl.bufferData(gl.ARRAY_BUFFER, createRectangleCoordinateArray(x, y, width, height),
-                  gl.STATIC_DRAW);
-}
-
 // Returns a random integer from 0 to range - 1.
 function randomInt(range) {
     return Math.floor(Math.random() * range);
@@ -127,61 +118,67 @@ function resizeAndClear(gl) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-// TODO Kill this one too
-function drawScene(program, vao, positionAttributeLocation, resolutionUniformLocation, translation, width, height, colorUniformLocation, color, size, type, normalize, stride) {
-
-    gl.useProgram(program);
-    gl.bindVertexArray(vao);
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-    setRectangle(gl, translation[0], translation[1], width, height);
+function setColorUniform(gl, program, color) {
+    var colorUniformLocation = gl.getUniformLocation(program, "u_color");
     gl.uniform4fv(colorUniformLocation, color);
-    gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset)
-
-    var primitiveType = gl.TRIANGLES;
-    var offset = 0;
-    var count = 6;
-    gl.drawArrays(primitiveType, offset, count);
 }
 
-function bindPositionBuffer() {
+function setResolutionUniform(gl, program, w, h) {
+    var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+    gl.uniform2f(resolutionUniformLocation, w, h);
+}
+
+// Load vertices in the buffer and connect it to a_position with the appropriate
+// iteration size
+function setPositionAttribute(gl, program, vertices, iterationSize) {
     var positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-}
 
-function main() {
-    resizeAndClear(gl)
-
-    var program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
-
-    // Get the location of the input attribute for the vertex shader. This gets the
-    // input coordinates
-    var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-    var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-    var colorUniformLocation = gl.getUniformLocation(program, "u_color");
-
-    // Create a buffer to hold the positions and bind it as ARRAY_BUFFER
-    bindPositionBuffer();
-
-    // Create a vertex array, bind it and enable it in the position bound to a_position
     var vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
 
-    // Set up how to pull data from the buffer into the vertex array
-    var size = 2;          // 2 components per iteration
+    var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+    gl.enableVertexAttribArray(positionAttributeLocation);
+
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
     var type = gl.FLOAT;   // the data is 32bit floats
     var normalize = false; // don't normalize the data
     var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
     var offset = 0;        // start at the beginning of the buffer
 
     // This also binds positionBuffer (the current ARRAY_BUFFER) to the a_position attribute
-    // gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset)
+    gl.vertexAttribPointer(positionAttributeLocation, iterationSize, type, normalize, stride, offset);
+}
 
+function drawScene(gl, nVertices, iterationSize) {
+    var primitiveType = gl.TRIANGLES;
+    var offset = 0;
+    var count = nVertices / iterationSize;
+    gl.drawArrays(primitiveType, offset, count);
+}
+
+function main() {
+    resizeAndClear(gl)
+
+    var program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+    gl.useProgram(program);
+
+    // Set uniforms
+    var color = [Math.random(), Math.random(), Math.random(), 1];
+    setColorUniform(gl, program, color);
+    setResolutionUniform(gl, program, gl.canvas.width, gl.canvas.height)
+
+    // Set attributes
     var translation = [0, 0];
     var width = 100;
     var height = 30;
-    var color = [Math.random(), Math.random(), Math.random(), 1];
+    var vertices = createRectangleCoordinateArray(translation[0], translation[1], width, height);
+    var iterationSize = 2;
+    setPositionAttribute(gl, program, vertices, iterationSize)
 
-    drawScene(program, vao, positionAttributeLocation, resolutionUniformLocation, translation, width, height, colorUniformLocation, color, size, type, normalize, stride)
+    // Draw the scene
+    drawScene(gl, vertices.length, iterationSize);
 }
 
 main()
