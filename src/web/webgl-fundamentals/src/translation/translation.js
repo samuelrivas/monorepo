@@ -93,6 +93,8 @@ function createRectangleCoordinateArray(x, y, w, h) {
     var y1 = y;
     var y2 = y + h;
 
+    console.log(`(${x1}, ${y1}) (${x2}, ${y2})`)
+
     return new Float32Array([
         x1, y1,
         x2, y1,
@@ -129,6 +131,7 @@ function setResolutionUniform(gl, program, w, h) {
 // iteration size
 function setPositionAttribute(gl, program, vertices, iterationSize) {
     var positionBuffer = gl.createBuffer();
+
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
     var vao = gl.createVertexArray();
@@ -155,30 +158,27 @@ function drawScene(gl, nVertices, iterationSize) {
     gl.drawArrays(primitiveType, offset, count);
 }
 
-function drawGl(gl, translation) {
+function drawGl(gl, graphicsState) {
     resizeAndClear(gl)
 
     var program = createProgram(gl);
     gl.useProgram(program);
 
     // Set uniforms
-    var color = [Math.random(), Math.random(), Math.random(), 1];
+    var color = graphicsState.color;
     setColorUniform(gl, program, color);
     setResolutionUniform(gl, program, gl.canvas.width, gl.canvas.height)
 
     // Set attributes
     var width = 100;
     var height = 30;
+    var translation = graphicsState.translation;
     var vertices = createRectangleCoordinateArray(translation[0], translation[1], width, height);
     var iterationSize = 2;
     setPositionAttribute(gl, program, vertices, iterationSize)
 
     // Draw the scene
     drawScene(gl, vertices.length, iterationSize);
-}
-
-function redraw(gl, translation) {
-    drawGl(gl, translation);
 }
 
 function getSlider(id) {
@@ -194,19 +194,19 @@ function getTranslationSliders() {
     };
 }
 
-function setUI(gl) {
+function setUI(gl, graphicsState) {
     var translationSliders = getTranslationSliders()
-    translationSliders.x.oninput = () => updateTranslation(gl, translationSliders);
-    translationSliders.y.oninput = () => updateTranslation(gl, translationSliders);
+    translationSliders.x.oninput = () => updateTranslation(gl, graphicsState, translationSliders);
+    translationSliders.y.oninput = () => updateTranslation(gl, graphicsState, translationSliders);
 }
 
 function getTranslation(sliders) {
-    return [sliders.x.value, sliders.y.value];
+    return [sliders.x.valueAsNumber, sliders.y.valueAsNumber];
 }
 
-function updateTranslation(gl, sliders) {
-    redraw(gl, getTranslation(sliders));
-    
+function updateTranslation(gl, graphicsState, sliders) {
+    graphicsState.translation = getTranslation(sliders);
+    drawGl(gl, graphicsState);
 }
 
 function main() {
@@ -217,8 +217,14 @@ function main() {
         throw new Error("No gl for you")
     }
 
-    setUI(gl);
-    drawGl(gl, getTranslation(getTranslationSliders()));
+    var graphicsState = {
+        color : [Math.random(), Math.random(), Math.random(), 1],
+        translation : [0, 0]
+    };
+
+    setUI(gl, graphicsState);
+
+    drawGl(gl, graphicsState);
 }
 
 main();
