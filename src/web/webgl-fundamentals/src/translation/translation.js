@@ -9,10 +9,15 @@ in vec2 a_position;
 
 uniform vec2 u_resolution;
 uniform vec2 u_translation;
+uniform vec2 u_rotation;
 
 // all shaders have a main function
 void main() {
-  vec2 clipSpace = (a_position + u_translation) / u_resolution * 2.0 - 1.0;
+  vec2 rotated = vec2(
+    a_position.x * u_rotation.y + a_position.y * u_rotation.x,
+    a_position.y * u_rotation.y - a_position.x * u_rotation.x);
+
+  vec2 clipSpace = (rotated + u_translation) / u_resolution * 2.0 - 1.0;
 
   // Special variable to connect to the fragment shader
   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
@@ -161,6 +166,11 @@ function setTranslationUniform(gl, program, x, y) {
     gl.uniform2f(location, x, y);
 }
 
+function setRotationUniform(gl, program, x, y) {
+    var location = gl.getUniformLocation(program, "u_rotation");
+    gl.uniform2f(location, x, y);
+}
+
 // Load vertices in the buffer and connect it to a_position with the appropriate
 // iteration size
 function setPositionAttribute(gl, program, vertices, iterationSize) {
@@ -213,10 +223,12 @@ function redrawGl(gl, graphicsState) {
     var translation = graphicsState.translation;
     var vertices = graphicsState.vertices;
     var iterationSize = graphicsState.iterationSize;
+    var rotation = graphicsState.rotation;
 
     setColorUniform(gl, program, color);
     setResolutionUniform(gl, program, gl.canvas.width, gl.canvas.height);
     setTranslationUniform(gl, program, translation[0], translation[1]);
+    setRotationUniform(gl, program, rotation[0], rotation[1]);
 
     // Draw the scene
     drawScene(gl, vertices.length, iterationSize);
@@ -261,6 +273,7 @@ function main() {
     var graphicsState = {
         color : [Math.random(), Math.random(), Math.random(), 1],
         translation : [0, 0],
+        rotation : [0, 1],
         program : createProgram(gl),
         vertices : createFCoordinateArray(100, 150, 30),
         iterationSize : 2, // 2D, for now
