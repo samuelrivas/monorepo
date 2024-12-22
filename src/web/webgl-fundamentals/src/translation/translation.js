@@ -238,27 +238,36 @@ function getSlider(id) {
     return document.getElementById(id);
 }
 
-function getTranslationSliders() {
+function getUiSliders() {
     var sliderX = getSlider("x-value");
     var sliderY = getSlider("y-value");
+    var sliderRotation = getSlider("rotation-value");
     return {
         "x" : sliderX,
         "y" : sliderY,
+        "rotation" : sliderRotation,
     };
 }
 
 function setUI(gl, graphicsState) {
-    var translationSliders = getTranslationSliders()
-    translationSliders.x.oninput = () => updateTranslation(gl, graphicsState, translationSliders);
-    translationSliders.y.oninput = () => updateTranslation(gl, graphicsState, translationSliders);
+    var sliders = getUiSliders()
+    sliders.x.oninput = () => updateSlider(gl, graphicsState, sliders);
+    sliders.y.oninput = () => updateSlider(gl, graphicsState, sliders);
+    sliders.rotation.oninput = () => updateSlider(gl, graphicsState, sliders);
 }
 
 function getTranslation(sliders) {
     return [sliders.x.valueAsNumber, sliders.y.valueAsNumber];
 }
 
-function updateTranslation(gl, graphicsState, sliders) {
+function getRotation(sliders) {
+    var radians = sliders.rotation.valueAsNumber * Math.PI;
+    return [Math.cos(radians), Math.sin(radians)];
+}
+
+function updateSlider(gl, graphicsState, sliders) {
     graphicsState.translation = getTranslation(sliders);
+    graphicsState.rotation = getRotation(sliders);
     redrawGl(gl, graphicsState);
 }
 
