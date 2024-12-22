@@ -103,6 +103,33 @@ function createRectangleCoordinateArray(x, y, w, h) {
     ]);
 }
 
+function createFCoordinateArray(x, y, w, h, t) {
+    return new Float32Array([
+        // left column
+        x, y,
+        x + t, y,
+        x, y + h,
+        x, y + h,
+        x + t, y,
+        x + t, y + h,
+        
+        // top rung
+        x + t, y,
+        x + w, y,
+        x + t, y + t,
+        x + t, y + t,
+        x + w, y,
+        x + w, y + t,
+        
+        // middle rung
+        x + t, y + t * 2,
+        x + w * 2 / 3, y + t * 2,
+        x + t, y + t * 3,
+        x + t, y + t * 3,
+        x + w * 2 / 3, y + t * 2,
+        x + w * 2 / 3, y + t * 3]);
+}
+
 // Returns a random integer from 0 to range - 1.
 function randomInt(range) {
     return Math.floor(Math.random() * range);
@@ -171,9 +198,10 @@ function redrawGl(gl, graphicsState) {
 
     // Set attributes
     var width = 100;
-    var height = 30;
+    var height = 150;
+    var thickness = 30;
     var translation = graphicsState.translation;
-    var vertices = createRectangleCoordinateArray(translation[0], translation[1], width, height);
+    var vertices = createFCoordinateArray(translation[0], translation[1], width, height, thickness);
     var iterationSize = 2;
     setPositionAttribute(gl, program, vertices, iterationSize)
 
