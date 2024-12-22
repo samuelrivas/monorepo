@@ -158,12 +158,14 @@ function drawScene(gl, nVertices, iterationSize) {
 
 function drawGl(gl, graphicsState) {
     resizeAndClear(gl)
+    gl.useProgram(graphicsState.program);
+    redrawGl(gl, graphicsState)
+}
 
-    var program = createProgram(gl);
-    gl.useProgram(program);
-
+function redrawGl(gl, graphicsState) {
     // Set uniforms
     var color = graphicsState.color;
+    var program = graphicsState.program;
     setColorUniform(gl, program, color);
     setResolutionUniform(gl, program, gl.canvas.width, gl.canvas.height)
 
@@ -178,7 +180,6 @@ function drawGl(gl, graphicsState) {
     // Draw the scene
     drawScene(gl, vertices.length, iterationSize);
 }
-
 
 function getSlider(id) {
     return document.getElementById(id);
@@ -205,7 +206,7 @@ function getTranslation(sliders) {
 
 function updateTranslation(gl, graphicsState, sliders) {
     graphicsState.translation = getTranslation(sliders);
-    drawGl(gl, graphicsState);
+    redrawGl(gl, graphicsState);
 }
 
 function main() {
@@ -219,10 +220,10 @@ function main() {
     var graphicsState = {
         color : [Math.random(), Math.random(), Math.random(), 1],
         translation : [0, 0],
+        program : createProgram(gl),
     };
 
     setUI(gl, graphicsState);
-
     drawGl(gl, graphicsState);
 }
 
