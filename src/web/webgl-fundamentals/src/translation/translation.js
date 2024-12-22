@@ -93,8 +93,6 @@ function createRectangleCoordinateArray(x, y, w, h) {
     var y1 = y;
     var y2 = y + h;
 
-    console.log(`(${x1}, ${y1}) (${x2}, ${y2})`)
-
     return new Float32Array([
         x1, y1,
         x2, y1,
@@ -181,6 +179,7 @@ function drawGl(gl, graphicsState) {
     drawScene(gl, vertices.length, iterationSize);
 }
 
+
 function getSlider(id) {
     return document.getElementById(id);
 }
@@ -219,7 +218,7 @@ function main() {
 
     var graphicsState = {
         color : [Math.random(), Math.random(), Math.random(), 1],
-        translation : [0, 0]
+        translation : [0, 0],
     };
 
     setUI(gl, graphicsState);
