@@ -8,10 +8,11 @@ function getVertexShaderSource() {
 in vec2 a_position;
 
 uniform vec2 u_resolution;
+uniform vec2 u_translation;
 
 // all shaders have a main function
 void main() {
-  vec2 clipSpace = a_position / u_resolution * 2.0 - 1.0;
+  vec2 clipSpace = (a_position + u_translation) / u_resolution * 2.0 - 1.0;
 
   // Special variable to connect to the fragment shader
   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
@@ -103,7 +104,10 @@ function createRectangleCoordinateArray(x, y, w, h) {
     ]);
 }
 
-function createFCoordinateArray(x, y, w, h, t) {
+function createFCoordinateArray(w, h, t) {
+    const x = 0;
+    const y = 0;
+
     return new Float32Array([
         // left column
         x, y,
@@ -143,13 +147,18 @@ function resizeAndClear(gl) {
 }
 
 function setColorUniform(gl, program, color) {
-    var colorUniformLocation = gl.getUniformLocation(program, "u_color");
-    gl.uniform4fv(colorUniformLocation, color);
+    var location = gl.getUniformLocation(program, "u_color");
+    gl.uniform4fv(location, color);
 }
 
 function setResolutionUniform(gl, program, w, h) {
-    var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-    gl.uniform2f(resolutionUniformLocation, w, h);
+    var location = gl.getUniformLocation(program, "u_resolution");
+    gl.uniform2f(location, w, h);
+}
+
+function setTranslationUniform(gl, program, x, y) {
+    var location = gl.getUniformLocation(program, "u_translation");
+    gl.uniform2f(location, x, y);
 }
 
 // Load vertices in the buffer and connect it to a_position with the appropriate
@@ -184,8 +193,16 @@ function drawScene(gl, nVertices, iterationSize) {
 }
 
 function drawGl(gl, graphicsState) {
+    var program = graphicsState.program;
+    var iterationSize = graphicsState.iterationSize;
+    var vertices = graphicsState.vertices;
+
     resizeAndClear(gl)
-    gl.useProgram(graphicsState.program);
+    gl.useProgram(program);
+
+    // Set the vertex attribute here, as we won't update it (at least not for now)
+    setPositionAttribute(gl, program, vertices, iterationSize)
+
     redrawGl(gl, graphicsState)
 }
 
@@ -193,17 +210,13 @@ function redrawGl(gl, graphicsState) {
     // Set uniforms
     var color = graphicsState.color;
     var program = graphicsState.program;
-    setColorUniform(gl, program, color);
-    setResolutionUniform(gl, program, gl.canvas.width, gl.canvas.height)
-
-    // Set attributes
-    var width = 100;
-    var height = 150;
-    var thickness = 30;
     var translation = graphicsState.translation;
-    var vertices = createFCoordinateArray(translation[0], translation[1], width, height, thickness);
-    var iterationSize = 2;
-    setPositionAttribute(gl, program, vertices, iterationSize)
+    var vertices = graphicsState.vertices;
+    var iterationSize = graphicsState.iterationSize;
+
+    setColorUniform(gl, program, color);
+    setResolutionUniform(gl, program, gl.canvas.width, gl.canvas.height);
+    setTranslationUniform(gl, program, translation[0], translation[1]);
 
     // Draw the scene
     drawScene(gl, vertices.length, iterationSize);
@@ -249,6 +262,8 @@ function main() {
         color : [Math.random(), Math.random(), Math.random(), 1],
         translation : [0, 0],
         program : createProgram(gl),
+        vertices : createFCoordinateArray(100, 150, 30),
+        iterationSize : 2, // 2D, for now
     };
 
     setUI(gl, graphicsState);
