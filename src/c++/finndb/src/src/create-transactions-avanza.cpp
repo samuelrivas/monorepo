@@ -9,9 +9,8 @@
  *
  * The input is a csv with the following format:
  *
- * 0  ,1      ,2   ,3                ,4           ,5          ,6          ,7       ,8       ,9   ,10
- * day,account,type,asset/description,amount asset,asset value,amount cash,courtage,currency,ISIN,result
- *
+ * 0    ,1     ,2                ,3                      ,4    ,5   ,6     ,7                 ,8             ,9         ,10              ,11  ,12
+ * Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat
  */
 
 #include <iostream>
@@ -97,8 +96,8 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, ';');
 
-    if (tokens.size() != 11) {
-      cerr << format("Line '%s' produces %d tokens, we want 11\n")
+    if (tokens.size() != 13) {
+      cerr << format("Line '%s' produces %d tokens, we want 13\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
@@ -114,8 +113,8 @@ int main() {
     //
     // Movements that introduce stock from other accounts show up as Övrigt,
     // with no cash movement
-    if (type != TransactionType::ASSET_TRANSFER || tokens[8] != "-") {
-      cout << movement_line(tokens[0], tokens[8], tokens[1], "Avanza",
+    if (type != TransactionType::ASSET_TRANSFER || tokens[10] != "-") {
+      cout << movement_line(tokens[0], tokens[10], tokens[1], "Avanza",
                             tokens[6], transaction_id);
     }
 
@@ -131,7 +130,7 @@ int main() {
       // the description field. For now we hardcode the assets using the ISIN,
       // but we may want to move to always use the ISIN and have another table
       // to translate ISINs to asset names
-      cout << movement_line(tokens[0], isin_to_asset(tokens[9]), tokens[1], "Avanza",
+      cout << movement_line(tokens[0], isin_to_asset(tokens[11]), tokens[1], "Avanza",
                             tokens[4], transaction_id);
     } else {
 
@@ -140,9 +139,10 @@ int main() {
           && type != TransactionType::TAX) {
         // Dividend and tax have an asset amount set, but they don't involve
         // changing any asset holding (they just affect cash). Anything here
-        // should relate to no assets and thus "Antal" should be "-"
-        if (tokens[4] != "-") {
+        // should relate to no assets and thus "Antal" should be ""
+        if (tokens[4] != "") {
           cerr << "Found a potential asset movement that we don't expect:\n"
+               << "antal is \"" << tokens[4] << "\" we want \"-\"\n"
                << line;
           assert(false);
         }
