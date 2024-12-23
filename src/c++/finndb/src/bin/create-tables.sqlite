@@ -173,3 +173,5 @@ INSERT INTO asset_info (asset, currency, type) VALUES ('Avanza Global', 'SEK', '
 INSERT INTO asset_info (asset, currency, type) VALUES ('ISHARES B E AGG', 'EUR', 'debt security');
 INSERT INTO asset_info (asset, currency, type) VALUES ('FUTUR', 'SEK', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('SPP', 'SEK', 'stock');
+INSERT INTO asset_info (asset, currency, type) VALUES ('BTP1 Trygg', 'SEK', 'stock');
+INSERT INTO asset_info (asset, currency, type) VALUES ('BTP1 Valbar', 'SEK', 'stock');
