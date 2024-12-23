@@ -15,6 +15,11 @@
  *
  * For now, we use the transactions csv (turned into a tsv, and . translated
  * into , afterwards)
+ *
+ * 0    ,1   ,2       ,3   ,4       ,5                  ,6     ,7     ,,9          ,,11   ,,13            ,14                   ,,16   ,,18
+ * Fecha,Hora,Producto,ISIN,Bolsa de,Centro de ejecución,Número,Precio,,Valor local,,Valor,,Tipo de cambio,Costes de transacción,,Total,,ID Orden
+ *
+ * The fields without name seem to contain the currency id
  */
 
 #include <iostream>
