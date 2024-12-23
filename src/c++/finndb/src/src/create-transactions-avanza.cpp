@@ -9,9 +9,8 @@
  *
  * The input is a csv with the following format:
  *
- * 0  ,1      ,2   ,3                ,4           ,5          ,6          ,7       ,8       ,9   ,10
- * day,account,type,asset/description,amount asset,asset value,amount cash,courtage,currency,ISIN,result
- *
+ * 0    ,1     ,2                ,3                      ,4    ,5   ,6     ,7                 ,8             ,9         ,10              ,11  ,12
+ * Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat
  */
 
 #include <iostream>
@@ -32,7 +31,36 @@ using std::string;
 using std::vector;
 using boost::format;
 
-// At some point avanza removed types, so we need to infer them here, but
+struct csv_line {
+  // 0
+  string date;
+  // 1
+  string account;
+  // 2
+  string type;
+  // 3
+  string asset;
+  // 4
+  string amount;
+  // 5
+  string unit_price;
+  // 6
+  string monetary_amount;
+  // 7
+  string transaction_currency;
+  // 8
+  string courtage;
+  // 9
+  string currency_rate;
+  // 10
+  string instrument_currency;
+  // 11
+  string isin;
+  // 12
+  string result;
+};
+
+// At some point Avanza removed types, so we need to infer them here, but
 // currently the only "Övrigt" types are taxes
 TransactionType parse_misc(const string& description) {
   if (description.find("skatt") != string::npos) {
@@ -90,6 +118,40 @@ string isin_to_asset(const string& isin) {
   assert(false);
 }
 
+csv_line tokens_to_line(const vector<string>& tokens) {
+  return {
+    tokens[0],
+    tokens[1],
+    tokens[2],
+    tokens[3],
+    tokens[4],
+    tokens[5],
+    tokens[6],
+    tokens[7],
+    tokens[8],
+    tokens[9],
+    tokens[10],
+    tokens[11],
+    tokens[12]
+  };
+}
+
+void debug_line(const csv_line& parsed_line) {
+  cerr << "date: " << parsed_line.date << "\n"
+       << "account: " << parsed_line.account << "\n"
+       << "type: " << parsed_line.type << "\n"
+       << "asset: " << parsed_line.asset << "\n"
+       << "amount: " << parsed_line.amount << "\n"
+       << "unit_price: " << parsed_line.unit_price << "\n"
+       << "monetary_amount: " << parsed_line.monetary_amount << "\n"
+       << "transaction_currency: " << parsed_line.transaction_currency << "\n"
+       << "courtage: " << parsed_line.courtage << "\n"
+       << "currency_rate: " << parsed_line.currency_rate << "\n"
+       << "instrument_currency: " << parsed_line.instrument_currency << "\n"
+       << "isin: " << parsed_line.isin << "\n"
+       << "result: " << parsed_line.result << "\n";
+}
+
 int main() {
 
   cin.sync_with_stdio(false);
@@ -97,42 +159,49 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, ';');
 
-    if (tokens.size() != 11) {
-      cerr << format("Line '%s' produces %d tokens, we want 11\n")
+    if (tokens.size() != 13) {
+      cerr << format("Line '%s' produces %d tokens, we want 13\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
     }
 
+    csv_line parsed_line = tokens_to_line(tokens);
+
+    // For debugging
+    // cerr << line << "\n";
+    // debug_line(parsed_line);
+
     string transaction_id = sha1(line);
-    TransactionType type = parse_type(tokens[2], tokens[3]);
+    TransactionType type = parse_type(parsed_line.type, parsed_line.asset);
 
     // Transaction
-    cout << transaction_line(transaction_id, tokens[0], type, line);
+    cout << transaction_line(transaction_id, parsed_line.date, type, line);
 
     // Cash movement
     //
     // Movements that introduce stock from other accounts show up as Övrigt,
     // with no cash movement
-    if (type != TransactionType::ASSET_TRANSFER || tokens[8] != "-") {
-      cout << movement_line(tokens[0], tokens[8], tokens[1], "Avanza",
-                            tokens[6], transaction_id);
+    if (type != TransactionType::ASSET_TRANSFER || parsed_line.instrument_currency != "") {
+      cout << movement_line(parsed_line.date, parsed_line.transaction_currency,
+                            parsed_line.account, "Avanza",
+                            parsed_line.monetary_amount, transaction_id);
     }
 
     // Movements and transactions
     if (type == TransactionType::BUY
         || type == TransactionType::SELL) {
       // Asset movement
-      cout << movement_line(tokens[0], tokens[3], tokens[1], "Avanza",
-                            tokens[4], transaction_id);
+      cout << movement_line(parsed_line.date, parsed_line.asset, parsed_line.account, "Avanza",
+                            parsed_line.amount, transaction_id);
 
     } else if (type == TransactionType::ASSET_TRANSFER) {
       // This is also an asset movement, but Avanza codifies the asset name in
       // the description field. For now we hardcode the assets using the ISIN,
       // but we may want to move to always use the ISIN and have another table
       // to translate ISINs to asset names
-      cout << movement_line(tokens[0], isin_to_asset(tokens[9]), tokens[1], "Avanza",
-                            tokens[4], transaction_id);
+      cout << movement_line(parsed_line.date, isin_to_asset(parsed_line.isin), parsed_line.account, "Avanza",
+                            parsed_line.amount, transaction_id);
     } else {
 
       // Just some safety verifications
@@ -140,9 +209,10 @@ int main() {
           && type != TransactionType::TAX) {
         // Dividend and tax have an asset amount set, but they don't involve
         // changing any asset holding (they just affect cash). Anything here
-        // should relate to no assets and thus "Antal" should be "-"
-        if (tokens[4] != "-") {
+        // should relate to no assets and thus "Antal" should be ""
+        if (parsed_line.amount != "") {
           cerr << "Found a potential asset movement that we don't expect:\n"
+               << "antal is \"" << tokens[4] << "\" we want \"-\"\n"
                << line;
           assert(false);
         }
