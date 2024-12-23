@@ -148,7 +148,7 @@ INSERT INTO asset_info (asset, currency, type) VALUES ('SPP Aktiefond Europa', '
 INSERT INTO asset_info (asset, currency, type) VALUES ('SPP Aktiefond USA', 'SEK', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('Schibsted ser. B', 'NOK', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('Tesla Inc', 'USD', 'stock');
-INSERT INTO asset_info (asset, currency, type) VALUES ('UB Global REIT A', 'SEK', 'real estate');
+INSERT INTO asset_info (asset, currency, type) VALUES ('UB Global Fastighetsaktie A', 'SEK', 'real estate');
 INSERT INTO asset_info (asset, currency, type) VALUES ('ÖH REALOBLIG', 'SEK', 'debt security');
 INSERT INTO asset_info (asset, currency, type) VALUES ('Öhman Etisk Index Europa', 'SEK', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('Öhman Etisk Index USA A', 'SEK', 'stock');
