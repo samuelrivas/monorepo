@@ -49,7 +49,7 @@
 (if (string-equal system-type "darwin")
     nil
   (setq browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "chromium-browser"))
+        browse-url-generic-program "xdg-open"))
 
 (setq backup-by-copying t)
 (setq backup-directory-alist '(("." . "~/.emacs-backups")))
