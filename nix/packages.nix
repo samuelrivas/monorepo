@@ -3,7 +3,6 @@
   lib-sam, # lib from this monorepo
   lib-system, # system dependent libs
   nixpkgs, # official nixpkgs set
-  vscode-marketplace,
 }: let
   builders = lib-system.sam.builders;
   derivation-helpers = lib-sam.derivation-helpers;
@@ -88,13 +87,6 @@
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped =
       callPackage ./pkgs/development/libraries/aspell-wrapped {};
-
-    # VSC stuff
-    # =========
-    my-vscode = callPackage ./pkgs/applications/editors/my-vscode {
-      inherit vscode-marketplace;
-      terraform = nixpkgs.terraform.withPlugins (p: [p.aws]);
-    };
 
     # Haskell stuff
     # =============
