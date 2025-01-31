@@ -4,13 +4,11 @@
   inputs = {
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-22-11.url = "github:NixOS/nixpkgs/nixos-22.11";
-    vscode-extensions.url = "github:nix-community/nix-vscode-extensions/master";
   };
   outputs = {
     self,
     nixpkgs-22-11,
     nixpkgs-unstable,
-    vscode-extensions,
   }: let
     lib-nixpkgs = nixpkgs-unstable.lib;
     lib-sam = import ./nix/lib.nix {
@@ -34,7 +32,6 @@
     instantiate-packages-sam = input-nixpkgs: system:
       import ./nix/lib-internal/instantiate-packages-sam.nix {
         inherit lib-sam lib-nixpkgs system input-nixpkgs instantiate-lib-system;
-        input-vscode-extensions = vscode-extensions;
         packages-generator = import ./nix/packages.nix;
       };
 
