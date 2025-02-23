@@ -5,8 +5,8 @@
   haskell-pkg,
   lens,
   lib,
+  libnotify,
   parsec,
-  pkgs, # we get libnotify from here, if we write libnotify directly we get a haskell library
   writeShellScriptBin,
 }: let
   binary = haskell-pkg {
@@ -23,7 +23,7 @@
   };
   # FIXME The DBUS address should not be hardcoded...
   script = writeShellScriptBin "low-battery-notify" ''
-    export PATH=${pkgs.libnotify}/bin:${acpi}/bin
+    export PATH=${libnotify}/bin:${acpi}/bin
     export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
     ${binary}/bin/low-battery-check
   '';

@@ -25,7 +25,10 @@
       boollib = h-package ./../src/haskell/boollib/nix {};
       clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
       hashcode-photoalbum = h-package ./../src/haskell/hashcode-photoalbum/nix {};
-      low-battery = h-package ./../src/haskell/low-battery/nix {};
+      low-battery = h-package ./../src/haskell/low-battery/nix {
+        # there is a libnotify in haskellPackages that aliases this one
+        inherit (nixpkgs) libnotify;
+      };
       mk-conf-file = h-package ./../src/haskell/mk-conf-file/nix {};
       monad-emit = h-package ./../src/haskell/monad-emit/nix {};
       name-generator = h-package ./../src/haskell/name-generator/nix {};
