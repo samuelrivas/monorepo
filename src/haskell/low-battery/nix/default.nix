@@ -1,12 +1,9 @@
 {
   HSH,
-  acpi,
-  generic-lens,
   haskell-pkg,
-  lens,
   lib,
   libnotify,
-  parsec,
+  perlude,
   writeShellScriptBin,
 }: let
   binary = haskell-pkg {
@@ -14,17 +11,15 @@
     src = ./../src;
     haskell-libs = [
       HSH
-      parsec
-      generic-lens
-      lens
+      perlude
     ];
-    extra-native-build-inputs = [acpi];
+    extra-native-build-inputs = [libnotify];
     extra-drv = {meta.platforms = lib.platforms.linux;};
   };
   # FIXME The DBUS address should not be hardcoded...
   script = writeShellScriptBin "low-battery-notify" ''
-    export PATH=${libnotify}/bin:${acpi}/bin
-    export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+    export PATH=${libnotify}/bin
+    export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus
     ${binary}/bin/low-battery-check
   '';
 in

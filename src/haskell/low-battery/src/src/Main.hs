@@ -2,118 +2,65 @@
 -- {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DeriveGeneric    #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Main (
   main,
-  test,
-  test2
   )
 where
 
-import           Control.Applicative  ((<|>))
-import           Control.Lens         (view)
-import           Control.Monad        (unless)
-import           Data.Char            (digitToInt)
-import           Data.Foldable        (foldl')
-import           Data.Functor         (($>))
-import           Data.Generics.Labels ()
-import           GHC.Generics         (Generic)
-import           HSH                  (exit, run)
-import           Text.Parsec          (Parsec, char, digit, many, many1, noneOf,
-                                       parse, skipMany, space, spaces, string)
+import           Perlude
 
-data AcpiStatus = AcpiStatus
-  { timeLeft   :: (Int, Int, Int),
-    isCharging :: Bool
-  } deriving (Show, Generic)
+import           Control.Monad (when)
+import           Data.Text     (dropEnd)
+import           HSH           (exit, run)
+import           System.IO     (stderr)
 
-test :: String
-test = "Battery 0: Discharging, 63%, 05:46:02 remaining\n"
+data BatteryStatus = Unknown | Critical | Low | Normal | High | Full
+  deriving stock (Show, Eq, Ord)
 
-test2 :: String
-test2 = "Battery 0: Charging, 9%, 01:48:25 until charged\n"
+data Urgency = Alert | Regular
+  deriving stock Show
 
-test3 :: String
-test3 = "Battery 0: Not charging, 100%"
+urgency :: BatteryStatus -> Urgency
+urgency Unknown  = Alert
+urgency Critical = Alert
+urgency _        = Regular
 
-acpiCommand :: String
-acpiCommand = "acpi -b"
+urgencyToText :: Urgency -> Text
+urgencyToText Alert   = "critical"
+urgencyToText Regular = "normal"
 
-acpiLine :: Parsec String st AcpiStatus
-acpiLine = do
-  plugged <- batteryStatus
-  skipMany (space <|> comma)
-  skipMany notComma
-  skipMany (space <|> comma)
-  t <- remaining
-  pure $ AcpiStatus t plugged
+parseBatteryLevel :: Text -> Maybe BatteryStatus
+parseBatteryLevel "Unknown"  = Just Unknown
+parseBatteryLevel "Critical" = Just Critical
+parseBatteryLevel "Low"      = Just Low
+parseBatteryLevel "Normal"   = Just Normal
+parseBatteryLevel "High"     = Just High
+parseBatteryLevel "Full"     = Just Full
+parseBatteryLevel _          = Nothing
+
+warnLowBattery :: BatteryStatus -> IO ()
+warnLowBattery s =
+  let
+    u = urgency s
+  in
+    run $ unpack $
+    "notify-send -u " <> urgencyToText u <> " \"Battery " <> show s <>"\""
 
 -- https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power
--- This comes from /sys/class/poweer_supply/<supply name>/status
-batteryStatus :: Parsec String st Bool
-batteryStatus =
-  many notColon *> colon *> spaces *>
-  (string "Discharging" $> False
-   <|> string "Charging" $> True
-   <|> string "Not charging" $> True
-   <|> string "Full" $> True)
-
-remaining :: Parsec String st (Int, Int, Int)
-remaining = time <* spaces <* (string "remaining" <|> string "until charged")
-
-time :: Parsec String st (Int, Int, Int)
-time = (,,) <$> (number <* colon) <*> (number <* colon) <*> number
-
-comma :: Parsec String st Char
-comma = char ','
-
-notComma :: Parsec String st Char
-notComma = noneOf ","
-
-colon :: Parsec String st Char
-colon = char ':'
-
-notColon :: Parsec String st Char
-notColon = noneOf ":"
-
-number :: Parsec String st Int
-number = foldl' (\n c -> n * 10 + digitToInt c) 0 <$> many1 digit
-
-toMinutes :: (Int, Int, Int) -> Int
-toMinutes (h, m, _) = 60 * h + m
-
-handleAcpiOutput :: String -> IO ()
-handleAcpiOutput acpiOutput =
-  case parse acpiLine acpiOutput acpiOutput of
-    Right status ->
-      let minutesLeft = toMinutes $ view #timeLeft status
-      in unless (view #isCharging status || minutesLeft > warningMinutes) $
-         warnLowBattery minutesLeft
-    Left err -> do
-      print err
-      exit 1
-
-timeMessage :: Int -> String
-timeMessage t = show t <> " minutes left"
-
-criticalMinutes :: Int
-criticalMinutes = 30
-
-warningMinutes :: Int
-warningMinutes = 40
-
-urgency :: Int -> String
-urgency x
-  | x < criticalMinutes = "critical"
-  | otherwise = "normal"
-
-warnLowBattery :: Int -> IO ()
-warnLowBattery t =
-  run $
-  "notify-send -u " <> urgency t <> " \"Battery low\" " <> show (timeMessage t)
+readSysFile :: MonadIO m => m Text
+readSysFile = dropEnd 1 <$> readFile "/sys/class/power_supply/BAT1/capacity_level"
 
 main :: IO ()
-main = run acpiCommand >>= handleAcpiOutput
+main = do
+  maybeLevel <- parseBatteryLevel <$> readSysFile
+  case maybeLevel of
+    Nothing ->
+      do
+        hPutStrLn stderr "Could not parse battery level"
+        exit  1
+    Just level ->
+      when (level < Normal) $ warnLowBattery level
