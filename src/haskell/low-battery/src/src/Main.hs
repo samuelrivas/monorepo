@@ -36,6 +36,9 @@ test = "Battery 0: Discharging, 63%, 05:46:02 remaining\n"
 test2 :: String
 test2 = "Battery 0: Charging, 9%, 01:48:25 until charged\n"
 
+test3 :: String
+test3 = "Battery 0: Not charging, 100%"
+
 acpiCommand :: String
 acpiCommand = "acpi -b"
 
@@ -48,10 +51,15 @@ acpiLine = do
   t <- remaining
   pure $ AcpiStatus t plugged
 
+-- https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power
+-- This comes from /sys/class/poweer_supply/<supply name>/status
 batteryStatus :: Parsec String st Bool
 batteryStatus =
   many notColon *> colon *> spaces *>
-  (string "Discharging" $> False <|> string "Charging" $> True)
+  (string "Discharging" $> False
+   <|> string "Charging" $> True
+   <|> string "Not charging" $> True
+   <|> string "Full" $> True)
 
 remaining :: Parsec String st (Int, Int, Int)
 remaining = time <* spaces <* (string "remaining" <|> string "until charged")
