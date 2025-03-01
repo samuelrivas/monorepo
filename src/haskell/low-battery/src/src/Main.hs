@@ -1,6 +1,6 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+-- {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fwarn-unused-imports #-}
 
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
@@ -15,7 +15,7 @@ import           Perlude
 
 import           Control.Monad (when)
 import           Data.Text     (dropEnd)
-import           HSH           (exit, run)
+import           HSH           (run)
 import           System.IO     (stderr)
 
 -- Status and capacity levels are documented here:
@@ -60,12 +60,11 @@ unplugged :: Status -> Bool
 unplugged status = status == Discharging || status == StUnknown
 
 warnLowBattery :: CapacityLevel -> IO ()
-warnLowBattery s =
-  let
-    u = urgency s
-  in
-    run $ unpack $
-    "notify-send -u " <> urgencyToText u <> " \"Battery " <> show s <>"\""
+warnLowBattery capacityLevel =
+  run . unpack $
+  "notify-send -u "
+  <> (urgencyToText . urgency $ capacityLevel)
+  <> " \"Battery " <> show capacityLevel <>"\""
 
 -- Just drop the final new line
 readSysFile :: MonadIO m => FilePath -> m Text
