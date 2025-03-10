@@ -5,7 +5,6 @@
   gcc,
   gdb,
   graphlib,
-  kcachegrind, # Needs the enviornment in PATH to work ATM
   less,
   lib,
   rapidcheck,
@@ -30,7 +29,6 @@ stdenv.mkDerivation {
     ++ lib.optionals (!stdenv.isDarwin)
     [
       gdb
-      kcachegrind
       strace
       valgrind
     ];
