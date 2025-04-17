@@ -38,11 +38,34 @@
       searchlib = h-package ./../src/haskell/searchlib/nix {};
     };
   };
+  myEmacsPackages = with nixpkgs.emacsPackages; [
+    colorThemeSolarized
+    company
+    eglot
+    flycheck-haskell
+    go-mode
+    groovy-mode
+    haskell-mode
+    helm
+    helm-ls-git
+    helm-org
+    helm-projectile
+    htmlize
+    markdown-mode
+    nix-mode
+    projectile
+    terraform-mode
+    yaml-mode
+    yasnippet
+    s
+  ];
 
   packages = {
     # Emacs stuff
-    # =============
-    emacs-config = callPackage ./../src/elisp/emacs-config/nix {};
+    # ===========
+    emacs-config = callPackage ./../src/elisp/emacs-config/nix {
+      emacs = nixpkgs.emacs.pkgs.emacsWithPackages myEmacsPackages;
+    };
 
     copilot = callPackage ./pkgs/applications/editors/copilot {
       inherit
@@ -71,6 +94,7 @@
           flycheck-haskell
           go-mode
           groovy-mode
+          haskell-mode
           helm
           helm-ls-git
           helm-org
@@ -82,6 +106,7 @@
           terraform-mode
           yaml-mode
           yasnippet
+          s
           ;
         inherit (nixpkgs.python3Packages) jedi-language-server;
         emacsWithPackages = emacs-package.pkgs.emacsWithPackages;

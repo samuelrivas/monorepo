@@ -26,6 +26,7 @@
   git,
   gopls,
   groovy-mode,
+  haskell-mode,
   helm,
   helm-ls-git,
   helm-org,
@@ -34,13 +35,15 @@
   markdown-mode,
   nil,
   nix-mode,
+  nodejs,
   projectile,
+  s,
   silver-searcher,
   stdenv,
   stylish-haskell,
   symlinkJoin,
-  terraform-mode,
   terraform-ls,
+  terraform-mode,
   texliveMedium,
   writeShellScriptBin,
   yaml-mode,
@@ -91,6 +94,7 @@ in
     git
     gopls
     groovy-mode
+    haskell-mode
     helm
     helm-ls-git
     helm-org
@@ -99,7 +103,9 @@ in
     markdown-mode
     nil
     nix-mode
+    nodejs # Needed by copilot
     projectile
+    s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
     silver-searcher
     stylish-haskell
     terraform-ls
