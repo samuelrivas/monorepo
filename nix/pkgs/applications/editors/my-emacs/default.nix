@@ -34,6 +34,7 @@
   markdown-mode,
   nil,
   nix-mode,
+  nodejs,
   projectile,
   s,
   silver-searcher,
@@ -100,6 +101,7 @@ in
     markdown-mode
     nil
     nix-mode
+    nodejs # Needed by copilot
     projectile
     s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
     silver-searcher
