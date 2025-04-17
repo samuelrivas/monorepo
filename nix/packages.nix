@@ -45,6 +45,7 @@
     flycheck-haskell
     go-mode
     groovy-mode
+    haskell-mode
     helm
     helm-ls-git
     helm-org
@@ -93,6 +94,7 @@
           flycheck-haskell
           go-mode
           groovy-mode
+          haskell-mode
           helm
           helm-ls-git
           helm-org

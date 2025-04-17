@@ -26,6 +26,7 @@
   git,
   gopls,
   groovy-mode,
+  haskell-mode,
   helm,
   helm-ls-git,
   helm-org,
@@ -93,6 +94,7 @@ in
     git
     gopls
     groovy-mode
+    haskell-mode
     helm
     helm-ls-git
     helm-org
