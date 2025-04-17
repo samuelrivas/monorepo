@@ -35,12 +35,13 @@
   nil,
   nix-mode,
   projectile,
+  s,
   silver-searcher,
   stdenv,
   stylish-haskell,
   symlinkJoin,
-  terraform-mode,
   terraform-ls,
+  terraform-mode,
   texliveMedium,
   writeShellScriptBin,
   yaml-mode,
@@ -100,6 +101,7 @@ in
     nil
     nix-mode
     projectile
+    s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
     silver-searcher
     stylish-haskell
     terraform-ls

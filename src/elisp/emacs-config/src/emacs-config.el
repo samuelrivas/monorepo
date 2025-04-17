@@ -76,6 +76,7 @@
 ;; (setq whitespace-style '(face trailing empty tabs lines-tail))
 
 ;; helm, projectile, etc
+(require 'helm-mode)
 (helm-mode)
 (projectile-mode)
 
