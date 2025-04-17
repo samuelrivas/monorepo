@@ -112,6 +112,11 @@
         emacsWithPackages = emacs-package.pkgs.emacsWithPackages;
       };
 
+    my-emacs-config-file =
+      nixpkgs.writeText "config.el"
+      (builtins.readFile
+        packages.emacs-config.passthru.config-file);
+
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped =
       callPackage ./pkgs/development/libraries/aspell-wrapped {};
