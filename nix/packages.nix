@@ -44,16 +44,6 @@
     # ===========
     emacs-config = callPackage ./../src/elisp/emacs-config/nix {};
 
-    copilot = callPackage ./pkgs/applications/editors/copilot {
-      inherit
-        (nixpkgs.emacsPackages)
-        dash
-        editorconfig
-        s
-        trivialBuild
-        ;
-    };
-
     # An emacs wrapper with the needed packages accessible
     my-emacs = let
       emacs-package =
