@@ -112,10 +112,14 @@
         emacsWithPackages = emacs-package.pkgs.emacsWithPackages;
       };
 
+    # Everything in this set must be a derivation. Store files are not
+    # derivations, so we need to wrap the configuration file into a derivation
+    # to output it here
     my-emacs-config-file =
-      nixpkgs.writeText "config.el"
-      (builtins.readFile
-        packages.emacs-config.passthru.config-file);
+      nixpkgs.runCommandLocal
+      "config.el"
+      {}
+      "ln -s ${packages.emacs-config.passthru.config-file} $out";
 
     # aspell needs to be configured to find the dictionaries
     aspell-wrapped =
