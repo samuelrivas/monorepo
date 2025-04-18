@@ -61,10 +61,12 @@
     company
     copilot
     eglot
+    f
     flycheck-haskell
     go-mode
     groovy-mode
     haskell-mode
+    hcl-mode
     helm
     helm-ls-git
     helm-org
@@ -72,22 +74,25 @@
     htmlize
     jedi-language-server
     markdown-mode
+    llama
     nix-mode
-    nodejs # Needed by copilot
     projectile
     s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
     terraform-mode
+    wfnames
     yaml-mode
     yasnippet
   ];
 
   sam-packages = [
-    aspell-wrapped
+    emacs-config
   ];
 
   extra-binaries = [
+    aspell-wrapped
     git
     go
+    gopls
     jedi-language-server
     nil
     nodejs # Needed by copilot
