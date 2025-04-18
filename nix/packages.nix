@@ -38,34 +38,11 @@
       searchlib = h-package ./../src/haskell/searchlib/nix {};
     };
   };
-  myEmacsPackages = with nixpkgs.emacsPackages; [
-    colorThemeSolarized
-    company
-    eglot
-    flycheck-haskell
-    go-mode
-    groovy-mode
-    haskell-mode
-    helm
-    helm-ls-git
-    helm-org
-    helm-projectile
-    htmlize
-    markdown-mode
-    nix-mode
-    projectile
-    terraform-mode
-    yaml-mode
-    yasnippet
-    s
-  ];
 
   packages = {
     # Emacs stuff
     # ===========
-    emacs-config = callPackage ./../src/elisp/emacs-config/nix {
-      emacs = nixpkgs.emacs.pkgs.emacsWithPackages myEmacsPackages;
-    };
+    emacs-config = callPackage ./../src/elisp/emacs-config/nix {};
 
     copilot = callPackage ./pkgs/applications/editors/copilot {
       inherit
@@ -86,30 +63,7 @@
     in
       callPackage ./pkgs/applications/editors/my-emacs {
         inherit (nixpkgs) stdenv;
-        inherit
-          (nixpkgs.emacsPackages)
-          colorThemeSolarized
-          company
-          eglot
-          flycheck-haskell
-          go-mode
-          groovy-mode
-          haskell-mode
-          helm
-          helm-ls-git
-          helm-org
-          helm-projectile
-          htmlize
-          markdown-mode
-          nix-mode
-          projectile
-          terraform-mode
-          yaml-mode
-          yasnippet
-          s
-          ;
         inherit (nixpkgs.python3Packages) jedi-language-server;
-        emacsWithPackages = emacs-package.pkgs.emacsWithPackages;
       };
 
     # Everything in this set must be a derivation. Store files are not

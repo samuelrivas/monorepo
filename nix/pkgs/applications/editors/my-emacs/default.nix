@@ -9,45 +9,19 @@
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
   aspell-wrapped,
-  colorThemeSolarized,
-  company,
-  copilot,
-  eglot,
+  emacs,
   emacs-config,
-  emacsWithPackages,
-  flycheck-haskell,
-  # FIXME: go is not properly added as a dependency, it ends up as a broken link
-  # in the depenedencies derivation, this nix fixing in emacsWithPackages. At
-  # the moment, you need to install go in your profile, without that eglot
-  # cannot start
-  go,
-  go-mode,
-  jedi-language-server,
-  git,
   gopls,
-  groovy-mode,
-  haskell-mode,
-  helm,
-  helm-ls-git,
-  helm-org,
-  helm-projectile,
-  htmlize,
-  markdown-mode,
+  jedi-language-server,
   nil,
-  nix-mode,
   nodejs,
-  projectile,
-  s,
   silver-searcher,
-  stdenv,
   stylish-haskell,
+  stdenv,
   symlinkJoin,
   terraform-ls,
-  terraform-mode,
   texliveMedium,
   writeShellScriptBin,
-  yaml-mode,
-  yasnippet,
 }: let
   # Emacs sometimes uses its own `exec-path` to launc binaries and sometimes it
   # fires up a shell and launches binaries from there. At least latex preview
@@ -79,8 +53,10 @@
     if stdenv.isDarwin
     then wrapDarwin
     else wrapLinux;
-in
-  wrap (emacsWithPackages [
+  emacsPackages = emacs.pkgs;
+
+  # We need some packages to be available at compile time
+  emacsWithPackages = emacs.pkgs.emacsWithPackages (with emacsPackages; [
     aspell-wrapped
     colorThemeSolarized
     company
@@ -112,4 +88,6 @@ in
     terraform-mode
     yaml-mode
     yasnippet
-  ])
+  ]);
+in
+  wrap emacsWithPackages
