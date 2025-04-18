@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t -*-
+
 ;; Disable packages (we use nix for dependencies)
 (defvar package-archives)
 (setq package-archives nil)
