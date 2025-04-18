@@ -9,45 +9,21 @@
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
   aspell-wrapped,
-  colorThemeSolarized,
-  company,
-  copilot,
-  eglot,
+  emacs,
   emacs-config,
-  emacsWithPackages,
-  flycheck-haskell,
-  # FIXME: go is not properly added as a dependency, it ends up as a broken link
-  # in the depenedencies derivation, this nix fixing in emacsWithPackages. At
-  # the moment, you need to install go in your profile, without that eglot
-  # cannot start
-  go,
-  go-mode,
-  jedi-language-server,
   git,
+  go,
   gopls,
-  groovy-mode,
-  haskell-mode,
-  helm,
-  helm-ls-git,
-  helm-org,
-  helm-projectile,
-  htmlize,
-  markdown-mode,
+  jedi-language-server,
   nil,
-  nix-mode,
   nodejs,
-  projectile,
-  s,
   silver-searcher,
-  stdenv,
   stylish-haskell,
+  stdenv,
   symlinkJoin,
   terraform-ls,
-  terraform-mode,
   texliveMedium,
   writeShellScriptBin,
-  yaml-mode,
-  yasnippet,
 }: let
   # Emacs sometimes uses its own `exec-path` to launc binaries and sometimes it
   # fires up a shell and launches binaries from there. At least latex preview
@@ -79,37 +55,56 @@
     if stdenv.isDarwin
     then wrapDarwin
     else wrapLinux;
-in
-  wrap (emacsWithPackages [
-    aspell-wrapped
+
+  emacs-packages = with emacs.pkgs; [
     colorThemeSolarized
     company
     copilot
     eglot
-    emacs-config
+    f
     flycheck-haskell
-    go
     go-mode
-    jedi-language-server
-    git
-    gopls
     groovy-mode
     haskell-mode
+    hcl-mode
     helm
     helm-ls-git
     helm-org
     helm-projectile
     htmlize
+    jedi-language-server
     markdown-mode
-    nil
+    llama
     nix-mode
-    nodejs # Needed by copilot
     projectile
     s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
+    terraform-mode
+    wfnames
+    yaml-mode
+    yasnippet
+  ];
+
+  sam-packages = [
+    emacs-config
+  ];
+
+  extra-binaries = [
+    aspell-wrapped
+    git
+    go
+    gopls
+    jedi-language-server
+    nil
+    nodejs # Needed by copilot
     silver-searcher
     stylish-haskell
     terraform-ls
-    terraform-mode
-    yaml-mode
-    yasnippet
-  ])
+  ];
+
+  emacsWithPackages = emacs.pkgs.emacsWithPackages (
+    emacs-packages
+    ++ sam-packages
+    ++ extra-binaries
+  );
+in
+  wrap emacsWithPackages
