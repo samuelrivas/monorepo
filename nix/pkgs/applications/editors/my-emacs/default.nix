@@ -11,6 +11,8 @@
   aspell-wrapped,
   emacs,
   emacs-config,
+  git,
+  go,
   gopls,
   jedi-language-server,
   nil,
@@ -53,22 +55,14 @@
     if stdenv.isDarwin
     then wrapDarwin
     else wrapLinux;
-  emacsPackages = emacs.pkgs;
 
-  # We need some packages to be available at compile time
-  emacsWithPackages = emacs.pkgs.emacsWithPackages (with emacsPackages; [
-    aspell-wrapped
+  emacs-packages = with emacs.pkgs; [
     colorThemeSolarized
     company
     copilot
     eglot
-    emacs-config
     flycheck-haskell
-    go
     go-mode
-    jedi-language-server
-    git
-    gopls
     groovy-mode
     haskell-mode
     helm
@@ -76,18 +70,36 @@
     helm-org
     helm-projectile
     htmlize
+    jedi-language-server
     markdown-mode
-    nil
     nix-mode
     nodejs # Needed by copilot
     projectile
     s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
-    silver-searcher
-    stylish-haskell
-    terraform-ls
     terraform-mode
     yaml-mode
     yasnippet
-  ]);
+  ];
+
+  sam-packages = [
+    aspell-wrapped
+  ];
+
+  extra-binaries = [
+    git
+    go
+    jedi-language-server
+    nil
+    nodejs # Needed by copilot
+    silver-searcher
+    stylish-haskell
+    terraform-ls
+  ];
+
+  emacsWithPackages = emacs.pkgs.emacsWithPackages (
+    emacs-packages
+    ++ sam-packages
+    ++ extra-binaries
+  );
 in
   wrap emacsWithPackages
