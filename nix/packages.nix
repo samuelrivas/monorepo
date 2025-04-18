@@ -52,6 +52,7 @@
         else nixpkgs.emacs;
     in
       callPackage ./pkgs/applications/editors/my-emacs {
+        emacs = emacs-package;
         inherit (nixpkgs) stdenv;
         inherit (nixpkgs.python3Packages) jedi-language-server;
       };
