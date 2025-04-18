@@ -62,6 +62,7 @@
     copilot
     eglot
     f
+    flycheck
     flycheck-haskell
     go-mode
     groovy-mode
