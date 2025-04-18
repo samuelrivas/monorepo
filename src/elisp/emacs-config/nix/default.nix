@@ -23,4 +23,6 @@ stdenv.mkDerivation rec {
     cp -r ../build "$DIR/site-lisp"
     cp *.el "$DIR/site-lisp"
   '';
+
+  passthru.config-file = ../src/emacs-config.el;
 }
