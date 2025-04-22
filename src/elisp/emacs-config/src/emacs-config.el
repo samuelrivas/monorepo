@@ -68,6 +68,10 @@
 (use-package cc-mode
   :hook (c-mode . (lambda () (c-toggle-comment-style -1))))
 
+(use-package flyspell
+  :hook ((prog-mode . flyspell-prog-mode)
+         (text-mode . flyspell-mode)))
+
 ;; Legacy
 ;; ======
 
