@@ -38,27 +38,28 @@
 (global-hl-line-mode t)
 
 ;; Global variables
-(setq-default fill-column 80)
+(setq-default fill-column 80
+              indent-tabs-mode nil
+              inhibit-splash-screen t
+              backup-by-copying t
+              backup-directory-alist '(("." . "~/.emacs-backups"))
+              delete-old-versions t
+              kept-new-versions 10
+              kept-old-versions 0
+              version-control t
+              require-final-newline 'ask
+              mode-require-final-newline t)
 
-(setq inhibit-splash-screen t)
-
-(setq-default indent-tabs-mode nil)
-
-(defvar browse-url-generic-program)
 (if (string-equal system-type "darwin")
     nil
-  (setq browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "xdg-open"))
+  (setq-default browse-url-browser-function 'browse-url-generic
+                browse-url-generic-program "xdg-open"))
 
-(setq backup-by-copying t)
-(setq backup-directory-alist '(("." . "~/.emacs-backups")))
-(setq delete-old-versions t)
-(setq kept-new-versions 10)
-(setq kept-old-versions 0)
-(setq version-control t)
 
-(setq require-final-newline 'ask)
-(setq mode-require-final-newline t)
+
+
+;; Legacy
+;; ======
 
 ;; Assorted modes
 (add-to-list 'auto-mode-alist '("Makefile\\..*\\'" . makefile-mode))
