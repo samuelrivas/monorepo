@@ -65,6 +65,11 @@
   :config (helm-mode)
   :bind ("C-x C-d" . helm-browse-project))
 
+(use-package cc-mode
+  :config
+  (defun my-c-mode-setup ()
+    (c-toggle-comment-style -1))
+  :hook (c-mode . my-c-mode-setup))
 
 ;; Legacy
 ;; ======
@@ -97,15 +102,15 @@
 (add-hook 'latex-mode-hook 'eglot-ensure)
 
 ;; C/C++ mode
-(defun my-c-mode-hook ()
-  (flyspell-prog-mode)
-  (auto-fill-mode)
-  (setq indent-tabs-mode nil)
-  (setq comment-start "//")
-  (setq comment-end ""))
+;; (defun my-c-mode-hook ()
+;;   (flyspell-prog-mode)
+;;   (auto-fill-mode)
+;;   (setq indent-tabs-mode nil)
+;;   (setq comment-start "//")
+;;   (setq comment-end ""))
 
-(add-hook 'c-mode-hook 'my-c-mode-hook)
-(add-hook 'c++-mode-hook 'my-c-mode-hook)
+;; (add-hook 'c-mode-hook 'my-c-mode-hook)
+;; (add-hook 'c++-mode-hook 'my-c-mode-hook)
 
 ;; Javascript mode
 (defun my-javascript-mode-hook ()
