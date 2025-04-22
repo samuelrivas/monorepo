@@ -56,6 +56,14 @@
                 browse-url-generic-program "xdg-open"))
 
 
+;; Packages
+;; ========
+(use-package projectile
+  :config projectile-mode)
+
+(use-package helm
+  :config (helm-mode)
+  :bind ("C-x C-d" . helm-browse-project))
 
 
 ;; Legacy
@@ -74,18 +82,6 @@
 ;; (defvar whitespace-style)
 ;; (setq whitespace-line-column 80)
 ;; (setq whitespace-style '(face trailing empty tabs lines-tail))
-
-;; helm, projectile, etc
-(require 'helm-mode)
-(helm-mode)
-(projectile-mode)
-
-(defvar helm-completing-read-handlers-alist)
-(global-set-key (kbd "C-x C-d") 'helm-browse-project)
-(add-to-list 'helm-completing-read-handlers-alist
-             '(org-capture . helm-org-completing-read-tags))
-(add-to-list 'helm-completing-read-handlers-alist
-             '(org-set-tags . helm-org-completing-read-tags))
 
 ;; LaTeX mode
 (defvar eglot-mode-map)
