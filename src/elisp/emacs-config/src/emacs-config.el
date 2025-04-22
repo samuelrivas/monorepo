@@ -56,8 +56,8 @@
                 browse-url-generic-program "xdg-open"))
 
 
-;; Packages
-;; ========
+;; Packages and major modes
+;; ========================
 (use-package projectile
   :config projectile-mode)
 
@@ -66,10 +66,7 @@
   :bind ("C-x C-d" . helm-browse-project))
 
 (use-package cc-mode
-  :config
-  (defun my-c-mode-setup ()
-    (c-toggle-comment-style -1))
-  :hook (c-mode . my-c-mode-setup))
+  :hook (c-mode . (lambda () (c-toggle-comment-style -1))))
 
 ;; Legacy
 ;; ======
