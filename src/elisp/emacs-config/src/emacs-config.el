@@ -69,9 +69,6 @@
 ;; Legacy
 ;; ======
 
-;; Assorted modes
-(add-to-list 'auto-mode-alist '("Makefile\\..*\\'" . makefile-mode))
-
 ;; Whitespace mode is currently broken, when enabled several things fail with
 ;; "Marker does not point to anywhere". For example creating LaTeX previews
 ;; does't work
