@@ -37,9 +37,6 @@
 (auto-fill-mode t)
 (global-hl-line-mode t)
 
-;; Key bindings
-(global-set-key "\M-g" 'goto-line)
-
 ;; Global variables
 (setq-default fill-column 80)
 
