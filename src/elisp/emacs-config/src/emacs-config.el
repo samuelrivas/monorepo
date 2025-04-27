@@ -72,6 +72,22 @@
   :hook ((prog-mode . flyspell-prog-mode)
          (text-mode . flyspell-mode)))
 
+(use-package auctex
+  :hook (LaTeX-mode . eglot-ensure)
+  :hook (LaTeX-mode . my-latex-mode-hook)
+  :config
+  (defun my-latex-mode-hook ()
+    "LaTeX mode hook"
+    (message "wooooo")
+    (yas-minor-mode)
+    (company-mode)
+    (flyspell-mode t)
+    (ispell-change-dictionary "british")
+    ;; (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
+    ;; (add-to-list 'eglot-ignored-server-capabilities :hoverProvider)))
+))
+
+
 ;; Legacy
 ;; ======
 
@@ -87,20 +103,20 @@
 ;; (setq whitespace-style '(face trailing empty tabs lines-tail))
 
 ;; LaTeX mode
-(defvar eglot-mode-map)
-(defvar eglot-ignored-server-capabilities)
-(defun my-latex-mode-hook ()
-  "LaTeX mode hook"
-  (yas-minor-mode)
-  (company-mode)
-  (flyspell-mode t)
-  (ispell-change-dictionary "british")
-  (auto-fill-mode t)
-  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
-  (add-to-list 'eglot-ignored-server-capabilities :hoverProvider))
+;; (defvar eglot-mode-map)
+;; (defvar eglot-ignored-server-capabilities)
+;; (defun my-latex-mode-hook ()
+;;   "LaTeX mode hook"
+;;   (yas-minor-mode)
+;;   (company-mode)
+;;   (flyspell-mode t)
+;;   (ispell-change-dictionary "british")
+;;   (auto-fill-mode t)
+;;   (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
+;;   (add-to-list 'eglot-ignored-server-capabilities :hoverProvider))
 
-(add-hook 'latex-mode-hook 'my-latex-mode-hook)
-(add-hook 'latex-mode-hook 'eglot-ensure)
+;; (add-hook 'latex-mode-hook 'my-latex-mode-hook)
+;; (add-hook 'latex-mode-hook 'eglot-ensure)
 
 ;; C/C++ mode
 ;; (defun my-c-mode-hook ()

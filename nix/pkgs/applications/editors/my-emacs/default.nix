@@ -57,6 +57,7 @@
     else wrapLinux;
 
   emacs-packages = with emacs.pkgs; [
+    auctex
     colorThemeSolarized
     company
     copilot
