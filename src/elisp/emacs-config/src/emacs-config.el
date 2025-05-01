@@ -105,20 +105,13 @@
 
   :hook (text-mode . copilot-mode))
 
+(use-package ispell
+  :config
+  (setq-default ispell-dictionary "british"))
+
 ;; Legacy
 ;; ======
-
-;; Text mode
-(defun my-text-mode-hook ()
-  (ispell-change-dictionary "british")
-  (auto-fill-mode t)
-  (require 'copilot)
-  (copilot-mode t)
-  (flyspell-mode t))
-
 (add-to-list 'auto-mode-alist '("COMMIT_EDITMSG\\'" . text-mode))
-
-(add-hook 'text-mode-hook 'my-text-mode-hook)
 
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
