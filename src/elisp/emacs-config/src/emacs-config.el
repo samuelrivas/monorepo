@@ -19,34 +19,16 @@
         (revert-buffer t t t))))
   (message "Refreshed open files."))
 
-;; Colour theme
-(setq frame-background-mode 'dark)
-(load-theme 'solarized t)
-(enable-theme 'solarized)
-
-;; Global variables
-(setq-default fill-column 80
-              indent-tabs-mode nil
-              inhibit-splash-screen t
-              backup-by-copying t
-              backup-directory-alist '(("." . "~/.emacs-backups"))
-              delete-old-versions t
-              kept-new-versions 10
-              kept-old-versions 0
-              version-control t
-              require-final-newline 'ask
-              mode-require-final-newline t)
-
-(if (string-equal system-type "darwin")
-    nil
-  (setq-default browse-url-browser-function 'browse-url-generic
-                browse-url-generic-program "xdg-open"))
-
-
 ;; Packages and major modes
 ;; ========================
 (use-package emacs
   :config
+  ;; Colour theme
+  ;; ============
+  (setq frame-background-mode 'dark)
+  (load-theme 'solarized t)
+  (enable-theme 'solarized)
+
   ; Minor modes
   (scroll-bar-mode -1)
   (menu-bar-mode -1)
@@ -59,6 +41,28 @@
   (blink-cursor-mode -1)
   (global-hl-line-mode t)
 
+  ;; Global variables
+  ;; ================
+  (setq-default
+   fill-column 80
+   indent-tabs-mode nil
+   inhibit-splash-screen t
+   backup-by-copying t
+   backup-directory-alist '(("." . "~/.emacs-backups"))
+   delete-old-versions t
+   kept-new-versions 10
+   kept-old-versions 0
+   version-control t
+   require-final-newline 'ask
+   mode-require-final-newline t)
+
+  (if (string-equal system-type "darwin")
+      nil
+    (setq-default browse-url-browser-function 'browse-url-generic
+                  browse-url-generic-program "xdg-open"))
+
+  ;; Global hooks
+  ;; ============
   :hook (text-mode . auto-fill-mode))
 
 (use-package projectile
