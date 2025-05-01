@@ -113,19 +113,6 @@
 ;; Legacy
 ;; ======
 
-;; Erlang mode
-(autoload 'erlang-mode "erlang-start" "erlang-mode" t)
-(add-to-list 'auto-mode-alist '("\\.[he]rl\\'" . erlang-mode))
-
-(defun my-erlang-mode-hook ()
-  "Erlang mode hook"
-  (setq indent-tabs-mode nil)
-  (auto-fill-mode)
-  (flyspell-prog-mode)
-  (ispell-change-dictionary "british"))
-
-(add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
-
 ;; Haskell mode
 (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
 (add-hook 'haskell-mode-hook 'eglot-ensure)
