@@ -65,6 +65,13 @@
   ;; ============
   :hook (text-mode . auto-fill-mode))
 
+(use-package whitespace
+  :config
+  (global-whitespace-mode t)
+  (setq-default
+   whitespace-line-column 80
+   whitespace-style '(face trailing empty tabs lines-tail missing-newline-at-eof)))
+
 (use-package projectile
   :config projectile-mode)
 
@@ -89,47 +96,8 @@
 (use-package auctex
   :hook (LaTeX-mode . eglot-ensure))
 
-
 ;; Legacy
 ;; ======
-
-;; Whitespace mode is currently broken, when enabled several things fail with
-;; "Marker does not point to anywhere". For example creating LaTeX previews
-;; does't work
-
-;; Whitespace mode
-;; (global-whitespace-mode t)
-;; (defvar whitespace-line-column)
-;; (defvar whitespace-style)
-;; (setq whitespace-line-column 80)
-;; (setq whitespace-style '(face trailing empty tabs lines-tail))
-
-;; LaTeX mode
-;; (defvar eglot-mode-map)
-;; (defvar eglot-ignored-server-capabilities)
-;; (defun my-latex-mode-hook ()
-;;   "LaTeX mode hook"
-;;   (yas-minor-mode)
-;;   (company-mode)
-;;   (flyspell-mode t)
-;;   (ispell-change-dictionary "british")
-;;   (auto-fill-mode t)
-;;   (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
-;;   (add-to-list 'eglot-ignored-server-capabilities :hoverProvider))
-
-;; (add-hook 'latex-mode-hook 'my-latex-mode-hook)
-;; (add-hook 'latex-mode-hook 'eglot-ensure)
-
-;; C/C++ mode
-;; (defun my-c-mode-hook ()
-;;   (flyspell-prog-mode)
-;;   (auto-fill-mode)
-;;   (setq indent-tabs-mode nil)
-;;   (setq comment-start "//")
-;;   (setq comment-end ""))
-
-;; (add-hook 'c-mode-hook 'my-c-mode-hook)
-;; (add-hook 'c++-mode-hook 'my-c-mode-hook)
 
 ;; Javascript mode
 (defun my-javascript-mode-hook ()
