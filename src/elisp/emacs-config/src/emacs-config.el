@@ -121,20 +121,10 @@
   :config
   (setq haskell-stylish-on-save t))
 
+(use-package nix-mode)
+
 ;; Legacy
 ;; ======
-
-;; Nix mode
-(autoload 'nix-mode "nix-mode" "nix-mode" t)
-(add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
-(add-hook 'nix-mode-hook 'my-nix-mode-hook)
-(add-hook 'nix-mode-hook 'eglot-ensure)
-(defun my-nix-mode-hook ()
-  (require 'copilot)
-  (copilot-mode t)
-  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
-  (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
-  (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
 ;; Terraform mode
 (add-hook 'terraform-mode-hook 'eglot-ensure)
