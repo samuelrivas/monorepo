@@ -59,14 +59,12 @@
   (if (string-equal system-type "darwin")
       nil
     (setq-default browse-url-browser-function 'browse-url-generic
-                  browse-url-generic-program "xdg-open"))
+                  browse-url-generic-program "xdg-open")))
 
-  ;; Global hooks
-  ;; ============
-  :hook (text-mode . auto-fill-mode))
 
 (use-package text-mode
-  :mode ("COMMIT_EDITMSG\\'" . text-mode))
+  :mode ("COMMIT_EDITMSG\\'" . text-mode)
+  :hook (text-mode . auto-fill-mode))
 
 (use-package whitespace
   :config
