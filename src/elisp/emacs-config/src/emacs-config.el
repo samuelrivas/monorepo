@@ -88,6 +88,12 @@
   ((prog-mode . flyspell-prog-mode)
    (text-mode . flyspell-mode)))
 
+(use-package yasnippet
+  :hook (prog-mode . yas-minor-mode))
+
+(use-package company
+  :hook (prog-mode . company-mode))
+
 (use-package eglot
   :bind (:map eglot-mode-map
               ("C-c l" . eglot-code-actions)
@@ -111,22 +117,12 @@
   :config
   (setq-default ispell-dictionary "british"))
 
+(use-package haskell-mode
+  :config
+  (setq haskell-stylish-on-save t))
+
 ;; Legacy
 ;; ======
-
-;; Haskell mode
-(add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
-(add-hook 'haskell-mode-hook 'eglot-ensure)
-(defvar haskell-stylish-on-save)
-(defun my-haskell-mode-hook ()
-  (yas-minor-mode)
-  (company-mode)
-  (flycheck-mode)
-  (flyspell-prog-mode)
-  (setq haskell-stylish-on-save t)
-  (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
-  (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
-  (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
 ;; Nix mode
 (autoload 'nix-mode "nix-mode" "nix-mode" t)
