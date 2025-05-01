@@ -99,14 +99,6 @@
 ;; Legacy
 ;; ======
 
-;; Javascript mode
-(defun my-javascript-mode-hook ()
-  (flyspell-prog-mode)
-  (auto-fill-mode)
-  (setq indent-tabs-mode nil))
-
-(add-hook 'js-mode-hook 'my-javascript-mode-hook)
-
 ;; Text mode
 (defun my-text-mode-hook ()
   (ispell-change-dictionary "british")
