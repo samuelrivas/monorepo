@@ -66,7 +66,6 @@
     flycheck
     flycheck-haskell
     go-mode
-    groovy-mode
     haskell-mode
     hcl-mode
     helm
