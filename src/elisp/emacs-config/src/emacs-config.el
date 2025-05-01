@@ -69,23 +69,12 @@
   :hook (c-mode . (lambda () (c-toggle-comment-style -1))))
 
 (use-package flyspell
-  :hook ((prog-mode . flyspell-prog-mode)
-         (text-mode . flyspell-mode)))
+  :hook
+  ((prog-mode . flyspell-prog-mode)
+   (text-mode . flyspell-mode)))
 
 (use-package auctex
-  :hook (LaTeX-mode . eglot-ensure)
-  :hook (LaTeX-mode . my-latex-mode-hook)
-  :config
-  (defun my-latex-mode-hook ()
-    "LaTeX mode hook"
-    (message "wooooo")
-    (yas-minor-mode)
-    (company-mode)
-    (flyspell-mode t)
-    (ispell-change-dictionary "british")
-    ;; (define-key eglot-mode-map (kbd "C-c l") 'eglot-code-actions)
-    ;; (add-to-list 'eglot-ignored-server-capabilities :hoverProvider)))
-))
+  :hook (LaTeX-mode . eglot-ensure))
 
 
 ;; Legacy
