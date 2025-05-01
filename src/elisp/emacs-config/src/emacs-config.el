@@ -24,19 +24,6 @@
 (load-theme 'solarized t)
 (enable-theme 'solarized)
 
-;; Minor modes
-(scroll-bar-mode -1)
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(column-number-mode t)
-(global-font-lock-mode t)
-(transient-mark-mode t)
-(delete-selection-mode t)
-(show-paren-mode t)
-(blink-cursor-mode -1)
-(auto-fill-mode t)
-(global-hl-line-mode t)
-
 ;; Global variables
 (setq-default fill-column 80
               indent-tabs-mode nil
@@ -58,6 +45,21 @@
 
 ;; Packages and major modes
 ;; ========================
+(use-package emacs
+  :config
+  ; Minor modes
+  (scroll-bar-mode -1)
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (column-number-mode t)
+  (global-font-lock-mode t)
+  (transient-mark-mode t)
+  (delete-selection-mode t)
+  (show-paren-mode t)
+  (blink-cursor-mode -1)
+  (auto-fill-mode t)
+  (global-hl-line-mode t))
+
 (use-package projectile
   :config projectile-mode)
 
