@@ -96,6 +96,15 @@
 (use-package auctex
   :hook (LaTeX-mode . eglot-ensure))
 
+(use-package copilot
+  :bind (:map copilot-mode-map
+              ("M-o" . copilot-accept-completion-by-word))
+  :config
+  (add-to-list 'warning-suppress-types '(copilot copilot-no-mode-indent))
+  (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
+
+  :hook (text-mode . copilot-mode))
+
 ;; Legacy
 ;; ======
 
@@ -159,15 +168,6 @@
   (flyspell-prog-mode))
 
 (add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
-
-;; Copilot mode
-(defvar copilot-mode-map)
-(defun my-copilot-mode-hook ()
-  (add-to-list 'warning-suppress-types '(copilot copilot-no-mode-indent))
-  (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
-  (define-key copilot-mode-map (kbd "M-o") 'copilot-accept-completion-by-word))
-
-(add-hook 'copilot-mode-hook 'my-copilot-mode-hook)
 
 ;; Terraform mode
 (add-hook 'terraform-mode-hook 'eglot-ensure)
