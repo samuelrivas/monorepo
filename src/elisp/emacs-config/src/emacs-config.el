@@ -159,16 +159,6 @@
   (define-key eglot-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key eglot-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
-;; Octave mode
-(add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
-
-;; Groovy mode
-(defun my-groovy-mode-hook ()
-  (auto-fill-mode)
-  (flyspell-prog-mode))
-
-(add-hook 'groovy-mode-hook 'my-groovy-mode-hook)
-
 ;; Terraform mode
 (add-hook 'terraform-mode-hook 'eglot-ensure)
 (with-eval-after-load 'eglot
