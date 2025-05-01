@@ -57,8 +57,9 @@
   (delete-selection-mode t)
   (show-paren-mode t)
   (blink-cursor-mode -1)
-  (auto-fill-mode t)
-  (global-hl-line-mode t))
+  (global-hl-line-mode t)
+
+  :hook (text-mode . auto-fill-mode))
 
 (use-package projectile
   :config projectile-mode)
