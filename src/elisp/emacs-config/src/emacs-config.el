@@ -73,6 +73,12 @@
   ((prog-mode . flyspell-prog-mode)
    (text-mode . flyspell-mode)))
 
+(use-package eglot
+  :bind (:map eglot-mode-map
+              ("C-c l" . eglot-code-actions)
+              ("M-n" . flymake-goto-next-error)
+              ("M-p" . 'flymake-goto-prev-error)))
+
 (use-package auctex
   :hook (LaTeX-mode . eglot-ensure))
 
