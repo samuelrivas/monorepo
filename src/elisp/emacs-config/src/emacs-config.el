@@ -92,7 +92,8 @@
   :bind (:map eglot-mode-map
               ("C-c l" . eglot-code-actions)
               ("M-n" . flymake-goto-next-error)
-              ("M-p" . 'flymake-goto-prev-error)))
+              ("M-p" . 'flymake-goto-prev-error))
+  :hook (prog-mode . eglot-ensure))
 
 (use-package auctex
   :hook (LaTeX-mode . eglot-ensure))
@@ -164,6 +165,3 @@
 (defun eglot-format-buffer-before-save ()
   (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
 (add-hook 'go-mode-hook #'eglot-format-buffer-before-save)
-
-;; Python mode
-(add-hook 'python-mode-hook 'eglot-ensure)
