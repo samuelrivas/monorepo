@@ -123,14 +123,10 @@
 
 (use-package nix-mode)
 
+(use-package terraform-mode)
+
 ;; Legacy
 ;; ======
-
-;; Terraform mode
-(add-hook 'terraform-mode-hook 'eglot-ensure)
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-               '(terraform-mode . ("terraform-ls" "serve"))))
 
 ;; Go mode
 ;; (require 'project)
