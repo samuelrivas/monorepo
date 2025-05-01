@@ -65,6 +65,9 @@
   ;; ============
   :hook (text-mode . auto-fill-mode))
 
+(use-package text-mode
+  :mode ("COMMIT_EDITMSG\\'" . text-mode))
+
 (use-package whitespace
   :config
   (global-whitespace-mode t)
@@ -111,7 +114,6 @@
 
 ;; Legacy
 ;; ======
-(add-to-list 'auto-mode-alist '("COMMIT_EDITMSG\\'" . text-mode))
 
 ;; Erlang mode
 (autoload 'erlang-mode "erlang-start" "erlang-mode" t)
