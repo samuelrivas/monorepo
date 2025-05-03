@@ -59,8 +59,8 @@
   emacs-packages = with emacs.pkgs; [
     auctex
     colorThemeSolarized
-    # company
     copilot
+    corfu
     eglot
     f
     flycheck
@@ -68,24 +68,18 @@
     go-mode
     haskell-mode
     hcl-mode
-    # helm
-    # helm-ls-git
-    # helm-org
-    # helm-projectile
     htmlize
     jedi-language-server
-    markdown-mode
     llama
+    markdown-mode
     nix-mode
-    projectile
+    orderless
     s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
     terraform-mode
+    vertico
     wfnames
     yaml-mode
     yasnippet
-    vertico
-    corfu
-    orderless
   ];
 
   sam-packages = [

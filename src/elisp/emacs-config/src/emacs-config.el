@@ -66,25 +66,24 @@
    whitespace-line-column 80
    whitespace-style '(face trailing empty tabs lines-tail missing-newline-at-eof)))
 
-(use-package projectile
-  :config projectile-mode)
-
-;; (use-package helm-mode
-;;   :config (helm-mode)
-;;   :bind ("C-x C-d" . helm-browse-project))
-
 (use-package corfu
   :init
   (global-corfu-mode)
   (corfu-history-mode)
   :config
-  (setq corfu-auto t)
-  :custom
-  (corfu-quit-at-boundary t))
+  (setq corfu-auto t))
 
 (use-package orderless
   :custom
   (completion-styles '(orderless basic)))
+
+(use-package vertico
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
 
 (use-package cc-mode
   :hook (c-mode . (lambda () (c-toggle-comment-style -1))))
@@ -96,9 +95,6 @@
 
 (use-package yasnippet
   :hook (prog-mode . yas-minor-mode))
-
-;; (use-package company
-;;   :hook (prog-mode . company-mode))
 
 (use-package eglot
   :bind (:map eglot-mode-map
