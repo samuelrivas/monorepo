@@ -63,7 +63,6 @@
     copilot
     corfu
     eglot
-    f
     flycheck
     flycheck-haskell
     go-mode
@@ -71,15 +70,12 @@
     hcl-mode
     htmlize
     jedi-language-server
-    llama
     marginalia
     markdown-mode
     nix-mode
     orderless
-    s # s seems to be needed by org mode, but it doesn't depend on it so we need to add it explicitly
     terraform-mode
     vertico
-    wfnames
     yaml-mode
     yasnippet
   ];
