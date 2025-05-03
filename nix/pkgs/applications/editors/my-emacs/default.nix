@@ -59,7 +59,7 @@
   emacs-packages = with emacs.pkgs; [
     auctex
     colorThemeSolarized
-    company
+    # company
     copilot
     eglot
     f
@@ -68,10 +68,10 @@
     go-mode
     haskell-mode
     hcl-mode
-    helm
-    helm-ls-git
-    helm-org
-    helm-projectile
+    # helm
+    # helm-ls-git
+    # helm-org
+    # helm-projectile
     htmlize
     jedi-language-server
     markdown-mode
@@ -83,6 +83,8 @@
     wfnames
     yaml-mode
     yasnippet
+    vertico
+    corfu
   ];
 
   sam-packages = [

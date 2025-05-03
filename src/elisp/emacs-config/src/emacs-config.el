@@ -69,9 +69,15 @@
 (use-package projectile
   :config projectile-mode)
 
-(use-package helm-mode
-  :config (helm-mode)
-  :bind ("C-x C-d" . helm-browse-project))
+;; (use-package helm-mode
+;;   :config (helm-mode)
+;;   :bind ("C-x C-d" . helm-browse-project))
+
+(use-package corfu
+  :init
+  (global-corfu-mode)
+  :config
+  (setq corfu-auto t))
 
 (use-package cc-mode
   :hook (c-mode . (lambda () (c-toggle-comment-style -1))))
@@ -84,8 +90,8 @@
 (use-package yasnippet
   :hook (prog-mode . yas-minor-mode))
 
-(use-package company
-  :hook (prog-mode . company-mode))
+;; (use-package company
+;;   :hook (prog-mode . company-mode))
 
 (use-package eglot
   :bind (:map eglot-mode-map
