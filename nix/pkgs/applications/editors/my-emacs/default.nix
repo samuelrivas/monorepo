@@ -59,6 +59,7 @@
   emacs-packages = with emacs.pkgs; [
     auctex
     colorThemeSolarized
+    consult
     copilot
     corfu
     eglot
@@ -71,6 +72,7 @@
     htmlize
     jedi-language-server
     llama
+    marginalia
     markdown-mode
     nix-mode
     orderless
