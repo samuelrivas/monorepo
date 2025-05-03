@@ -57,6 +57,7 @@
     else wrapLinux;
 
   emacs-packages = with emacs.pkgs; [
+    auctex
     colorThemeSolarized
     company
     copilot
@@ -65,7 +66,6 @@
     flycheck
     flycheck-haskell
     go-mode
-    groovy-mode
     haskell-mode
     hcl-mode
     helm
