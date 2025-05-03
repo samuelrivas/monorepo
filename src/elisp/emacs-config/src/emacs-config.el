@@ -69,9 +69,12 @@
 (use-package corfu
   :init
   (global-corfu-mode)
-  (corfu-history-mode)
   :config
   (setq corfu-auto t))
+
+(use-package corfu-history
+  :config
+  (corfu-history-mode))
 
 (use-package orderless
   :custom
@@ -100,8 +103,7 @@
   :bind (:map eglot-mode-map
               ("C-c l" . eglot-code-actions)
               ("M-n" . flymake-goto-next-error)
-              ("M-p" . 'flymake-goto-prev-error))
-  :hook ((prog-mode . eglot-ensure)))
+              ("M-p" . 'flymake-goto-prev-error)))
 
 (use-package auctex
   :hook (LaTeX-mode . eglot-ensure))
@@ -120,9 +122,15 @@
   (setq-default ispell-dictionary "british"))
 
 (use-package haskell-mode
+  :hook (haskell-mode . eglot-ensure)
   :config
   (setq haskell-stylish-on-save t))
 
-(use-package nix-mode)
+(use-package nix-mode
+  :hook (nix-mode . eglot-ensure))
 
-(use-package terraform-mode)
+(use-package terraform-mode
+  :hook (terraform-mode . eglot-ensure))
+
+(use-package python-mode
+  :hook (python-mode . eglot-ensure))
