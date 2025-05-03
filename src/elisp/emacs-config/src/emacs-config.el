@@ -66,12 +66,27 @@
    whitespace-line-column 80
    whitespace-style '(face trailing empty tabs lines-tail missing-newline-at-eof)))
 
-(use-package projectile
-  :config projectile-mode)
+(use-package corfu
+  :init
+  (global-corfu-mode)
+  :config
+  (setq corfu-auto t))
 
-(use-package helm-mode
-  :config (helm-mode)
-  :bind ("C-x C-d" . helm-browse-project))
+(use-package corfu-history
+  :config
+  (corfu-history-mode))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic)))
+
+(use-package vertico
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
 
 (use-package cc-mode
   :hook (c-mode . (lambda () (c-toggle-comment-style -1))))
@@ -84,15 +99,11 @@
 (use-package yasnippet
   :hook (prog-mode . yas-minor-mode))
 
-(use-package company
-  :hook (prog-mode . company-mode))
-
 (use-package eglot
   :bind (:map eglot-mode-map
               ("C-c l" . eglot-code-actions)
               ("M-n" . flymake-goto-next-error)
-              ("M-p" . 'flymake-goto-prev-error))
-  :hook ((prog-mode . eglot-ensure)))
+              ("M-p" . 'flymake-goto-prev-error)))
 
 (use-package auctex
   :hook (LaTeX-mode . eglot-ensure))
@@ -111,9 +122,15 @@
   (setq-default ispell-dictionary "british"))
 
 (use-package haskell-mode
+  :hook (haskell-mode . eglot-ensure)
   :config
   (setq haskell-stylish-on-save t))
 
-(use-package nix-mode)
+(use-package nix-mode
+  :hook (nix-mode . eglot-ensure))
 
-(use-package terraform-mode)
+(use-package terraform-mode
+  :hook (terraform-mode . eglot-ensure))
+
+(use-package python-mode
+  :hook (python-mode . eglot-ensure))
