@@ -8,7 +8,7 @@
 ## denylist them if you need to generate an emacs but don't want to spend the
 ## time on waiting for a plethora of things to download (check emacs-config.nix)
 {
-  aspell-wrapped,
+  aspellWithDicts,
   emacs,
   emacs-config,
   git,
@@ -25,6 +25,13 @@
   texliveMedium,
   writeShellScriptBin,
 }: let
+  aspell = aspellWithDicts (dicts:
+    with dicts; [
+      en
+      es
+      sv
+      gl
+    ]);
   # Emacs sometimes uses its own `exec-path` to launc binaries and sometimes it
   # fires up a shell and launches binaries from there. At least latex preview
   # cannot find dvipng
@@ -85,7 +92,7 @@
   ];
 
   extra-binaries = [
-    aspell-wrapped
+    aspell
     git
     go
     gopls
