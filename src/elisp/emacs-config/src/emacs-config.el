@@ -64,7 +64,9 @@
   (global-whitespace-mode t)
   (setq-default
    whitespace-line-column 80
-   whitespace-style '(face trailing empty tabs lines-tail missing-newline-at-eof)))
+
+   whitespace-style
+   '(face trailing empty tabs lines-char missing-newline-at-eof)))
 
 (use-package corfu
   :init
