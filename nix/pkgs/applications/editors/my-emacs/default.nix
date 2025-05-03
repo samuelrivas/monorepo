@@ -59,6 +59,7 @@
   emacs-packages = with emacs.pkgs; [
     auctex
     colorThemeSolarized
+    consult
     copilot
     corfu
     eglot
