@@ -68,6 +68,10 @@
    whitespace-style
    '(face trailing empty tabs lines-char missing-newline-at-eof)))
 
+(use-package marginalia
+  :bind (:map minibuffer-local-map ("M-A" . marginalia-cycle))
+  :init (marginalia-mode))
+
 (use-package corfu
   :init
   (global-corfu-mode)

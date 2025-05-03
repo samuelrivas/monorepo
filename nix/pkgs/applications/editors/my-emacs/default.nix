@@ -71,6 +71,7 @@
     htmlize
     jedi-language-server
     llama
+    marginalia
     markdown-mode
     nix-mode
     orderless
