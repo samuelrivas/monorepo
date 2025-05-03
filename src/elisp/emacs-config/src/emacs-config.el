@@ -1,13 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 
 ;; Disable packages (we use nix for dependencies)
-(defvar package-archives)
-(setq package-archives nil)
-(package-initialize)
-
-;; Disable customize (to avoid conflicts with this configuration)
-(setq custom-file "/dev/null")
-
 ;; Useful functions that are not there by default
 (defun revert-all-buffers ()
   "Refreshes all open buffers from their respective files."
