@@ -69,7 +69,7 @@
 (use-package projectile
   :config projectile-mode)
 
-(use-package helm
+(use-package helm-mode
   :config (helm-mode)
   :bind ("C-x C-d" . helm-browse-project))
 
