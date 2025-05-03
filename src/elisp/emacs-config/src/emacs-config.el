@@ -76,8 +76,15 @@
 (use-package corfu
   :init
   (global-corfu-mode)
+  (corfu-history-mode)
   :config
-  (setq corfu-auto t))
+  (setq corfu-auto t)
+  :custom
+  (corfu-quit-at-boundary t))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic)))
 
 (use-package cc-mode
   :hook (c-mode . (lambda () (c-toggle-comment-style -1))))

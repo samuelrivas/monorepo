@@ -85,6 +85,7 @@
     yasnippet
     vertico
     corfu
+    orderless
   ];
 
   sam-packages = [
