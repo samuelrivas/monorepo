@@ -84,7 +84,6 @@
     terraform-mode
     vertico
     yaml-mode
-    yasnippet
   ];
 
   sam-packages = [
