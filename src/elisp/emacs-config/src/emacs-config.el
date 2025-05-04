@@ -129,9 +129,6 @@
   ((prog-mode . flyspell-prog-mode)
    (text-mode . flyspell-mode)))
 
-(use-package yasnippet
-  :hook (prog-mode . yas-minor-mode))
-
 (use-package eglot
   :bind (:map eglot-mode-map
               ("C-c l" . eglot-code-actions)
