@@ -147,9 +147,18 @@
 
   :hook (text-mode . copilot-mode))
 
+;; We could configure ispell autocompletions with cape, but for now I'm just
+;; disabling them as it is not something that I typically use, I just want it to
+;; highlight typos.
+;;
+;; Solution inspired by:
+;; https://www.reddit.com/r/emacs/comments/1iwz7on/corfu_and_ispell_error_mesages/
+;;
+;; Bug: https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01044.html
 (use-package ispell
   :config
-  (setq-default ispell-dictionary "british"))
+  (setq-default ispell-dictionary "british")
+  (setopt text-mode-ispell-word-completion nil))
 
 (use-package haskell-mode
   :hook (haskell-mode . eglot-ensure)
