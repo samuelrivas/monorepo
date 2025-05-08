@@ -139,8 +139,10 @@
   :hook (LaTeX-mode . eglot-ensure))
 
 (use-package copilot
-  :bind (:map copilot-mode-map
-              ("M-o" . copilot-accept-completion-by-word))
+  :bind (:map copilot-completion-map
+              ("M-<tab>" . copilot-accept-completion)
+              ("<tab>" . copilot-accept-completion-by-word))
+
   :config
   (add-to-list 'warning-suppress-types '(copilot copilot-no-mode-indent))
   (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
