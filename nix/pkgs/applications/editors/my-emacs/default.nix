@@ -68,6 +68,7 @@
     colorThemeSolarized
     consult
     copilot
+    copilot-chat
     corfu
     eglot
     flycheck
