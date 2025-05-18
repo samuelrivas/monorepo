@@ -103,7 +103,6 @@
     # C++ stuff
     # =========
     reservoir = callPackage ./../src/c++/reservoir/nix {};
-
     monte-carlo = callPackage ./../src/c++/monte-carlo/nix {};
     algos-n-fun = callPackage ./../src/c++/algos-n-fun/nix {};
     finndb = callPackage ./../src/c++/finndb/nix {};
@@ -114,9 +113,14 @@
     udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat {};
 
     # LaTeX stuff
+    # ===========
     latex-base = callPackage ./../src/docs/latex-base/nix {
       inherit (nixpkgs.texlivePackages) digestif;
     };
+
+    # Go stuff
+    # ========
+    passman-go = callPackage ./../src/go/passman/nix {};
 
     # Contests, puzzles, etc
     # ======================
