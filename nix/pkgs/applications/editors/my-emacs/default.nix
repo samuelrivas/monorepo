@@ -39,6 +39,7 @@
     name = "my-emacs-exec-deps";
     paths = [
       texliveMedium
+      go
     ];
   };
   # If we call the regular `emacs` file on darwin, it won't behave correctly
