@@ -220,4 +220,4 @@ lds = maximum' length . mapAdjacent lcp . sort . tails where
     lcp _      _      = []
 
 mapAdjacent :: (a -> a -> b) -> [a] -> [b]
-mapAdjacent f xs = zipWith f xs (tail xs)
+mapAdjacent f xs = zipWith f xs (drop 1 xs)

@@ -4,13 +4,12 @@
 
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Advent.Day4 where
 
-import Prelude
+import           Prelude
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
@@ -19,10 +18,10 @@ factor 0 = []
 factor x = factor (x `div` 10) ++ [x `mod` 10]
 
 has_double :: Eq a => [a] -> Bool
-has_double l = any (uncurry  (==)) $ zip l (tail l)
+has_double l = any (uncurry  (==)) $ zip l (drop 1 l)
 
 is_ascending :: Ord a => [a] -> Bool
-is_ascending l = all (uncurry  (<=)) $ zip l (tail l)
+is_ascending l = all (uncurry  (<=)) $ zip l (drop 1 l)
 
 has_single_double :: Eq a => [a] -> Bool
 has_single_double (h : l) =
