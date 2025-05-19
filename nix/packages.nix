@@ -66,10 +66,6 @@
       {}
       "ln -s ${packages.emacs-config.passthru.config-file} $out";
 
-    # aspell needs to be configured to find the dictionaries
-    aspell-wrapped =
-      callPackage ./pkgs/development/libraries/aspell-wrapped {};
-
     # Haskell stuff
     # =============
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {};
