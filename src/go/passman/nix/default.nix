@@ -1,7 +1,6 @@
 {
   buildGoModule,
   go,
-  lib,
 }:
 buildGoModule {
   pname = "passman-go";
