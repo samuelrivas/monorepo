@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"github.com/ProtonMail/go-crypto/openpgp"
 )
 
 type Abser interface {
