@@ -19,9 +19,11 @@
   # directories in /tmp as cache. When building, nix will use vendoring and
   # check the downloaded files against vendorHash.
   extra-sandbox = {
+    # my-emacs is not propagating the fonts package, so we need to add it
+    # explicitly for now
     native-build-inputs = [
       my-emacs
-      ubuntu_font_family # I don't know how to make emacs bring this with it...
+      ubuntu_font_family
     ];
     shell-hook = ''
       # We could use $TMPDIR if we wanted to make these specific to the sandbox,
