@@ -1,6 +1,8 @@
 {
   add-dev-shell,
   buildGoModule,
+  my-emacs,
+  ubuntu_font_family,
 }: let
   drv = buildGoModule {
     pname = "passman-go";
@@ -17,10 +19,14 @@
   # directories in /tmp as cache. When building, nix will use vendoring and
   # check the downloaded files against vendorHash.
   extra-sandbox = {
+    native-build-inputs = [
+      my-emacs
+      ubuntu_font_family # I don't know how to make emacs bring this with it...
+    ];
     shell-hook = ''
       # We could use $TMPDIR if we wanted to make these specific to the sandbox,
-      # but that requires us to download everything again for every new sandbox we
-      # create
+      # but that requires us to download everything again for every new sandbox
+      # we create
       export GOCACHE=/tmp/go-sandbox/cache
       export GOMODCACHE=/tmp/go-sandbox/modcache
 
