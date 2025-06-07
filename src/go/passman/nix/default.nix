@@ -26,6 +26,9 @@
       ubuntu_font_family
     ];
     shell-hook = ''
+      # This should probably be in the sandbox script
+      export XDG_CACHE_HOME="/tmp/cache"
+
       # We could use $TMPDIR if we wanted to make these specific to the sandbox,
       # but that requires us to download everything again for every new sandbox
       # we create
