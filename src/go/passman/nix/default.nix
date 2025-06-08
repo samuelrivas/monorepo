@@ -32,6 +32,7 @@
       # We could use $TMPDIR if we wanted to make these specific to the sandbox,
       # but that requires us to download everything again for every new sandbox
       # we create
+      export GOPATH=/tmp/go-sandbox/
       export GOCACHE=/tmp/go-sandbox/cache
       export GOMODCACHE=/tmp/go-sandbox/modcache
 
