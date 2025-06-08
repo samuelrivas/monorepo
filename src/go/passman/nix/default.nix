@@ -10,7 +10,14 @@
 
     src = ../src/src;
 
-    vendorHash = "sha256-jwQvAIS8XCWjZtP9pKt1RRSaKBZ9dgDc2SD6q0K+sEs=";
+    # If you get "inconsistent vendoring" errors while building, is likely
+    # because you are building against a cached goModules derivation (see
+    # https://nixos.org/manual/nixpkgs/stable/#ssec-language-go), change this
+    # vendorHash to something else so that nix tries to regenerate the goModules
+    # derivation. Normally, changing a character works, but if you get invalid
+    # hash errors, you can use lib.fakeHash, just add lib to the arguments of
+    # the derivation, callPackage in packages.nix will input it automagically
+    vendorHash = "sha256-1t9vnH7ywaEgx7pjBpn8Z09I3VB/lUBuluRaG1+0lnE=";
   };
 
   # This could be extracted if we had more go projects in this repo
