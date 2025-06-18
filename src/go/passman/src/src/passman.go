@@ -66,11 +66,11 @@ func main() {
 		panic(err)
 	}
 
-	clear, err := age.Decrypt(fd, identity)
+	cleartext, err := age.Decrypt(fd, identity)
 	if err != nil {
 		logLn("Error decrypting file")
 		panic(err)
 	}
 
-	io.Copy(os.Stdout, clear)
+	io.Copy(os.Stdout, cleartext)
 }
