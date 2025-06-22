@@ -66,7 +66,45 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 }
 
 func query(parsedArgs ParsedArgs) {
-	slog.Info("Querying", "args", parsedArgs)
+	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
+
+	cleartext := getCleartext(parsedArgs.filename)
+	fmt.Print(cleartext)
+}
+
+// Decrypt filePath and return a io.Reader on the clear text
+func getCleartext(filename string) string {
+	slog.Info("Opening file", "filename", filename)
+	fd, err := os.Open(filename)
+	if err != nil {
+		errorMessageLn("Error opening file")
+		panic(err)
+	}
+	defer fd.Close()
+
+	password:= askForPassword()
+
+	identity, err := age.NewScryptIdentity(string(password))
+	slog.Info("Creating scrypt identity for provided password")
+	if err != nil {
+		errorMessageLn("Error creating identity")
+		panic(err)
+	}
+
+	slog.Info("Attempting to decrypt file descriptor with created identity", "fd", fd)
+	clearReader, err := age.Decrypt(fd, identity)
+	if err != nil {
+		errorMessageLn("Error decrypting file")
+		panic(err)
+	}
+	slog.Info("File decrypted successfully")
+
+	cleartext, err := io.ReadAll(clearReader)
+	if err != nil {
+		errorMessageLn("Error reading clear bytes")
+		panic(err)
+	}
+	return string(cleartext)
 }
 
 func main() {
@@ -85,19 +123,5 @@ func main() {
 	}
 	defer fd.Close()
 
-	password:= askForPassword()
-
-	identity, err := age.NewScryptIdentity(string(password))
-	if err != nil {
-		errorMessageLn("Error creating identity")
-		panic(err)
-	}
-
-	cleartext, err := age.Decrypt(fd, identity)
-	if err != nil {
-		errorMessageLn("Error decrypting file")
-		panic(err)
-	}
-
-	io.Copy(os.Stdout, cleartext)
+	parsedArgs.subcommand(parsedArgs)
 }
