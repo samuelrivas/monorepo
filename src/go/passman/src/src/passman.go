@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -10,50 +11,76 @@ import (
 	"golang.org/x/term"
 )
 
-func parseArgs(args []string) (string, error) {
-	if len(args) < 2 {
-		return "", fmt.Errorf("Missing mandatory arguments")
-	}
-	return args[1], nil
+type ParsedArgs struct {
+	// unparsed arguments
+	tailArgs []string
+	filename string
+	subcommand func(args ParsedArgs)
 }
 
-func log(message string, args ... any) {
+func parseArgs(args []string) (ParsedArgs, error) {
+	if len(args) < 3 {
+		return ParsedArgs{}, fmt.Errorf("Missing mandatory arguments")
+	}
+	return ParsedArgs{
+		tailArgs: args[3:],
+		filename: args[1],
+		subcommand: parseSubcommand(args[2]),
+	}, nil
+}
+
+func errorMessage(message string, args ... any) {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
 	fmt.Fprintf(os.Stderr, "%s", message)
 }
 
-func logLn(message string, args ... any) {
-	log(message + "\n", args...)
+func errorMessageLn(message string, args ... any) {
+	errorMessage(message + "\n", args...)
 }
 
 func usage(args []string) {
-	log("Usage: %s <filename>\n\n", filepath.Base(args[0]))
+	errorMessage("Usage: %s <filename> <subcommand>\n\n",
+		filepath.Base(args[0]))
 }
 
 func askForPassword() string {
-	fmt.Fprint(os.Stderr, "Enter password: ")
+	fmt.Print("Enter password: ")
 	password, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
-		logLn("Error reading password")
+		errorMessageLn("Error reading password")
 		panic(err)
 	}
-	fmt.Fprintln(os.Stderr)
+	fmt.Println()
 	return string(password)
 }
 
+func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
+	switch arg {
+	case "query":
+		return query
+	default:
+		panic("Unknown subcommand " + arg)
+	}
+}
+
+func query(parsedArgs ParsedArgs) {
+	slog.Info("Querying", "args", parsedArgs)
+}
+
 func main() {
+	slog.Info("Hello logger")
 	args := os.Args
-	fileName, err := parseArgs(args)
+	parsedArgs, err := parseArgs(args)
 	if err != nil {
 		usage(args)
 		panic(err)
 	}
 
-	fd, err := os.Open(fileName)
+	fd, err := os.Open(parsedArgs.filename)
 	if err != nil {
-		logLn("Error opening file")
+		errorMessageLn("Error opening file")
 		panic(err)
 	}
 	defer fd.Close()
@@ -62,13 +89,13 @@ func main() {
 
 	identity, err := age.NewScryptIdentity(string(password))
 	if err != nil {
-		logLn("Error creating identity")
+		errorMessageLn("Error creating identity")
 		panic(err)
 	}
 
 	cleartext, err := age.Decrypt(fd, identity)
 	if err != nil {
-		logLn("Error decrypting file")
+		errorMessageLn("Error decrypting file")
 		panic(err)
 	}
 
