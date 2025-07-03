@@ -1,7 +1,10 @@
 {
   add-dev-shell,
+  age,
   buildGoModule,
   my-emacs,
+  sexp,
+  sh-lib,
   ubuntu_font_family,
 }: let
   drv = buildGoModule {
@@ -28,8 +31,14 @@
   extra-sandbox = {
     # my-emacs is not propagating the fonts package, so we need to add it
     # explicitly for now
+    #
+    # sexp and sh-lib should be used for building, but I need to refactor things
+    # first because buildGoModule doesn't accept buildInputs
     native-build-inputs = [
+      age
       my-emacs
+      sexp
+      sh-lib
       ubuntu_font_family
     ];
     shell-hook = ''
