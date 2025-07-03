@@ -6,7 +6,7 @@
 source $SH_LIB/prelude.sh
 
 if [[ "$NARGS" != 1 ]]; then
-    echo "uasge: $PROGNAME>"
+    echo "uasge: $PROGNAME"
 fi
 
 
@@ -14,4 +14,5 @@ fi
 
 cd "$PROGDIR"
 echo "Use foobar as passphrase"
+
 age --encrypt --passphrase < testfile.sexp > testfile.age
