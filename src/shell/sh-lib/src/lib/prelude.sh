@@ -13,9 +13,10 @@ readonly PROGDIR="$( cd "$( dirname "$0" )" && pwd )"
 ##====================================================================
 fail() {
     local message="$1"
-
-    echo
-    echo "$message"
-    echo
+    {
+        echo
+        echo "$message"
+        echo
+    } >&2
     exit 1
 }
