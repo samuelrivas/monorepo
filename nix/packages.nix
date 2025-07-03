@@ -120,7 +120,9 @@
 
     # Go stuff
     # ========
-    passman-go = callPackage ./../src/go/passman/nix {};
+    passman-go = callPackage ./../src/go/passman/nix {
+      inherit (nixpkgs.ocamlPackages) sexp;
+    };
 
     # Contests, puzzles, etc
     # ======================
