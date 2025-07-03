@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"filippo.io/age"
@@ -13,8 +15,8 @@ import (
 
 type ParsedArgs struct {
 	// unparsed arguments
-	tailArgs []string
-	filename string
+	tailArgs   []string
+	filename   string
 	subcommand func(args ParsedArgs)
 }
 
@@ -23,21 +25,21 @@ func parseArgs(args []string) (ParsedArgs, error) {
 		return ParsedArgs{}, fmt.Errorf("Missing mandatory arguments")
 	}
 	return ParsedArgs{
-		tailArgs: args[3:],
-		filename: args[1],
+		tailArgs:   args[3:],
+		filename:   args[1],
 		subcommand: parseSubcommand(args[2]),
 	}, nil
 }
 
-func errorMessage(message string, args ... any) {
+func errorMessage(message string, args ...any) {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
 	fmt.Fprintf(os.Stderr, "%s", message)
 }
 
-func errorMessageLn(message string, args ... any) {
-	errorMessage(message + "\n", args...)
+func errorMessageLn(message string, args ...any) {
+	errorMessage(message+"\n", args...)
 }
 
 func usage(args []string) {
@@ -65,13 +67,6 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 	}
 }
 
-func query(parsedArgs ParsedArgs) {
-	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
-
-	cleartext := getCleartext(parsedArgs.filename)
-	fmt.Print(cleartext)
-}
-
 // Decrypt filePath and return a io.Reader on the clear text
 func getCleartext(filename string) string {
 	slog.Info("Opening file", "filename", filename)
@@ -82,7 +77,7 @@ func getCleartext(filename string) string {
 	}
 	defer fd.Close()
 
-	password:= askForPassword()
+	password := askForPassword()
 
 	identity, err := age.NewScryptIdentity(string(password))
 	slog.Info("Creating scrypt identity for provided password")
@@ -107,6 +102,31 @@ func getCleartext(filename string) string {
 	return string(cleartext)
 }
 
+func runCommand(command string, args []string, input string) bytes.Buffer {
+	cmd := exec.Command(command, args...)
+
+	cmd.Stdin = bytes.NewBufferString(input)
+
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+
+	err := cmd.Run()
+	if err != nil {
+		errorMessageLn("This command failed: ", command)
+		panic(err)
+	}
+	return stdout
+}
+
+func query(parsedArgs ParsedArgs) {
+	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
+
+	cleartext := getCleartext(parsedArgs.filename)
+
+	runCommand("sexp", []string{"query", "(index 0)"}, cleartext)
+	fmt.Print(cleartext)
+}
+
 func main() {
 	slog.Info("Hello logger")
 	args := os.Args
@@ -115,13 +135,6 @@ func main() {
 		usage(args)
 		panic(err)
 	}
-
-	fd, err := os.Open(parsedArgs.filename)
-	if err != nil {
-		errorMessageLn("Error opening file")
-		panic(err)
-	}
-	defer fd.Close()
 
 	parsedArgs.subcommand(parsedArgs)
 }
