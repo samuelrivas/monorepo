@@ -103,6 +103,7 @@ func getCleartext(filename string) string {
 }
 
 func runCommand(command string, args []string, input string) bytes.Buffer {
+	slog.Info("Executing command", "command", command, "args", args)
 	cmd := exec.Command(command, args...)
 
 	cmd.Stdin = bytes.NewBufferString(input)
@@ -118,13 +119,24 @@ func runCommand(command string, args []string, input string) bytes.Buffer {
 	return stdout
 }
 
+func runSexpQuery(query, document string) string {
+	output := runCommand("sexp", []string{"query", query}, document)
+
+	return output.String()
+}
+
 func query(parsedArgs ParsedArgs) {
 	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
 
-	cleartext := getCleartext(parsedArgs.filename)
+	if (len(parsedArgs.tailArgs) != 1) {
+		errorMessageLn("query requires an argument with the query")
+		panic(fmt.Errorf("Invalid arguments"))
+	}
 
-	runCommand("sexp", []string{"query", "(index 0)"}, cleartext)
-	fmt.Print(cleartext)
+	cleartext := getCleartext(parsedArgs.filename)
+	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext)
+
+	fmt.Print(output)
 }
 
 func main() {
