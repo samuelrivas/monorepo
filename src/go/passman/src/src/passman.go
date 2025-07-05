@@ -64,6 +64,8 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 		return query
 	case "get":
 		return get
+	case "add":
+		return add
 	default:
 		panic("Unknown subcommand " + arg)
 	}
@@ -121,10 +123,27 @@ func runCommand(command string, args []string, input string) bytes.Buffer {
 	return stdout
 }
 
-func runSexpQuery(query, document string) string {
-	output := runCommand("sexp", []string{"query", query}, document)
+func runSexp(command, query, document string) string {
+	output := runCommand("sexp", []string{command, query}, document)
 
 	return output.String()
+}
+
+func runSexpQuery(query, document string) string {
+	return runSexp("query", query, document)
+}
+
+func runSexpChange(query, document string) string {
+	return runSexp("change", query, document)
+}
+
+func toSexp(x map[string]string) string {
+	out := "("
+
+	for k, v := range x {
+		out += fmt.Sprintf("(%s \"%s\")", k, v)
+	}
+	return out + ")"
 }
 
 func query(parsedArgs ParsedArgs) {
@@ -132,7 +151,7 @@ func query(parsedArgs ParsedArgs) {
 
 	if (len(parsedArgs.tailArgs) != 1) {
 		errorMessageLn("query requires an argument with the query")
-		panic(fmt.Errorf("Invalid arguments"))
+		panic("Invalid arguments")
 	}
 
 	cleartext := getCleartext(parsedArgs.filename)
@@ -141,8 +160,22 @@ func query(parsedArgs ParsedArgs) {
 	fmt.Print(output)
 }
 
+func toMap(x []string) map[string]string {
+	if len(x) % 2 != 0 {
+		errorMessageLn(
+			"Attempting to convert map of odd length %d to object",
+			len(x))
+		panic("Bad conversion to pairs")
+	}
+	out := map[string]string{}
+	for i := 0; i < len(x) - 1; i += 2 {
+		out[x[i]] = x[i+1]
+	}
+	return out
+}
+
 func get(parsedArgs ParsedArgs) {
-	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
+	slog.Info("Running get subcommand", "args", parsedArgs.tailArgs)
 
 	if (len(parsedArgs.tailArgs) < 1) {
 		errorMessageLn("get requires an argument with the site regex")
@@ -161,6 +194,38 @@ func get(parsedArgs ParsedArgs) {
 	}
 
 	output := runSexpQuery(query, cleartext)
+	fmt.Print(output)
+}
+
+func validateAdd(object map[string]string) {
+	password := false
+	site := false
+
+	for k,_ := range(object) {
+		if k == "password" {
+			password = true
+		}
+		if k == "site" {
+			site = true
+		}
+	}
+	if ! (password && site) {
+		errorMessageLn("Either password or site are not present")
+		panic("Invalid add arguments")
+	}
+}
+
+func add(parsedArgs ParsedArgs) {
+	slog.Info("Running add subcommand", "args", parsedArgs.tailArgs)
+
+	fields := toMap(parsedArgs.tailArgs)
+	validateAdd(fields)
+
+	cleartext := getCleartext(parsedArgs.filename)
+	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
+	slog.Info("Created command", "command", query)
+
+	output := runSexpChange(query, cleartext)
 	fmt.Print(output)
 }
 
