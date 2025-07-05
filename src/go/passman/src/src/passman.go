@@ -144,7 +144,7 @@ func query(parsedArgs ParsedArgs) {
 func get(parsedArgs ParsedArgs) {
 	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
 
-	if (len(parsedArgs.tailArgs) != 1) {
+	if (len(parsedArgs.tailArgs) < 1) {
 		errorMessageLn("get requires an argument with the site regex")
 		panic(fmt.Errorf("Invalid arguments"))
 	}
@@ -153,8 +153,14 @@ func get(parsedArgs ParsedArgs) {
 	query := fmt.Sprintf(
 		"each (test (field site) (regex \"%s\"))",
 		parsedArgs.tailArgs[0])
-	output := runSexpQuery(query, cleartext)
 
+	for i := 1; i < len(parsedArgs.tailArgs); i++ {
+		query = fmt.Sprintf(
+			"%s (field %s)",
+			query, parsedArgs.tailArgs[i])
+	}
+
+	output := runSexpQuery(query, cleartext)
 	fmt.Print(output)
 }
 
