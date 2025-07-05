@@ -62,6 +62,8 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 	switch arg {
 	case "query":
 		return query
+	case "get":
+		return get
 	default:
 		panic("Unknown subcommand " + arg)
 	}
@@ -135,6 +137,23 @@ func query(parsedArgs ParsedArgs) {
 
 	cleartext := getCleartext(parsedArgs.filename)
 	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext)
+
+	fmt.Print(output)
+}
+
+func get(parsedArgs ParsedArgs) {
+	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
+
+	if (len(parsedArgs.tailArgs) != 1) {
+		errorMessageLn("get requires an argument with the site regex")
+		panic(fmt.Errorf("Invalid arguments"))
+	}
+
+	cleartext := getCleartext(parsedArgs.filename)
+	query := fmt.Sprintf(
+		"each (test (field site) (regex \"%s\"))",
+		parsedArgs.tailArgs[0])
+	output := runSexpQuery(query, cleartext)
 
 	fmt.Print(output)
 }
