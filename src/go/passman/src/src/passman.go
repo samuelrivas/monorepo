@@ -71,14 +71,30 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 	}
 }
 
-// Decrypt filePath and return a io.Reader on the clear text
-func getCleartext(filename string) string {
-	slog.Info("Opening file", "filename", filename)
+func openFileRead(filename string) *os.File {
+	slog.Info("Opening file to read", "filename", filename)
 	fd, err := os.Open(filename)
 	if err != nil {
 		errorMessageLn("Error opening file")
 		panic(err)
 	}
+	return fd
+}
+
+func openFileWrite(filename string) *os.File {
+	slog.Info("Opening file to write", "filename", filename)
+	fd, err := os.OpenFile(filename, os.O_WRONLY | os.O_TRUNC, 0)
+	if err != nil {
+		errorMessageLn("Error opening file")
+		panic(err)
+	}
+	return fd
+}
+
+// Decrypt filePath and return a io.Reader on the clear text. It returns
+// the identity as well so that we can re-encrpyt with it
+func getCleartext(filename string) (string, string) {
+	fd := openFileRead(filename)
 	defer fd.Close()
 
 	password := askForPassword()
@@ -103,7 +119,38 @@ func getCleartext(filename string) string {
 		errorMessageLn("Error reading clear bytes")
 		panic(err)
 	}
-	return string(cleartext)
+	return string(cleartext), password
+}
+
+func encrypt(clearText, password, filename string) {
+
+	recipient, err := age.NewScryptRecipient(password)
+	if (err != nil) {
+		errorMessageLn("Error creating recipient")
+		panic(err)
+	}
+
+	fd := openFileWrite(filename)
+	defer fd.Close()
+
+	writer, err := age.Encrypt(fd, recipient)
+	if err != nil {
+		errorMessageLn("Error creating encryptor")
+		panic(err)
+	}
+
+
+	_, err = io.WriteString(writer, clearText)
+	if err != nil {
+		errorMessageLn("Error writing to encryptor")
+		panic(err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		errorMessageLn("Error closing encryptor")
+		panic(err)
+	}
 }
 
 func runCommand(command string, args []string, input string) bytes.Buffer {
@@ -154,7 +201,7 @@ func query(parsedArgs ParsedArgs) {
 		panic("Invalid arguments")
 	}
 
-	cleartext := getCleartext(parsedArgs.filename)
+	cleartext, _ := getCleartext(parsedArgs.filename)
 	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext)
 
 	fmt.Print(output)
@@ -182,7 +229,7 @@ func get(parsedArgs ParsedArgs) {
 		panic(fmt.Errorf("Invalid arguments"))
 	}
 
-	cleartext := getCleartext(parsedArgs.filename)
+	cleartext, _ := getCleartext(parsedArgs.filename)
 	query := fmt.Sprintf(
 		"each (test (field site) (regex \"%s\"))",
 		parsedArgs.tailArgs[0])
@@ -221,11 +268,12 @@ func add(parsedArgs ParsedArgs) {
 	fields := toMap(parsedArgs.tailArgs)
 	validateAdd(fields)
 
-	cleartext := getCleartext(parsedArgs.filename)
+	cleartext, password := getCleartext(parsedArgs.filename)
 	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
 	slog.Info("Created command", "command", query)
 
 	output := runSexpChange(query, cleartext)
+	encrypt(output,password, parsedArgs.filename)
 	fmt.Print(output)
 }
 
