@@ -122,23 +122,39 @@ func getCleartext(filename string) (string, string) {
 	return string(cleartext), password
 }
 
-func encrypt(clearText, password, filename string) {
+func writeToFile(filename string, fd *os.File) {
+	destFd := openFileWrite(filename)
+	defer destFd.Close()
 
+	_, err := io.Copy(destFd, fd)
+	if err != nil {
+		errorMessageLn("Error writing to file %s", filename)
+		panic(err)
+	}
+}
+
+// Encrypts into a temp file, copies the file onto filename, and then cleans the the temp file
+func encrypt(clearText, password, filename string) {
 	recipient, err := age.NewScryptRecipient(password)
 	if (err != nil) {
 		errorMessageLn("Error creating recipient")
 		panic(err)
 	}
 
-	fd := openFileWrite(filename)
-	defer fd.Close()
+	tmpFd, err := os.CreateTemp("", "passman-*.age")
+	if err != nil {
+		errorMessageLn("Error creating temporary file")
+		panic(err);
+	}
+	defer os.Remove(tmpFd.Name())
+	defer tmpFd.Close()
+	slog.Info("Created temporary file for encryption", "tmp", tmpFd.Name())
 
-	writer, err := age.Encrypt(fd, recipient)
+	writer, err := age.Encrypt(tmpFd, recipient)
 	if err != nil {
 		errorMessageLn("Error creating encryptor")
 		panic(err)
 	}
-
 
 	_, err = io.WriteString(writer, clearText)
 	if err != nil {
@@ -151,10 +167,30 @@ func encrypt(clearText, password, filename string) {
 		errorMessageLn("Error closing encryptor")
 		panic(err)
 	}
+
+	_, err = tmpFd.Seek(0, io.SeekStart)
+	if err != nil {
+		errorMessageLn("Error seeking to start of temporary file")
+		panic(err)
+	}
+
+	slog.Info(
+		"Copying temp file to destination",
+		"filename", filename, "tempfile", tmpFd.Name())
+	writeToFile(filename, tmpFd)
 }
 
-func runCommand(command string, args []string, input string) bytes.Buffer {
-	slog.Info("Executing command", "command", command, "args", args)
+func runCommand(
+	command string,
+	args []string,
+	input string,
+	sensitive bool) bytes.Buffer {
+
+	showableArgs := args
+	if sensitive {
+		showableArgs = []string{"<redacted>"}
+	}
+	slog.Info("Executing command", "command", command, "args", showableArgs)
 	cmd := exec.Command(command, args...)
 
 	cmd.Stdin = bytes.NewBufferString(input)
@@ -170,18 +206,19 @@ func runCommand(command string, args []string, input string) bytes.Buffer {
 	return stdout
 }
 
-func runSexp(command, query, document string) string {
-	output := runCommand("sexp", []string{command, query}, document)
+func runSexp(command, query, document string, sensitive bool) string {
+	output := runCommand(
+		"sexp", []string{command, query}, document, sensitive)
 
 	return output.String()
 }
 
-func runSexpQuery(query, document string) string {
-	return runSexp("query", query, document)
+func runSexpQuery(query, document string, sensitive bool) string {
+	return runSexp("query", query, document, sensitive)
 }
 
-func runSexpChange(query, document string) string {
-	return runSexp("change", query, document)
+func runSexpChange(query, document string, sensitive bool) string {
+	return runSexp("change", query, document, sensitive)
 }
 
 func toSexp(x map[string]string) string {
@@ -202,7 +239,7 @@ func query(parsedArgs ParsedArgs) {
 	}
 
 	cleartext, _ := getCleartext(parsedArgs.filename)
-	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext)
+	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext, false)
 
 	fmt.Print(output)
 }
@@ -240,7 +277,7 @@ func get(parsedArgs ParsedArgs) {
 			query, parsedArgs.tailArgs[i])
 	}
 
-	output := runSexpQuery(query, cleartext)
+	output := runSexpQuery(query, cleartext, false)
 	fmt.Print(output)
 }
 
@@ -270,11 +307,10 @@ func add(parsedArgs ParsedArgs) {
 
 	cleartext, password := getCleartext(parsedArgs.filename)
 	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
-	slog.Info("Created command", "command", query)
 
-	output := runSexpChange(query, cleartext)
+	output := runSexpChange(query, cleartext, true)
 	encrypt(output,password, parsedArgs.filename)
-	fmt.Print(output)
+	fmt.Println("Added entry successfully")
 }
 
 func main() {
