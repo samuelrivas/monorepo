@@ -185,7 +185,7 @@ func runCommand(
 	command string,
 	args []string,
 	input string,
-	sensitive bool) (bytes.Buffer, error) {
+	sensitive bool) (bytes.Buffer, bytes.Buffer, error) {
 
 	showableArgs := args
 	if sensitive {
@@ -196,27 +196,48 @@ func runCommand(
 
 	cmd.Stdin = bytes.NewBufferString(input)
 
-	var stdout bytes.Buffer
+	var stdout, stderr  bytes.Buffer
 	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
 	err := cmd.Run()
 
-	return stdout, err
+	return stdout, stderr, err
 }
 
-func runSexp(command, query, document string, sensitive bool) (string, error) {
-	output, err := runCommand(
+func runSexp(
+	command, query, document string,
+	sensitive bool) (string, string, error) {
+	stdout, stderr, err := runCommand(
 		"sexp", []string{command, query}, document, sensitive)
 
-	return output.String(), errors.Wrap(err, "Error running sexp")
+	return stdout.String(), stderr.String(), errors.Wrap(err, "Error running sexp")
 }
 
-func runSexpQuery(query, document string, sensitive bool) (string, error) {
-	return runSexp("querys", query, document, sensitive)
+func runSexpQuery(query, document string, sensitive bool) string {
+	stdout, stderr, err := runSexp("query", query, document, sensitive)
+	// If the query returns nothing, sexp exits with code 1, but it
+	// is not really an error. When an actual error happens it also
+	// exits with 1, but prints a message. Since we don't care about
+	// recovery, we panic in the latter case, but we need to return
+	// in the former
+	if err != nil && len(stderr) > 0 {
+		errorMessageLn("Error running query: %s", stderr)
+		panic(err)
+	} else if err != nil {
+		slog.Info("Query failed without error output. Assuming no results")
+	}
+
+	return stdout
 }
 
-func runSexpChange(query, document string, sensitive bool) (string, error) {
-	return runSexp("change", query, document, sensitive)
+func runSexpChange(query, document string, sensitive bool) string {
+	output, _, err := runSexp("change", query, document, sensitive)
+	if err != nil {
+		errorMessageLn("Error running change: %s", err)
+		panic(err)
+	}
+	return output
 }
 
 func toSexp(x map[string]string) string {
@@ -237,11 +258,7 @@ func query(parsedArgs ParsedArgs) {
 	}
 
 	cleartext, _ := getCleartext(parsedArgs.filename)
-	output, err := runSexpQuery(parsedArgs.tailArgs[0], cleartext, false)
-	if err != nil {
-		errorMessageLn("Error running query: %v", err)
-		panic(err)
-	}
+	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext, false)
 
 	fmt.Print(output)
 }
@@ -279,11 +296,7 @@ func get(parsedArgs ParsedArgs) {
 			query, parsedArgs.tailArgs[i])
 	}
 
-	output, err := runSexpQuery(query, cleartext, false)
-	if err != nil {
-		errorMessageLn("Error running query: %v", err)
-		panic(err)
-	}
+	output := runSexpQuery(query, cleartext, false)
 	fmt.Print(output)
 }
 
@@ -291,7 +304,7 @@ func validateAddFields(object map[string]string) {
 	password := false
 	site := false
 
-	for k,_ := range(object) {
+	for k := range(object) {
 		if k == "password" {
 			password = true
 		}
@@ -319,11 +332,7 @@ func add(parsedArgs ParsedArgs) {
 	}
 
 	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
-	output, err := runSexpChange(query, cleartext, true)
-	if err != nil {
-		errorMessageLn("Error running change: %+v", err)
-		panic(err)
-	}
+	output := runSexpChange(query, cleartext, true)
 
 	encrypt(output,password, parsedArgs.filename)
 
@@ -332,24 +341,12 @@ func add(parsedArgs ParsedArgs) {
 
 func siteExists(cleartext, site string) bool {
 	query := fmt.Sprintf("each (field site) (equals \"%s\")", site)
-	output, err := runSexpQuery(query, cleartext, false)
-
-	var exitError  *exec.ExitError
-	if errors.As(err, &exitError) {
-		slog.Info("Query err", "err", exitError.Stderr, "output", output, "exitCode", exitError.ExitCode())
-		if exitError.ExitCode() == 1 && len(output) == 0 && len(exitError.Stderr) == 0 {
-			return false
-		}
-	}
-	if err != nil {
-		errorMessageLn("Error running query: %+v", err)
-		panic(err)
-	}
-	return true
+	output := runSexpQuery(query, cleartext, false)
+	slog.Info("output", "output", output)
+	return len(output) != 0;
 }
 
 func main() {
-	slog.Info("Hello logger")
 	args := os.Args
 	parsedArgs, err := parseArgs(args)
 	if err != nil {
