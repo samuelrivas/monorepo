@@ -11,6 +11,7 @@ import (
 
 	"filippo.io/age"
 	"golang.org/x/term"
+	"github.com/pkg/errors"
 )
 
 type ParsedArgs struct {
@@ -184,7 +185,7 @@ func runCommand(
 	command string,
 	args []string,
 	input string,
-	sensitive bool) bytes.Buffer {
+	sensitive bool) (bytes.Buffer, error) {
 
 	showableArgs := args
 	if sensitive {
@@ -199,25 +200,22 @@ func runCommand(
 	cmd.Stdout = &stdout
 
 	err := cmd.Run()
-	if err != nil {
-		errorMessageLn("This command failed: ", command)
-		panic(err)
-	}
-	return stdout
+
+	return stdout, err
 }
 
-func runSexp(command, query, document string, sensitive bool) string {
-	output := runCommand(
+func runSexp(command, query, document string, sensitive bool) (string, error) {
+	output, err := runCommand(
 		"sexp", []string{command, query}, document, sensitive)
 
-	return output.String()
+	return output.String(), errors.Wrap(err, "Error running sexp")
 }
 
-func runSexpQuery(query, document string, sensitive bool) string {
-	return runSexp("query", query, document, sensitive)
+func runSexpQuery(query, document string, sensitive bool) (string, error) {
+	return runSexp("querys", query, document, sensitive)
 }
 
-func runSexpChange(query, document string, sensitive bool) string {
+func runSexpChange(query, document string, sensitive bool) (string, error) {
 	return runSexp("change", query, document, sensitive)
 }
 
@@ -239,7 +237,11 @@ func query(parsedArgs ParsedArgs) {
 	}
 
 	cleartext, _ := getCleartext(parsedArgs.filename)
-	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext, false)
+	output, err := runSexpQuery(parsedArgs.tailArgs[0], cleartext, false)
+	if err != nil {
+		errorMessageLn("Error running query: %v", err)
+		panic(err)
+	}
 
 	fmt.Print(output)
 }
@@ -277,11 +279,15 @@ func get(parsedArgs ParsedArgs) {
 			query, parsedArgs.tailArgs[i])
 	}
 
-	output := runSexpQuery(query, cleartext, false)
+	output, err := runSexpQuery(query, cleartext, false)
+	if err != nil {
+		errorMessageLn("Error running query: %v", err)
+		panic(err)
+	}
 	fmt.Print(output)
 }
 
-func validateAdd(object map[string]string) {
+func validateAddFields(object map[string]string) {
 	password := false
 	site := false
 
@@ -303,14 +309,43 @@ func add(parsedArgs ParsedArgs) {
 	slog.Info("Running add subcommand", "args", parsedArgs.tailArgs)
 
 	fields := toMap(parsedArgs.tailArgs)
-	validateAdd(fields)
+	validateAddFields(fields)
 
 	cleartext, password := getCleartext(parsedArgs.filename)
-	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
 
-	output := runSexpChange(query, cleartext, true)
+	if (siteExists(cleartext, fields["site"])) {
+		errorMessageLn("Site %s already exists", fields["site"])
+		os.Exit(1)
+	}
+
+	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
+	output, err := runSexpChange(query, cleartext, true)
+	if err != nil {
+		errorMessageLn("Error running change: %+v", err)
+		panic(err)
+	}
+
 	encrypt(output,password, parsedArgs.filename)
+
 	fmt.Println("Added entry successfully")
+}
+
+func siteExists(cleartext, site string) bool {
+	query := fmt.Sprintf("each (field site) (equals \"%s\")", site)
+	output, err := runSexpQuery(query, cleartext, false)
+
+	var exitError  *exec.ExitError
+	if errors.As(err, &exitError) {
+		slog.Info("Query err", "err", exitError.Stderr, "output", output, "exitCode", exitError.ExitCode())
+		if exitError.ExitCode() == 1 && len(output) == 0 && len(exitError.Stderr) == 0 {
+			return false
+		}
+	}
+	if err != nil {
+		errorMessageLn("Error running query: %+v", err)
+		panic(err)
+	}
+	return true
 }
 
 func main() {

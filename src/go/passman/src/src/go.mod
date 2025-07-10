@@ -4,6 +4,7 @@ go 1.24.1
 
 require (
 	filippo.io/age v1.2.1
+	github.com/pkg/errors v0.9.1
 	golang.org/x/term v0.21.0
 )
 
