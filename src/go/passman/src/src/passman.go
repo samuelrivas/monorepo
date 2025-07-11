@@ -89,7 +89,7 @@ func openFileRead(filename string) *os.File {
 
 func openFileWrite(filename string) *os.File {
 	slog.Info("Opening to write", "filename", filename)
-	fd, err := os.OpenFile(filename, os.O_WRONLY | os.O_TRUNC, 0)
+	fd, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC, 0)
 	if err != nil {
 		errorMessageLn("Error opening %s for write", filename)
 		panic(err)
@@ -142,7 +142,7 @@ func writeToFile(filename string, fd *os.File) {
 // Encrypts into a temp file, copies the file onto filename, and then cleans the the temp file
 func encrypt(clearText, password, filename string) {
 	recipient, err := age.NewScryptRecipient(password)
-	if (err != nil) {
+	if err != nil {
 		errorMessageLn("Error creating recipient")
 		panic(err)
 	}
@@ -150,7 +150,7 @@ func encrypt(clearText, password, filename string) {
 	tmpFd, err := os.CreateTemp("", "passman-*.age")
 	if err != nil {
 		errorMessageLn("Error creating temporary file")
-		panic(err);
+		panic(err)
 	}
 	defer os.Remove(tmpFd.Name())
 	defer tmpFd.Close()
@@ -215,7 +215,7 @@ func runCommand(
 		// code instead
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
-	 		exitCode = exitError.ExitCode()
+			exitCode = exitError.ExitCode()
 		} else {
 			errorMessageLn("Could not execture %s", command)
 			panic(err)
@@ -241,9 +241,9 @@ func runSexpQuery(query, document string, sensitive bool) string {
 	// in the latter case, but we need to return in the former
 	if status != 0 && len(stderr) > 0 {
 		errorMessageLn(
-			"Error running query:\n" +
-				"vvvvvvvvv stderr vvvvvvvvv\n\n" +
-				"%s\n" +
+			"Error running query:\n"+
+				"vvvvvvvvv stderr vvvvvvvvv\n\n"+
+				"%s\n"+
 				"^^^^^^^^^ stderr ^^^^^^^^^\n",
 			stderr)
 		panic(fmt.Errorf("sexp exited with non-zero status: %d", status))
@@ -279,7 +279,7 @@ func toSexp(x map[string]string) string {
 func query(parsedArgs ParsedArgs) {
 	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
 
-	if (len(parsedArgs.tailArgs) != 1) {
+	if len(parsedArgs.tailArgs) != 1 {
 		errorMessageLn("query requires an argument with the query")
 		panic("Invalid arguments")
 	}
@@ -291,14 +291,14 @@ func query(parsedArgs ParsedArgs) {
 }
 
 func toMap(x []string) map[string]string {
-	if len(x) % 2 != 0 {
+	if len(x)%2 != 0 {
 		errorMessageLn(
 			"Attempting to convert map of odd length %d to object",
 			len(x))
 		panic("Bad conversion to pairs")
 	}
 	out := map[string]string{}
-	for i := 0; i < len(x) - 1; i += 2 {
+	for i := 0; i < len(x)-1; i += 2 {
 		out[x[i]] = x[i+1]
 	}
 	return out
@@ -307,7 +307,7 @@ func toMap(x []string) map[string]string {
 func get(parsedArgs ParsedArgs) {
 	slog.Info("Running get subcommand", "args", parsedArgs.tailArgs)
 
-	if (len(parsedArgs.tailArgs) < 1) {
+	if len(parsedArgs.tailArgs) < 1 {
 		errorMessageLn("get requires an argument with the site regex")
 		panic(fmt.Errorf("Invalid arguments"))
 	}
@@ -331,7 +331,7 @@ func validateAddFields(object map[string]string) {
 	password := false
 	site := false
 
-	for k := range(object) {
+	for k := range object {
 		if k == "password" {
 			password = true
 		}
@@ -339,7 +339,7 @@ func validateAddFields(object map[string]string) {
 			site = true
 		}
 	}
-	if ! (password && site) {
+	if !(password && site) {
 		errorMessageLn("Either password or site are not present")
 		panic("Invalid add arguments")
 	}
@@ -353,7 +353,7 @@ func add(parsedArgs ParsedArgs) {
 
 	cleartext, password := getCleartext(parsedArgs.filename)
 
-	if (siteExists(cleartext, fields["site"])) {
+	if siteExists(cleartext, fields["site"]) {
 		errorMessageLn("Site %s already exists", fields["site"])
 		os.Exit(1)
 	}
@@ -361,7 +361,7 @@ func add(parsedArgs ParsedArgs) {
 	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
 	output := runSexpChange(query, cleartext, true)
 
-	encrypt(output,password, parsedArgs.filename)
+	encrypt(output, password, parsedArgs.filename)
 
 	fmt.Println("Added entry successfully")
 }
@@ -370,7 +370,7 @@ func siteExists(cleartext, site string) bool {
 	query := fmt.Sprintf("each (field site) (equals \"%s\")", site)
 	output := runSexpQuery(query, cleartext, false)
 	slog.Info("output", "output", output)
-	return len(output) != 0;
+	return len(output) != 0
 }
 
 func main() {
