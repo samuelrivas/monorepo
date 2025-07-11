@@ -11,6 +11,11 @@ import (
 
 	"filippo.io/age"
 	"golang.org/x/term"
+
+	// This is archived in favour of go's inferior "errors" package. If we
+	// plan to implement more things here, consider implementing your own
+	// errors with stack traces instead of depending on frozen external
+	// package
 	"github.com/pkg/errors"
 )
 
@@ -73,20 +78,20 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 }
 
 func openFileRead(filename string) *os.File {
-	slog.Info("Opening file to read", "filename", filename)
+	slog.Info("Opening to read", "filename", filename)
 	fd, err := os.Open(filename)
 	if err != nil {
-		errorMessageLn("Error opening file")
+		errorMessageLn("Error opening %s for read", filename)
 		panic(err)
 	}
 	return fd
 }
 
 func openFileWrite(filename string) *os.File {
-	slog.Info("Opening file to write", "filename", filename)
+	slog.Info("Opening to write", "filename", filename)
 	fd, err := os.OpenFile(filename, os.O_WRONLY | os.O_TRUNC, 0)
 	if err != nil {
-		errorMessageLn("Error opening file")
+		errorMessageLn("Error opening %s for write", filename)
 		panic(err)
 	}
 	return fd
@@ -101,23 +106,23 @@ func getCleartext(filename string) (string, string) {
 	password := askForPassword()
 
 	identity, err := age.NewScryptIdentity(string(password))
-	slog.Info("Creating scrypt identity for provided password")
+	slog.Info("Creating identity")
 	if err != nil {
 		errorMessageLn("Error creating identity")
 		panic(err)
 	}
 
-	slog.Info("Attempting to decrypt file descriptor with created identity", "fd", fd)
+	slog.Info("Decrypting", "file", fd.Name())
 	clearReader, err := age.Decrypt(fd, identity)
 	if err != nil {
-		errorMessageLn("Error decrypting file")
+		errorMessageLn("Error decrypting %s", filename)
 		panic(err)
 	}
-	slog.Info("File decrypted successfully")
+	slog.Info("Decrypted", "file", fd.Name())
 
 	cleartext, err := io.ReadAll(clearReader)
 	if err != nil {
-		errorMessageLn("Error reading clear bytes")
+		errorMessageLn("Error reading decrypted bytes")
 		panic(err)
 	}
 	return string(cleartext), password
@@ -129,7 +134,7 @@ func writeToFile(filename string, fd *os.File) {
 
 	_, err := io.Copy(destFd, fd)
 	if err != nil {
-		errorMessageLn("Error writing to file %s", filename)
+		errorMessageLn("Error copying %s to %s", fd.Name(), filename)
 		panic(err)
 	}
 }
@@ -149,7 +154,7 @@ func encrypt(clearText, password, filename string) {
 	}
 	defer os.Remove(tmpFd.Name())
 	defer tmpFd.Close()
-	slog.Info("Created temporary file for encryption", "tmp", tmpFd.Name())
+	slog.Info("Created temporary file", "tmp", tmpFd.Name())
 
 	writer, err := age.Encrypt(tmpFd, recipient)
 	if err != nil {
@@ -185,7 +190,7 @@ func runCommand(
 	command string,
 	args []string,
 	input string,
-	sensitive bool) (bytes.Buffer, bytes.Buffer, error) {
+	sensitive bool) (bytes.Buffer, bytes.Buffer, int) {
 
 	showableArgs := args
 	if sensitive {
@@ -196,47 +201,69 @@ func runCommand(
 
 	cmd.Stdin = bytes.NewBufferString(input)
 
-	var stdout, stderr  bytes.Buffer
+	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
 	err := cmd.Run()
 
-	return stdout, stderr, err
+	exitCode := 0
+	if err != nil {
+		// Execution can fail for multiple reasons. We want to abort in
+		// most cases, but if executiona failed because the command
+		// exited with non-zero status, we want to propagate the exit
+		// code instead
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+	 		exitCode = exitError.ExitCode()
+		} else {
+			errorMessageLn("Could not execture %s", command)
+			panic(err)
+		}
+	}
+	return stdout, stderr, exitCode
 }
 
 func runSexp(
 	command, query, document string,
-	sensitive bool) (string, string, error) {
-	stdout, stderr, err := runCommand(
+	sensitive bool) (string, string, int) {
+	stdout, stderr, status := runCommand(
 		"sexp", []string{command, query}, document, sensitive)
 
-	return stdout.String(), stderr.String(), errors.Wrap(err, "Error running sexp")
+	return stdout.String(), stderr.String(), status
 }
 
 func runSexpQuery(query, document string, sensitive bool) string {
-	stdout, stderr, err := runSexp("query", query, document, sensitive)
-	// If the query returns nothing, sexp exits with code 1, but it
-	// is not really an error. When an actual error happens it also
-	// exits with 1, but prints a message. Since we don't care about
-	// recovery, we panic in the latter case, but we need to return
-	// in the former
-	if err != nil && len(stderr) > 0 {
-		errorMessageLn("Error running query: %s", stderr)
-		panic(err)
-	} else if err != nil {
-		slog.Info("Query failed without error output. Assuming no results")
+	stdout, stderr, status := runSexp("query", query, document, sensitive)
+	// If the query returns nothing, sexp exits with code 1, though it is
+	// not really an error. When an actual error happens it also exits with
+	// 1, but prints a message. Since we don't care about recovery, we panic
+	// in the latter case, but we need to return in the former
+	if status != 0 && len(stderr) > 0 {
+		errorMessageLn(
+			"Error running query:\n" +
+				"vvvvvvvvv stderr vvvvvvvvv\n\n" +
+				"%s\n" +
+				"^^^^^^^^^ stderr ^^^^^^^^^\n",
+			stderr)
+		panic(fmt.Errorf("sexp exited with non-zero status: %d", status))
+	} else if status != 0 {
+		slog.Info("query failed without error output, assuming no results")
 	}
 
 	return stdout
 }
 
-func runSexpChange(query, document string, sensitive bool) string {
-	output, _, err := runSexp("change", query, document, sensitive)
-	if err != nil {
-		errorMessageLn("Error running change: %s", err)
-		panic(err)
+func validateExitStatus(what string, status int) {
+	if status != 0 {
+		panic(fmt.Errorf(
+			"%s exited with non-zero status %d", what, status))
 	}
+}
+
+func runSexpChange(query, document string, sensitive bool) string {
+	output, _, status := runSexp("change", query, document, sensitive)
+	validateExitStatus("sexp change", status)
 	return output
 }
 
@@ -350,8 +377,9 @@ func main() {
 	args := os.Args
 	parsedArgs, err := parseArgs(args)
 	if err != nil {
+		errorMessageLn("Error parsing arguments: %s", err)
 		usage(args)
-		panic(err)
+		os.Exit(1)
 	}
 
 	parsedArgs.subcommand(parsedArgs)
