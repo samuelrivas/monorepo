@@ -4,4 +4,7 @@
 
  ((site "some.other.site")
   (password "my other pass")
-  (meta "arbitrary sexp")))
+  (meta "arbitrary sexp"))
+
+ ((password "hunter22")
+  (site "yet.another.site")))
