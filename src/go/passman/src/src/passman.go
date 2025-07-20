@@ -53,6 +53,11 @@ func usage(args []string) {
 		filepath.Base(args[0]))
 }
 
+func errorAndExit(message string, args ...any) {
+	errorMessageLn(message, args...)
+	os.Exit(1)
+}
+
 func askForPassword() string {
 	fmt.Print("Enter password: ")
 	password, err := term.ReadPassword(int(os.Stdin.Fd()))
@@ -72,6 +77,8 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 		return get
 	case "add":
 		return add
+	case "update":
+		return update
 	default:
 		panic("Unknown subcommand " + arg)
 	}
@@ -354,8 +361,7 @@ func add(parsedArgs ParsedArgs) {
 	cleartext, password := getCleartext(parsedArgs.filename)
 
 	if siteExists(cleartext, fields["site"]) {
-		errorMessageLn("Site %s already exists", fields["site"])
-		os.Exit(1)
+		errorAndExit("Site %s already exists", fields["site"])
 	}
 
 	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
@@ -364,6 +370,34 @@ func add(parsedArgs ParsedArgs) {
 	encrypt(output, password, parsedArgs.filename)
 
 	fmt.Println("Added entry successfully")
+}
+
+func update(parsedArgs ParsedArgs) {
+	slog.Info("Running update subcommand", "args", parsedArgs.tailArgs)
+
+	if len(parsedArgs.tailArgs) < 3 {
+		errorAndExit("Update reqires at least <site> <field> <value> as arguments")
+	}
+
+	cleartext, _ := getCleartext(parsedArgs.filename)
+
+	fields := toMap(parsedArgs.tailArgs[1:])
+	site := parsedArgs.tailArgs[0]
+	slog.Info("Parsed update args", "site", site, "fields", fields)
+
+	if !siteExists(cleartext, site) {
+		errorAndExit("Site %s doesn't exist", site)
+	}
+
+
+
+	query := fmt.Sprintf(
+		"(children (seq (try (rewrite_record ((site %s) (password $_) @tail) ((site %s) (password %s) @tail)))))",
+		site, site, fields["password"])
+
+	output := runSexpChange(query, cleartext, true)
+
+	fmt.Println("Updated entry successfully: ", output)
 }
 
 func siteExists(cleartext, site string) bool {
