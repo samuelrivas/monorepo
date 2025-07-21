@@ -274,13 +274,22 @@ func runSexpChange(query, document string, sensitive bool) string {
 	return output
 }
 
+func toSplice(x map[string]string) string {
+	out := ""
+
+	for k, v := range x {
+		out += fmt.Sprintf("(%s \"%s\")", k, v)
+	}
+	return out
+}
+
 func toSexp(x map[string]string) string {
 	out := "("
 
 	for k, v := range x {
 		out += fmt.Sprintf("(%s \"%s\")", k, v)
 	}
-	return out + ")"
+	return fmt.Sprintf("(%s)", toSplice(x))
 }
 
 func query(parsedArgs ParsedArgs) {
@@ -389,13 +398,18 @@ func update(parsedArgs ParsedArgs) {
 		errorAndExit("Site %s doesn't exist", site)
 	}
 
+	fieldLhs := make(map[string]string)
+	for k := range fields {
+		fieldLhs[k] = "$" + k
+	}
 
-
+	changeMatch := toSplice(fieldLhs)
+	changeValue := toSplice(fields)
 	query := fmt.Sprintf(
-		"(children (seq (try (rewrite_record ((site %s) (password $_) @tail) ((site %s) (password %s) @tail)))))",
-		site, site, fields["password"])
+		"(children (seq (try (rewrite_record ((site %s) %s @tail) ((site %s) %s @tail)))))",
+		site, changeMatch, site, changeValue)
 
-	output := runSexpChange(query, cleartext, true)
+	output := runSexpChange(query, cleartext, false)
 
 	fmt.Println("Updated entry successfully: ", output)
 }
@@ -404,6 +418,14 @@ func siteExists(cleartext, site string) bool {
 	query := fmt.Sprintf("each (field site) (equals \"%s\")", site)
 	output := runSexpQuery(query, cleartext, false)
 	slog.Info("output", "output", output)
+	return len(output) != 0
+}
+
+func siteHasField(cleartext, site, field string, sensitive bool) bool {
+	query := fmt.Sprintf(
+		"each (test (field site) (equals \"%s\")) (field %s)",
+		site, field)
+	output := runSexpQuery(query, cleartext, sensitive)
 	return len(output) != 0
 }
 
