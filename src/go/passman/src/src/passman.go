@@ -17,6 +17,7 @@ import (
 	// errors with stack traces instead of depending on frozen external
 	// package
 	"github.com/pkg/errors"
+	"strings"
 )
 
 type ParsedArgs struct {
@@ -392,11 +393,34 @@ func update(parsedArgs ParsedArgs) {
 
 	fields := toMap(parsedArgs.tailArgs[1:])
 	site := parsedArgs.tailArgs[0]
-	slog.Info("Parsed update args", "site", site, "fields", fields)
 
 	if !siteExists(cleartext, site) {
 		errorAndExit("Site %s doesn't exist", site)
 	}
+
+	existingFieldNames := getSiteFieldNames(cleartext, site)
+	existingFields := map[string]string{}
+	for k, v := range fields {
+		if member(k, existingFieldNames) {
+			existingFields[k] = v
+		}
+	}
+
+	// The query we use for updating fields fails if there are new fields in
+	// it so we first update the existing fields and then add the new ones
+	output := updateExistingFields(cleartext, site, existingFields, false)
+
+	// TODO add the new fields
+	fmt.Println("Updated entry successfully: ", output)
+}
+
+// Update fields of a site, the site must exists and have the fields already, we
+// guarantee this before calling this function
+func updateExistingFields(
+	cleartext,
+	site string,
+	fields map[string]string,
+	sensitive bool) string {
 
 	fieldLhs := make(map[string]string)
 	for k := range fields {
@@ -409,9 +433,7 @@ func update(parsedArgs ParsedArgs) {
 		"(children (seq (try (rewrite_record ((site %s) %s @tail) ((site %s) %s @tail)))))",
 		site, changeMatch, site, changeValue)
 
-	output := runSexpChange(query, cleartext, false)
-
-	fmt.Println("Updated entry successfully: ", output)
+	return runSexpChange(query, cleartext, sensitive)
 }
 
 func siteExists(cleartext, site string) bool {
@@ -421,12 +443,23 @@ func siteExists(cleartext, site string) bool {
 	return len(output) != 0
 }
 
-func siteHasField(cleartext, site, field string, sensitive bool) bool {
+// return a "set" with all the field names of a given site
+func getSiteFieldNames(cleartext, site string) map[string]struct{} {
 	query := fmt.Sprintf(
-		"each (test (field site) (equals \"%s\")) (field %s)",
-		site, field)
-	output := runSexpQuery(query, cleartext, sensitive)
-	return len(output) != 0
+		"each (test (field site) (equals \"%s\")) each (index 0)",
+		site)
+	output := runSexpQuery(query, cleartext, false)
+
+	fields := make(map[string]struct{})
+	for v := range strings.SplitSeq(output, "\n") {
+		fields[v]= struct{}{}
+	}
+	return fields
+}
+
+func member(key string, set map[string]struct{}) bool {
+	_, ok := set[key]
+	return ok
 }
 
 func main() {
