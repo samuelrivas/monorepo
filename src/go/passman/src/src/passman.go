@@ -400,35 +400,39 @@ func update(parsedArgs ParsedArgs) {
 
 	existingFieldNames := getSiteFieldNames(cleartext, site)
 	existingFields := map[string]string{}
+	newFields := map[string]string{}
 	for k, v := range fields {
 		if member(k, existingFieldNames) {
 			existingFields[k] = v
+		} else {
+			newFields[k] = v
 		}
 	}
 
-	// The query we use for updating fields fails if there are new fields in
-	// it so we first update the existing fields and then add the new ones
-	output := updateExistingFields(cleartext, site, existingFields, false)
+	output := updateFields(
+		cleartext, site, existingFields, newFields,false)
 
-	// TODO add the new fields
+	// TODO encrypt and write back
 	fmt.Println("Updated entry successfully: ", output)
 }
 
-// Update fields of a site, the site must exists and have the fields already, we
-// guarantee this before calling this function
-func updateExistingFields(
+// Update fields of a site, existingFields must be fields that are already
+// present in the site record, and newFiles, fields that aren't present in the
+// site record.
+func updateFields(
 	cleartext,
 	site string,
-	fields map[string]string,
+	existingFields map[string]string,
+	newFields map[string]string,
 	sensitive bool) string {
 
 	fieldLhs := make(map[string]string)
-	for k := range fields {
+	for k := range existingFields {
 		fieldLhs[k] = "$" + k
 	}
 
 	changeMatch := toSplice(fieldLhs)
-	changeValue := toSplice(fields)
+	changeValue := toSplice(existingFields) + toSplice(newFields)
 	query := fmt.Sprintf(
 		"(children (seq (try (rewrite_record ((site %s) %s @tail) ((site %s) %s @tail)))))",
 		site, changeMatch, site, changeValue)
