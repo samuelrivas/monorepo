@@ -59,7 +59,9 @@ func usage(args []string) {
 
   - get <regex> [<field> ...]
 
-        Gets the fields of all sites that match regex
+        Gets the fields of all sites that match regex. You typically would use
+        something like "site password" as fields unless you know exactly which
+        fields you're matching.
 
   - add <field_1> <value_1> <field_2> <value_2>...
 
@@ -352,7 +354,7 @@ func get(parsedArgs ParsedArgs) {
 
 	cleartext, _ := getCleartext(parsedArgs.filename)
 	query := fmt.Sprintf(
-		"each (test (field site) (regex \"%s\"))",
+		"each (test (field site) (regex \"%s\")) (wrap (cat ",
 		parsedArgs.tailArgs[0])
 
 	for i := 1; i < len(parsedArgs.tailArgs); i++ {
@@ -361,7 +363,7 @@ func get(parsedArgs ParsedArgs) {
 			query, parsedArgs.tailArgs[i])
 	}
 
-	output := runSexpQuery(query, cleartext, false)
+	output := runSexpQuery(query + "))", cleartext, false)
 	fmt.Print(output)
 }
 
