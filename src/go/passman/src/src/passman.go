@@ -51,7 +51,26 @@ func errorMessageLn(message string, args ...any) {
 }
 
 func usage(args []string) {
-	errorMessage("Usage: %s <filename> <subcommand>\n\n",
+	errorMessage(`Usage: %s <filename> <subcommand>
+
+  - query <query>
+
+        Runs a sexp query on the decrypted file
+
+  - get <regex> [<field> ...]
+
+        Gets the fields of all sites that match regex
+
+  - add <field_1> <value_1> <field_2> <value_2>...
+
+        Adds a new site with the given fields. Both "site" and "password"
+        are mandatory. An arbitrary number of additional fields can be added.
+
+  - update <site> <field_1> <value_1> <field_2> <value_2>...
+
+        Updates the fields of an existing site. The site must exist. Existing
+        fields are updated, new fields are added.
+`,
 		filepath.Base(args[0]))
 }
 
@@ -322,6 +341,7 @@ func toMap(x []string) map[string]string {
 	return out
 }
 
+// TODO fix this to get all the fields requested, not as if they were nested
 func get(parsedArgs ParsedArgs) {
 	slog.Info("Running get subcommand", "args", parsedArgs.tailArgs)
 
@@ -357,6 +377,7 @@ func validateAddFields(object map[string]string) {
 			site = true
 		}
 	}
+
 	if !(password && site) {
 		errorMessageLn("Either password or site are not present")
 		panic("Invalid add arguments")
