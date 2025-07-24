@@ -12,12 +12,13 @@ import (
 	"filippo.io/age"
 	"golang.org/x/term"
 
+	"strings"
+
 	// This is archived in favour of go's inferior "errors" package. If we
 	// plan to implement more things here, consider implementing your own
 	// errors with stack traces instead of depending on frozen external
 	// package
 	"github.com/pkg/errors"
-	"strings"
 )
 
 type ParsedArgs struct {
@@ -379,7 +380,7 @@ func add(parsedArgs ParsedArgs) {
 
 	encrypt(output, password, parsedArgs.filename)
 
-	fmt.Println("Added entry successfully")
+	fmt.Println("Entry added successfully")
 }
 
 func update(parsedArgs ParsedArgs) {
@@ -389,7 +390,7 @@ func update(parsedArgs ParsedArgs) {
 		errorAndExit("Update reqires at least <site> <field> <value> as arguments")
 	}
 
-	cleartext, _ := getCleartext(parsedArgs.filename)
+	cleartext, password := getCleartext(parsedArgs.filename)
 
 	fields := toMap(parsedArgs.tailArgs[1:])
 	site := parsedArgs.tailArgs[0]
@@ -399,6 +400,19 @@ func update(parsedArgs ParsedArgs) {
 	}
 
 	existingFieldNames := getSiteFieldNames(cleartext, site)
+
+	existingFields, newFields := splitExisting(fields, existingFieldNames)
+
+	output := updateFields(cleartext, site, existingFields, newFields, true)
+	encrypt(output, password, parsedArgs.filename)
+
+	fmt.Println("Updated entry successfully")
+}
+
+func splitExisting(
+	fields map[string]string,
+	existingFieldNames map[string]struct{}) (map[string]string, map[string]string) {
+
 	existingFields := map[string]string{}
 	newFields := map[string]string{}
 	for k, v := range fields {
@@ -408,17 +422,12 @@ func update(parsedArgs ParsedArgs) {
 			newFields[k] = v
 		}
 	}
-
-	output := updateFields(
-		cleartext, site, existingFields, newFields,false)
-
-	// TODO encrypt and write back
-	fmt.Println("Updated entry successfully: ", output)
+	return existingFields, newFields
 }
 
 // Update fields of a site, existingFields must be fields that are already
-// present in the site record, and newFiles, fields that aren't present in the
-// site record.
+// present in the site record, and newFiles must be fields that aren't present
+// in the site record.
 func updateFields(
 	cleartext,
 	site string,
