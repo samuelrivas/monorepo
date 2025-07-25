@@ -1,4 +1,4 @@
-module example/passman
+module github.com/samuelrivas/monorepo/passman
 
 go 1.24.1
 

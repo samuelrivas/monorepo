@@ -503,7 +503,7 @@ func getSiteFieldNames(cleartext, site string) map[string]struct{} {
 
 	fields := make(map[string]struct{})
 	for v := range strings.SplitSeq(output, "\n") {
-		fields[v]= struct{}{}
+		fields[v] = struct{}{}
 	}
 	return fields
 }
