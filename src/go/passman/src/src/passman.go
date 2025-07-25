@@ -61,7 +61,8 @@ func usage(args []string) {
 
         Gets the fields of all sites that match regex. You typically would use
         something like "site password" as fields unless you know exactly which
-        fields you're matching.
+        fields you're matching. It returns the whole object if no field is
+        specified.
 
   - add <field_1> <value_1> <field_2> <value_2>...
 
@@ -353,18 +354,32 @@ func get(parsedArgs ParsedArgs) {
 	}
 
 	cleartext, _ := getCleartext(parsedArgs.filename)
-	query := fmt.Sprintf(
-		"each (test (field site) (regex \"%s\")) (wrap (cat ",
+	extractionQuery := fmt.Sprintf(
+		"each (test (field site) (regex \"%s\"))",
 		parsedArgs.tailArgs[0])
 
-	for i := 1; i < len(parsedArgs.tailArgs); i++ {
-		query = fmt.Sprintf(
-			"%s (field %s)",
-			query, parsedArgs.tailArgs[i])
+	presentationQuery := presentFieldsQuery(parsedArgs.tailArgs[1:])
+	query := extractionQuery + presentationQuery
+
+	output := runSexpQuery(query, cleartext, false)
+	fmt.Print(output)
+}
+
+// Query that given an object as input returns a list with the values of the
+// specified fields. If only one field is specified, it returns the value as
+// atom instead
+func presentFieldsQuery(fields []string) string {
+	fieldSexps := make([]string, 0, len(fields))
+	for _, arg := range fields {
+		fieldSexps = append(fieldSexps, fmt.Sprintf("(field %s)", arg))
 	}
 
-	output := runSexpQuery(query + "))", cleartext, false)
-	fmt.Print(output)
+	allFields := strings.Join(fieldSexps, " ")
+	if len(fields) > 1 {
+		return fmt.Sprintf("(wrap (cat %s))", allFields)
+	} else {
+		return allFields
+	}
 }
 
 func validateAddFields(object map[string]string) {
