@@ -19,6 +19,8 @@ import (
 	// errors with stack traces instead of depending on frozen external
 	// package
 	"github.com/pkg/errors"
+
+	"github.com/samuelrivas/monorepo/passman/internal/sets"
 )
 
 type ParsedArgs struct {
@@ -454,7 +456,7 @@ func splitExisting(
 	existingFields := map[string]string{}
 	newFields := map[string]string{}
 	for k, v := range fields {
-		if member(k, existingFieldNames) {
+		if sets.Member(k, existingFieldNames) {
 			existingFields[k] = v
 		} else {
 			newFields[k] = v
@@ -495,22 +497,17 @@ func siteExists(cleartext, site string) bool {
 }
 
 // return a "set" with all the field names of a given site
-func getSiteFieldNames(cleartext, site string) map[string]struct{} {
+func getSiteFieldNames(cleartext, site string) sets.Set {
 	query := fmt.Sprintf(
 		"each (test (field site) (equals \"%s\")) each (index 0)",
 		site)
 	output := runSexpQuery(query, cleartext, false)
 
-	fields := make(map[string]struct{})
+	fields := sets.Make()
 	for v := range strings.SplitSeq(output, "\n") {
-		fields[v] = struct{}{}
+		sets.Add(v, fields)
 	}
 	return fields
-}
-
-func member(key string, set map[string]struct{}) bool {
-	_, ok := set[key]
-	return ok
 }
 
 func main() {
