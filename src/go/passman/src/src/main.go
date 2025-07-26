@@ -71,10 +71,15 @@ func usage(args []string) {
         Adds a new site with the given fields. Both "site" and "password"
         are mandatory. An arbitrary number of additional fields can be added.
 
+        A value of the form XXX triggers a prompt to input it via tty. This is
+        useful to prevent leaking secrets in the shell history.
+
   - update <site> <field_1> <value_1> <field_2> <value_2>...
 
         Updates the fields of an existing site. The site must exist. Existing
         fields are updated, new fields are added.
+
+        A value XXX triggers the same functionality as for the add command.
 `,
 		filepath.Base(args[0]))
 }
@@ -84,11 +89,11 @@ func errorAndExit(message string, args ...any) {
 	os.Exit(1)
 }
 
-func askForPassword() string {
-	fmt.Print("Enter password: ")
+func askForSafeInput(fieldName string) string {
+	fmt.Printf("Enter %s: ", fieldName)
 	password, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
-		errorMessageLn("Error reading password")
+		errorMessageLn("Error reading '%s'", fieldName)
 		panic(err)
 	}
 	fmt.Println()
@@ -136,7 +141,7 @@ func getCleartext(filename string) (string, string) {
 	fd := openFileRead(filename)
 	defer fd.Close()
 
-	password := askForPassword()
+	password := askForSafeInput("Password to unlock input file")
 
 	identity, err := age.NewScryptIdentity(string(password))
 	slog.Info("Creating identity")
@@ -309,6 +314,17 @@ func toSplice(x map[string]string) string {
 	return out
 }
 
+// Look for values equal to XXX and prompt the user for the actual value
+func replaceXXXs(x map[string]string) {
+	for k, v := range x {
+		if v == "XXX" {
+			slog.Info("Replacing XXX with user prompt", "XXX", k)
+			value := askForSafeInput("value for field " + k)
+			x[k] = value
+		}
+	}
+}
+
 func toSexp(x map[string]string) string {
 	out := "("
 
@@ -415,6 +431,8 @@ func add(parsedArgs ParsedArgs) {
 		errorAndExit("Site %s already exists", fields["site"])
 	}
 
+	replaceXXXs(fields)
+
 	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
 	output := runSexpChange(query, cleartext, true)
 
@@ -441,6 +459,7 @@ func update(parsedArgs ParsedArgs) {
 
 	existingFieldNames := getSiteFieldNames(cleartext, site)
 
+	replaceXXXs(fields)
 	existingFields, newFields := splitExisting(fields, existingFieldNames)
 
 	output := updateFields(cleartext, site, existingFields, newFields, true)
