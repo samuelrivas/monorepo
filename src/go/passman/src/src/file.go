@@ -36,4 +36,3 @@ func writeToFile(filename string, fd *os.File) {
 		panic(err)
 	}
 }
-

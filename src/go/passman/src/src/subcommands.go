@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log/slog"
+
+	"github.com/samuelrivas/monorepo/passman/internal/sets"
 )
 
 func query(parsedArgs ParsedArgs) {
@@ -86,4 +88,69 @@ func update(parsedArgs ParsedArgs) {
 	encrypt(output, password, parsedArgs.filename)
 
 	fmt.Println("Entry updated successfully")
+}
+
+// Utility functions
+//==============================================================================
+
+// Look for values equal to XXX and prompt the user for the actual value
+func replaceXXXs(x map[string]string) {
+	for k, v := range x {
+		if v == "XXX" {
+			slog.Info("Replacing XXX with user prompt", "XXX", k)
+			value := askForSafeInput("value for field " + k)
+			x[k] = value
+		}
+	}
+}
+
+// Convert a list of strings into a map, using the key, value, key, value...
+// convention
+func toMap(x []string) map[string]string {
+	if len(x)%2 != 0 {
+		errorMessageLn(
+			"Attempting to convert map of odd length %d to object",
+			len(x))
+		panic("Bad conversion to pairs")
+	}
+	out := map[string]string{}
+	for i := 0; i < len(x)-1; i += 2 {
+		out[x[i]] = x[i+1]
+	}
+	return out
+}
+
+func validateAddFields(object map[string]string) {
+	password := false
+	site := false
+
+	for k := range object {
+		if k == "password" {
+			password = true
+		}
+		if k == "site" {
+			site = true
+		}
+	}
+
+	if !(password && site) {
+		errorMessageLn("Either password or site are not present")
+		panic("Invalid add arguments")
+	}
+}
+
+func splitExisting(
+	fields map[string]string,
+	existingFieldNames map[string]struct{}) (map[string]string, map[string]string) {
+
+	existingFields := map[string]string{}
+	newFields := map[string]string{}
+	for k, v := range fields {
+		if sets.Member(k, existingFieldNames) {
+			existingFields[k] = v
+		} else {
+			newFields[k] = v
+		}
+	}
+	return existingFields, newFields
 }
