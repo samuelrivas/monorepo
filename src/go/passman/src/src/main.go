@@ -9,11 +9,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"filippo.io/age"
-	"golang.org/x/term"
-
-	"strings"
-
 	// This is archived in favour of go's inferior "errors" package. If we
 	// plan to implement more things here, consider implementing your own
 	// errors with stack traces instead of depending on frozen external
@@ -89,17 +84,6 @@ func errorAndExit(message string, args ...any) {
 	os.Exit(1)
 }
 
-func askForSafeInput(fieldName string) string {
-	fmt.Printf("Enter %s: ", fieldName)
-	password, err := term.ReadPassword(int(os.Stdin.Fd()))
-	if err != nil {
-		errorMessageLn("Error reading '%s'", fieldName)
-		panic(err)
-	}
-	fmt.Println()
-	return string(password)
-}
-
 func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 	switch arg {
 	case "query":
@@ -113,115 +97,6 @@ func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
 	default:
 		panic("Unknown subcommand " + arg)
 	}
-}
-
-func openFileRead(filename string) *os.File {
-	slog.Info("Opening to read", "filename", filename)
-	fd, err := os.Open(filename)
-	if err != nil {
-		errorMessageLn("Error opening %s for read", filename)
-		panic(err)
-	}
-	return fd
-}
-
-func openFileWrite(filename string) *os.File {
-	slog.Info("Opening to write", "filename", filename)
-	fd, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC, 0)
-	if err != nil {
-		errorMessageLn("Error opening %s for write", filename)
-		panic(err)
-	}
-	return fd
-}
-
-// Decrypt filePath and return a io.Reader on the clear text. It returns
-// the identity as well so that we can re-encrpyt with it
-func getCleartext(filename string) (string, string) {
-	fd := openFileRead(filename)
-	defer fd.Close()
-
-	password := askForSafeInput("Password to unlock input file")
-
-	identity, err := age.NewScryptIdentity(string(password))
-	slog.Info("Creating identity")
-	if err != nil {
-		errorMessageLn("Error creating identity")
-		panic(err)
-	}
-
-	slog.Info("Decrypting", "file", fd.Name())
-	clearReader, err := age.Decrypt(fd, identity)
-	if err != nil {
-		errorMessageLn("Error decrypting %s", filename)
-		panic(err)
-	}
-	slog.Info("Decrypted", "file", fd.Name())
-
-	cleartext, err := io.ReadAll(clearReader)
-	if err != nil {
-		errorMessageLn("Error reading decrypted bytes")
-		panic(err)
-	}
-	return string(cleartext), password
-}
-
-func writeToFile(filename string, fd *os.File) {
-	destFd := openFileWrite(filename)
-	defer destFd.Close()
-
-	_, err := io.Copy(destFd, fd)
-	if err != nil {
-		errorMessageLn("Error copying %s to %s", fd.Name(), filename)
-		panic(err)
-	}
-}
-
-// Encrypts into a temp file, copies the file onto filename, and then cleans the the temp file
-func encrypt(clearText, password, filename string) {
-	recipient, err := age.NewScryptRecipient(password)
-	if err != nil {
-		errorMessageLn("Error creating recipient")
-		panic(err)
-	}
-
-	tmpFd, err := os.CreateTemp("", "passman-*.age")
-	if err != nil {
-		errorMessageLn("Error creating temporary file")
-		panic(err)
-	}
-	defer os.Remove(tmpFd.Name())
-	defer tmpFd.Close()
-	slog.Info("Created temporary file", "tmp", tmpFd.Name())
-
-	writer, err := age.Encrypt(tmpFd, recipient)
-	if err != nil {
-		errorMessageLn("Error creating encryptor")
-		panic(err)
-	}
-
-	_, err = io.WriteString(writer, clearText)
-	if err != nil {
-		errorMessageLn("Error writing to encryptor")
-		panic(err)
-	}
-
-	err = writer.Close()
-	if err != nil {
-		errorMessageLn("Error closing encryptor")
-		panic(err)
-	}
-
-	_, err = tmpFd.Seek(0, io.SeekStart)
-	if err != nil {
-		errorMessageLn("Error seeking to start of temporary file")
-		panic(err)
-	}
-
-	slog.Info(
-		"Copying temp file to destination",
-		"filename", filename, "tempfile", tmpFd.Name())
-	writeToFile(filename, tmpFd)
 }
 
 func runCommand(
@@ -262,56 +137,11 @@ func runCommand(
 	return stdout, stderr, exitCode
 }
 
-func runSexp(
-	command, query, document string,
-	sensitive bool) (string, string, int) {
-	stdout, stderr, status := runCommand(
-		"sexp", []string{command, query}, document, sensitive)
-
-	return stdout.String(), stderr.String(), status
-}
-
-func runSexpQuery(query, document string, sensitive bool) string {
-	stdout, stderr, status := runSexp("query", query, document, sensitive)
-	// If the query returns nothing, sexp exits with code 1, though it is
-	// not really an error. When an actual error happens it also exits with
-	// 1, but prints a message. Since we don't care about recovery, we panic
-	// in the latter case, but we need to return in the former
-	if status != 0 && len(stderr) > 0 {
-		errorMessageLn(
-			"Error running query:\n"+
-				"vvvvvvvvv stderr vvvvvvvvv\n\n"+
-				"%s\n"+
-				"^^^^^^^^^ stderr ^^^^^^^^^\n",
-			stderr)
-		panic(fmt.Errorf("sexp exited with non-zero status: %d", status))
-	} else if status != 0 {
-		slog.Info("query failed without error output, assuming no results")
-	}
-
-	return stdout
-}
-
 func validateExitStatus(what string, status int) {
 	if status != 0 {
 		panic(fmt.Errorf(
 			"%s exited with non-zero status %d", what, status))
 	}
-}
-
-func runSexpChange(query, document string, sensitive bool) string {
-	output, _, status := runSexp("change", query, document, sensitive)
-	validateExitStatus("sexp change", status)
-	return output
-}
-
-func toSplice(x map[string]string) string {
-	out := ""
-
-	for k, v := range x {
-		out += fmt.Sprintf("(%s \"%s\")", k, v)
-	}
-	return out
 }
 
 // Look for values equal to XXX and prompt the user for the actual value
@@ -325,15 +155,8 @@ func replaceXXXs(x map[string]string) {
 	}
 }
 
-func toSexp(x map[string]string) string {
-	out := "("
-
-	for k, v := range x {
-		out += fmt.Sprintf("(%s \"%s\")", k, v)
-	}
-	return fmt.Sprintf("(%s)", toSplice(x))
-}
-
+// Convert a list of strings into a map, using the key, value, key, value...
+// convention
 func toMap(x []string) map[string]string {
 	if len(x)%2 != 0 {
 		errorMessageLn(
@@ -346,23 +169,6 @@ func toMap(x []string) map[string]string {
 		out[x[i]] = x[i+1]
 	}
 	return out
-}
-
-// Query that given an object as input returns a list with the values of the
-// specified fields. If only one field is specified, it returns the value as
-// atom instead
-func presentFieldsQuery(fields []string) string {
-	fieldSexps := make([]string, 0, len(fields))
-	for _, arg := range fields {
-		fieldSexps = append(fieldSexps, fmt.Sprintf("(field %s)", arg))
-	}
-
-	allFields := strings.Join(fieldSexps, " ")
-	if len(fields) > 1 {
-		return fmt.Sprintf("(wrap (cat %s))", allFields)
-	} else {
-		return allFields
-	}
 }
 
 func validateAddFields(object map[string]string) {
@@ -398,51 +204,6 @@ func splitExisting(
 		}
 	}
 	return existingFields, newFields
-}
-
-// Update fields of a site, existingFields must be fields that are already
-// present in the site record, and newFiles must be fields that aren't present
-// in the site record.
-func updateFields(
-	cleartext,
-	site string,
-	existingFields map[string]string,
-	newFields map[string]string,
-	sensitive bool) string {
-
-	fieldLhs := make(map[string]string)
-	for k := range existingFields {
-		fieldLhs[k] = "$" + k
-	}
-
-	changeMatch := toSplice(fieldLhs)
-	changeValue := toSplice(existingFields) + toSplice(newFields)
-	query := fmt.Sprintf(
-		"(children (seq (try (rewrite_record ((site %s) %s @tail) ((site %s) %s @tail)))))",
-		site, changeMatch, site, changeValue)
-
-	return runSexpChange(query, cleartext, sensitive)
-}
-
-func siteExists(cleartext, site string) bool {
-	query := fmt.Sprintf("each (field site) (equals \"%s\")", site)
-	output := runSexpQuery(query, cleartext, false)
-	slog.Info("output", "output", output)
-	return len(output) != 0
-}
-
-// return a "set" with all the field names of a given site
-func getSiteFieldNames(cleartext, site string) sets.Set {
-	query := fmt.Sprintf(
-		"each (test (field site) (equals \"%s\")) each (index 0)",
-		site)
-	output := runSexpQuery(query, cleartext, false)
-
-	fields := sets.Make()
-	for v := range strings.SplitSeq(output, "\n") {
-		sets.Add(v, fields)
-	}
-	return fields
 }
 
 func main() {
