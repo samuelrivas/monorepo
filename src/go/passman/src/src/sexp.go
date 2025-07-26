@@ -17,7 +17,6 @@ func runSexp(
 	return stdout.String(), stderr.String(), status
 }
 
-
 func runSexpChange(query, document string, sensitive bool) string {
 	output, _, status := runSexp("change", query, document, sensitive)
 	validateExitStatus("sexp change", status)
