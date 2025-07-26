@@ -2,11 +2,16 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
+
+	// This is archived in favour of go's inferior "errors" package. If we
+	// plan to implement more things here, consider implementing your own
+	// errors with stack traces instead of depending on frozen external
+	// package
+	"github.com/pkg/errors"
 )
 
 func errorMessage(message string, args ...any) {

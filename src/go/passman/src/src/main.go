@@ -4,10 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	// This is archived in favour of go's inferior "errors" package. If we
-	// plan to implement more things here, consider implementing your own
-	// errors with stack traces instead of depending on frozen external
-	// package
 )
 
 type ParsedArgs struct {
@@ -26,6 +22,21 @@ func parseArgs(args []string) (ParsedArgs, error) {
 		filename:   args[1],
 		subcommand: parseSubcommand(args[2]),
 	}, nil
+}
+
+func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
+	switch arg {
+	case "query":
+		return query
+	case "get":
+		return get
+	case "add":
+		return add
+	case "update":
+		return update
+	default:
+		panic("Unknown subcommand " + arg)
+	}
 }
 
 func usage(args []string) {
@@ -58,21 +69,6 @@ func usage(args []string) {
         A value XXX triggers the same functionality as for the add command.
 `,
 		filepath.Base(args[0]))
-}
-
-func parseSubcommand(arg string) func(parsedArgs ParsedArgs) {
-	switch arg {
-	case "query":
-		return query
-	case "get":
-		return get
-	case "add":
-		return add
-	case "update":
-		return update
-	default:
-		panic("Unknown subcommand " + arg)
-	}
 }
 
 func main() {
