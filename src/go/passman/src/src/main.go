@@ -334,20 +334,6 @@ func toSexp(x map[string]string) string {
 	return fmt.Sprintf("(%s)", toSplice(x))
 }
 
-func query(parsedArgs ParsedArgs) {
-	slog.Info("Running query subcommand", "args", parsedArgs.tailArgs)
-
-	if len(parsedArgs.tailArgs) != 1 {
-		errorMessageLn("query requires an argument with the query")
-		panic("Invalid arguments")
-	}
-
-	cleartext, _ := getCleartext(parsedArgs.filename)
-	output := runSexpQuery(parsedArgs.tailArgs[0], cleartext, false)
-
-	fmt.Print(output)
-}
-
 func toMap(x []string) map[string]string {
 	if len(x)%2 != 0 {
 		errorMessageLn(
@@ -360,27 +346,6 @@ func toMap(x []string) map[string]string {
 		out[x[i]] = x[i+1]
 	}
 	return out
-}
-
-// TODO fix this to get all the fields requested, not as if they were nested
-func get(parsedArgs ParsedArgs) {
-	slog.Info("Running get subcommand", "args", parsedArgs.tailArgs)
-
-	if len(parsedArgs.tailArgs) < 1 {
-		errorMessageLn("get requires an argument with the site regex")
-		panic(fmt.Errorf("Invalid arguments"))
-	}
-
-	cleartext, _ := getCleartext(parsedArgs.filename)
-	extractionQuery := fmt.Sprintf(
-		"each (test (field site) (regex \"%s\"))",
-		parsedArgs.tailArgs[0])
-
-	presentationQuery := presentFieldsQuery(parsedArgs.tailArgs[1:])
-	query := extractionQuery + presentationQuery
-
-	output := runSexpQuery(query, cleartext, false)
-	fmt.Print(output)
 }
 
 // Query that given an object as input returns a list with the values of the
@@ -417,55 +382,6 @@ func validateAddFields(object map[string]string) {
 		errorMessageLn("Either password or site are not present")
 		panic("Invalid add arguments")
 	}
-}
-
-func add(parsedArgs ParsedArgs) {
-	slog.Info("Running add subcommand", "args", parsedArgs.tailArgs)
-
-	fields := toMap(parsedArgs.tailArgs)
-	validateAddFields(fields)
-
-	cleartext, password := getCleartext(parsedArgs.filename)
-
-	if siteExists(cleartext, fields["site"]) {
-		errorAndExit("Site %s already exists", fields["site"])
-	}
-
-	replaceXXXs(fields)
-
-	query := fmt.Sprintf("(rewrite (@x) (@x %s))", toSexp(fields))
-	output := runSexpChange(query, cleartext, true)
-
-	encrypt(output, password, parsedArgs.filename)
-
-	fmt.Println("Entry added successfully")
-}
-
-func update(parsedArgs ParsedArgs) {
-	slog.Info("Running update subcommand", "args", parsedArgs.tailArgs)
-
-	if len(parsedArgs.tailArgs) < 3 {
-		errorAndExit("Update reqires at least <site> <field> <value> as arguments")
-	}
-
-	cleartext, password := getCleartext(parsedArgs.filename)
-
-	fields := toMap(parsedArgs.tailArgs[1:])
-	site := parsedArgs.tailArgs[0]
-
-	if !siteExists(cleartext, site) {
-		errorAndExit("Site %s doesn't exist", site)
-	}
-
-	existingFieldNames := getSiteFieldNames(cleartext, site)
-
-	replaceXXXs(fields)
-	existingFields, newFields := splitExisting(fields, existingFieldNames)
-
-	output := updateFields(cleartext, site, existingFields, newFields, true)
-	encrypt(output, password, parsedArgs.filename)
-
-	fmt.Println("Updated entry successfully")
 }
 
 func splitExisting(
