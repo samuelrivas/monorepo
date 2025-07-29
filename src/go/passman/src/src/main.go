@@ -53,10 +53,9 @@ func usage(args []string) {
         fields you're matching. It returns the whole object if no field is
         specified.
 
-  - add <field_1> <value_1> <field_2> <value_2>...
+  - add <site> <value_1> <field_2> <value_2>...
 
-        Adds a new site with the given fields. Both "site" and "password"
-        are mandatory. An arbitrary number of additional fields can be added.
+        Adds a new site with the site name and an arbitrary number of additional fields.
 
         A value of the form XXX triggers a prompt to input it via tty. This is
         useful to prevent leaking secrets in the shell history.
