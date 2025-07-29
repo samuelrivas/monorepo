@@ -122,6 +122,7 @@
     # ========
     passman-go = callPackage ./../src/go/passman/nix {
       inherit (nixpkgs.ocamlPackages) sexp;
+      inherit (lib-nixpkgs) makeBinPath;
     };
 
     # Contests, puzzles, etc

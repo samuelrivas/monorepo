@@ -2,12 +2,15 @@
   add-dev-shell,
   age,
   buildGoModule,
+  makeBinPath,
+  makeBinaryWrapper,
   my-emacs,
+  runCommand,
   sexp,
   sh-lib,
   ubuntu_font_family,
 }: let
-  drv = buildGoModule {
+  go-drv = buildGoModule {
     pname = "passman-go";
     version = "1.0.0";
 
@@ -20,7 +23,7 @@
     # derivation. Normally, changing a character works, but if you get invalid
     # hash errors, you can use lib.fakeHash, just add lib to the arguments of
     # the derivation, callPackage in packages.nix will input it automagically
-    vendorHash = "sha256-1t9vnH7ywaEgx7pjBpn8Z09I3VB/lUBuluRaG1+0lnE=";
+    vendorHash = "sha256-jjRqpMsBfugG1pc+JJHv4XFKK+vhAKwceIs6AxpW69w=";
   };
 
   # This could be extracted if we had more go projects in this repo
@@ -34,13 +37,16 @@
     #
     # sexp and sh-lib should be used for building, but I need to refactor things
     # first because buildGoModule doesn't accept buildInputs
-    native-build-inputs = [
-      age
-      my-emacs
-      sexp
-      sh-lib
-      ubuntu_font_family
-    ];
+    native-build-inputs =
+      go-drv.nativeBuildInputs
+      ++ [
+        age
+        my-emacs
+        sexp
+        sh-lib
+        ubuntu_font_family
+      ];
+    build-inputs = go-drv.buildInputs;
     shell-hook = ''
       # This should probably be in the sandbox script
       export XDG_CACHE_HOME="/tmp/cache"
@@ -56,5 +62,12 @@
       GOFLAGS="$GOFLAGS -mod=mod"
     '';
   };
+  drv =
+    runCommand "passman" {
+      nativeBuildInputs = [makeBinaryWrapper];
+    } ''
+      makeWrapper ${go-drv}/bin/passman $out/bin/passman \
+          --prefix PATH : ${makeBinPath [sexp]}
+    '';
 in
   add-dev-shell drv extra-sandbox
