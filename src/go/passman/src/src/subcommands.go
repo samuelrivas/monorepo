@@ -44,8 +44,13 @@ func get(parsedArgs ParsedArgs) {
 func add(parsedArgs ParsedArgs) {
 	slog.Info("Running add subcommand", "args", parsedArgs.tailArgs)
 
-	fields := toMap(parsedArgs.tailArgs)
-	validateAddFields(fields)
+	if len(parsedArgs.tailArgs) < 1 {
+		errorMessageLn("add requires an argument with the site name")
+		panic(fmt.Errorf("Invalid arguments"))
+	}
+
+	fields := toMap(parsedArgs.tailArgs[1:])
+	fields["site"] = parsedArgs.tailArgs[0]
 
 	cleartext, password := getCleartext(parsedArgs.filename)
 
@@ -118,25 +123,6 @@ func toMap(x []string) map[string]string {
 		out[x[i]] = x[i+1]
 	}
 	return out
-}
-
-func validateAddFields(object map[string]string) {
-	password := false
-	site := false
-
-	for k := range object {
-		if k == "password" {
-			password = true
-		}
-		if k == "site" {
-			site = true
-		}
-	}
-
-	if !(password && site) {
-		errorMessageLn("Either password or site are not present")
-		panic("Invalid add arguments")
-	}
 }
 
 func splitExisting(
