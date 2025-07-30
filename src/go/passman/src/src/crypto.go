@@ -11,13 +11,13 @@ import (
 )
 
 func askForSafeInput(fieldName string) string {
-	fmt.Printf("Enter %s: ", fieldName)
+	fmt.Fprintf(os.Stderr, "Enter %s: ", fieldName)
 	password, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		errorMessageLn("Error reading '%s'", fieldName)
 		panic(err)
 	}
-	fmt.Println()
+	fmt.Fprintln(os.Stderr)
 	return string(password)
 }
 
