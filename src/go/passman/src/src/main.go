@@ -67,6 +67,11 @@ func usage(args []string) {
         fields are updated, new fields are added.
 
         A value XXX triggers the same functionality as for the add command.
+
+  Logging:
+    You can set up the log level with the LOG_LEVEL environment variable.
+    Allowed values are debug, info, warn or error; from more to less verbose.
+    Default is error.
 `,
 		filepath.Base(args[0]))
 }
