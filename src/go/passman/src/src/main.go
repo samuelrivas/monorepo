@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -66,11 +67,54 @@ func usage(args []string) {
         fields are updated, new fields are added.
 
         A value XXX triggers the same functionality as for the add command.
+
+  Logging:
+    You can set up the log level with the LOG_LEVEL environment variable.
+    Allowed values are debug, info, warn or error; from more to less verbose.
+    Default is error.
 `,
 		filepath.Base(args[0]))
 }
 
+func setupLogger(level slog.Level) {
+	loggerOptions := slog.HandlerOptions{
+		Level: level,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == "time" || a.Key == "level" {
+				return slog.Attr{}
+			}
+			return a
+		},
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &loggerOptions))
+	slog.SetDefault(logger)
+}
+
+func get_log_level() slog.Level {
+	defaultLevel := slog.LevelError
+
+	level := os.Getenv("LOG_LEVEL")
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	case "":
+		return defaultLevel
+	default:
+		errorMessageLn(
+			"LOG_LEVEL is set to an unknown log level %s", level)
+		panic("Unknown log level " + level)
+	}
+}
+
 func main() {
+	level := get_log_level()
+	setupLogger(level)
 	args := os.Args
 	parsedArgs, err := parseArgs(args)
 	if err != nil {
