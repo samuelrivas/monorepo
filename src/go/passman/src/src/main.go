@@ -71,9 +71,9 @@ func usage(args []string) {
 		filepath.Base(args[0]))
 }
 
-func setupLogger(){
+func setupLogger(level slog.Level) {
 	loggerOptions := slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		Level: level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			if a.Key == "time" || a.Key == "level" {
 				return slog.Attr{}
@@ -85,8 +85,31 @@ func setupLogger(){
 	slog.SetDefault(logger)
 }
 
+func get_log_level() slog.Level {
+	defaultLevel := slog.LevelError
+
+	level := os.Getenv("LOG_LEVEL")
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	case "":
+		return defaultLevel
+	default:
+		errorMessageLn(
+			"LOG_LEVEL is set to an unknown log level %s", level)
+		panic("Unknown log level " + level)
+	}
+}
+
 func main() {
-	setupLogger()
+	level := get_log_level()
+	setupLogger(level)
 	args := os.Args
 	parsedArgs, err := parseArgs(args)
 	if err != nil {
