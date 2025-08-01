@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -70,7 +71,22 @@ func usage(args []string) {
 		filepath.Base(args[0]))
 }
 
+func setupLogger(){
+	loggerOptions := slog.HandlerOptions{
+		Level: slog.LevelDebug,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == "time" || a.Key == "level" {
+				return slog.Attr{}
+			}
+			return a
+		},
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &loggerOptions))
+	slog.SetDefault(logger)
+}
+
 func main() {
+	setupLogger()
 	args := os.Args
 	parsedArgs, err := parseArgs(args)
 	if err != nil {
