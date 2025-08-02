@@ -396,7 +396,7 @@ vector<OpHandler*> guess_opcodes(const vector<Sample>& samples) {
 
   // It is possible that we infer the last two opcodes when reading the last
   // example, then this will explode. Doesn't happen for my input though :p
-  assert(found = 16);
+  assert(found == 16);
   return fixed_handlers;
 }
 
