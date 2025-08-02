@@ -1,3 +1,9 @@
+/* Start with a 1 and in each iteration:
+ * - Read the last element of the previous iteration
+ * - Count how many of those elements are in a row, right to left
+ * - Write the element and the number of repetitions, right to left
+ * - Continue with the next element
+ */
 #include <iostream>
 #include <vector>
 #include <iomanip>
