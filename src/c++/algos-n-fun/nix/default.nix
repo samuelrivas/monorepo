@@ -12,25 +12,25 @@
   stdenv,
   strace,
   valgrind,
-}:
-stdenv.mkDerivation {
-  src = ./../src;
-  name = "algos-n-fun";
-  nativeBuildInputs =
-    [
-      asyncq
-      cpplint
-      gcc
+}: let
+  drv = stdenv.mkDerivation {
+    src = ./../src;
+    name = "algos-n-fun";
+    buildInputs = [
       graphlib
-      less
       rapidcheck
       rndlib
-    ]
-    ++ lib.optionals (!stdenv.isDarwin)
-    [
-      gdb
-      strace
-      valgrind
+      asyncq
     ];
-  builder = empty-builder;
-}
+    nativeBuildInputs = [
+      cpplint
+      gcc
+      less
+    ];
+    installPhase = ''
+      mkdir -p "$out/bin"
+      cp ../build/install/bin/* $out/bin
+    '';
+  };
+in
+  drv
