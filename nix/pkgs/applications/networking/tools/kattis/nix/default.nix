@@ -1,3 +1,5 @@
+# This wraps the kattis submission client into a runnable script.
+# You need to have a valid ~/.kattisrc file for it to work.
 {
   fetchFromGitHub,
   python3Packages,
