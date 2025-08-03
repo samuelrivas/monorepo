@@ -110,8 +110,6 @@
     rndlib = callPackage ./../src/c++/rndlib/nix {};
     asyncq = callPackage ./../src/c++/asyncq/nix {};
 
-    udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat {};
-
     # LaTeX stuff
     # ===========
     latex-base = callPackage ./../src/docs/latex-base/nix {
@@ -124,6 +122,11 @@
       inherit (nixpkgs.ocamlPackages) sexp;
       inherit (lib-nixpkgs) makeBinPath;
     };
+
+    # Tools wrapped from external repos
+    # =================================
+    kattis-cli = callPackage ./pkgs/applications/networking/tools/kattis/nix {};
+    udp-cat = callPackage ./pkgs/applications/networking/tools/udp-cat {};
 
     # Contests, puzzles, etc
     # ======================
