@@ -1,4 +1,4 @@
-# Common makefile for all projects living in this monorepo
+# Common makefile to build single binary haskell projects
 #
 # Heavily based on our own conventions. Namely
 #   - All files are generated in a separate directory (BUILD-DIR)
@@ -39,6 +39,7 @@ $(LIB-DIR):
 clean:
 	rm -rf $(BUILD-DIR)
 
+# This needs to be phony so that we use ghc to detect dependencies
 .PHONY: $(PROGRAM)
 $(PROGRAM): | $(BIN-DIR)
 	$(GHC) $(MAIN-MODULE) -o $@
