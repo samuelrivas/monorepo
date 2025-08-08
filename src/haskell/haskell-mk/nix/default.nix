@@ -6,10 +6,12 @@ stdenv.mkDerivation {
     mkdir -p "$out/lib"
     mkdir -p "$out/nix-support"
     cp lib/build-haskell.mk $out/lib
+    cp lib/build-haskells.mk $out/lib
 
     cat > $out/nix-support/setup-hook <<EOF
     addHaskellMkPath() {
       export HASKELL_MK="$out/lib/build-haskell.mk"
+      export HASKELLS_MK="$out/lib/build-haskells.mk"
     }
 
     addEnvHooks "$hostOffset" addHaskellMkPath
