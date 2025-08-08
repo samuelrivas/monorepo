@@ -1,6 +1,6 @@
 PACKAGE-NAME := perlude
 PACKAGE-VERSION := 1.0
-PACKAGE-DEPS :=
+PACKAGE-DEPS := text
 EXPOSED-MODULES := Perlude
 include $(HASKELL_LIB_MK)
 
