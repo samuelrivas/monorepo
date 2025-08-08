@@ -1,5 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Velkomin where
-import           Shared (shared)
+
+import           Perlude
 
 main :: IO ()
-main = shared
+main = putStr "VELKOMIN!"
