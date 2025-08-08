@@ -13,7 +13,9 @@ module Perlude (
   fail,
   getArgs,
   getContents,
+  getExecutablePath,
   getLine,
+  getProgramName,
   hPrint,
   hPutStr,
   hPutStrLn,
@@ -72,8 +74,14 @@ getArgs = liftIO $ fmap pack <$> System.Environment.getArgs
 getContents :: MonadIO m => m Text
 getContents = liftIO TextIO.getContents
 
+getExecutablePath :: MonadIO m => m Text
+getExecutablePath = liftIO $ pack <$> System.Environment.getExecutablePath
+
 getLine :: MonadIO m => m Text
 getLine = liftIO TextIO.getLine
+
+getProgramName :: MonadIO m => m Text
+getProgramName = liftIO $ pack <$> System.Environment.getProgName
 
 interact :: MonadIO m => (Text -> Text) -> m ()
 interact = liftIO . TextIO.interact
