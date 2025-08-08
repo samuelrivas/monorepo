@@ -5,8 +5,7 @@
 #   - All source files are in the src dir
 #   - One executable per project
 #   - No cabal, we compile and link with ghc, like the good old times :P
-#   - Control from the outside via PROGRAM-NAME, GHC-FLAGS, GHC-LD-FLAGS and
-#     GHC-PACKAGES
+#   - Control from the outside via PROGRAM-NAME and GHC-FLAGS
 
 # Interface
 MAIN-MODULE ?= src/Main.hs
