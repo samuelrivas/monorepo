@@ -14,6 +14,7 @@
       h-package = h-pkgs.callPackage;
     in {
       inherit (lib-system.sam.haskell) haskell-pkg haskell-lib-pkg;
+      inherit (packages) kattis-cli;
 
       adventlib = h-package ./../src/haskell/adventlib/nix {};
       adventlib-old-1 = h-package ./../src/haskell/adventlib-old-1/nix {};
@@ -25,6 +26,7 @@
       boollib = h-package ./../src/haskell/boollib/nix {};
       clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
       hashcode-photoalbum = h-package ./../src/haskell/hashcode-photoalbum/nix {};
+      kattis = h-package ./../src/puzzles/kattis/nix {};
       low-battery = h-package ./../src/haskell/low-battery/nix {
         # there is a libnotify in haskellPackages that aliases this one
         inherit (nixpkgs) libnotify;
@@ -134,6 +136,7 @@
     adventofcode-2020 = haskellPackages.adventofcode-2020;
     adventofcode-2021 = haskellPackages.adventofcode-2021;
     adventofcode-2023 = haskellPackages.adventofcode-2023;
+    kattis = haskellPackages.kattis;
 
     # External tools that are broken upstream
     cpplint = callPackage ./pkgs/development/tools/cpplint {};
