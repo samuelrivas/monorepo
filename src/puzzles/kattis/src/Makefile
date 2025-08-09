@@ -1,2 +1,2 @@
-MAIN-MODULES := src/Tilhamingju.hs src/Velkomin.hs src/Submit.hs
+MAIN-MODULES := $(wildcard src/*.hs)
 include $(HASKELLS_MK)
