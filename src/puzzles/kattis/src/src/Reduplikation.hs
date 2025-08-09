@@ -3,9 +3,10 @@
 
 module Reduplikation where
 
+import           Perlude
+
 import           Control.Monad        (replicateM_)
 import           Data.Text            (intercalate)
-import           Perlude
 import           Text.Parsec          (newline, noneOf)
 import           Text.Parsec.Parselib (Parser, digitsAsNum, text1, unsafeParse)
 
