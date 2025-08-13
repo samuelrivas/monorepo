@@ -22,10 +22,12 @@ import           Perlude
 import           Control.Lens               (over, view)
 import           Control.Monad.ST           (ST)
 import           Data.Array.MArray          (modifyArray, newGenArray,
-                                             newListArray, readArray)
+                                             newListArray, readArray,
+                                             writeArray)
 import           Data.Array.ST              (STUArray)
 import           Data.Generics.Labels       ()
 
+import           Control.Monad              (when)
 import           Data.Array.Base            (UArray, freeze)
 import           Internal.UnionFindInternal (MutableUnionFind (..))
 
@@ -37,26 +39,43 @@ new size =
 
 union :: MutableUnionFind s -> Int -> Int -> ST s ()
 union uf x y =
+  do
+    rootY <- find uf y
+    rootX <- find uf x
+    if rootY == rootX
+      then return ()
+      else merge uf rootY rootX
+
+-- Merge x and y nodes, minimising the resulting rank
+merge :: MutableUnionFind s -> Int -> Int -> ST s ()
+merge uf x y =
   let
-    elems = view #elems uf
+    roots = view #roots uf
+    ranks = view #ranks uf
   in do
-    repY <- find uf y
-    modifyArray elems x (const repY)
+    rankY <- readArray ranks y
+    rankX <- readArray ranks x
+    if rankY > rankX
+      then merge uf y x
+      else
+      do
+        writeArray roots y x
+        when (rankX == rankY) $  modifyArray ranks x (+1)
 
 find :: MutableUnionFind s -> Int -> ST s Int
 find uf x =
   let
-    elems = view #elems uf
+    roots = view #roots uf
   in do
-    rep <- readArray elems x
-    if rep == x
-      then return rep
+    parent <- readArray roots x
+    if parent == x
+      then return parent
       else
       do
-        rep' <- find uf rep
-        modifyArray elems x (const rep')
-        return rep'
+        root <- find uf parent
+        writeArray roots x root
+        return root
 
 -- FIXME: Proper interface to move into immutable values
 toArray :: MutableUnionFind s -> ST s (UArray Int Int)
-toArray = freeze . view #elems
+toArray = freeze . view #roots
