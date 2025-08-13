@@ -39,7 +39,10 @@ propUnion =
       classSizes = Set.size <$> reps
   annotateShow array
   annotateShow reps
+  annotate "Each subset must have the a single representation"
   classSizes === replicate (length subsets) 1
+  annotate "Each subset must have a different representation"
+  length subsets === Set.size (Set.unions reps)
 
 mkUnionFind :: Int -> [(Int, Int)] -> ST s (STUArray s Int Int)
 mkUnionFind size unions =
