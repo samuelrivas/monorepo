@@ -33,9 +33,9 @@ propUnion =
       (reps, array) = runST
         $ do
         uf <- mkUnionFind size (concat unions)
-        reps <- toReps uf subsets
-        fz :: UArray Int Int  <- freeze uf
-        return (reps, fz)
+        reps' <- toReps uf subsets
+        fz  <- toArray uf
+        return (reps', fz)
       classSizes = Set.size <$> reps
   annotateShow array
   annotateShow reps
@@ -44,27 +44,28 @@ propUnion =
   annotate "Each subset must have a different representation"
   length subsets === Set.size (Set.unions reps)
 
-mkUnionFind :: Int -> [(Int, Int)] -> ST s (STUArray s Int Int)
+-- mkUnionFind :: Int -> [(Int, Int)] -> ST s (STUArray s Int Int)
+mkUnionFind :: Int -> [(Int, Int)] -> ST s (MutableUnionFind s)
 mkUnionFind size unions =
   do
-    array <- new size
-    traverse_ (uncurry $ union array) unions
-    return array
+    uf <- new size
+    traverse_ (uncurry $ union uf) unions
+    return uf
 
 -- Convert all elements of the sets into their rep. The expectation is that each
 -- sets converts to a single rep and the rep is different for each set
-toReps :: STUArray s Int Int -> [Set Int] -> ST s [Set Int]
-toReps array subsets =
+toReps :: MutableUnionFind s -> [Set Int] -> ST s [Set Int]
+toReps uf subsets =
   let
-    toRep s = Set.fromList <$> traverse (find array) (Set.toList s)
+    toRep s = Set.fromList <$> traverse (find uf) (Set.toList s)
   in
     traverse toRep subsets
 
 
-validateSameRep :: STUArray s Int Int -> Set Int -> ST s Bool
-validateSameRep array elements =
+validateSameRep :: MutableUnionFind s -> Set Int -> ST s Bool
+validateSameRep uf elements =
   do
-    reps <- traverse (find array) $ Set.toList elements
+    reps <- traverse (find uf) $ Set.toList elements
     return $ allEqual reps
 
 allEqual :: Eq a => [a] -> Bool

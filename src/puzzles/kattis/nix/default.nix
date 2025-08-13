@@ -1,7 +1,9 @@
 {
+  generic-lens,
   haskell-pkg,
   hedgehog,
   kattis-cli,
+  lens,
   parselib,
   perlude,
 }: let
@@ -9,7 +11,9 @@
     name = "kattis-haskell";
     src = ./../src;
     haskell-libs = [
+      generic-lens
       hedgehog
+      lens
       parselib
       perlude
     ];
