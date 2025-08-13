@@ -10,10 +10,8 @@ module Internal.UnionFind where
 
 import           Perlude
 
-import           Control.Monad     (void)
-import           Control.Monad.ST  (ST, runST)
-import           Data.Array.MArray (Ix, MArray, freeze, modifyArray,
-                                    newGenArray, readArray)
+import           Control.Monad.ST  (ST)
+import           Data.Array.MArray (modifyArray, newGenArray, readArray)
 import           Data.Array.ST     (STUArray)
 
 new :: Int -> ST s (STUArray s Int Int)
@@ -36,10 +34,3 @@ find array x =
         rep' <- find array rep
         modifyArray array x (const rep')
         return rep'
-
--- Tests, to move elsewhere
-
--- test1 =
---   runST $ do
---   uf <- new 10
---   freeze uf
