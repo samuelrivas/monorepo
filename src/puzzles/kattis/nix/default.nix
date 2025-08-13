@@ -1,5 +1,6 @@
 {
   haskell-pkg,
+  hedgehog,
   kattis-cli,
   parselib,
   perlude,
@@ -8,6 +9,7 @@
     name = "kattis-haskell";
     src = ./../src;
     haskell-libs = [
+      hedgehog
       parselib
       perlude
     ];
