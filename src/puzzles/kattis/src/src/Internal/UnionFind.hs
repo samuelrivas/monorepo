@@ -11,6 +11,7 @@
 
 module Internal.UnionFind (
   find,
+  find',
   new,
   toArray,
   toUnionFind,
@@ -22,16 +23,15 @@ module Internal.UnionFind (
 
 import           Perlude
 
-import           Control.Lens               (over, view)
+import           Control.Lens               (view)
 import           Control.Monad.ST           (ST)
 import           Data.Array.MArray          (modifyArray, newGenArray,
                                              newListArray, readArray,
                                              writeArray)
-import           Data.Array.ST              (STUArray)
 import           Data.Generics.Labels       ()
 
 import           Control.Monad              (when)
-import           Data.Array.Base            (UArray, freeze)
+import           Data.Array.Base            (UArray, freeze, (!))
 import           Internal.UnionFindInternal (MutableUnionFind (..))
 
 newtype UnionFind = UnionFind { unUnionFind :: UArray Int Int }
@@ -93,3 +93,11 @@ toUnionFind = fmap UnionFind . freeze . view #roots
 
 toArray :: UnionFind -> UArray Int Int
 toArray = unUnionFind
+
+find' :: UnionFind -> Int -> Int
+find' uf x =
+  let
+    array = unUnionFind uf
+    parent = array ! x
+  in
+    if parent == x then x else find' uf parent
