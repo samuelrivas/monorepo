@@ -7,13 +7,10 @@
 import           Perlude
 
 import           Control.Monad.ST   (ST, runST)
-import           Data.Array.Base    (UArray)
-import           Data.Array.ST      (STUArray, freeze, runSTUArray)
 import           Data.Foldable      (traverse_)
 import           Data.Functor       (void)
 import           Data.Set           (Set)
 import qualified Data.Set           as Set
-import           Data.Tree          (Forest, Tree)
 import           Hedgehog
 import qualified Hedgehog.Gen       as Gen
 import qualified Hedgehog.Range     as Range
@@ -34,7 +31,7 @@ propUnion =
         $ do
         uf <- mkUnionFind size (concat unions)
         reps' <- toReps uf subsets
-        fz  <- toArray uf
+        fz  <- toArray <$> toUnionFind uf
         return (reps', fz)
       classSizes = Set.size <$> reps
   annotateShow array
@@ -44,7 +41,6 @@ propUnion =
   annotate "Each subset must have a different representation"
   length subsets === Set.size (Set.unions reps)
 
--- mkUnionFind :: Int -> [(Int, Int)] -> ST s (STUArray s Int Int)
 mkUnionFind :: Int -> [(Int, Int)] -> ST s (MutableUnionFind s)
 mkUnionFind size unions =
   do
@@ -60,17 +56,6 @@ toReps uf subsets =
     toRep s = Set.fromList <$> traverse (find uf) (Set.toList s)
   in
     traverse toRep subsets
-
-
-validateSameRep :: MutableUnionFind s -> Set Int -> ST s Bool
-validateSameRep uf elements =
-  do
-    reps <- traverse (find uf) $ Set.toList elements
-    return $ allEqual reps
-
-allEqual :: Eq a => [a] -> Bool
-allEqual []    = True
-allEqual (h:t) = all (h ==) t
 
 tests :: IO Bool
 tests =

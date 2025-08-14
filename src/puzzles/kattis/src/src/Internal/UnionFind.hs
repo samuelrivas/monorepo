@@ -7,11 +7,14 @@
 -- Add a print tree for debugging
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedLabels  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Internal.UnionFind (
   find,
   new,
   toArray,
+  toUnionFind,
+  toText,
   union,
 
   MutableUnionFind
@@ -31,6 +34,8 @@ import           Control.Monad              (when)
 import           Data.Array.Base            (UArray, freeze)
 import           Internal.UnionFindInternal (MutableUnionFind (..))
 
+newtype UnionFind = UnionFind { unUnionFind :: UArray Int Int }
+
 new :: Int -> ST s (MutableUnionFind s)
 new size =
   MutableUnionFind
@@ -44,7 +49,7 @@ union uf x y =
     rootX <- find uf x
     if rootY == rootX
       then return ()
-      else merge uf rootY rootX
+      else merge uf rootX rootY
 
 -- Merge x and y nodes, minimising the resulting rank
 merge :: MutableUnionFind s -> Int -> Int -> ST s ()
@@ -76,6 +81,15 @@ find uf x =
         writeArray roots x root
         return root
 
--- FIXME: Proper interface to move into immutable values
-toArray :: MutableUnionFind s -> ST s (UArray Int Int)
-toArray = freeze . view #roots
+toText :: MutableUnionFind s -> ST s Text
+toText uf =
+  do
+    roots <- toArray <$> toUnionFind uf
+    ranks :: UArray Int Int <- freeze $ view #ranks uf
+    pure $  "Roots: " <> show roots <> "\nRanks: " <> show ranks
+
+toUnionFind :: MutableUnionFind s -> ST s UnionFind
+toUnionFind = fmap UnionFind . freeze . view #roots
+
+toArray :: UnionFind -> UArray Int Int
+toArray = unUnionFind
