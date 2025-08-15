@@ -14,7 +14,8 @@ example :: Text
 example =
   intercalate
     "\n"
-    [ "hej",
+    [
+      "hej",
       "3"
     ]
 
