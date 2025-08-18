@@ -5,6 +5,7 @@
 -- Extract tests
 -- Union by rank to prevent unbalanced trees
 -- Add a print tree for debugging
+-- Generalise over Ix, that may help with bidimensional representations
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedLabels  #-}
 {-# LANGUAGE OverloadedStrings #-}

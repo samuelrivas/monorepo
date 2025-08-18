@@ -2,8 +2,6 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
--- FIXME: I swapped rows with columns everywhere it seems
---
 -- FIXME: The code is very messy and difficult to follow, this needs massive
 -- cleanup
 module TenKindsOfPeople where
