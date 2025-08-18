@@ -2,6 +2,10 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
+-- FIXME: I swapped rows with columns everywhere it seems
+--
+-- FIXME: The code is very messy and difficult to follow, this needs massive
+-- cleanup
 module TenKindsOfPeople where
 
 import           Perlude
@@ -9,12 +13,16 @@ import           Perlude
 import           Control.Monad        (foldM_, when)
 import           Control.Monad.ST     (ST)
 import           Control.Monad.Zip    (mzip)
+import           Data.Char            (ord)
+import           Data.Foldable        (foldl')
 import           Data.List.NonEmpty   (NonEmpty (..), nonEmpty)
-import qualified Data.List.NonEmpty   as NonEmpty
+import           Data.Map.Strict      (insert, member, size, (!))
+import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (fromJust)
-import           Data.Set             (Set)
-import           Data.Text            (intercalate)
-import           Internal.UnionFind   (MutableUnionFind, new, union)
+import           Data.Text            (chunksOf, intercalate)
+import           GHC.Char             (chr)
+import           Internal.UnionFind   (MutableUnionFind, UnionFind, find', new,
+                                       union)
 import           Text.Parsec          (count, manyTill, newline, sepBy, space)
 import           Text.Parsec.Parselib (Parser, bit, digitsAsNum)
 
@@ -125,8 +133,8 @@ unionRightwards columns uf coord (h :| t) =
   unionRightwards' columns uf coord h t
 
 unionRightwards' :: Int -> MutableUnionFind s -> Coord -> Bool -> [Bool] -> ST s ()
-unionRightwards' columns uf coord current [] = pure ()
-unionRightwards' columns uf coord current nexts@(h:t) =
+unionRightwards' _columns _uf _coord _current [] = pure ()
+unionRightwards' columns uf coord current (h:t) =
   let
     convert = toUFIndex columns
   in do
@@ -138,6 +146,9 @@ columnRight (x, y) = (x + 1, y)
 
 rowUp :: Coord -> Coord
 rowUp (x, y) = (x, y - 1)
+
+rowDown :: Coord -> Coord
+rowDown (x, y) = (x, y + 1)
 
 unionDownwards ::
   Int
@@ -151,6 +162,7 @@ unionDownwards columns uf coord previousRow (currentRow:t) =
   do
     unionRightwards columns uf coord currentRow
     unionRows columns uf coord previousRow currentRow
+    unionDownwards columns uf (rowDown coord) currentRow t
 
 unionRows ::
   Int
@@ -169,3 +181,26 @@ unionRows columns uf coord previousRow currentRow =
         return $ columnRight coord'
   in
     foldM_ f coord zipped
+
+-- Useful for debugging. Prints a map where each root is printed for each
+-- location in the original bitmap
+printAreas :: Int -> Int -> UnionFind -> Text
+printAreas rows columns uf =
+  let
+    roots = find' uf <$> take (rows * columns) [0..]
+    toChar = chr . (ord 'A' +)
+    text = pack $ toChar <$> compress roots
+  in
+    intercalate "\n" $ chunksOf columns text
+
+
+compress :: [Int] -> [Int]
+compress roots =
+  let
+    addRep reps x = if member x reps
+                    then reps
+                    else insert x (size reps) reps
+    repMap = foldl' addRep Map.empty roots
+  in
+
+    (repMap !) <$> roots

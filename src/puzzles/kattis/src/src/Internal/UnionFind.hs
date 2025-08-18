@@ -18,7 +18,8 @@ module Internal.UnionFind (
   toText,
   union,
 
-  MutableUnionFind
+  MutableUnionFind,
+  UnionFind
   ) where
 
 import           Perlude
