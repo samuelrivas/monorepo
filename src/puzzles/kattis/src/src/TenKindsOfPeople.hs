@@ -28,7 +28,7 @@ import           GHC.Char             (chr)
 import           Internal.UnionFind   (MutableUnionFind, UnionFind, find', new,
                                        toUnionFind, union)
 import           Text.Parsec          (count, manyTill, newline, noneOf, sepBy,
-                                       space)
+                                       sepEndBy, space)
 import           Text.Parsec.Char     (anyChar)
 import           Text.Parsec.Parselib (Parser, bit, digitsAsNum, text,
                                        unsafeParse)
@@ -62,7 +62,8 @@ exampleFoo =
     "0110",
     "2",
     "1 1 1 4",
-    "1 1 1 1"
+    "1 1 1 1",
+    ""
   ]
 
 example2 :: Text
@@ -83,7 +84,8 @@ example2 =
     "3",
     "2 3 8 16",
     "8 1 7 3",
-    "1 1 10 20"
+    "1 1 10 20",
+    ""
   ]
 
 parser :: Parser Input
@@ -92,7 +94,7 @@ parser =
     (rows, columns) <- parseCoord <* newline
     bitmap <- parseBitmap rows
     _ :: Int <- digitsAsNum <* newline
-    queries <- sepBy parseQuery newline
+    queries <- sepEndBy parseQuery newline
     return $ Input rows columns bitmap queries
 
 -- Very hacky but does for now as we need to clean the parser to work with bidim
