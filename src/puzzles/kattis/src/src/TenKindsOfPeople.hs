@@ -4,25 +4,34 @@
 
 -- FIXME: The code is very messy and difficult to follow, this needs massive
 -- cleanup
+--
+-- Create a type to differentiate the different types of coordinates, because we are mixing zero and 1 based x-y and row-column coordinates, which is very confusing
 module TenKindsOfPeople where
 
 import           Perlude
 
+import           Control.Lens         (both, over, view)
 import           Control.Monad        (foldM_, when)
-import           Control.Monad.ST     (ST)
+import           Control.Monad.ST     (ST, runST)
 import           Control.Monad.Zip    (mzip)
+import           Data.Bidim           (Bidim, boundaries, cell, fromList,
+                                       fromText)
 import           Data.Char            (ord)
-import           Data.Foldable        (foldl')
+import           Data.Foldable        (foldl', traverse_)
 import           Data.List.NonEmpty   (NonEmpty (..), nonEmpty)
 import           Data.Map.Strict      (insert, member, size, (!))
 import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (fromJust)
 import           Data.Text            (chunksOf, intercalate)
+import           Data.Tuple           (swap)
 import           GHC.Char             (chr)
 import           Internal.UnionFind   (MutableUnionFind, UnionFind, find', new,
-                                       union)
-import           Text.Parsec          (count, manyTill, newline, sepBy, space)
-import           Text.Parsec.Parselib (Parser, bit, digitsAsNum)
+                                       toUnionFind, union)
+import           Text.Parsec          (count, manyTill, newline, noneOf, sepBy,
+                                       space)
+import           Text.Parsec.Char     (anyChar)
+import           Text.Parsec.Parselib (Parser, bit, digitsAsNum, text,
+                                       unsafeParse)
 
 type Coord = (Int, Int)
 
@@ -86,6 +95,18 @@ parser =
     queries <- sepBy parseQuery newline
     return $ Input rows columns bitmap queries
 
+-- Very hacky but does for now as we need to clean the parser to work with bidim
+-- directly
+toBit :: Char -> Bool
+toBit = (== '1')
+
+hackParser :: Parser (Bidim Bool)
+hackParser =
+  do
+    (rows, _columns) <- parseCoord <* newline
+    foo <- unlines <$>count rows (text (noneOf "\n")  <*  newline)
+    return $ toBit <$> fromText foo
+
 parseCoord :: Parser Coord
 parseCoord =
   (,)
@@ -93,7 +114,9 @@ parseCoord =
   <*> digitsAsNum
 
 parseBitmap :: Int -> Parser (NonEmpty (NonEmpty Bool))
-parseBitmap rows = forceNonEmpty <$> count rows (forceNonEmpty <$> manyTill bit newline)
+parseBitmap rows =
+  forceNonEmpty
+  <$> count rows (forceNonEmpty <$> manyTill bit newline)
 
 forceNonEmpty :: [a] -> NonEmpty a
 forceNonEmpty = fromJust . nonEmpty
@@ -104,6 +127,7 @@ parseQuery =
   <$> parseCoord <* space
   <*> parseCoord
 
+-- Coord is 1-based (c, r)
 toUFIndex :: Int -> Coord -> Int
 toUFIndex columns (x, y) =
   (x - 1) + columns * (y - 1)
@@ -111,8 +135,12 @@ toUFIndex columns (x, y) =
 toCoord :: Int -> Int -> Coord
 toCoord columns n = (n `mod` columns + 1, n `div` columns + 1)
 
-makeUf :: Int -> Int -> NonEmpty (NonEmpty Bool) -> ST s (MutableUnionFind s)
-makeUf rows columns bitmap =
+makeMutableUF ::
+  Int
+  -> Int
+  -> NonEmpty (NonEmpty Bool)
+  -> ST s (MutableUnionFind s)
+makeMutableUF rows columns bitmap =
   let
     (firstRow :| followingRows) = bitmap
   in do
@@ -120,6 +148,14 @@ makeUf rows columns bitmap =
     unionRightwards columns uf (1, 1) firstRow
     unionDownwards columns uf (1, 2) firstRow followingRows
     pure uf
+
+makeUF ::
+  Int
+  -> Int
+  -> NonEmpty (NonEmpty Bool)
+  -> UnionFind
+makeUF rows columns bitmap =
+  runST $ makeMutableUF rows columns bitmap >>= toUnionFind
 
 -- TODO: This is very messy, probably a fold can make it clearer, or a better UF
 -- interface with monadic behaviour
@@ -202,3 +238,67 @@ compress roots =
   in
 
     (repMap !) <$> roots
+
+-- FIXME This is a hack because our original parser did not return a bidim which
+-- was a mistake We'll fix this in the parser, but that impacts how we create
+-- the UnionFind, so we patch it for now
+getBidim :: Text -> Bidim Bool
+getBidim = undefined
+
+solve :: Input -> Bidim Bool -> IO ()
+solve input bidim =
+  let
+    uf = makeUF (rows input) (columns input) (bitmap input)
+    responses = query bidim uf <$> queriesToCoords (queries input)
+  in
+    traverse_ putStrLn responses
+
+queriesToCoords :: [(Coord, Coord)] -> [(Coord, Coord)]
+queriesToCoords = fmap $ over both swap
+
+connected :: UnionFind -> Int -> (Coord, Coord) -> Bool
+connected uf columns (x, y) =
+  let
+    f coord' = find' uf (toUFIndex columns coord')
+  in
+    f x == f y
+
+toColumns :: Bidim a -> Int
+toColumns bidim =
+  let
+    (_, (x, y)) = view boundaries bidim
+  in
+    x + 1
+
+query :: Bidim Bool -> UnionFind -> (Coord, Coord) -> Text
+query bidim uf q@((r1, c1), (r2, c2)) =
+  if connected uf (toColumns bidim) q
+  then toText $ queryCoordToBit bidim (c1, r1)
+  else "neither"
+
+toText :: Bool -> Text
+toText True  = "decimal"
+toText False = "binary"
+
+-- The problem specifies coordinates as 1-based indexes like (row, column),
+-- whereas our standard is 0-based x,y coordinates (y growing downwards in this
+-- case, we should probably standardise that better)
+queryCoordToBit :: Bidim Bool -> Coord -> Bool
+queryCoordToBit bidim (r, c) =
+  let
+    coord = (c - 1, r - 1)
+  in
+    fromJust $ view (cell coord) bidim
+
+main :: IO ()
+main =
+  do
+    contents <- getContents
+    solveIO contents
+
+solveIO :: Text -> IO ()
+solveIO contents =
+  do
+    bidim <- unsafeParse hackParser contents
+    input <- unsafeParse parser contents
+    solve input bidim

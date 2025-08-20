@@ -33,8 +33,30 @@ import           Data.Array.MArray          (modifyArray, newGenArray,
 import           Data.Generics.Labels       ()
 
 import           Control.Monad              (when)
+import           Control.Monad.Identity     (Identity (..))
 import           Data.Array.Base            (UArray, freeze, (!))
 import           Internal.UnionFindInternal (MutableUnionFind (..))
+
+class Monad m => UnionM u m where
+  union'' :: u -> Int -> Int -> m ()
+
+instance UnionM (MutableUnionFind s) (ST s) where
+  union'' = union
+
+class Monad m => FindM u m where
+  find'' :: u -> Int -> m Int
+
+class Find u where
+  find''' :: u -> Int -> Int
+
+instance FindM (MutableUnionFind s) (ST s) where
+  find'' = find
+
+instance FindM UnionFind Identity where
+  find'' uf x = Identity $ find' uf x
+
+instance Find UnionFind where
+  find''' = find'
 
 newtype UnionFind = UnionFind { unUnionFind :: UArray Int Int }
 

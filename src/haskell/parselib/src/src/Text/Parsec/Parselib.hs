@@ -93,7 +93,7 @@ matrix p =
 
 -- | Run a parser over a 'Text'. Returns 'Left' if the parser fails.
 parse :: Parser a -> Text -> Either ParseError a
-parse = flip Parsec.parse "Advent.Templib.Parsec.parse"
+parse = flip Parsec.parse "Text.Parsec.Parselib.parse"
 
 -- | Run a parser over a 'Text', expecting it to consume all the input. Returns
 -- 'Left' if the parser fails.
