@@ -12,11 +12,9 @@ module Submit where
 import           Perlude
 
 import           Control.Monad.Except       (MonadError, throwError)
-import           Control.Monad.Identity     (runIdentityT)
 import           Control.Monad.Trans        (lift)
-import           Control.Monad.Trans.Except (Except (..), ExceptT (..), except,
-                                             runExceptT, withExceptT)
-import           Data.Functor.Identity      (runIdentity)
+import           Control.Monad.Trans.Except (ExceptT (..), runExceptT,
+                                             withExceptT)
 import           Data.Text                  (replace)
 import           System.Exit                (exitFailure)
 import           System.FilePath            (takeBaseName, (</>))
@@ -38,7 +36,7 @@ runApp x = runExceptT x >>= \case
     liftIO exitFailure
 
 addUsage :: Text -> Text -> Text
-addUsage progName = (<> "/n" <> usage progName)
+addUsage progName = (<> "\n" <> usage progName)
 
 baseName :: Text -> Text
 baseName fileName = pack $ takeBaseName (unpack fileName)
