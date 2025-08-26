@@ -26,47 +26,48 @@ module Internal.UnionFind (
 import           Perlude
 
 import           Control.Lens               (view)
+import           Control.Monad              (when)
+import           Control.Monad.Identity     (Identity (..))
 import           Control.Monad.ST           (ST)
+import           Data.Array.Base            (freeze, (!))
+import           Data.Array.IArray          (Array)
 import           Data.Array.MArray          (modifyArray, newGenArray,
                                              newListArray, readArray,
                                              writeArray)
 import           Data.Generics.Labels       ()
-
-import           Control.Monad              (when)
-import           Control.Monad.Identity     (Identity (..))
-import           Data.Array.Base            (UArray, freeze, (!))
+import           Data.Ix                    (Ix)
 import           Internal.UnionFindInternal (MutableUnionFind (..))
 
-class Monad m => UnionM u m where
-  union'' :: u -> Int -> Int -> m ()
+class Monad m => UnionM u e m where
+  union'' :: u -> e -> e -> m ()
 
-instance UnionM (MutableUnionFind s) (ST s) where
+instance Ix e => UnionM (MutableUnionFind s e) e (ST s) where
   union'' = union
 
-class Monad m => FindM u m where
-  find'' :: u -> Int -> m Int
+class Monad m => FindM u e m where
+  find'' :: u -> e -> m e
 
-class Find u where
-  find''' :: u -> Int -> Int
+class Find u e where
+  find''' :: u -> e -> e
 
-instance FindM (MutableUnionFind s) (ST s) where
+instance Ix e => FindM (MutableUnionFind s e) e (ST s) where
   find'' = find
 
-instance FindM UnionFind Identity where
+instance Ix e => FindM (UnionFind e) e Identity where
   find'' uf x = Identity $ find' uf x
 
-instance Find UnionFind where
+instance Ix e => Find (UnionFind e) e where
   find''' = find'
 
-newtype UnionFind = UnionFind { unUnionFind :: UArray Int Int }
+newtype UnionFind a = UnionFind { unUnionFind :: Array a a }
 
-new :: Int -> ST s (MutableUnionFind s)
-new size =
+new :: Ix a => a -> a -> ST s (MutableUnionFind s a)
+new from to =
   MutableUnionFind
-  <$> newGenArray (0, size - 1) pure
-  <*> newListArray (0, size - 1) (repeat 0)
+  <$> newGenArray (from, to) pure
+  <*> newListArray (from, to) (repeat 0)
 
-union :: MutableUnionFind s -> Int -> Int -> ST s ()
+union :: Ix a => Eq a => MutableUnionFind s a -> a -> a -> ST s ()
 union uf x y =
   do
     rootY <- find uf y
@@ -75,8 +76,8 @@ union uf x y =
       then return ()
       else merge uf rootX rootY
 
--- Merge x and y nodes, minimising the resulting rank
-merge :: MutableUnionFind s -> Int -> Int -> ST s ()
+-- -- Merge x and y nodes, minimising the resulting rank
+merge :: Ix a => MutableUnionFind s a -> a -> a -> ST s ()
 merge uf x y =
   let
     roots = view #roots uf
@@ -91,7 +92,7 @@ merge uf x y =
         writeArray roots y x
         when (rankX == rankY) $  modifyArray ranks x (+1)
 
-find :: MutableUnionFind s -> Int -> ST s Int
+find :: Ix a => MutableUnionFind s a -> a -> ST s a
 find uf x =
   let
     roots = view #roots uf
@@ -105,20 +106,20 @@ find uf x =
         writeArray roots x root
         return root
 
-toText :: MutableUnionFind s -> ST s Text
+toText :: Ix a => Show a => MutableUnionFind s a -> ST s Text
 toText uf =
   do
     roots <- toArray <$> toUnionFind uf
-    ranks :: UArray Int Int <- freeze $ view #ranks uf
+    ranks :: Array a Int <- freeze $ view #ranks uf
     pure $  "Roots: " <> show roots <> "\nRanks: " <> show ranks
 
-toUnionFind :: MutableUnionFind s -> ST s UnionFind
+toUnionFind :: Ix a => MutableUnionFind s a -> ST s (UnionFind a)
 toUnionFind = fmap UnionFind . freeze . view #roots
 
-toArray :: UnionFind -> UArray Int Int
+toArray :: UnionFind a -> Array a a
 toArray = unUnionFind
 
-find' :: UnionFind -> Int -> Int
+find' :: Ix a => UnionFind a -> a -> a
 find' uf x =
   let
     array = unUnionFind uf
