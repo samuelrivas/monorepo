@@ -18,7 +18,7 @@ import           Control.Monad.Zip    (mzip)
 import qualified Prelude
 -- import           Data.Bidim           (Bidim, boundaries, cell, fromList,
 --                                        fromText)
-import           Data.Array.Base      (UArray)
+import           Data.Array.Base      (UArray, array)
 import           Data.Bifunctor       (Bifunctor (..))
 import           Data.Char            (ord)
 import           Data.Coerce
@@ -43,13 +43,13 @@ import           Text.Parsec.Parselib (Parser, bit, digitsAsNum, text,
 -- 1-indexed, so we don't box for that
 
 newtype Row = Row { unRow :: Int }
-  deriving newtype (Eq, Ord, Ix, Num)
+  deriving newtype (Eq, Ord, Ix, Num, Enum)
 
 instance Show Row where
   show = ("Row:" ++) .  Prelude.show . unRow
 
 newtype Col = Col { unCol :: Int }
-  deriving newtype (Eq, Ord, Ix, Num)
+  deriving newtype (Eq, Ord, Ix, Num, Enum)
 
 instance Show Col where
   show = ("Col:" ++) .  Prelude.show . unCol
@@ -69,10 +69,9 @@ sumCoord :: Coord -> Coord -> Coord
 sumCoord (Coord (r1, c1)) (Coord (r2, c2)) = coord (r1 + r2) (c1 + c2)
 
 data Input = Input {
-  rows    :: Row,
-  columns :: Col,
-  bitmap  :: UArray Coord Bool,
-  queries :: [(Coord, Coord)]
+  maxCoord :: Coord,
+  bitmap   :: UArray Coord Bool,
+  queries  :: [(Coord, Coord)]
   } deriving stock Show
 
 example1 :: Text
@@ -124,11 +123,11 @@ example2 =
 parser :: Parser Input
 parser =
   do
-    Coord (rows, columns) <- parseCoord <* newline
-    bitmap <- parseBitmap rows
+    maxCoord <- parseCoord <* newline
+    bitmap <- parseBitmap maxCoord
     _ :: Int <- digitsAsNum <* newline
     queries <- sepEndBy parseQuery newline
-    return $ Input rows columns bitmap queries
+    return $ Input maxCoord  bitmap queries
 
 -- Very hacky but does for now as we need to clean the parser to work with bidim
 -- directly
@@ -147,10 +146,22 @@ parseCoord =
   (coord . Row <$> digitsAsNum) <* space
   <*> (Col <$> digitsAsNum)
 
-parseBitmap :: Row -> Parser (UArray Coord Bool)
-parseBitmap rows = undefined
-  -- forceNonEmpty
-  -- <$> count (coerce rows) (forceNonEmpty <$> manyTill bit newline)
+parseBitmapRow :: Col -> Parser [Bool]
+parseBitmapRow cols = count (coerce cols) bit <* newline
+
+parseBitmap :: Coord -> Parser (UArray Coord Bool)
+parseBitmap maxCoord@(Coord (rows, cols)) =
+  mkBitmapArray maxCoord <$> count (coerce rows) (parseBitmapRow cols)
+
+mkBitmapArray :: Coord -> [[Bool]] -> UArray Coord Bool
+mkBitmapArray maxCoord@(Coord (rows, cols)) bits =
+  let
+    indices = coord <$> [1..rows] <*> [1..cols]
+  in
+    array (origin, maxCoord) $ zip indices (concat bits)
+
+origin :: Coord
+origin = coord 1 1
 
 forceNonEmpty :: [a] -> NonEmpty a
 forceNonEmpty = fromJust . nonEmpty
