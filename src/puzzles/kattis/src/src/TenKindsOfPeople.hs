@@ -65,6 +65,12 @@ instance Show Coord where
 coord :: Row -> Col -> Coord
 coord = curry Coord
 
+toRow :: Coord -> Row
+toRow = fst . unCoord
+
+toCol :: Coord -> Col
+toCol = snd . unCoord
+
 sumCoord :: Coord -> Coord -> Coord
 sumCoord (Coord (r1, c1)) (Coord (r2, c2)) = coord (r1 + r2) (c1 + c2)
 
@@ -154,9 +160,9 @@ parseBitmap maxCoord@(Coord (rows, cols)) =
   mkBitmapArray maxCoord <$> count (coerce rows) (parseBitmapRow cols)
 
 mkBitmapArray :: Coord -> [[Bool]] -> UArray Coord Bool
-mkBitmapArray maxCoord@(Coord (rows, cols)) bits =
+mkBitmapArray maxCoord bits =
   let
-    indices = coord <$> [1..rows] <*> [1..cols]
+    indices = coord <$> [1..toRow maxCoord] <*> [1..toCol maxCoord]
   in
     array (origin, maxCoord) $ zip indices (concat bits)
 
