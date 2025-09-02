@@ -18,16 +18,16 @@ import           Control.Monad.Zip    (mzip)
 import qualified Prelude
 -- import           Data.Bidim           (Bidim, boundaries, cell, fromList,
 --                                        fromText)
-import           Data.Array.Base      (UArray, array)
+import           Data.Array.Base      (IArray, UArray, array, bounds, (!), (!?))
 import           Data.Bifunctor       (Bifunctor (..))
 import           Data.Char            (ord)
 import           Data.Coerce
 import           Data.Foldable        (foldl', traverse_)
 import           Data.Ix              (Ix (..))
 import           Data.List.NonEmpty   (NonEmpty (..), nonEmpty)
-import           Data.Map.Strict      (insert, member, size, (!))
+import           Data.Map.Strict      (insert, member, size)
 import qualified Data.Map.Strict      as Map
-import           Data.Maybe           (fromJust)
+import           Data.Maybe           (fromJust, fromMaybe)
 import           Data.Text            (chunksOf, intercalate)
 import           Data.Tuple           (swap)
 import           GHC.Char             (chr)
@@ -38,6 +38,7 @@ import           Text.Parsec          (count, manyTill, newline, noneOf, sepBy,
 import           Text.Parsec.Char     (anyChar)
 import           Text.Parsec.Parselib (Parser, bit, digitsAsNum, text,
                                        unsafeParse)
+
 
 -- Types to make sure that we don't mix Rows with Columns. Everything is
 -- 1-indexed, so we don't box for that
@@ -73,6 +74,12 @@ toCol = snd . unCoord
 
 sumCoord :: Coord -> Coord -> Coord
 sumCoord (Coord (r1, c1)) (Coord (r2, c2)) = coord (r1 + r2) (c1 + c2)
+
+coordUp :: Coord -> Coord
+coordUp = sumCoord $ coord 1 0
+
+coordRight :: Coord -> Coord
+coordRight = sumCoord $ coord 0 1
 
 data Input = Input {
   maxCoord :: Coord,
@@ -135,18 +142,6 @@ parser =
     queries <- sepEndBy parseQuery newline
     return $ Input maxCoord  bitmap queries
 
--- Very hacky but does for now as we need to clean the parser to work with bidim
--- directly
-toBit :: Char -> Bool
-toBit = (== '1')
-
--- hackParser :: Parser (Bidim Bool)
--- hackParser =
---   do
---     (rows, _columns) <- parseCoord <* newline
---     foo <- unlines <$>count rows (text (noneOf "\n")  <*  newline)
---     return $ toBit <$> fromText foo
-
 parseCoord :: Parser Coord
 parseCoord =
   (coord . Row <$> digitsAsNum) <* space
@@ -186,27 +181,36 @@ parseQuery =
 -- toCoord :: Int -> Int -> Coord
 -- toCoord columns n = (n `mod` columns + 1, n `div` columns + 1)
 
-makeMutableUF ::
-  Int
-  -> Int
-  -> NonEmpty (NonEmpty Bool)
-  -> ST s (MutableUnionFind s Int)
-makeMutableUF rows columns bitmap = undefined
-  -- let
-  --   (firstRow :| followingRows) = bitmap
-  -- in do
-  --   uf <- new  1 (rows * columns)
-  --   unionRightwards columns uf (1, 1) firstRow
-  --   unionDownwards columns uf (1, 2) firstRow followingRows
-  --   pure uf
+makeMutableUF :: UArray Coord Bool -> ST s (MutableUnionFind s Int)
+makeMutableUF bitmap =
+  let
+    (minCoord, maxCoord) = bounds bitmap
+  in do
+    uf <- uncurry new $ bounds bitmap
+    undefined
+
+directlyConnectedCoords :: (Coord, Coord) -> Coord -> UArray Coord Bool -> [Coord]
+directlyConnectedCoords bounds coord bitmap =
+  let
+    candidates = filter (inRange bounds) [coordUp coord, coordRight coord]
+    bit = bitmap ! coord
+  in
+    undefined
+
+-- Works for any coords, returns false if any of the coords is out of bounds
+directlyConnected :: UArray Coord Bool -> Coord -> Coord -> Bool
+directlyConnected bitmap x y =
+  fromMaybe False $ (==) <$> bitmap !? x <*> bitmap !? y
+
+
 
 makeUF ::
   Int
   -> Int
-  -> NonEmpty (NonEmpty Bool)
+  -> UArray Coord Bool
   -> UnionFind Int
 makeUF rows columns bitmap =
-  runST $ makeMutableUF rows columns bitmap >>= toUnionFind
+  runST $ makeMutableUF bitmap >>= toUnionFind
 
 -- TODO: This is very messy, probably a fold can make it clearer, or a better UF
 -- interface with monadic behaviour
@@ -271,24 +275,25 @@ unionRows columns uf coord previousRow currentRow = undefined
 -- location in the original bitmap
 printAreas :: Int -> Int -> UnionFind Int -> Text
 printAreas rows columns uf =
-  let
-    roots = find' uf <$> take (rows * columns) [0..]
-    toChar = chr . (ord 'A' +)
-    text = pack $ toChar <$> compress roots
-  in
-    intercalate "\n" $ chunksOf columns text
+  undefined
+  -- let
+  --   roots = find' uf <$> take (rows * columns) [0..]
+  --   toChar = chr . (ord 'A' +)
+  --   text = pack $ toChar <$> compress roots
+  -- in
+  --   intercalate "\n" $ chunksOf columns text
 
 
-compress :: [Int] -> [Int]
-compress roots =
-  let
-    addRep reps x = if member x reps
-                    then reps
-                    else insert x (size reps) reps
-    repMap = foldl' addRep Map.empty roots
-  in
+-- compress :: [Int] -> [Int]
+-- compress roots =
+--   let
+--     addRep reps x = if member x reps
+--                     then reps
+--                     else insert x (size reps) reps
+--     repMap = foldl' addRep Map.empty roots
+--   in
 
-    (repMap !) <$> roots
+--     (repMap !) <$> roots
 
 -- FIXME This is a hack because our original parser did not return a bidim which
 -- was a mistake We'll fix this in the parser, but that impacts how we create
