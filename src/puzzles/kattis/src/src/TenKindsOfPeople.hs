@@ -268,27 +268,28 @@ unionRows columns uf coord previousRow currentRow = undefined
 
 -- Useful for debugging. Prints a map where each root is printed for each
 -- location in the original bitmap
-printAreas :: Int -> Int -> UnionFind Int -> Text
-printAreas rows columns uf =
-  undefined
-  -- let
-  --   roots = find' uf <$> take (rows * columns) [0..]
-  --   toChar = chr . (ord 'A' +)
-  --   text = pack $ toChar <$> compress roots
-  -- in
-  --   intercalate "\n" $ chunksOf columns text
+--
+-- TODO: probably should move to the UnionFind module
+printAreas :: Coord -> UnionFind Coord -> Text
+printAreas maxCoord uf =
+  let
+    roots = find' uf <$> range (coord 1 1, maxCoord)
+    toChar = chr . (ord 'A' +)
+    oneLine = pack $ toChar <$> compress roots
+  in
+    intercalate "\n" $ chunksOf (coerce $ toCol maxCoord) oneLine
 
 
--- compress :: [Int] -> [Int]
--- compress roots =
---   let
---     addRep reps x = if member x reps
---                     then reps
---                     else insert x (size reps) reps
---     repMap = foldl' addRep Map.empty roots
---   in
+compress :: [Coord] -> [Int]
+compress roots =
+  let
+    addRep reps x = if member x reps
+                    then reps
+                    else insert x (size reps) reps
+    repMap = foldl' addRep Map.empty roots
+  in
 
---     (repMap !) <$> roots
+    (repMap Map.!) <$> roots
 
 -- FIXME This is a hack because our original parser did not return a bidim which
 -- was a mistake We'll fix this in the parser, but that impacts how we create
