@@ -18,10 +18,12 @@ import           Control.Monad.Zip    (mzip)
 import qualified Prelude
 -- import           Data.Bidim           (Bidim, boundaries, cell, fromList,
 --                                        fromText)
-import           Data.Array.Base      (IArray, UArray, array, bounds, (!), (!?))
+import           Data.Array.Base      (IArray, UArray, array, bounds, indices,
+                                       (!), (!?))
 import           Data.Bifunctor       (Bifunctor (..))
 import           Data.Char            (ord)
 import           Data.Coerce
+import           Data.Either          (fromRight)
 import           Data.Foldable        (foldl', traverse_)
 import           Data.Ix              (Ix (..))
 import           Data.List.NonEmpty   (NonEmpty (..), nonEmpty)
@@ -36,7 +38,7 @@ import           Internal.UnionFind   (MutableUnionFind, UnionFind, find', new,
 import           Text.Parsec          (count, manyTill, newline, noneOf, sepBy,
                                        sepEndBy, space)
 import           Text.Parsec.Char     (anyChar)
-import           Text.Parsec.Parselib (Parser, bit, digitsAsNum, text,
+import           Text.Parsec.Parselib (Parser, bit, digitsAsNum, parse, text,
                                        unsafeParse)
 
 
@@ -181,35 +183,28 @@ parseQuery =
 -- toCoord :: Int -> Int -> Coord
 -- toCoord columns n = (n `mod` columns + 1, n `div` columns + 1)
 
-makeMutableUF :: UArray Coord Bool -> ST s (MutableUnionFind s Int)
+makeMutableUF :: UArray Coord Bool -> ST s (MutableUnionFind s Coord)
 makeMutableUF bitmap =
-  let
-    (minCoord, maxCoord) = bounds bitmap
-  in do
+  do
     uf <- uncurry new $ bounds bitmap
-    undefined
+    traverse_ (connectNeighbours uf bitmap) (indices bitmap)
+    return uf
 
-directlyConnectedCoords :: (Coord, Coord) -> Coord -> UArray Coord Bool -> [Coord]
-directlyConnectedCoords bounds coord bitmap =
-  let
-    candidates = filter (inRange bounds) [coordUp coord, coordRight coord]
-    bit = bitmap ! coord
-  in
-    undefined
+connectNeighbours :: MutableUnionFind s Coord -> UArray Coord Bool -> Coord -> ST s ()
+connectNeighbours uf bitmap x =
+  do
+    connectIfSame uf bitmap x (coordUp x)
+    connectIfSame uf bitmap x (coordRight x)
+
+connectIfSame :: MutableUnionFind s Coord -> UArray Coord Bool -> Coord -> Coord -> ST s ()
+connectIfSame uf bitmap x y = when (sameBit bitmap x y) $ union uf x y
 
 -- Works for any coords, returns false if any of the coords is out of bounds
-directlyConnected :: UArray Coord Bool -> Coord -> Coord -> Bool
-directlyConnected bitmap x y =
-  fromMaybe False $ (==) <$> bitmap !? x <*> bitmap !? y
+sameBit :: UArray Coord Bool -> Coord -> Coord -> Bool
+sameBit bitmap x y = fromMaybe False $ (==) <$> bitmap !? x <*> bitmap !? y
 
-
-
-makeUF ::
-  Int
-  -> Int
-  -> UArray Coord Bool
-  -> UnionFind Int
-makeUF rows columns bitmap =
+makeUF :: UArray Coord Bool -> UnionFind Coord
+makeUF bitmap =
   runST $ makeMutableUF bitmap >>= toUnionFind
 
 -- TODO: This is very messy, probably a fold can make it clearer, or a better UF
@@ -345,6 +340,18 @@ toText False = "binary"
 --     coord = (c - 1, r - 1)
 --   in
 --     fromJust $ view (cell coord) bidim
+
+-- TODO We'll get rid of this
+fromRight' :: Either a b -> b
+fromRight' (Right a) = a
+fromRight' _         = error "Got left"
+
+solve :: Text -> UnionFind Coord
+solve textInput =
+  let
+    input = fromRight' $ parse parser textInput
+  in
+    makeUF $ bitmap input
 
 main :: IO ()
 main =
