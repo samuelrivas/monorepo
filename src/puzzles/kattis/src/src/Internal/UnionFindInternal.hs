@@ -9,7 +9,7 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 
 module Internal.UnionFindInternal (
-  MutableUnionFind (MutableUnionFind)
+  MutableUnionFind (MutableUnionFind, roots, ranks)
   ) where
 
 import           Perlude

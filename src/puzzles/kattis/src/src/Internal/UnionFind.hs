@@ -25,7 +25,6 @@ module Internal.UnionFind (
 
 import           Perlude
 
-import           Control.Lens               (view)
 import           Control.Monad              (when)
 import           Control.Monad.Identity     (Identity (..))
 import           Control.Monad.ST           (ST)
@@ -79,42 +78,37 @@ union uf x y =
 -- -- Merge x and y nodes, minimising the resulting rank
 merge :: Ix a => MutableUnionFind s a -> a -> a -> ST s ()
 merge uf x y =
-  let
-    roots = view #roots uf
-    ranks = view #ranks uf
-  in do
-    rankY <- readArray ranks y
-    rankX <- readArray ranks x
+  do
+    rankY <- readArray (ranks uf) y
+    rankX <- readArray (ranks uf) x
     if rankY > rankX
       then merge uf y x
       else
       do
-        writeArray roots y x
-        when (rankX == rankY) $  modifyArray ranks x (+1)
+        writeArray (roots uf) y x
+        when (rankX == rankY) $  modifyArray (ranks uf) x (+1)
 
 find :: Ix a => MutableUnionFind s a -> a -> ST s a
 find uf x =
-  let
-    roots = view #roots uf
-  in do
-    parent <- readArray roots x
+  do
+    parent <- readArray (roots uf) x
     if parent == x
       then return parent
       else
       do
         root <- find uf parent
-        writeArray roots x root
+        writeArray (roots uf) x root
         return root
 
 toText :: Ix a => Show a => MutableUnionFind s a -> ST s Text
 toText uf =
   do
     roots <- toArray <$> toUnionFind uf
-    ranks :: Array a Int <- freeze $ view #ranks uf
+    ranks :: Array a Int <- freeze $ ranks uf
     pure $  "Roots: " <> show roots <> "\nRanks: " <> show ranks
 
 toUnionFind :: Ix a => MutableUnionFind s a -> ST s (UnionFind a)
-toUnionFind = fmap UnionFind . freeze . view #roots
+toUnionFind = fmap UnionFind . freeze . roots
 
 toArray :: UnionFind a -> Array a a
 toArray = unUnionFind
