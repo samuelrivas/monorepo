@@ -8,8 +8,8 @@ import           Perlude
 
 import           Control.Monad        (when)
 import           Control.Monad.ST     (ST, runST)
-import           Data.Array.Base      (UArray, array, bounds, indices, (!),
-                                       (!?))
+import           Data.Array.Base      (IArray, UArray, array, bounds, indices,
+                                       unsafeAt, (!))
 import           Data.Char            (ord)
 import           Data.Coerce
 import           Data.Foldable        (foldl', traverse_)
@@ -20,6 +20,7 @@ import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (fromJust, fromMaybe)
 import           Data.Text            (chunksOf, intercalate)
 import           GHC.Char             (chr)
+import           GHC.Ix               (Ix (unsafeIndex))
 import           Internal.UnionFind   (MutableUnionFind, UnionFind, find', new,
                                        toUnionFind, union)
 import qualified Prelude
@@ -250,3 +251,17 @@ solveIO contents =
   do
     input <- unsafeParse parser contents
     putStrLn . intercalate "\n" $ solve input
+
+-- Copied from Array 0.5.8.0 as Kattis uses an older version
+-- =========================================================
+
+{-# INLINE (!?) #-}
+-- | Returns 'Just' the element of an immutable array at the specified index,
+-- or 'Nothing' if the index is out of bounds.
+--
+-- @since 0.5.6.0
+(!?) :: (IArray a e, Ix i) => a i e -> i -> Maybe e
+(!?) arr i = let b = bounds arr in
+             if inRange b i
+             then Just $ unsafeAt arr $ unsafeIndex b i
+             else Nothing

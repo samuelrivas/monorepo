@@ -28,12 +28,12 @@ import           Perlude
 import           Control.Monad              (when)
 import           Control.Monad.Identity     (Identity (..))
 import           Control.Monad.ST           (ST)
-import           Data.Array.Base            (freeze, (!))
+import           Data.Array.Base            (MArray (..), freeze, safeIndex,
+                                             safeRangeSize, unsafeNewArray_,
+                                             (!))
 import           Data.Array.IArray          (Array)
-import           Data.Array.MArray          (modifyArray, newGenArray,
-                                             newListArray, readArray,
-                                             writeArray)
-import           Data.Generics.Labels       ()
+import           Data.Array.MArray          (Ix (range), newListArray,
+                                             readArray, writeArray)
 import           Data.Ix                    (Ix)
 import           Internal.UnionFindInternal (MutableUnionFind (..))
 
@@ -88,6 +88,7 @@ merge uf x y =
         writeArray (roots uf) y x
         when (rankX == rankY) $  modifyArray (ranks uf) x (+1)
 
+
 find :: Ix a => MutableUnionFind s a -> a -> ST s a
 find uf x =
   do
@@ -120,3 +121,37 @@ find' uf x =
     parent = array ! x
   in
     if parent == x then x else find' uf parent
+
+
+-- Copied from Array 0.5.8.0, as kattis has an older version
+-- =========================================================
+{-# INLINE modifyArray #-}
+-- | Modify an element in a mutable array
+--
+-- @since 0.5.6.0
+modifyArray :: (MArray a e m, Ix i) => a i e -> i -> (e -> e) -> m ()
+modifyArray marr i f = do
+  (l,u) <- getBounds marr
+  n <- getNumElements marr
+  let idx = safeIndex (l,u) n i
+  x <- unsafeRead marr idx
+  unsafeWrite marr idx (f x)
+
+{-# INLINE newGenArray #-}
+-- | Constructs a mutable array using a generator function.
+-- It invokes the generator function in ascending order of the indices.
+--
+-- @since 0.5.6.0
+newGenArray :: (MArray a e m, Ix i) => (i,i) -> (i -> m e) -> m (a i e)
+newGenArray bnds f = do
+    let n = safeRangeSize bnds
+    marr <- unsafeNewArray_ bnds
+    let g ix k i
+            | i == n    = return ()
+            | otherwise = do
+                x <- f ix
+                unsafeWrite marr i x
+                k (i+1)
+    foldr g (\ !_i -> return ()) (range bnds) 0
+    -- The bang above is important for GHC for unbox the Int.
+    return marr
