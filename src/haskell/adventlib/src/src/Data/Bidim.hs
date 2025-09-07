@@ -84,8 +84,6 @@ adjust f c = over asMap' (HashMap.adjust f c)
 plus :: Coord -> Coord -> Coord
 plus (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 
--- Using 'Bounded' is a bit ugly, but is much more convenient than making the
--- boundaries field a Maybe
 empty :: Bidim a
 empty = Bidim HashMap.empty (maxCoord, minCoord)
 

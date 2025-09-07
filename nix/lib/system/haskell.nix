@@ -16,6 +16,7 @@ let
     extra-build-inputs ? [],
     extra-drv ? {},
     extra-native-build-inputs ? [],
+    extra-shell-native-build-inputs ? [],
     haskell-libs,
     name,
     src,
@@ -84,7 +85,7 @@ let
         packages-nixpkgs.git
         packages-nixpkgs.glibcLocales
         (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
-      ];
+      ] ++ extra-shell-native-build-inputs;
       shell-hook = ''
         # Emacs uses fontconfig, which needs a writable cache directory
         export XDG_CACHE_HOME="/tmp/cache";
