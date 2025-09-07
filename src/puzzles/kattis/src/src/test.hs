@@ -41,16 +41,16 @@ propUnion =
   annotate "Each subset must have a different representation"
   length subsets === Set.size (Set.unions reps)
 
-mkUnionFind :: Int -> [(Int, Int)] -> ST s (MutableUnionFind s)
+mkUnionFind :: Int -> [(Int, Int)] -> ST s (MutableUnionFind s Int)
 mkUnionFind size unions =
   do
-    uf <- new size
+    uf <- new 0 (size - 1)
     traverse_ (uncurry $ union uf) unions
     return uf
 
 -- Convert all elements of the sets into their rep. The expectation is that each
 -- sets converts to a single rep and the rep is different for each set
-toReps :: MutableUnionFind s -> [Set Int] -> ST s [Set Int]
+toReps :: MutableUnionFind s Int -> [Set Int] -> ST s [Set Int]
 toReps uf subsets =
   let
     toRep s = Set.fromList <$> traverse (find uf) (Set.toList s)
