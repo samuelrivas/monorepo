@@ -42,6 +42,7 @@
   };
 
   packages = {
+
     # Emacs stuff
     # ===========
     emacs-config = callPackage ./../src/elisp/emacs-config/nix {};
@@ -70,6 +71,8 @@
 
     # Haskell stuff
     # =============
+    inherit haskellPackages;
+
     haskell-mk = callPackage ./../src/haskell/haskell-mk/nix {};
     haskell-lib-mk = callPackage ./../src/haskell/haskell-lib-mk/nix {};
     haskell-test-mk = callPackage ./../src/haskell/haskell-test-mk/nix {};
