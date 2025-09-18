@@ -1,6 +1,7 @@
 {
   availableOn,
   filterAttrs,
+  isDerivation,
   linkFarm,
   mapAttrsToList,
   system,
@@ -13,7 +14,8 @@
   # `p` is a set of packages, the resulting derivation outputs one of each as
   # `out/<name>`
   bundle = {name}: p: let
-    filtered-ps = filterAttrs (_: v: availableOn system v) p;
+    filter = a: availableOn system a && isDerivation a;
+    filtered-ps = filterAttrs (_: filter) p;
   in
     linkFarm name (
       mapAttrsToList
