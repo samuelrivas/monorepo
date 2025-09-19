@@ -79,13 +79,15 @@ let
     drv = packages-nixpkgs.stdenv.mkDerivation drv-args;
   in
     lib-sam.derivation-helpers.add-dev-shell drv {
-      native-build-inputs = [
-        packages-nixpkgs.haskell-language-server
-        my-emacs
-        packages-nixpkgs.git
-        packages-nixpkgs.glibcLocales
-        (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
-      ] ++ extra-shell-native-build-inputs;
+      native-build-inputs =
+        [
+          packages-nixpkgs.haskell-language-server
+          my-emacs
+          packages-nixpkgs.git
+          packages-nixpkgs.glibcLocales
+          (packages-nixpkgs.haskellPackages.ghcWithHoogle (_: haskell-libs))
+        ]
+        ++ extra-shell-native-build-inputs;
       shell-hook = ''
         # Emacs uses fontconfig, which needs a writable cache directory
         export XDG_CACHE_HOME="/tmp/cache";
