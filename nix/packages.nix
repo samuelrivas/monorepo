@@ -9,12 +9,11 @@
   callPackage =
     lib-nixpkgs.callPackageWith
     (nixpkgs // packages // builders // derivation-helpers);
-  haskellPackages = nixpkgs.haskellPackages.override {
-    overrides = h-pkgs: h-prev: let
-      h-package = h-pkgs.callPackage;
+  haskellPackages = nixpkgs.haskellPackages.extend (
+    self: super: let
+      h-package = self.callPackage;
     in {
       inherit (lib-system.sam.haskell) haskell-pkg haskell-lib-pkg;
-      inherit (packages) kattis-cli;
 
       adventlib = h-package ./../src/haskell/adventlib/nix {};
       adventlib-old-1 = h-package ./../src/haskell/adventlib-old-1/nix {};
@@ -26,7 +25,9 @@
       boollib = h-package ./../src/haskell/boollib/nix {};
       clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
       hashcode-photoalbum = h-package ./../src/haskell/hashcode-photoalbum/nix {};
-      kattis = h-package ./../src/puzzles/kattis/nix {};
+      kattis = h-package ./../src/puzzles/kattis/nix {
+        inherit (packages) kattis-cli;
+      };
       low-battery = h-package ./../src/haskell/low-battery/nix {
         # there is a libnotify in haskellPackages that aliases this one
         inherit (nixpkgs) libnotify;
@@ -38,11 +39,10 @@
       parselib = h-package ./../src/haskell/parselib/nix {};
       perlude = h-package ./../src/haskell/perlude/nix {};
       searchlib = h-package ./../src/haskell/searchlib/nix {};
-    };
-  };
+    }
+  );
 
   packages = {
-
     # Emacs stuff
     # ===========
     emacs-config = callPackage ./../src/elisp/emacs-config/nix {};
