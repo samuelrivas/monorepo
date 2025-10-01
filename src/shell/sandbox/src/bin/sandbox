@@ -32,15 +32,16 @@ sandbox() {
 
     export XDG_CONFIG_HOME="$xdg_config_home"
 
-    nix develop                       \
-        --profile "$roots_dir/shell"  \
-        --ignore-environment          \
-        --show-trace                  \
-        --keep XAUTHORITY             \
-        --keep TERM                   \
-        --keep DISPLAY                \
-        --keep SSH_AUTH_SOCK          \
-        --keep XDG_CONFIG_HOME        \
+    nix develop                         \
+        --profile "$roots_dir/shell"    \
+        --ignore-environment            \
+        --show-trace                    \
+        --keep XAUTHORITY               \
+        --keep TERM                     \
+        --keep DISPLAY                  \
+        --keep SSH_AUTH_SOCK            \
+        --keep XDG_CONFIG_HOME          \
+        --keep DBUS_SESSION_BUS_ADDRESS \
         "$derivation"
 }
 
