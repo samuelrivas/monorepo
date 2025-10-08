@@ -4,7 +4,8 @@
 module Main (
   main,
   exampleClockLine,
-  exampleTransitionLine
+  exampleTransitionLine,
+  exampleRescheduleLine
   ) where
 
 import           Perlude
@@ -27,10 +28,15 @@ exampleTransitionLine :: Text
 exampleTransitionLine =
   "    - State \"DONE\"       from \"TODO\"       [2021-11-13 Sat 21:02]"
 
+exampleRescheduleLine :: Text
+exampleRescheduleLine =
+  "    - Rescheduled from \"[2025-08-17 Sun .+1w/2w]\" on [2025-08-17 Sun 08:33]"
+
 lineWithDate :: Parser UTCTime
 lineWithDate =
   (view _2 <$> try clockLine)
-  <|> view _3 <$> try stateTransition
+  <|> view _3 <$> try stateTransitionLine
+  <|> view _2 <$> try resheduledLine
 
 clockLine :: Parser (UTCTime, UTCTime)
 clockLine =
@@ -44,12 +50,18 @@ quote = literal "\"" $> ()
 quotedText :: Parser Text
 quotedText = between quote quote (text $ noneOf "\"")
 
-stateTransition :: Parser (Text, Text, UTCTime)
-stateTransition =
+stateTransitionLine :: Parser (Text, Text, UTCTime)
+stateTransitionLine =
   (,,)
   <$> (spaces *> literal "- State " *> quotedText)
   <*> (spaces *> literal "from " *> quotedText)
   <*> (spaces *> between (literal "[") (literal "]") date)
+
+resheduledLine :: Parser (Text, UTCTime)
+resheduledLine =
+  (,)
+  <$> (spaces *> literal "- Rescheduled from " *> quotedText)
+  <*> (spaces *> literal "on " *> between (literal "[") (literal "]") date)
 
 date :: Parser UTCTime
 date =
@@ -72,6 +84,10 @@ time =
   (,)
   <$> digitsAsNum <* literal ":"
   <*> digitsAsNum
+
+-- We are ignoring the time zone, which means that our dates will be offset by
+-- whatever timezone we are in, but this is good enough for our purposes, so we
+-- don't complicate it just for that
 
 -- TODO: move to library
 mkUTCTime :: (Integer, Int, Int) -> (Int, Int) -> UTCTime
