@@ -1,3 +1,0 @@
-language: nix
-install: ./travis-install.sh
-script: ./travis-test.sh
