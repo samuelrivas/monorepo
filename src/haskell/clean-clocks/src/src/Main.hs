@@ -14,6 +14,7 @@ import           Control.Applicative  ((<|>))
 import           Control.Lens         (_2, _3, _Left, over, view)
 import           Data.Functor         (($>))
 import           Data.Maybe           (mapMaybe)
+import           Data.Text            (intercalate)
 import           Data.Time            (TimeOfDay (..), UTCTime (..),
                                        fromGregorian, timeOfDayToTime)
 import           Text.Parsec          (between, noneOf, spaces, try)
@@ -31,6 +32,15 @@ exampleTransitionLine =
 exampleRescheduleLine :: Text
 exampleRescheduleLine =
   "    - Rescheduled from \"[2025-08-17 Sun .+1w/2w]\" on [2025-08-17 Sun 08:33]"
+
+exampleRescheduleLineWithComments :: Text
+exampleRescheduleLineWithComments =
+  intercalate "/n"
+  ["    - Rescheduled from \"[2025-08-17 Sun .+1w/2w]\" on [2025-08-17 Sun 08:33]",
+   "      some explanation",
+   "      ",
+   "      potentially long"
+  ]
 
 lineWithDate :: Parser UTCTime
 lineWithDate =
