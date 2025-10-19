@@ -19,7 +19,6 @@ import           Control.Monad         (replicateM_)
 import           Control.Monad.Loops   (whileM)
 import           Control.Monad.State   (State, evalState, execState, get,
                                         modify)
-import           Data.Foldable         (foldl')
 import           Data.Generics.Labels  ()
 
 import           Advent.Day12.Internal

@@ -34,7 +34,6 @@ module Text.Parsec.Parselib (
 import           Perlude
 
 import           Data.Char        (digitToInt)
-import           Data.Foldable    (foldl')
 import           Data.Functor     (($>))
 import qualified Text.Parsec      as Parsec
 import           Text.Parsec      (ParseError, char, digit, eof, getInput, many,

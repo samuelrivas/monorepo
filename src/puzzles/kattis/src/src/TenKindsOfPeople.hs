@@ -12,7 +12,7 @@ import           Data.Array.Base      (IArray, UArray, array, bounds, indices,
                                        unsafeAt, (!))
 import           Data.Char            (ord)
 import           Data.Coerce
-import           Data.Foldable        (foldl', traverse_)
+import           Data.Foldable        (traverse_)
 import           Data.Ix              (Ix (..))
 import           Data.List.NonEmpty   (NonEmpty (..), nonEmpty)
 import           Data.Map.Strict      (insert, member, size)

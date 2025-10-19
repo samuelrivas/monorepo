@@ -16,7 +16,6 @@ import           Prelude              hiding (lines, readFile, unlines)
 
 import           Control.Lens         (_1, _2, at, non, over, set, view)
 import           Data.Advent          (Day (..))
-import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import           Data.Graph
 import           Data.HashMap.Strict  (HashMap, fromList, singleton, unionWith)

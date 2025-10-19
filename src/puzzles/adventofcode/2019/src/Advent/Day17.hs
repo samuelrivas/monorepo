@@ -24,7 +24,6 @@ import           Control.Lens            (_1, _2, at, both, ix, productOf, set,
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Advent             (Day (..))
 import           Data.Bidim              (Coord, plus, showBidim)
-import           Data.Foldable           (foldl')
 import           Data.Functor.Identity   (runIdentity)
 import           Data.List               (find, maximumBy, sort, tails, unfoldr)
 import           Data.Map.Strict         (Map, empty, insert, keys, toList)

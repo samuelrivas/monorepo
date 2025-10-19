@@ -14,7 +14,6 @@ import           Perlude
 
 import           Control.Lens         (allOf)
 import           Data.Advent          (Day (..))
-import           Data.Foldable        (foldl')
 import           Data.Functor         (($>))
 import           Data.Maybe           (fromJust)
 import           Data.Text            (intercalate)

@@ -31,7 +31,6 @@ import           Prelude              hiding (concat)
 
 import           Control.Lens         (Getter, Lens, Lens', _1, _2, at, lens,
                                        over, set, to, view)
-import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import           Data.HashMap.Strict  (HashMap)
 import qualified Data.HashMap.Strict  as HashMap

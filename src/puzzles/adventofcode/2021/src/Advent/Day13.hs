@@ -20,7 +20,6 @@ import           Control.Lens         (Lens', _1, _2, over, view)
 import           Data.Advent          (Day (..))
 import           Data.Bidim           (Coord, showBidim)
 import qualified Data.Bidim           as Bidim
-import           Data.Foldable        (foldl')
 import           Data.Functor         (($>))
 import           Data.Generics.Labels ()
 import           Data.HashSet         (HashSet)
