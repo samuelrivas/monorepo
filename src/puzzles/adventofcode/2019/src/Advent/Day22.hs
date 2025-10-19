@@ -14,12 +14,11 @@
 
 module Advent.Day22 where
 
-import           Prelude       hiding (Left, Right, concat, getLine, putStr,
-                                putStrLn, readFile)
+import           Prelude      hiding (Left, Right, concat, getLine, putStr,
+                               putStrLn, readFile)
 
-import           Data.Foldable (foldl')
-import           Data.Text     (Text)
-import           Data.Text.IO  (putStrLn, readFile)
+import           Data.Text    (Text)
+import           Data.Text.IO (putStrLn, readFile)
 
 shamelessParse :: Integral i => i -> i -> i
 shamelessParse nCards =

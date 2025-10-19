@@ -6,8 +6,6 @@ module Data.Num.Advent (
   numListToDec
   ) where
 
-import           Data.Foldable (foldl')
-
 -- | Convert a list of digits into a number using the given base.
 --
 -- For example:

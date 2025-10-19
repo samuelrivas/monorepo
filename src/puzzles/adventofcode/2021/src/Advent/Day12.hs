@@ -25,7 +25,6 @@ import           Control.Lens          (at, filtered, non, over, set, toListOf,
                                         view, views)
 import           Data.Advent           (Day (..))
 import           Data.Char             (isLower)
-import           Data.Foldable         (foldl')
 import           Data.Generics.Labels  ()
 import           Data.HashMap.Strict   (HashMap)
 import qualified Data.HashMap.Strict   as HashMap

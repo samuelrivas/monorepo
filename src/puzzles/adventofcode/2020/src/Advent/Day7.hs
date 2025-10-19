@@ -10,7 +10,7 @@ module Advent.Day7 where
 import           Perlude
 
 import           Control.Lens         (at, non, view)
-import           Data.Foldable        (fold, foldl')
+import           Data.Foldable        (fold)
 import           Data.Functor         (($>))
 import           Data.Map             (Map)
 import qualified Data.Map             as Map

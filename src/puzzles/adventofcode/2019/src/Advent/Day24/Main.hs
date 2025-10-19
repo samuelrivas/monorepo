@@ -18,7 +18,6 @@ import qualified Prelude
 
 import           Control.Monad.State  (StateT, evalStateT, gets, modify)
 import           Data.Bool            (bool)
-import           Data.Foldable        (foldl')
 import           Data.Generics.Labels ()
 import           Data.HashSet         (HashSet)
 import qualified Data.HashSet         as HashSet

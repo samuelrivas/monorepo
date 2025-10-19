@@ -23,7 +23,7 @@ import           Control.Monad.Loops  (allM)
 import           Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import           Control.Monad.State  (MonadState, State, runState)
 import           Data.Advent          (Day (..))
-import           Data.Foldable        (foldl', traverse_)
+import           Data.Foldable        (traverse_)
 import           Data.Generics.Labels ()
 import qualified Data.HashMap.Strict  as HashMap
 import           Data.HashSet         (HashSet)
