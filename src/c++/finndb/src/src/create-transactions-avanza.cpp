@@ -79,17 +79,22 @@ TransactionType parse_type(const string& type_text, const string& description) {
     return TransactionType::BUY;
   } else if (type_text == "Sälj") {
     return TransactionType::SELL;
-  } else if (type_text == "Preliminärskatt"
-             || type_text == "Utländsk källskatt") {
+  } else if (type_text.find("skatt") != string::npos) {
     return TransactionType::TAX;
-  } else if (type_text == "Ränta") {
+  } else if (type_text == "Ränta"
+             || type_text == "Inlåningsränta"
+             || type_text == "Utlåningsränta") {
     return TransactionType::INTEREST;
   } else if (type_text == "Utdelning") {
     return TransactionType::DIVIDEND;
   } else if (type_text == "Insättning"
-             || type_text == "Uttag") {
+             || type_text == "Uttag"
+             || type_text == "Intern överföring"
+             || type_text == "Flytt från annat pensionsbolag") {
     return TransactionType::CASH_TRANSFER;
-  } else if (type_text == "Värdepappersöverföring") {
+  } else if (type_text == "Värdepappersöverföring"
+             || type_text == "Värdepappersinsättning"
+             || type_text == "Värdepappersuttag") {
     return TransactionType::ASSET_TRANSFER;
   } else if (type_text == "Övrigt") {
     return parse_misc(description);
