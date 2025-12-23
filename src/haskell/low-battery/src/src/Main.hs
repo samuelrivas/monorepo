@@ -91,4 +91,6 @@ main =
     capacityLevel <- getCapacityLevel
     info $ "Battery status: " <> show status
     info $ "Battery capacity level: " <> show capacityLevel
-    when (capacityLevel < Normal && unplugged status ) $ warnLowBattery capacityLevel
+    -- when (capacityLevel < Normal && unplugged status ) $ warnLowBattery capacityLevel
+    info "Forcing a notification"
+    warnLowBattery capacityLevel
