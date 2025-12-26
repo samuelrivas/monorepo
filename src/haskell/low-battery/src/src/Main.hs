@@ -59,16 +59,23 @@ parseStatus other          = fail $ "cannot parse status: " <> other
 unplugged :: Status -> Bool
 unplugged status = status == Discharging || status == StUnknown
 
-warnLowBattery :: CapacityLevel -> IO ()
-warnLowBattery capacityLevel =
+warnLowBattery :: CapacityLevel -> Int -> IO ()
+warnLowBattery capacityLevel capacity =
   run . unpack $
   "notify-send -u "
   <> (urgencyToText . urgency $ capacityLevel)
-  <> " \"Battery " <> show capacityLevel <>"\""
+  <> " \"Battery "
+  <> show capacity
+  <> "% ("
+  <> show capacityLevel
+  <>")\""
 
 -- Just drop the final new line
 readSysFile :: MonadIO m => FilePath -> m Text
 readSysFile = fmap (dropEnd 1) . readFile
+
+getCapacity :: MonadIO m => m Int
+getCapacity = read <$> readSysFile "/sys/class/power_supply/BAT1/capacity"
 
 getCapacityLevel :: MonadIO m => MonadFail m => m CapacityLevel
 getCapacityLevel =
@@ -89,6 +96,9 @@ main =
     info "Reading battery status"
     status <- getStatus
     capacityLevel <- getCapacityLevel
+    capacity <- getCapacity
     info $ "Battery status: " <> show status
+    info $ "Battery capacity: " <> show capacity
     info $ "Battery capacity level: " <> show capacityLevel
-    when (capacityLevel < Normal && unplugged status ) $ warnLowBattery capacityLevel
+    when (capacity < 15 && unplugged status )
+      $ warnLowBattery capacityLevel capacity
