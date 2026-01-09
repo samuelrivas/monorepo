@@ -13,6 +13,8 @@ module Perlude (
   fail,
   getArgs,
   getContents,
+  getEnv,
+  getEnvironment,
   getExecutablePath,
   getLine,
   getProgramName,
@@ -20,19 +22,23 @@ module Perlude (
   hPutStr,
   hPutStrLn,
   interact,
+  lookupEnv,
+  module Control.Monad.IO.Class,
+  module Data.Text,
+  module Prelude,
   print,
   putStr,
   putStrLn,
   read,
   readFile,
+  setEnv,
   show,
+  unsetEnv,
   writeFile,
-  module Data.Text,
-  module Prelude,
-  module Control.Monad.IO.Class,
   ) where
 
 import           Control.Monad.IO.Class
+import           Data.Bifunctor         (bimap)
 import           Data.Text              (Text, lines, pack, unlines, unpack)
 import qualified Data.Text.IO           as TextIO
 import           GHC.Stack              (HasCallStack)
@@ -73,6 +79,20 @@ getArgs = liftIO $ fmap pack <$> System.Environment.getArgs
 
 getEnv :: MonadIO m => Text -> m Text
 getEnv = liftIO . fmap pack . System.Environment.getEnv . unpack
+
+lookupEnv :: MonadIO m => Text -> m (Maybe Text)
+lookupEnv = liftIO . fmap (fmap pack) . System.Environment.lookupEnv . unpack
+
+setEnv :: MonadIO m => Text -> Text -> m ()
+setEnv name value =
+  liftIO $ System.Environment.setEnv (unpack name) (unpack value)
+
+unsetEnv :: MonadIO m => Text -> m ()
+unsetEnv = liftIO . System.Environment.unsetEnv . unpack
+
+getEnvironment :: MonadIO m => m [(Text, Text)]
+getEnvironment =
+  liftIO $ fmap (bimap pack pack) <$>  System.Environment.getEnvironment
 
 getContents :: MonadIO m => m Text
 getContents = liftIO TextIO.getContents
