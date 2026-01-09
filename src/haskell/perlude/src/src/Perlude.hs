@@ -71,6 +71,9 @@ appendFile path  = liftIO . TextIO.appendFile path
 getArgs :: MonadIO m => m [Text]
 getArgs = liftIO $ fmap pack <$> System.Environment.getArgs
 
+getEnv :: MonadIO m => Text -> m Text
+getEnv = liftIO . fmap pack . System.Environment.getEnv . unpack
+
 getContents :: MonadIO m => m Text
 getContents = liftIO TextIO.getContents
 
