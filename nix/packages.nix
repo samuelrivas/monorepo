@@ -25,6 +25,7 @@
       boollib = h-package ./../src/haskell/boollib/nix {};
       clean-clocks = h-package ./../src/haskell/clean-clocks/nix {};
       hashcode-photoalbum = h-package ./../src/haskell/hashcode-photoalbum/nix {};
+      error-handling-rfd = h-package ./../src/haskell/error-handling-rfd/nix {};
       kattis = h-package ./../src/puzzles/kattis/nix {
         inherit (packages) kattis-cli;
       };
@@ -82,6 +83,7 @@
     boardgamer = haskellPackages.boardgamer;
     boollib = haskellPackages.boollib;
     clean-clocks = haskellPackages.clean-clocks;
+    error-handling-rfd = haskellPackages.error-handling-rfd;
     hashcode-photoalbum = haskellPackages.hashcode-photoalbum;
     low-battery = haskellPackages.low-battery;
     mk-conf-file = haskellPackages.mk-conf-file;
