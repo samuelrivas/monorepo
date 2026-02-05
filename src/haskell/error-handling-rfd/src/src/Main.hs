@@ -30,7 +30,7 @@ exceptionHead' = either error id . eitherHead
 data OurException = OurException CallStack
 
 instance Show OurException where
-  show (OurException cs) = "OurException: " ++ (prettyCallStack cs)
+  show (OurException cs) = "OurException:\n" ++ (prettyCallStack cs)
 
 instance Exception OurException
 
@@ -54,7 +54,7 @@ heads' (a, b) =
   (,) <$> maybeHead a <*> (either (const Nothing) Just . eitherHead $ b)
 
 -- We still keep exception semantics if we use exceptionHead''
-heads'' :: ([a], [a]) -> (a, a)
+heads'' :: HasCallStack => ([a], [a]) -> (a, a)
 heads'' (xs, ys) = (exceptionHead'' xs, exceptionHead'' ys)
 
 avoidException :: Int
