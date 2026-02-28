@@ -94,9 +94,7 @@
 
     # Shell-scripts
     # =============
-    assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {
-      inherit (nixpkgs.xorg) xbacklight xrandr xset;
-    };
+    assorted-scripts = callPackage ./../src/shell/assorted-scripts/nix {};
 
     sh-lib = callPackage ./../src/shell/sh-lib/nix {};
 
