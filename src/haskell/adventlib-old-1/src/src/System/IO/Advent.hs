@@ -9,7 +9,7 @@ module System.IO.Advent (
   solve
   ) where
 
-import           Perlude
+import           Perlude              hiding (getEnv)
 
 import           Data.Advent          (Day (..))
 import           System.FilePath      ((</>))
