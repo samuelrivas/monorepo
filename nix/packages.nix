@@ -37,6 +37,7 @@
       name-generator = h-package ./../src/haskell/name-generator/nix {};
       onirim-helper = h-package ./../src/haskell/onirim-helper/nix {};
       parselib = h-package ./../src/haskell/parselib/nix {};
+      pathlib = h-package ./../src/haskell/pathlib/nix {};
       perlude = h-package ./../src/haskell/perlude/nix {};
       searchlib = h-package ./../src/haskell/searchlib/nix {};
     }
@@ -65,7 +66,7 @@
     # to output it here
     my-emacs-config-file =
       nixpkgs.runCommandLocal
-      "config.el"
+      "config.Eli"
       {}
       "ln -s ${packages.emacs-config.passthru.config-file} $out";
 
@@ -89,6 +90,7 @@
     name-generator = haskellPackages.name-generator;
     onirim-helper = haskellPackages.onirim-helper;
     parselib = haskellPackages.parselib;
+    pathlib = haskellPackages.pathlib;
     perlude = haskellPackages.perlude;
     searchlib = haskellPackages.searchlib;
 
