@@ -42,10 +42,10 @@ isRelative = not . isAbsolute
 components :: Path -> [Text]
 components =
   let
-    toText Slash = Nothing
-    toText (Component a) = Just a
+    tt Slash = Nothing
+    tt (Component a) = Just a
   in
-    catMaybes . fmap toText . unPath
+    catMaybes . fmap tt . unPath
 
 fromComponents :: Bool -> [Text] -> Path
 fromComponents True = Path . (Slash :) . intersperse Slash . fmap Component
