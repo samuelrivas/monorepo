@@ -64,9 +64,13 @@ components =
   in
     catMaybes . fmap tt . unPath
 
-fromComponents :: Bool -> [Text] -> Path
-fromComponents True  = Path . (Slash :) . intersperse Slash . fmap Component
-fromComponents False =  Path  . intersperse Slash . fmap Component
+-- | Builds a t'Path' from a list of component names.
+fromComponents ::
+  Bool -- ^ Whether the path is absolute.
+  -> [Text] -- ^ The list of components.
+  -> Maybe Path -- ^ 'Nothing' if any of the components contains a @/@.
+fromComponents True  = Just . Path . (Slash :) . intersperse Slash . fmap Component
+fromComponents False =  Just . Path  . intersperse Slash . fmap Component
 
 toText :: Path -> Text
 toText =
