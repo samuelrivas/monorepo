@@ -1,19 +1,20 @@
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE DerivingVia #-}
 
 module Data.Path where
 
 import           Perlude
 
-import Data.List (intersperse)
+import           Data.List            (intersperse)
+import           Data.Maybe           (catMaybes, fromJust, fromMaybe,
+                                       listToMaybe)
+import qualified Data.Text            as T
 import           GHC.Base             ((<|>))
+import           GHC.Stack            (HasCallStack)
 import           Text.Parsec          (char, many, many1, noneOf)
 import           Text.Parsec.Parselib (Parser, text1, unsafeParseAll)
-import Data.Maybe (fromJust, listToMaybe, fromMaybe, catMaybes)
-import GHC.Stack (HasCallStack)
-import qualified Data.Text as T
 
 data Token = Slash | Component Text
   deriving stock (Show, Eq)
@@ -42,19 +43,19 @@ isRelative = not . isAbsolute
 components :: Path -> [Text]
 components =
   let
-    tt Slash = Nothing
+    tt Slash         = Nothing
     tt (Component a) = Just a
   in
     catMaybes . fmap tt . unPath
 
 fromComponents :: Bool -> [Text] -> Path
-fromComponents True = Path . (Slash :) . intersperse Slash . fmap Component
+fromComponents True  = Path . (Slash :) . intersperse Slash . fmap Component
 fromComponents False =  Path  . intersperse Slash . fmap Component
 
 toText :: Path -> Text
 toText =
   let
-    tt Slash = "/"
+    tt Slash         = "/"
     tt (Component a) = a
   in
     T.concat . fmap tt . unPath
