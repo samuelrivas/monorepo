@@ -3,6 +3,14 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
+-- | The t'Path' data type.
+--
+-- Minimal impiementation of the [POSIX
+-- standard](https://pubs.opengroup.org/onlinepubs/9799919799/) for path names.
+--
+-- POSIX defines a special case for path names starting with @\/\/@. We
+-- currently ignore this case, so @\/\/@ is equivalent to @\/@ in this library.
+
 module Data.Path (
   Path,
   fromText,
