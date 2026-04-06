@@ -65,6 +65,8 @@ components =
     catMaybes . fmap tt . unPath
 
 -- | Builds a t'Path' from a list of component names.
+
+-- TODO: Handle comtonent names with / in them
 fromComponents ::
   Bool -- ^ Whether the path is absolute.
   -> [Text] -- ^ The list of components.
