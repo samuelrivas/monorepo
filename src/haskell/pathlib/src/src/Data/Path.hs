@@ -3,7 +3,15 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
-module Data.Path where
+module Data.Path (
+  Path,
+  fromText,
+  isAbsolute,
+  isRelative,
+  fromComponents,
+  components,
+  toText
+  ) where
 
 import           Perlude
 
