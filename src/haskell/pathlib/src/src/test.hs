@@ -6,6 +6,7 @@ module Main where
 
 import           Perlude
 
+import           Data.List      (intersperse, singleton)
 import           Data.Text      (intercalate)
 import           Hedgehog       (MonadGen, Property, check, forAll, property,
                                  (===))
@@ -50,21 +51,30 @@ pathTextGen :: MonadGen m => m Text
 pathTextGen =
   do
     components <- Gen.list (Range.linear 0 100) componentGen
-    return$ intercalate "/" components
+    return $ intercalate "/" components
 
 slashGen :: MonadGen m => m Text
 slashGen = Gen.text (Range.linear 1 100) (Gen.constant '/')
 
-textPathGen :: MonadGen m => ProtoPath -> m Text
+textPathGen :: MonadGen m => ProtoPath -> m [Text]
 textPathGen proto =
-  undefined
+  let
+    tGens = intersperse slashGen (pure <$> components proto)
+  in
+    sequence tGens
 
 testCaseGen :: MonadGen m => m (ProtoPath, Text)
 testCaseGen =
-  do
-    proto <- protoPathGen
-    text <- textPathGen proto
-    pure (proto, text)
+  -- do
+  --   proto <- protoPathGen
+  --   text <- textPathGen proto
+  --   pure (proto, text)
+  undefined
+
+-- TODO: rewrite with bool
+genIf :: MonadGen m => Bool -> m Text -> m [Text]
+genIf False _ = pure []
+genIf True g  = singleton <$> g
 
 main :: IO ()
 main = do
