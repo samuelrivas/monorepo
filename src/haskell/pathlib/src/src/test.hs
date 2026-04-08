@@ -1,5 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Main where
 
@@ -10,6 +11,13 @@ import           Hedgehog       (MonadGen, Property, check, forAll, property,
                                  (===))
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
+
+data ProtoPath = ProtoPath {
+  components :: [Text],
+  leading    :: Bool,
+  trailing   :: Bool
+  }
+  deriving stock Show
 
 prop_reverse :: Property
 prop_reverse = property $ do
@@ -30,11 +38,33 @@ anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)
 componentGen :: MonadGen m => m Text
 componentGen = Gen.text (Range.linear 1 100) anyCharGen
 
+protoPathGen :: MonadGen m => m ProtoPath
+protoPathGen =
+  ProtoPath
+  <$> Gen.list (Range.linear 0 100) componentGen
+  <*> Gen.bool
+  <*> Gen.bool
+
+-- TODO: remove this one, we won't need it
 pathTextGen :: MonadGen m => m Text
 pathTextGen =
   do
     components <- Gen.list (Range.linear 0 100) componentGen
-    return $ intercalate "/" components
+    return$ intercalate "/" components
+
+slashGen :: MonadGen m => m Text
+slashGen = Gen.text (Range.linear 1 100) (Gen.constant '/')
+
+textPathGen :: MonadGen m => ProtoPath -> m Text
+textPathGen proto =
+  undefined
+
+testCaseGen :: MonadGen m => m (ProtoPath, Text)
+testCaseGen =
+  do
+    proto <- protoPathGen
+    text <- textPathGen proto
+    pure (proto, text)
 
 main :: IO ()
 main = do
