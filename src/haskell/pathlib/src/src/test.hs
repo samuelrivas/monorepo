@@ -6,8 +6,11 @@ module Main where
 
 import           Perlude
 
-import           Data.List      (intersperse, singleton)
+import           Data.Bool      (bool)
+import           Data.List      (intersperse)
+import qualified Data.Path      as Path
 import           Data.Text      (intercalate)
+import qualified Data.Text      as Text
 import           Hedgehog       (MonadGen, Property, check, forAll, property,
                                  (===))
 import qualified Hedgehog.Gen   as Gen
@@ -29,9 +32,11 @@ prop_reverse = property $ do
 propPath :: Property
 propPath =
   property $ do
-  ps  <- forAll $
-    pathTextGen
-  ps === ""
+  (proto, text)  <- forAll $ testCaseGen
+  let
+    path = Path.fromText text
+    cs = Path.components path
+  cs === components proto
 
 anyCharGen :: MonadGen m => m Char
 anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)]
@@ -56,28 +61,27 @@ pathTextGen =
 slashGen :: MonadGen m => m Text
 slashGen = Gen.text (Range.linear 1 100) (Gen.constant '/')
 
-textPathGen :: MonadGen m => ProtoPath -> m [Text]
+textPathGen :: MonadGen m => ProtoPath -> m Text
 textPathGen proto =
   let
+    leadGen = genIf (leading proto) slashGen
+    trailGen = genIf (trailing  proto) slashGen
     tGens = intersperse slashGen (pure <$> components proto)
   in
-    sequence tGens
+    Text.concat <$> sequence (trailGen ++ tGens ++ leadGen)
 
 testCaseGen :: MonadGen m => m (ProtoPath, Text)
 testCaseGen =
-  -- do
-  --   proto <- protoPathGen
-  --   text <- textPathGen proto
-  --   pure (proto, text)
-  undefined
+  do
+    proto <- protoPathGen
+    text <- textPathGen proto
+    pure (proto, text)
 
 -- TODO: rewrite with bool
-genIf :: MonadGen m => Bool -> m Text -> m [Text]
-genIf False _ = pure []
-genIf True g  = singleton <$> g
+genIf :: MonadGen m => Bool -> m Text -> [m Text]
+genIf b g = bool [] [g] b
 
 main :: IO ()
 main = do
-  _ <- check prop_reverse
   _ <- check propPath
   pure ()
