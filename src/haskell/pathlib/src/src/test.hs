@@ -35,8 +35,11 @@ propFromText =
 anyCharGen :: MonadGen m => m Char
 anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)]
 
+notSlashGen :: MonadGen m  => m Char
+notSlashGen = Gen.filterT (/= '/') anyCharGen
+
 componentGen :: MonadGen m => m Text
-componentGen = Gen.text (Range.linear 1 100) anyCharGen
+componentGen = Gen.text (Range.linear 1 100) notSlashGen
 
 protoPathGen :: MonadGen m => m ProtoPath
 protoPathGen =
