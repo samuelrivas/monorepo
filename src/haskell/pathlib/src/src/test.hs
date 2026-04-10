@@ -12,7 +12,7 @@ import qualified Data.Path      as Path
 import           Data.Text      (intercalate)
 import qualified Data.Text      as Text
 import           Hedgehog       (MonadGen, Property, check, forAll, property,
-                                 (===))
+                                 (/==), (===))
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 
@@ -31,6 +31,8 @@ propFromText =
     path = Path.fromText text
     cs = Path.components path
   cs === components proto
+  leading proto === Path.isAbsolute path
+  leading proto /== Path.isRelative path
 
 anyCharGen :: MonadGen m => m Char
 anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)]
@@ -65,7 +67,7 @@ textPathGen proto =
     trailGen = genIf (trailing  proto) slashGen
     tGens = intersperse slashGen (pure <$> components proto)
   in
-    Text.concat <$> sequence (trailGen ++ tGens ++ leadGen)
+    Text.concat <$> sequence (leadGen ++ tGens ++ trailGen)
 
 testCaseGen :: MonadGen m => m (ProtoPath, Text)
 testCaseGen =
