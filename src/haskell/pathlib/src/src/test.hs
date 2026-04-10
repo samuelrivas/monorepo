@@ -23,14 +23,8 @@ data ProtoPath = ProtoPath {
   }
   deriving stock Show
 
-prop_reverse :: Property
-prop_reverse = property $ do
-  xs <- forAll $
-    Gen.list (Range.linear 0 100) (Gen.int (Range.linear minBound maxBound))
-  reverse (reverse xs) === xs
-
-propPath :: Property
-propPath =
+propFromText :: Property
+propFromText =
   property $ do
   (proto, text)  <- forAll $ testCaseGen
   let
@@ -83,5 +77,5 @@ genIf b g = bool [] [g] b
 
 main :: IO ()
 main = do
-  _ <- check propPath
+  _ <- check propFromText
   pure ()
