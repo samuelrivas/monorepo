@@ -34,6 +34,17 @@ propFromText =
   leading proto === Path.isAbsolute path
   leading proto /== Path.isRelative path
 
+propFromComponents :: Property
+propFromComponents =
+  property $ do
+  (proto, _) <- forAll $ testCaseGen
+  let
+    Just path = Path.fromComponents (leading proto) (components proto)
+    cs = Path.components path
+  cs === components proto
+  leading proto === Path.isAbsolute path
+  leading proto /== Path.isRelative path
+
 anyCharGen :: MonadGen m => m Char
 anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)]
 
@@ -78,4 +89,5 @@ genIf b g = bool [] [g] b
 main :: IO ()
 main = do
   _ <- check propFromText
+  _ <- check propFromComponents
   pure ()
