@@ -76,7 +76,6 @@ testCaseGen =
     text <- textPathGen proto
     pure (proto, text)
 
--- TODO: rewrite with bool
 genIf :: MonadGen m => Bool -> m Text -> [m Text]
 genIf b g = bool [] [g] b
 
