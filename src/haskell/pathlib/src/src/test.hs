@@ -43,19 +43,15 @@ notSlashGen = Gen.filterT (/= '/') anyCharGen
 componentGen :: MonadGen m => m Text
 componentGen = Gen.text (Range.linear 1 100) notSlashGen
 
+-- The trailing / becomes leading when the path is empty, so we need some logic
+-- to set trailing to false in those cases
 protoPathGen :: MonadGen m => m ProtoPath
 protoPathGen =
-  ProtoPath
-  <$> Gen.list (Range.linear 0 100) componentGen
-  <*> Gen.bool
-  <*> Gen.bool
-
--- TODO: remove this one, we won't need it
-pathTextGen :: MonadGen m => m Text
-pathTextGen =
   do
-    components <- Gen.list (Range.linear 0 100) componentGen
-    return $ intercalate "/" components
+    cs <- Gen.list (Range.linear 0 100) componentGen
+    l <- Gen.bool
+    t <- ((not . null $ cs) &&) <$> Gen.bool
+    pure $ ProtoPath cs l t
 
 slashGen :: MonadGen m => m Text
 slashGen = Gen.text (Range.linear 1 100) (Gen.constant '/')
