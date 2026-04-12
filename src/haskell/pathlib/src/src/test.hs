@@ -11,8 +11,8 @@ import           Data.List      (intersperse)
 import qualified Data.Path      as Path
 import           Data.Text      (intercalate)
 import qualified Data.Text      as Text
-import           Hedgehog       (MonadGen, Property, check, forAll, property,
-                                 (/==), (===))
+import           Hedgehog       (MonadGen, Property, annotateShow, check,
+                                 forAll, property, (/==), (===))
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 
@@ -26,7 +26,7 @@ data ProtoPath = ProtoPath {
 propFromText :: Property
 propFromText =
   property $ do
-  (proto, text)  <- forAll $ testCaseGen
+  (proto, text)  <- forAll testCaseGen
   let
     path = Path.fromText text
     cs = Path.components path
@@ -37,13 +37,30 @@ propFromText =
 propFromComponents :: Property
 propFromComponents =
   property $ do
-  (proto, _) <- forAll $ testCaseGen
+  (proto, _) <- forAll testCaseGen
   let
     Just path = Path.fromComponents (leading proto) (components proto)
     cs = Path.components path
   cs === components proto
   leading proto === Path.isAbsolute path
   leading proto /== Path.isRelative path
+
+propRoundTrip :: Property
+propRoundTrip =
+  property $ do
+  (_, t) <- forAll testCaseGen
+  let
+    path = Path.fromText t
+    cs = Path.components path
+    absolute = Path.isAbsolute path
+    t' = Path.toText path
+    path' = Path.fromText t'
+    cs' = Path.components path'
+    absolute' = Path.isAbsolute path'
+  annotateShow t
+  annotateShow t'
+  cs === cs'
+  absolute === absolute'
 
 anyCharGen :: MonadGen m => m Char
 anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)]
@@ -90,4 +107,5 @@ main :: IO ()
 main = do
   _ <- check propFromText
   _ <- check propFromComponents
+  _ <- check propRoundTrip
   pure ()
