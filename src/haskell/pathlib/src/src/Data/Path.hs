@@ -65,14 +65,20 @@ components =
     catMaybes . fmap tt . unPath
 
 -- | Builds a t'Path' from a list of component names.
-
--- TODO: Handle component names with / in them
 fromComponents ::
   Bool -- ^ Whether the path is absolute.
   -> [Text] -- ^ The list of components.
   -> Maybe Path -- ^ 'Nothing' if any of the components contains a @/@.
-fromComponents True  = Just . Path . (Slash :) . intersperse Slash . fmap Component
-fromComponents False = Just . Path . intersperse Slash . fmap Component
+fromComponents absolute cs =
+  let
+    prefix True  = (Slash :)
+    prefix False = id
+  in
+    Path . prefix absolute . intersperse Slash <$> traverse validateComponent cs
+
+validateComponent :: Text -> Maybe Token
+validateComponent c =
+  if T.elem '/' c then Nothing else (Just . Component $ c)
 
 toText :: Path -> Text
 toText =
