@@ -37,6 +37,10 @@ import           Text.Parsec.Parselib (Parser, text1, unsafeParseAll)
 data Token = Slash | Component Text
   deriving stock (Show, Eq)
 
+-- | An opaque path representation.
+--
+-- Comparison is not well defined between paths so we explicitly may this type
+-- non comparable.
 newtype Path = Path { unPath :: [Token] }
   deriving Show via [Token]
 
