@@ -17,6 +17,8 @@ module Data.Path (
   isAbsolute,
   isRelative,
   fromComponents,
+  fromComponentsMaybe,
+  fromComponentsThrow,
   components,
   toText
   ) where
@@ -69,12 +71,23 @@ fromComponents ::
   Bool -- ^ Whether the path is absolute.
   -> [Text] -- ^ The list of components.
   -> Maybe Path -- ^ 'Nothing' if any of the components contains a @/@.
-fromComponents absolute cs =
+fromComponents = fromComponentsMaybe
+
+fromComponentsMaybe ::
+  Bool -- ^ Whether the path is absolute.
+  -> [Text] -- ^ The list of components.
+  -> Maybe Path -- ^ 'Nothing' if any of the components contains a @/@.
+fromComponentsMaybe absolute cs =
   let
     prefix True  = (Slash :)
     prefix False = id
   in
     Path . prefix absolute . intersperse Slash <$> traverse validateComponent cs
+
+fromComponentsThrow :: HasCallStack => Bool -> [Text] -> Path
+fromComponentsThrow absolute =
+  fromMaybe (error "One or more of the components has '/' in it")
+  . fromComponentsMaybe absolute
 
 validateComponent :: Text -> Maybe Token
 validateComponent c =
