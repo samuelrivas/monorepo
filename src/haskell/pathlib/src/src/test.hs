@@ -8,11 +8,13 @@ import           Perlude
 
 import           Data.Bool      (bool)
 import           Data.List      (intersperse)
+import           Data.Maybe     (isNothing)
 import qualified Data.Path      as Path
 import           Data.Text      (intercalate)
 import qualified Data.Text      as Text
-import           Hedgehog       (MonadGen, Property, annotateShow, check,
-                                 forAll, property, (/==), (===))
+import           Hedgehog       (MonadGen, Property, annotateShow, assert,
+                                 check, evalMaybe, forAll, property, (/==),
+                                 (===))
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 
@@ -25,7 +27,8 @@ data ProtoPath = ProtoPath {
 
 propFromText :: Property
 propFromText =
-  property $ do
+  property
+  $ do
   (proto, text)  <- forAll testCaseGen
   let
     path = Path.fromText text
@@ -36,7 +39,8 @@ propFromText =
 
 propFromComponents :: Property
 propFromComponents =
-  property $ do
+  property
+  $ do
   (proto, _) <- forAll testCaseGen
   let
     Just path = Path.fromComponents (leading proto) (components proto)
@@ -47,7 +51,8 @@ propFromComponents =
 
 propRoundTrip :: Property
 propRoundTrip =
-  property $ do
+  property
+  $ do
   (_, t) <- forAll testCaseGen
   let
     path = Path.fromText t
@@ -62,6 +67,14 @@ propRoundTrip =
   cs === cs'
   absolute === absolute'
 
+propFailOnSlash :: Property
+propFailOnSlash =
+  property
+  $ do
+  cs <- forAll invalidComponentsGen
+  a <- forAll Gen.bool
+  assert $ isNothing (Path.fromComponents a cs)
+
 anyCharGen :: MonadGen m => m Char
 anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)]
 
@@ -71,12 +84,32 @@ notSlashGen = Gen.filterT (/= '/') anyCharGen
 componentGen :: MonadGen m => m Text
 componentGen = Gen.text (Range.linear 1 100) notSlashGen
 
+componentsGen :: MonadGen m => m [Text]
+componentsGen = Gen.list (Range.linear 0 100) componentGen
+
+-- Generate a (invalid) component name with slashes in it
+withSlashGen :: MonadGen m => m Text
+withSlashGen =
+  do
+    a <- Gen.text (Range.linear 0 100) anyCharGen
+    b <- Gen.text (Range.linear 0 100) anyCharGen
+    s <- slashGen
+    pure $ Text.concat [a, s, b]
+
+invalidComponentsGen :: MonadGen m => m [Text]
+invalidComponentsGen =
+  do
+    a <- componentsGen
+    b <- withSlashGen
+    c <- componentsGen
+    pure $ a ++ [b] ++ c
+
 -- The trailing / becomes leading when the path is empty, so we need some logic
 -- to set trailing to false in those cases
 protoPathGen :: MonadGen m => m ProtoPath
 protoPathGen =
   do
-    cs <- Gen.list (Range.linear 0 100) componentGen
+    cs <- componentsGen
     l <- Gen.bool
     t <- ((not . null $ cs) &&) <$> Gen.bool
     pure $ ProtoPath cs l t
@@ -108,4 +141,5 @@ main = do
   _ <- check propFromText
   _ <- check propFromComponents
   _ <- check propRoundTrip
+  _ <- check propFailOnSlash
   pure ()
