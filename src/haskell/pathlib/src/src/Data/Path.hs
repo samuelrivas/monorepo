@@ -40,8 +40,9 @@ data Token = Slash | Component Text
 
 -- | An opaque path representation.
 --
--- Comparison is not well defined between paths so we explicitly may this type
--- non comparable.
+-- Comparison between paths isn't well defined, so we make this type explicitly
+-- non-comparable. For example, we do not guarantee consistent treatment of
+-- trailing / when they do not alter the path's meaning.
 newtype Path = Path { unPath :: [Token] }
 
 instance Show Path where
