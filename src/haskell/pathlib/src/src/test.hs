@@ -10,7 +10,6 @@ import           Data.Bool      (bool)
 import           Data.List      (intersperse)
 import           Data.Maybe     (isNothing)
 import qualified Data.Path      as Path
-import           Data.Text      (intercalate)
 import qualified Data.Text      as Text
 import           Hedgehog       (MonadGen, Property, annotateShow, assert,
                                  check, evalMaybe, forAll, property, (/==),
@@ -42,8 +41,8 @@ propFromComponents =
   property
   $ do
   (proto, _) <- forAll testCaseGen
+  path <- evalMaybe $ Path.fromComponents (leading proto) (components proto)
   let
-    Just path = Path.fromComponents (leading proto) (components proto)
     cs = Path.components path
   cs === components proto
   leading proto === Path.isAbsolute path
