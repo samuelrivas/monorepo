@@ -41,9 +41,12 @@ INSTALL-DIR = $(PREFIX)
 GENERATED-DIR := $(BUILD-DIR)/generated
 
 SRCS := $(shell find ./src -name "*.hs")
+DOC-SRCS := $(filter-out ./src/test.hs,$(SRCS))
 SRC-NAMES = $(filter-out ./test.hs ./Test/%,$(SRCS:./src/%=./%))
 OBJ-NAMES = $(SRC-NAMES:%.hs=%.o)
 PROF-OBJ-NAMES = $(SRC-NAMES:%.hs=%.p_o)
+
+$(warning $(DOC-SRCS))
 
 PACKAGE-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/lib
 PACKAGE-CONF-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/package-conf.d
@@ -122,7 +125,7 @@ doc: | $(BUILD-DOC-DIR)
 	--quickjump \
 	--dump-interface=$(BUILD-DOC-DIR)/$(PACKAGE-NAME).haddock \
 	$(HADDOCK-INTERFACE-FLAGS) \
-	$(SRCS)
+	$(DOC-SRCS)
 
 .PHONY: clean
 clean:
@@ -149,3 +152,4 @@ $(DOC-INSTALL-DIR) \
 $(BUILD-DOC-DIR) \
 $(INSTALLED-DOC-HTML):
 	mkdir -p $@
+ 
