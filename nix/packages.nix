@@ -66,7 +66,7 @@
     # to output it here
     my-emacs-config-file =
       nixpkgs.runCommandLocal
-      "config.Eli"
+      "config.el"
       {}
       "ln -s ${packages.emacs-config.passthru.config-file} $out";
 

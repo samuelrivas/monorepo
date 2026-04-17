@@ -150,4 +150,3 @@ $(DOC-INSTALL-DIR) \
 $(BUILD-DOC-DIR) \
 $(INSTALLED-DOC-HTML):
 	mkdir -p $@
- 
