@@ -24,6 +24,7 @@ module Data.Path (
   ) where
 
 import           Perlude
+import qualified Prelude
 
 import           Data.List            (intersperse)
 import           Data.Maybe           (catMaybes, fromJust, fromMaybe,
@@ -42,7 +43,9 @@ data Token = Slash | Component Text
 -- Comparison is not well defined between paths so we explicitly may this type
 -- non comparable.
 newtype Path = Path { unPath :: [Token] }
-  deriving Show via [Token]
+
+instance Show Path where
+  show p = T.unpack ("Path(" <> toText p <> ")")
 
 path :: Parser [Token]
 path = many (component <|> slash)
