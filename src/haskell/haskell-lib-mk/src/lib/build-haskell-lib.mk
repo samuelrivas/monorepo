@@ -46,8 +46,6 @@ SRC-NAMES = $(filter-out ./test.hs ./Test/%,$(SRCS:./src/%=./%))
 OBJ-NAMES = $(SRC-NAMES:%.hs=%.o)
 PROF-OBJ-NAMES = $(SRC-NAMES:%.hs=%.p_o)
 
-$(warning $(DOC-SRCS))
-
 PACKAGE-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/lib
 PACKAGE-CONF-RELATIVE-DIR := lib/ghc-$(GHC-VERSION)/package-conf.d
 DYNAMIC-LIBRARY-RELATIVE-DIR := $(PACKAGE-RELATIVE-DIR)/$(ARCH)-ghc-$(GHC-VERSION)
