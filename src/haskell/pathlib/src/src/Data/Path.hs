@@ -109,6 +109,14 @@ components =
   in
     catMaybes . fmap tt . unPath
 
+fromComponents' :: Bool -> [Component] -> Path
+fromComponents' absolute cs =
+  let
+    prefix True  = (Slash :)
+    prefix False = id
+  in
+    Path . prefix absolute . intersperse Slash . fmap (Name . unComponent) $ cs
+
 -- | Alias of 'fromComponentsMaybe'.
 fromComponents :: Bool -> [Text] -> Maybe Path
 fromComponents = fromComponentsMaybe
@@ -123,18 +131,27 @@ fromComponentsMaybe absolute cs =
     prefix True  = (Slash :)
     prefix False = id
   in
-    Path . prefix absolute . intersperse Slash <$> traverse validateName cs
+    Path . prefix absolute . intersperse Slash <$> traverse validateNameMaybe cs
 
 -- | Like 'fromComponentsMaybe', but throwing an exception if the result is
 -- 'Nothing'.
+
+-- TODO: FIX fhis duplication
 fromComponentsThrow :: HasCallStack => Bool -> [Text] -> Path
 fromComponentsThrow absolute =
-  fromMaybe (error "One or more of the components has '/' in it")
-  . fromComponentsMaybe absolute
+  let
+    prefix True  = (Slash :)
+    prefix False = id
+  in
+    Path . prefix absolute . intersperse Slash . fmap validateNameThrow
 
-validateName :: Text -> Maybe Token
-validateName c =
-  if T.elem '/' c then Nothing else (Just . Name $ c)
+
+-- TODO fix these two when Path gets a Component directly instead of a Text
+validateNameMaybe :: Text -> Maybe Token
+validateNameMaybe t = Name . unComponent <$>  mkComponentMaybe t
+
+validateNameThrow :: Text -> Token
+validateNameThrow = Name . unComponent . mkComponentThrow
 
 -- | A 'Text' representation of the t'Path'.
 --
