@@ -74,6 +74,13 @@ propFailOnSlash =
   a <- forAll Gen.bool
   assert $ isNothing (Path.fromComponents a cs)
 
+propMkComponentFail :: Property
+propMkComponentFail =
+  property
+  $ do
+  t <- forAll withSlashGen
+  assert $ isNothing (Path.mkComponentMaybe t)
+
 anyCharGen :: MonadGen m => m Char
 anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)]
 
@@ -141,4 +148,5 @@ main = do
   _ <- check propFromComponents
   _ <- check propRoundTrip
   _ <- check propFailOnSlash
+  _ <- check propMkComponentFail
   pure ()

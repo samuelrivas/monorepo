@@ -16,6 +16,8 @@ module Data.Path (
   fromText,
   isAbsolute,
   isRelative,
+  mkComponentThrow,
+  mkComponentMaybe,
   fromComponents,
   fromComponentsMaybe,
   fromComponentsThrow,
@@ -35,8 +37,11 @@ import           GHC.Stack            (HasCallStack)
 import           Text.Parsec          (char, many, many1, noneOf)
 import           Text.Parsec.Parselib (Parser, text1, unsafeParseAll)
 
-data Token = Slash | Component Text
+data Token = Slash | Name Text
   deriving stock (Show, Eq)
+
+newtype Component = Component { unComponent :: Text }
+  deriving stock Show
 
 -- | An opaque path representation.
 --
@@ -49,13 +54,13 @@ instance Show Path where
   show p = T.unpack ("Path(" <> toText p <> ")")
 
 path :: Parser [Token]
-path = many (component <|> slash)
+path = many (name <|> slash)
 
 slash :: Parser Token
 slash = (many1 . char $ '/') *> pure Slash
 
-component :: Parser Token
-component = Component <$> text1 (noneOf "/")
+name :: Parser Token
+name = Name <$> text1 (noneOf "/")
 
 -- | Build a t'Path' from a text representation.
 --
@@ -63,6 +68,16 @@ component = Component <$> text1 (noneOf "/")
 -- t'HasCallStack' constraint.
 fromText :: HasCallStack => Text -> Path
 fromText = Path . fromJust . unsafeParseAll path
+
+
+mkComponentMaybe :: Text -> Maybe Component
+mkComponentMaybe t = if T.elem '/' t then Nothing else  Just . Component $ t
+
+mkComponentThrow :: Text -> Component
+mkComponentThrow t = fromMaybe (failInvalidComponent t) $ mkComponentMaybe t
+
+failInvalidComponent :: Text -> a
+failInvalidComponent t = error $ "'" <> t <> "' isn't a valid component name"
 
 -- | Whether the t'Path' is absolute.
 --
@@ -88,8 +103,8 @@ isRelative = not . isAbsolute
 components :: Path -> [Text]
 components =
   let
-    tt Slash         = Nothing
-    tt (Component a) = Just a
+    tt Slash    = Nothing
+    tt (Name a) = Just a
   in
     catMaybes . fmap tt . unPath
 
@@ -107,7 +122,7 @@ fromComponentsMaybe absolute cs =
     prefix True  = (Slash :)
     prefix False = id
   in
-    Path . prefix absolute . intersperse Slash <$> traverse validateComponent cs
+    Path . prefix absolute . intersperse Slash <$> traverse validateName cs
 
 -- | Like 'fromComponentsMaybe', but throwing an exception if the result is
 -- 'Nothing'.
@@ -116,9 +131,9 @@ fromComponentsThrow absolute =
   fromMaybe (error "One or more of the components has '/' in it")
   . fromComponentsMaybe absolute
 
-validateComponent :: Text -> Maybe Token
-validateComponent c =
-  if T.elem '/' c then Nothing else (Just . Component $ c)
+validateName :: Text -> Maybe Token
+validateName c =
+  if T.elem '/' c then Nothing else (Just . Name $ c)
 
 -- | A 'Text' representation of the t'Path'.
 --
@@ -129,7 +144,7 @@ validateComponent c =
 toText :: Path -> Text
 toText =
   let
-    tt Slash         = "/"
-    tt (Component a) = a
+    tt Slash    = "/"
+    tt (Name a) = a
   in
     T.concat . fmap tt . unPath
