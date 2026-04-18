@@ -28,6 +28,7 @@ module Data.Path (
 import           Perlude
 import qualified Prelude
 
+import           Data.Coerce          (coerce)
 import           Data.List            (intersperse)
 import           Data.Maybe           (catMaybes, fromJust, fromMaybe,
                                        listToMaybe)
@@ -41,8 +42,9 @@ data Token = Slash | Name Text
   deriving stock (Show, Eq)
 
 newtype Component = Component { unComponent :: Text }
-  deriving stock Show
 
+instance Show Component where
+  show c = T.unpack ("Component(" <> coerce c <> ")")
 -- | An opaque path representation.
 --
 -- Comparison between paths isn't well defined, so we make this type explicitly
@@ -68,7 +70,6 @@ name = Name <$> text1 (noneOf "/")
 -- t'HasCallStack' constraint.
 fromText :: HasCallStack => Text -> Path
 fromText = Path . fromJust . unsafeParseAll path
-
 
 mkComponentMaybe :: Text -> Maybe Component
 mkComponentMaybe t = if T.elem '/' t then Nothing else  Just . Component $ t
