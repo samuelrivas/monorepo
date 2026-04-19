@@ -66,6 +66,7 @@ class FromText a where
   fromText :: Text -> a
 
 newtype Component = Component { unComponent :: Text }
+  deriving stock Eq
 
 instance Show Component where
   show c = T.unpack ("Component(" <> coerce c <> ")")

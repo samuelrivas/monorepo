@@ -6,16 +6,19 @@ module Main where
 
 import           Perlude
 
-import           Data.Bool      (bool)
-import           Data.List      (intersperse)
-import           Data.Maybe     (isNothing)
-import qualified Data.Path      as Path
-import qualified Data.Text      as Text
-import           Hedgehog       (MonadGen, Property, annotateShow, assert,
-                                 check, evalMaybe, forAll, property, (/==),
-                                 (===))
-import qualified Hedgehog.Gen   as Gen
-import qualified Hedgehog.Range as Range
+import           Data.Bool                  (bool)
+import           Data.Either                (isLeft)
+import           Data.List                  (intersperse)
+import           Data.Maybe                 (isNothing)
+import qualified Data.Path                  as Path
+import qualified Data.Text                  as Text
+import           Hedgehog                   (MonadGen, Property, annotateShow,
+                                             assert, check, evalEither,
+                                             evalMaybe, forAll, property, (/==),
+                                             (===))
+import qualified Hedgehog.Gen               as Gen
+import           Hedgehog.Internal.Property (eval)
+import qualified Hedgehog.Range             as Range
 
 data ProtoPath = ProtoPath {
   components :: [Text],
@@ -103,6 +106,7 @@ propPathFromText =
   leading proto === Path.isAbsolute path
   leading proto /== Path.isRelative path
 
+-- TODO: use tripping
 propComponentRoundTrip :: Property
 propComponentRoundTrip =
   property
@@ -110,6 +114,28 @@ propComponentRoundTrip =
   txt <- forAll componentNameGen
   c :: Path.Component <- evalMaybe $ Path.fromTextMaybe txt
   txt === (Path.toText c)
+
+propComponentFail :: Property
+propComponentFail =
+  property
+  $ do
+  txt <- forAll withSlashGen
+  let
+    maybeComponent :: Maybe Path.Component = Path.fromTextMaybe txt
+    eitherComponent :: Either Text Path.Component = Path.fromTextEither txt
+  assert $ isNothing maybeComponent
+  assert $ isLeft eitherComponent
+
+propComponentSucceed :: Property
+propComponentSucceed =
+  property
+  $ do
+  txt <- forAll componentNameGen
+  maybeComponent :: Path.Component <- evalMaybe $ Path.fromTextMaybe txt
+  eitherComponent :: Path.Component <- evalEither $ Path.fromTextEither txt
+  component :: Path.Component <- eval $ Path.fromTextThrow txt
+  maybeComponent === eitherComponent
+  eitherComponent === component
 
 propFromComponents :: Property
 propFromComponents =
@@ -162,6 +188,8 @@ propMkComponentFail =
 main :: IO ()
 main = do
   _ <- check propComponentRoundTrip
+  _ <- check propComponentSucceed
+  _ <- check propComponentFail
   _ <- check propPathFromText
   _ <- check propFromComponents
   _ <- check propRoundTrip
