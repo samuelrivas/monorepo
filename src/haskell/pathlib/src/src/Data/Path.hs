@@ -1,7 +1,8 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | The t'Path' data type.
 --
@@ -28,23 +29,53 @@ module Data.Path (
 import           Perlude
 import qualified Prelude
 
-import           Data.Coerce          (coerce)
-import           Data.List            (intersperse)
-import           Data.Maybe           (catMaybes, fromJust, fromMaybe,
-                                       listToMaybe)
-import qualified Data.Text            as T
-import           GHC.Base             ((<|>))
-import           GHC.Stack            (HasCallStack)
-import           Text.Parsec          (char, many, many1, noneOf)
-import           Text.Parsec.Parselib (Parser, text1, unsafeParseAll)
+import           Control.Monad.Trans.Class (lift)
+import           Data.Coerce               (Coercible, coerce)
+import           Data.List                 (intersperse)
+import           Data.Maybe                (catMaybes, fromJust, fromMaybe,
+                                            listToMaybe)
+import qualified Data.Text                 as T
+import           GHC.Base                  ((<|>))
+import           GHC.Stack                 (HasCallStack)
+import           Text.Parsec               (char, many, many1, noneOf)
+import           Text.Parsec.Parselib      (Parser, text1, unsafeParseAll)
 
 data Token = Slash | Name Text
   deriving stock (Show, Eq)
+
+-- TODO Move FromText and ToText to library once we have more use cases
+class ToText a where
+  toText :: a -> Text
+
+class FromTextEither a where
+  fromTextEither :: Text -> Either Text a
+
+class FromTextMaybe a where
+  fromTextMaybe :: Text -> Maybe a
+
+instance FromTextEither a => FromTextMaybe a where
+  fromTextMaybe = either fail pure . fromTextEither
+
+class FromTextThrow a where
+  fromTextThrow :: Text -> a
+
+instance FromTextEither a => FromTextThrow a where
+  fromTextThrow = either error id . fromTextEither
+
+class FromText a where
+  fromText :: Text -> a
 
 newtype Component = Component { unComponent :: Text }
 
 instance Show Component where
   show c = T.unpack ("Component(" <> coerce c <> ")")
+
+instance ToText Component where
+  toText = coerce
+
+-- instance FromTextEither Component where
+--   fromTextEither =
+
 -- | An opaque path representation.
 --
 -- Comparison between paths isn't well defined, so we make this type explicitly
@@ -54,6 +85,12 @@ newtype Path = Path { unPath :: [Token] }
 
 instance Show Path where
   show p = T.unpack ("Path(" <> toText p <> ")")
+
+instance ToText Path where
+  toText = pathToText
+
+instance FromText Path where
+  fromText = parsePath
 
 path :: Parser [Token]
 path = many (name <|> slash)
@@ -68,8 +105,8 @@ name = Name <$> text1 (noneOf "/")
 --
 -- This is built from a parser, so it can theoretically fail, hence the
 -- t'HasCallStack' constraint.
-fromText :: HasCallStack => Text -> Path
-fromText = Path . fromJust . unsafeParseAll path
+parsePath :: HasCallStack => Text -> Path
+parsePath = Path . fromJust . unsafeParseAll path
 
 mkComponentMaybe :: Text -> Maybe Component
 mkComponentMaybe t = if T.elem '/' t then Nothing else  Just . Component $ t
@@ -79,6 +116,7 @@ mkComponentThrow t = fromMaybe (failInvalidComponent t) $ mkComponentMaybe t
 
 failInvalidComponent :: Text -> a
 failInvalidComponent t = error $ "'" <> t <> "' isn't a valid component name"
+
 
 -- | Whether the t'Path' is absolute.
 --
@@ -150,7 +188,7 @@ fromComponentsThrow absolute =
 validateNameMaybe :: Text -> Maybe Token
 validateNameMaybe t = Name . unComponent <$>  mkComponentMaybe t
 
-validateNameThrow :: Text -> Token
+validateNameThrow :: HasCallStack => Text -> Token
 validateNameThrow = Name . unComponent . mkComponentThrow
 
 -- | A 'Text' representation of the t'Path'.
@@ -159,8 +197,8 @@ validateNameThrow = Name . unComponent . mkComponentThrow
 --
 -- >>> toText . fromText $ "//foo///bar///"
 -- "/foo/bar/
-toText :: Path -> Text
-toText =
+pathToText :: Path -> Text
+pathToText =
   let
     tt Slash    = "/"
     tt (Name a) = a
