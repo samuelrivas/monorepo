@@ -12,12 +12,13 @@ import           Data.List                  (intersperse)
 import           Data.Maybe                 (isNothing)
 import qualified Data.Path                  as Path
 import qualified Data.Text                  as Text
-import           Hedgehog                   (MonadGen, Property, annotateShow,
-                                             assert, check, evalEither,
-                                             evalMaybe, forAll, property, (/==),
-                                             (===))
+import           Hedgehog                   (MonadGen, MonadTest, Property,
+                                             annotateShow, assert, check,
+                                             evalEither, evalMaybe, forAll,
+                                             property, success, (/==), (===))
 import qualified Hedgehog.Gen               as Gen
 import           Hedgehog.Internal.Property (eval)
+import           Hedgehog.Internal.Tripping (tripping)
 import qualified Hedgehog.Range             as Range
 
 data ProtoPath = ProtoPath {
@@ -113,7 +114,7 @@ propComponentRoundTrip =
   $ do
   txt <- forAll componentNameGen
   c :: Path.Component <- evalMaybe $ Path.fromTextMaybe txt
-  txt === (Path.toText c)
+  tripping c Path.toText Path.fromTextMaybe
 
 propComponentFail :: Property
 propComponentFail =
@@ -126,16 +127,42 @@ propComponentFail =
   assert $ isNothing maybeComponent
   assert $ isLeft eitherComponent
 
+evalMaybeEitherSucceed ::
+  MonadTest m =>
+  Eq a =>
+  Show a =>
+  Path.FromTextMaybe a =>
+  Path.FromTextEither a =>
+  Text -> m a
+evalMaybeEitherSucceed txt =
+  do
+    fromMaybe <- evalMaybe $ Path.fromTextMaybe txt
+    fromEither <- evalEither $ Path.fromTextEither txt
+    fromMaybe=== fromEither
+    pure fromMaybe
+
+evalMaybeEitherThrowSucceed ::
+  MonadTest m =>
+  Eq a =>
+  Show a =>
+  Path.FromTextMaybe a =>
+  Path.FromTextEither a =>
+  Path.FromTextThrow a =>
+  Text -> m a
+evalMaybeEitherThrowSucceed txt =
+  do
+    fromThrow <- eval $ Path.fromTextThrow txt
+    a <- evalMaybeEitherSucceed txt
+    a === fromThrow
+    pure a
+
 propComponentSucceed :: Property
 propComponentSucceed =
   property
   $ do
   txt <- forAll componentNameGen
-  maybeComponent :: Path.Component <- evalMaybe $ Path.fromTextMaybe txt
-  eitherComponent :: Path.Component <- evalEither $ Path.fromTextEither txt
-  component :: Path.Component <- eval $ Path.fromTextThrow txt
-  maybeComponent === eitherComponent
-  eitherComponent === component
+  _ :: Path.Component <- evalMaybeEitherThrowSucceed txt
+  success
 
 propFromComponents :: Property
 propFromComponents =
