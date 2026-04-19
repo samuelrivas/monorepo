@@ -12,19 +12,19 @@
 -- POSIX defines a special case for path names starting with @\/\/@. We
 -- currently ignore this case, so @\/\/@ is equivalent to @\/@ in this library.
 
-module Data.Path (
-  Path,
-  fromText,
-  isAbsolute,
-  isRelative,
-  mkComponentThrow,
-  mkComponentMaybe,
-  fromComponents,
-  fromComponentsMaybe,
-  fromComponentsThrow,
-  components,
-  toText
-  ) where
+module Data.Path where -- (
+  -- Path,
+  -- fromText,
+  -- isAbsolute,
+  -- isRelative,
+  -- mkComponentThrow,
+  -- mkComponentMaybe,
+  -- fromComponents,
+  -- fromComponentsMaybe,
+  -- fromComponentsThrow,
+  -- components,
+  -- toText
+  -- ) where
 
 import           Perlude
 import qualified Prelude
@@ -73,6 +73,9 @@ instance Show Component where
 instance ToText Component where
   toText = coerce
 
+instance FromTextEither Component where
+  fromTextEither = mkComponentEither
+
 -- instance FromTextEither Component where
 --   fromTextEither =
 
@@ -109,13 +112,22 @@ parsePath :: HasCallStack => Text -> Path
 parsePath = Path . fromJust . unsafeParseAll path
 
 mkComponentMaybe :: Text -> Maybe Component
-mkComponentMaybe t = if T.elem '/' t then Nothing else  Just . Component $ t
+mkComponentMaybe = fromTextMaybe
+
+mkComponentEither :: Text -> Either Text Component
+mkComponentEither t =
+  if T.elem '/' t
+  then Left $ invalidComponentError t
+  else Right $ Component t
 
 mkComponentThrow :: Text -> Component
 mkComponentThrow t = fromMaybe (failInvalidComponent t) $ mkComponentMaybe t
 
 failInvalidComponent :: Text -> a
-failInvalidComponent t = error $ "'" <> t <> "' isn't a valid component name"
+failInvalidComponent = error . invalidComponentError
+
+invalidComponentError :: Text -> Text
+invalidComponentError t = "'" <> t <> "' isn't a valid component name"
 
 
 -- | Whether the t'Path' is absolute.
