@@ -58,7 +58,7 @@ class FromTextEither a => FromTextMaybe a where
   fromTextMaybe = either fail pure . fromTextEither
 
 class FromTextEither a => FromTextThrow a where
-  fromTextThrow :: Text -> a
+  fromTextThrow :: HasCallStack => Text -> a
   fromTextThrow = either error id . fromTextEither
 
 class FromText a where
