@@ -47,19 +47,18 @@ data Token = Slash | Name Text
 class ToText a where
   toText :: a -> Text
 
+-- A class for parseable types that may fail with a Text error
+-- message. Instances of this class get default instances of the throw and maybe
+-- versions
 class FromTextEither a where
   fromTextEither :: Text -> Either Text a
 
-class FromTextMaybe a where
+class FromTextEither a => FromTextMaybe a where
   fromTextMaybe :: Text -> Maybe a
-
-instance FromTextEither a => FromTextMaybe a where
   fromTextMaybe = either fail pure . fromTextEither
 
-class FromTextThrow a where
+class FromTextEither a => FromTextThrow a where
   fromTextThrow :: Text -> a
-
-instance FromTextEither a => FromTextThrow a where
   fromTextThrow = either error id . fromTextEither
 
 class FromText a where
@@ -77,8 +76,8 @@ instance ToText Component where
 instance FromTextEither Component where
   fromTextEither = mkComponentEither
 
--- instance FromTextEither Component where
---   fromTextEither =
+instance FromTextMaybe Component
+instance FromTextThrow Component
 
 -- | An opaque path representation.
 --
