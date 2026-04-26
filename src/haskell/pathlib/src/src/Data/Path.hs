@@ -1,8 +1,7 @@
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 -- | The t'Path' data type.
 --
