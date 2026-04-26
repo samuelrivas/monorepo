@@ -30,18 +30,15 @@ module Data.Path (
 import           Perlude
 import qualified Prelude
 
-import           Control.Monad.Trans.Class (lift)
-import           Data.Bifunctor            (first)
-import           Data.Coerce               (Coercible, coerce)
-import           Data.List                 (intersperse)
-import           Data.Maybe                (catMaybes, fromJust, fromMaybe,
-                                            listToMaybe)
-import qualified Data.Text                 as T
-import           GHC.Base                  ((<|>))
-import           GHC.Stack                 (HasCallStack)
-import           Text.Parsec               (char, many, many1, noneOf)
-import           Text.Parsec.Parselib      (Parser, parseAll, text1,
-                                            unsafeParseAll)
+import           Data.Bifunctor       (first)
+import           Data.Coerce          (coerce)
+import           Data.List            (intersperse)
+import           Data.Maybe           (catMaybes, fromMaybe, listToMaybe)
+import qualified Data.Text            as T
+import           GHC.Base             ((<|>))
+import           GHC.Stack            (HasCallStack)
+import           Text.Parsec          (char, many, many1, noneOf)
+import           Text.Parsec.Parselib (Parser, parseAll, text1)
 
 data Token = Slash | Name Text
   deriving stock (Show, Eq)
