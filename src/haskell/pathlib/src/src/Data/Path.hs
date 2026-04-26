@@ -29,7 +29,6 @@ import qualified Prelude
 
 import           Data.Bifunctor       (first)
 import           Data.Coerce          (coerce)
-import           Data.List            (intersperse)
 import           Data.Maybe           (catMaybes, fromMaybe, listToMaybe)
 import qualified Data.Text            as T
 import           GHC.Base             ((<|>))
@@ -87,6 +86,10 @@ instance ToText Path where
 instance FromText Path where
   fromTextEither = parsePathEither
 
+toName :: Token -> Maybe Text
+toName Slash    = Nothing
+toName (Name n) = Just n
+
 path :: Parser [Token]
 path = many (name <|> slash)
 
@@ -103,8 +106,8 @@ parsePathEither txt =
   do
     tokens <- first show . parseAll path $ txt
     pure $ Path {
-      isAbsolute = True,
-      components = [Component "foo"]
+      isAbsolute = maybe False (Slash ==) $ Data.Maybe.listToMaybe tokens,
+      components = Component <$> Data.Maybe.catMaybes (toName <$> tokens)
       }
 
 --- This is an alias of 'fromTextThrow' as it is build off a parser. It is safe
@@ -122,7 +125,7 @@ mkComponentEither t =
   else Right $ Component t
 
 mkComponentThrow :: Text -> Component
-mkComponentThrow t = fromMaybe (failInvalidComponent t) $ mkComponentMaybe t
+mkComponentThrow t = Data.Maybe.fromMaybe (failInvalidComponent t) $ mkComponentMaybe t
 
 failInvalidComponent :: Text -> a
 failInvalidComponent = error . invalidComponentError
@@ -179,4 +182,8 @@ validateNameThrow = Name . unComponent . mkComponentThrow
 -- >>> toText . fromText $ "//foo///bar///"
 -- "/foo/bar"
 pathToText :: Path -> Text
-pathToText = const "fixme"
+pathToText path =
+  let
+    heading = if isAbsolute path then "/" else ""
+  in
+    heading <> (T.intercalate "/" . fmap toText . components $ path)
