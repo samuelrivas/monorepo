@@ -12,19 +12,21 @@
 -- POSIX defines a special case for path names starting with @\/\/@. We
 -- currently ignore this case, so @\/\/@ is equivalent to @\/@ in this library.
 
-module Data.Path where -- (
-  -- Path,
-  -- fromText,
-  -- isAbsolute,
-  -- isRelative,
-  -- mkComponentThrow,
-  -- mkComponentMaybe,
-  -- fromComponents,
-  -- fromComponentsMaybe,
-  -- fromComponentsThrow,
-  -- components,
-  -- toText
-  -- ) where
+module Data.Path (
+  Path,
+  Component,
+  FromText(..),
+  fromText,
+  isAbsolute,
+  isRelative,
+  mkComponentThrow,
+  mkComponentMaybe,
+  fromComponents,
+  fromComponentsMaybe,
+  fromComponentsThrow,
+  components,
+  toText
+  ) where
 
 import           Perlude
 import qualified Prelude
