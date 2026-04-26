@@ -6,23 +6,21 @@ module Main where
 
 import           Perlude
 
-import           Data.Bool                  (bool)
-import           Data.Either                (isLeft)
-import           Data.List                  (intersperse)
-import           Data.Maybe                 (isNothing)
-import qualified Data.Path                  as Path
-import qualified Data.Text                  as Text
-import           Hedgehog                   (MonadGen, MonadTest, Property,
-                                             annotateShow, assert, check,
-                                             evalEither, evalMaybe, forAll,
-                                             property, success, (/==), (===))
-import qualified Hedgehog.Gen               as Gen
-import           Hedgehog.Internal.Property (eval)
-import           Hedgehog.Internal.Tripping (tripping)
-import qualified Hedgehog.Range             as Range
+import           Data.Bool      (bool)
+import           Data.Either    (isLeft)
+import           Data.List      (intersperse)
+import           Data.Maybe     (isNothing)
+import qualified Data.Path      as Path
+import qualified Data.Text      as Text
+import           Hedgehog       (MonadGen, MonadTest, Property, annotateShow,
+                                 assert, check, eval, evalEither, evalMaybe,
+                                 failure, forAll, property, success, tripping,
+                                 (/==), (===))
+import qualified Hedgehog.Gen   as Gen
+import qualified Hedgehog.Range as Range
 
 data ProtoPath = ProtoPath {
-  components :: [Text],
+  components :: [Path.Component],
   leading    :: Bool,
   trailing   :: Bool
   }
@@ -37,11 +35,12 @@ anyCharGen = Gen.frequency [(5, Gen.alphaNum), (2, Gen.latin1), (1, Gen.unicode)
 notSlashGen :: MonadGen m  => m Char
 notSlashGen = Gen.filterT (/= '/') anyCharGen
 
-componentNameGen :: MonadGen m => m Text
-componentNameGen = Gen.text (Range.linear 1 100) notSlashGen
+-- fromTextThrow fails if the component name contains a slash
+componentGen :: MonadGen m => m Path.Component
+componentGen = Path.fromTextThrow <$> Gen.text (Range.linear 1 100) notSlashGen
 
-componentNamesGen :: MonadGen m => m [Text]
-componentNamesGen = Gen.list (Range.linear 0 100) componentNameGen
+componentsGen :: MonadGen m => m [Path.Component]
+componentsGen = Gen.list (Range.linear 0 100) componentGen
 
 -- Generate a (invalid) component name with slashes in it
 withSlashGen :: MonadGen m => m Text
@@ -52,12 +51,13 @@ withSlashGen =
     s <- slashGen
     pure $ Text.concat [a, s, b]
 
-invalidComponentsGen :: MonadGen m => m [Text]
-invalidComponentsGen =
+-- Generates several component names where at least one of them contains a @/@.
+invalidComponentNamesGen :: MonadGen m => m [Text]
+invalidComponentNamesGen =
   do
-    a <- componentNamesGen
+    a <- fmap Path.toText <$> componentsGen
     b <- withSlashGen
-    c <- componentNamesGen
+    c <- fmap Path.toText <$> componentsGen
     pure $ a ++ [b] ++ c
 
 -- The trailing / becomes leading when the path is empty, so we need some logic
@@ -65,7 +65,7 @@ invalidComponentsGen =
 protoPathGen :: MonadGen m => m ProtoPath
 protoPathGen =
   do
-    cs <- componentNamesGen
+    cs <- componentsGen
     l <- Gen.bool
     t <- ((not . null $ cs) &&) <$> Gen.bool
     pure $ ProtoPath cs l t
@@ -78,7 +78,7 @@ textPathGen proto =
   let
     leadGen = genIf (leading proto) slashGen
     trailGen = genIf (trailing  proto) slashGen
-    tGens = intersperse slashGen (pure <$> components proto)
+    tGens = intersperse slashGen (pure <$> (Path.toText <$> components proto))
   in
     Text.concat <$> sequence (leadGen ++ tGens ++ trailGen)
 
@@ -107,13 +107,11 @@ propPathFromText =
   leading proto === Path.isAbsolute path
   leading proto /== Path.isRelative path
 
--- TODO: use tripping
 propComponentRoundTrip :: Property
 propComponentRoundTrip =
   property
   $ do
-  txt <- forAll componentNameGen
-  c :: Path.Component <- evalMaybe $ Path.fromTextMaybe txt
+  c <- forAll componentGen
   tripping c Path.toText Path.fromTextMaybe
 
 propComponentFail :: Property
@@ -146,7 +144,7 @@ propComponentSucceed :: Property
 propComponentSucceed =
   property
   $ do
-  txt <- forAll componentNameGen
+  txt <- forAll $ Path.toText <$> componentGen
   _ :: Path.Component <- evalFromTextSucceed txt
   success
 
@@ -155,8 +153,8 @@ propFromComponents =
   property
   $ do
   (proto, _) <- forAll testCaseGen
-  path <- evalMaybe $ Path.fromComponents (leading proto) (components proto)
   let
+    path = Path.fromComponents (leading proto) (components proto)
     cs = Path.components path
   cs === components proto
   leading proto === Path.isAbsolute path
@@ -184,9 +182,8 @@ propFailOnSlash :: Property
 propFailOnSlash =
   property
   $ do
-  cs <- forAll invalidComponentsGen
-  a <- forAll Gen.bool
-  assert $ isNothing (Path.fromComponents a cs)
+  name <- forAll withSlashGen
+  assert $ isNothing (Path.fromTextMaybe name :: Maybe Path.Component)
 
 propMkComponentFail :: Property
 propMkComponentFail =

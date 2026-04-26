@@ -12,17 +12,14 @@
 -- currently ignore this case, so @\/\/@ is equivalent to @\/@ in this library.
 
 module Data.Path (
-  Path,
+  Path (isAbsolute),
   Component,
   FromText(..),
   fromText,
-  isAbsolute,
   isRelative,
   mkComponentThrow,
   mkComponentMaybe,
   fromComponents,
-  fromComponentsMaybe,
-  fromComponentsThrow,
   components,
   toText
   ) where
@@ -75,7 +72,10 @@ instance FromText Component where
 -- Comparison between paths isn't well defined, so we make this type explicitly
 -- non-comparable. For example, we do not guarantee consistent treatment of
 -- trailing / when they do not alter the path's meaning.
-newtype Path = Path { unPath :: [Token] }
+data Path = Path {
+  isAbsolute :: Bool,
+  components :: [Component]
+  }
 
 instance Show Path where
   show p = T.unpack ("Path(" <> toText p <> ")")
@@ -99,7 +99,13 @@ name = Name <$> text1 (noneOf "/")
 -- | Build a t'Path' from a text representation.
 --
 parsePathEither :: Text -> Either Text Path
-parsePathEither = fmap Path . first show . parseAll path
+parsePathEither txt =
+  do
+    tokens <- first show . parseAll path $ txt
+    pure $ Path {
+      isAbsolute = True,
+      components = [Component "foo"]
+      }
 
 --- This is an alias of 'fromTextThrow' as it is build off a parser. It is safe
 --- to assume that it cannot fail, however.
@@ -133,8 +139,8 @@ invalidComponentError t = "'" <> t <> "' isn't a valid component name"
 -- False
 -- >>> isAbsolute . fromText $ "/foo/bar/baz"
 -- True
-isAbsolute :: Path -> Bool
-isAbsolute = fromMaybe False . fmap (== Slash) . listToMaybe . unPath
+isAbsolute' :: Path -> Bool
+isAbsolute' = isAbsolute
 
 -- | Whether the t'Path' is relative.
 isRelative :: Path -> Bool
@@ -146,50 +152,18 @@ isRelative = not . isAbsolute
 --
 -- >>> components . fromText $ "foo/bar/baz"
 -- ["foo","bar","baz"]
-components :: Path -> [Text]
-components =
-  let
-    tt Slash    = Nothing
-    tt (Name a) = Just a
-  in
-    catMaybes . fmap tt . unPath
-
-fromComponents' :: Bool -> [Component] -> Path
-fromComponents' absolute cs =
-  let
-    prefix True  = (Slash :)
-    prefix False = id
-  in
-    Path . prefix absolute . intersperse Slash . fmap (Name . unComponent) $ cs
-
--- | Alias of 'fromComponentsMaybe'.
-fromComponents :: Bool -> [Text] -> Maybe Path
-fromComponents = fromComponentsMaybe
+components' :: Path -> [Component]
+components' = components
 
 -- | Builds a t'Path' from a list of components.
-fromComponentsMaybe ::
+fromComponents ::
   Bool -- ^ Whether the path is absolute.
-  -> [Text] -- ^ The list of components.
-  -> Maybe Path -- ^ 'Nothing' if any of the components contains a @/@.
-fromComponentsMaybe absolute cs =
-  let
-    prefix True  = (Slash :)
-    prefix False = id
-  in
-    Path . prefix absolute . intersperse Slash <$> traverse validateNameMaybe cs
+  -> [Component] -- ^ The list of components.
+  -> Path
+fromComponents = Path
 
 -- | Like 'fromComponentsMaybe', but throwing an exception if the result is
 -- 'Nothing'.
-
--- TODO: FIX fhis duplication
-fromComponentsThrow :: HasCallStack => Bool -> [Text] -> Path
-fromComponentsThrow absolute =
-  let
-    prefix True  = (Slash :)
-    prefix False = id
-  in
-    Path . prefix absolute . intersperse Slash . fmap validateNameThrow
-
 
 -- TODO fix these two when Path gets a Component directly instead of a Text
 validateNameMaybe :: Text -> Maybe Token
@@ -203,11 +177,6 @@ validateNameThrow = Name . unComponent . mkComponentThrow
 -- There is no guarantee that @toText . fromText@ is @id@.
 --
 -- >>> toText . fromText $ "//foo///bar///"
--- "/foo/bar/
+-- "/foo/bar"
 pathToText :: Path -> Text
-pathToText =
-  let
-    tt Slash    = "/"
-    tt (Name a) = a
-  in
-    T.concat . fmap tt . unPath
+pathToText = const "fixme"
