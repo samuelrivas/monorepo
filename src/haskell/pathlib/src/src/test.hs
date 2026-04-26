@@ -127,41 +127,27 @@ propComponentFail =
   assert $ isNothing maybeComponent
   assert $ isLeft eitherComponent
 
-evalMaybeEitherSucceed ::
+evalFromTextSucceed ::
   MonadTest m =>
   Eq a =>
   Show a =>
-  Path.FromTextMaybe a =>
-  Path.FromTextEither a =>
+  Path.FromText a =>
   Text -> m a
-evalMaybeEitherSucceed txt =
+evalFromTextSucceed txt =
   do
     fromMaybe <- evalMaybe $ Path.fromTextMaybe txt
     fromEither <- evalEither $ Path.fromTextEither txt
-    fromMaybe=== fromEither
-    pure fromMaybe
-
-evalMaybeEitherThrowSucceed ::
-  MonadTest m =>
-  Eq a =>
-  Show a =>
-  Path.FromTextMaybe a =>
-  Path.FromTextEither a =>
-  Path.FromTextThrow a =>
-  Text -> m a
-evalMaybeEitherThrowSucceed txt =
-  do
     fromThrow <- eval $ Path.fromTextThrow txt
-    a <- evalMaybeEitherSucceed txt
-    a === fromThrow
-    pure a
+    fromMaybe === fromEither
+    fromMaybe === fromThrow
+    pure fromMaybe
 
 propComponentSucceed :: Property
 propComponentSucceed =
   property
   $ do
   txt <- forAll componentNameGen
-  _ :: Path.Component <- evalMaybeEitherThrowSucceed txt
+  _ :: Path.Component <- evalFromTextSucceed txt
   success
 
 propFromComponents :: Property

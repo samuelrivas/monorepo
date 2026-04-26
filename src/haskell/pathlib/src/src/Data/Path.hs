@@ -30,6 +30,7 @@ import           Perlude
 import qualified Prelude
 
 import           Control.Monad.Trans.Class (lift)
+import           Data.Bifunctor            (first)
 import           Data.Coerce               (Coercible, coerce)
 import           Data.List                 (intersperse)
 import           Data.Maybe                (catMaybes, fromJust, fromMaybe,
@@ -38,7 +39,8 @@ import qualified Data.Text                 as T
 import           GHC.Base                  ((<|>))
 import           GHC.Stack                 (HasCallStack)
 import           Text.Parsec               (char, many, many1, noneOf)
-import           Text.Parsec.Parselib      (Parser, text1, unsafeParseAll)
+import           Text.Parsec.Parselib      (Parser, parseAll, text1,
+                                            unsafeParseAll)
 
 data Token = Slash | Name Text
   deriving stock (Show, Eq)
@@ -48,21 +50,15 @@ class ToText a where
   toText :: a -> Text
 
 -- A class for parseable types that may fail with a Text error
--- message. Instances of this class get default instances of the throw and maybe
--- versions
-class FromTextEither a where
+-- message.
+class FromText a where
   fromTextEither :: Text -> Either Text a
 
-class FromTextEither a => FromTextMaybe a where
   fromTextMaybe :: Text -> Maybe a
   fromTextMaybe = either fail pure . fromTextEither
 
-class FromTextEither a => FromTextThrow a where
   fromTextThrow :: HasCallStack => Text -> a
   fromTextThrow = either error id . fromTextEither
-
-class FromText a where
-  fromText :: Text -> a
 
 newtype Component = Component { unComponent :: Text }
   deriving stock Eq
@@ -73,11 +69,8 @@ instance Show Component where
 instance ToText Component where
   toText = coerce
 
-instance FromTextEither Component where
+instance FromText Component where
   fromTextEither = mkComponentEither
-
-instance FromTextMaybe Component
-instance FromTextThrow Component
 
 -- | An opaque path representation.
 --
@@ -92,8 +85,9 @@ instance Show Path where
 instance ToText Path where
   toText = pathToText
 
+-- TODO Document that fromTextThrow cannot fail
 instance FromText Path where
-  fromText = parsePath
+  fromTextEither = parsePathEither
 
 path :: Parser [Token]
 path = many (name <|> slash)
@@ -106,10 +100,13 @@ name = Name <$> text1 (noneOf "/")
 
 -- | Build a t'Path' from a text representation.
 --
--- This is built from a parser, so it can theoretically fail, hence the
--- t'HasCallStack' constraint.
-parsePath :: HasCallStack => Text -> Path
-parsePath = Path . fromJust . unsafeParseAll path
+parsePathEither :: Text -> Either Text Path
+parsePathEither = fmap Path . first show . parseAll path
+
+--- This is an alias of 'fromTextThrow' as it is build off a parser. It is safe
+--- to assume that it cannot fail, however.
+fromText :: Text -> Path
+fromText = fromTextThrow
 
 mkComponentMaybe :: Text -> Maybe Component
 mkComponentMaybe = fromTextMaybe
