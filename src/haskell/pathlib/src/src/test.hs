@@ -190,7 +190,7 @@ propMkComponentFail =
   property
   $ do
   t <- forAll withSlashGen
-  assert $ isNothing (Path.mkComponentMaybe t)
+  assert $ isNothing (Path.fromTextMaybe t :: Maybe Path.Component)
 
 -- Test functions
 -- --------------

@@ -17,8 +17,6 @@ module Data.Path (
   FromText(..),
   fromText,
   isRelative,
-  mkComponentThrow,
-  mkComponentMaybe,
   fromComponents,
   components,
   toText
@@ -36,15 +34,38 @@ import           GHC.Stack            (HasCallStack)
 import           Text.Parsec          (char, many, many1, noneOf)
 import           Text.Parsec.Parselib (Parser, parseAll, text1)
 
+--
+-- Parser
+--
+
 data Token = Slash | Name Text
   deriving stock (Show, Eq)
 
+path :: Parser [Token]
+path = many (name <|> slash)
+
+slash :: Parser Token
+slash = (many1 . char $ '/') *> pure Slash
+
+name :: Parser Token
+name = Name <$> text1 (noneOf "/")
+
+--
+-- FromText and ToText type class
+--
+
 -- TODO Move FromText and ToText to library once we have more use cases
+
+-- | The inverse of 'FromText'.
+--
+-- prop> toText . fromTextThrow = id
 class ToText a where
   toText :: a -> Text
 
--- A class for parseable types that may fail with a Text error
--- message.
+-- | A class for types that can be parsed from 'Text'. Parsing may fail with a
+-- 'Text' error message.
+--
+-- The minimal implementation requires 'fromTextEither'
 class FromText a where
   fromTextEither :: Text -> Either Text a
 
@@ -54,8 +75,14 @@ class FromText a where
   fromTextThrow :: HasCallStack => Text -> a
   fromTextThrow = either error id . fromTextEither
 
+--
+-- Component data type
+--
+
+-- | A path component
 newtype Component = Component { unComponent :: Text }
   deriving stock Eq
+  deriving newtype Ord
 
 instance Show Component where
   show c = T.unpack ("Component(" <> coerce c <> ")")
@@ -65,6 +92,12 @@ instance ToText Component where
 
 instance FromText Component where
   fromTextEither = mkComponentEither
+
+mkComponentEither :: Text -> Either Text Component
+mkComponentEither t =
+  if T.elem '/' t
+  then Left $ "'" <> t <> "' isn't a valid component name"
+  else Right $ Component t
 
 -- | An opaque path representation.
 --
@@ -90,15 +123,6 @@ toName :: Token -> Maybe Text
 toName Slash    = Nothing
 toName (Name n) = Just n
 
-path :: Parser [Token]
-path = many (name <|> slash)
-
-slash :: Parser Token
-slash = (many1 . char $ '/') *> pure Slash
-
-name :: Parser Token
-name = Name <$> text1 (noneOf "/")
-
 -- | Build a t'Path' from a text representation.
 --
 parsePathEither :: Text -> Either Text Path
@@ -114,24 +138,6 @@ parsePathEither txt =
 --- to assume that it cannot fail, however.
 fromText :: Text -> Path
 fromText = fromTextThrow
-
-mkComponentMaybe :: Text -> Maybe Component
-mkComponentMaybe = fromTextMaybe
-
-mkComponentEither :: Text -> Either Text Component
-mkComponentEither t =
-  if T.elem '/' t
-  then Left $ invalidComponentError t
-  else Right $ Component t
-
-mkComponentThrow :: Text -> Component
-mkComponentThrow t = Data.Maybe.fromMaybe (failInvalidComponent t) $ mkComponentMaybe t
-
-failInvalidComponent :: Text -> a
-failInvalidComponent = error . invalidComponentError
-
-invalidComponentError :: Text -> Text
-invalidComponentError t = "'" <> t <> "' isn't a valid component name"
 
 
 -- | Whether the t'Path' is absolute.
@@ -164,16 +170,6 @@ fromComponents ::
   -> [Component] -- ^ The list of components.
   -> Path
 fromComponents = Path
-
--- | Like 'fromComponentsMaybe', but throwing an exception if the result is
--- 'Nothing'.
-
--- TODO fix these two when Path gets a Component directly instead of a Text
-validateNameMaybe :: Text -> Maybe Token
-validateNameMaybe t = Name . unComponent <$>  mkComponentMaybe t
-
-validateNameThrow :: HasCallStack => Text -> Token
-validateNameThrow = Name . unComponent . mkComponentThrow
 
 -- | A 'Text' representation of the t'Path'.
 --
