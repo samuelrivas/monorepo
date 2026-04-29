@@ -12,14 +12,15 @@
 -- currently ignore this case, so @\/\/@ is equivalent to @\/@ in this library.
 
 module Data.Path (
-  Path (isAbsolute),
+  Path,
   Component,
   FromText(..),
+  ToText(..),
   fromText,
+  isAbsolute,
   isRelative,
   fromComponents,
-  components,
-  toText
+  components
   ) where
 
 import           Perlude
@@ -56,16 +57,15 @@ name = Name <$> text1 (noneOf "/")
 
 -- TODO Move FromText and ToText to library once we have more use cases
 
--- | The inverse of 'FromText'.
+-- | A class for types that have an embedding in 'Text'. 'fromTextThrow' is the
+-- partial inverse of 'toText'.
 --
--- prop> toText . fromTextThrow = id
+-- prop> fromTextThrow . toText = id
 class ToText a where
   toText :: a -> Text
 
 -- | A class for types that can be parsed from 'Text'. Parsing may fail with a
 -- 'Text' error message.
---
--- The minimal implementation requires 'fromTextEither'
 class FromText a where
   fromTextEither :: Text -> Either Text a
 
@@ -99,23 +99,31 @@ mkComponentEither t =
   then Left $ "'" <> t <> "' isn't a valid component name"
   else Right $ Component t
 
+--
+-- Path data type
+--
+
 -- | An opaque path representation.
 --
 -- Comparison between paths isn't well defined, so we make this type explicitly
--- non-comparable. For example, we do not guarantee consistent treatment of
--- trailing / when they do not alter the path's meaning.
+-- non-comparable.
 data Path = Path {
-  isAbsolute :: Bool,
-  components :: [Component]
+  _isAbsolute :: Bool, -- ^ Whether the path is absolute
+  _components :: [Component]
   }
 
 instance Show Path where
   show p = T.unpack ("Path(" <> toText p <> ")")
 
+-- | There is no guarantee that @toText . fromText@ is @id@.
+--
+-- >>> toText . fromText $ "//foo///bar///"
+-- "/foo/bar"
 instance ToText Path where
   toText = pathToText
 
--- TODO Document that fromTextThrow cannot fail
+-- | Constructing a t'Path' from a 'Text' always succeeds. 'fromTextThrow' never
+-- throws.
 instance FromText Path where
   fromTextEither = parsePathEither
 
@@ -130,12 +138,14 @@ parsePathEither txt =
   do
     tokens <- first show . parseAll path $ txt
     pure $ Path {
-      isAbsolute = maybe False (Slash ==) $ Data.Maybe.listToMaybe tokens,
-      components = Component <$> Data.Maybe.catMaybes (toName <$> tokens)
+      _isAbsolute = maybe False (Slash ==) $ Data.Maybe.listToMaybe tokens,
+      _components = Component <$> Data.Maybe.catMaybes (toName <$> tokens)
       }
 
---- This is an alias of 'fromTextThrow' as it is build off a parser. It is safe
---- to assume that it cannot fail, however.
+-- This is an alias of 'fromTextThrow' as it is build off a parser. It is safe
+-- to assume that it cannot fail, however.
+
+-- | Build a t'Path' from a text representation.
 fromText :: Text -> Path
 fromText = fromTextThrow
 
@@ -148,10 +158,17 @@ fromText = fromTextThrow
 -- False
 -- >>> isAbsolute . fromText $ "/foo/bar/baz"
 -- True
-isAbsolute' :: Path -> Bool
-isAbsolute' = isAbsolute
+isAbsolute :: Path -> Bool
+isAbsolute = _isAbsolute
 
 -- | Whether the t'Path' is relative.
+--
+-- prop> isAbsolute a = not . isRelative $ a
+--
+-- >>> isRelative . fromText $ "foo/bar/baz"
+-- True
+-- >>> isRelative . fromText $ "/foo/bar/baz"
+-- False
 isRelative :: Path -> Bool
 isRelative = not . isAbsolute
 
@@ -161,8 +178,8 @@ isRelative = not . isAbsolute
 --
 -- >>> components . fromText $ "foo/bar/baz"
 -- ["foo","bar","baz"]
-components' :: Path -> [Component]
-components' = components
+components :: Path -> [Component]
+components = _components
 
 -- | Builds a t'Path' from a list of components.
 fromComponents ::
@@ -178,8 +195,8 @@ fromComponents = Path
 -- >>> toText . fromText $ "//foo///bar///"
 -- "/foo/bar"
 pathToText :: Path -> Text
-pathToText path =
+pathToText p =
   let
-    heading = if isAbsolute path then "/" else ""
+    heading = if isAbsolute p then "/" else ""
   in
-    heading <> (T.intercalate "/" . fmap toText . components $ path)
+    heading <> (T.intercalate "/" . fmap toText . components $ p)
