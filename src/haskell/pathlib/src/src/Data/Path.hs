@@ -28,7 +28,7 @@ import qualified Prelude
 
 import           Data.Bifunctor       (first)
 import           Data.Coerce          (coerce)
-import           Data.Maybe           (catMaybes, fromMaybe, listToMaybe)
+import           Data.Maybe           (catMaybes, listToMaybe)
 import qualified Data.Text            as T
 import           GHC.Base             ((<|>))
 import           GHC.Stack            (HasCallStack)
@@ -80,7 +80,7 @@ class FromText a where
 --
 
 -- | A path component
-newtype Component = Component { unComponent :: Text }
+newtype Component = Component Text
   deriving stock Eq
   deriving newtype Ord
 
