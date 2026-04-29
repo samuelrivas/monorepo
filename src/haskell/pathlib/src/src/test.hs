@@ -2,7 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
-module Main where
+module Main (main) where
 
 import           Perlude
 
@@ -51,15 +51,6 @@ withSlashGen =
     s <- slashGen
     pure $ Text.concat [a, s, b]
 
--- Generates several component names where at least one of them contains a @/@.
-invalidComponentNamesGen :: MonadGen m => m [Text]
-invalidComponentNamesGen =
-  do
-    a <- fmap Path.toText <$> componentsGen
-    b <- withSlashGen
-    c <- fmap Path.toText <$> componentsGen
-    pure $ a ++ [b] ++ c
-
 -- The trailing / becomes leading when the path is empty, so we need some logic
 -- to set trailing to false in those cases
 protoPathGen :: MonadGen m => m ProtoPath
@@ -95,73 +86,10 @@ genIf b g = bool [] [g] b
 -- Properties
 -- ----------
 
-propPathFromText :: Property
-propPathFromText =
-  property
-  $ do
-  (proto, text)  <- forAll testCaseGen
-  let
-    path = Path.fromText text
-    cs = Path.components path
-  cs === components proto
-  leading proto === Path.isAbsolute path
-  leading proto /== Path.isRelative path
-
-propComponentRoundTrip :: Property
-propComponentRoundTrip =
-  property
-  $ do
-  c <- forAll componentGen
-  tripping c Path.toText Path.fromTextMaybe
-
-propComponentFail :: Property
-propComponentFail =
-  property
-  $ do
-  txt <- forAll withSlashGen
-  let
-    maybeComponent :: Maybe Path.Component = Path.fromTextMaybe txt
-    eitherComponent :: Either Text Path.Component = Path.fromTextEither txt
-  assert $ isNothing maybeComponent
-  assert $ isLeft eitherComponent
-
-evalFromTextSucceed ::
-  MonadTest m =>
-  Eq a =>
-  Show a =>
-  Path.FromText a =>
-  Text -> m a
-evalFromTextSucceed txt =
-  do
-    fromMaybe <- evalMaybe $ Path.fromTextMaybe txt
-    fromEither <- evalEither $ Path.fromTextEither txt
-    fromThrow <- eval $ Path.fromTextThrow txt
-    fromMaybe === fromEither
-    fromMaybe === fromThrow
-    pure fromMaybe
-
-propComponentSucceed :: Property
-propComponentSucceed =
-  property
-  $ do
-  txt <- forAll $ Path.toText <$> componentGen
-  _ :: Path.Component <- evalFromTextSucceed txt
-  success
-
-propFromComponents :: Property
-propFromComponents =
-  property
-  $ do
-  (proto, _) <- forAll testCaseGen
-  let
-    path = Path.fromComponents (leading proto) (components proto)
-    cs = Path.components path
-  cs === components proto
-  leading proto === Path.isAbsolute path
-  leading proto /== Path.isRelative path
-
-propRoundTrip :: Property
-propRoundTrip =
+-- Create a path from text, and another from the text representation of that
+-- one, yield the same components and absolutness
+propPathRoundTrip :: Property
+propPathRoundTrip =
   property
   $ do
   (_, t) <- forAll testCaseGen
@@ -178,19 +106,81 @@ propRoundTrip =
   cs === cs'
   absolute === absolute'
 
-propFailOnSlash :: Property
-propFailOnSlash =
+-- Creating a Path from Text yields the expected components and absoluteness
+propPathFromText :: Property
+propPathFromText =
   property
   $ do
-  name <- forAll withSlashGen
-  assert $ isNothing (Path.fromTextMaybe name :: Maybe Path.Component)
+  (proto, text)  <- forAll testCaseGen
+  let
+    path = Path.fromText text
+    cs = Path.components path
+  cs === components proto
+  leading proto === Path.isAbsolute path
+  leading proto /== Path.isRelative path
 
-propMkComponentFail :: Property
-propMkComponentFail =
+-- Creating a path from components yields the expected components and
+-- absolutness
+propFromComponents :: Property
+propFromComponents =
   property
   $ do
-  t <- forAll withSlashGen
-  assert $ isNothing (Path.fromTextMaybe t :: Maybe Path.Component)
+  (proto, _) <- forAll testCaseGen
+  let
+    path = Path.fromComponents (leading proto) (components proto)
+    cs = Path.components path
+  cs === components proto
+  leading proto === Path.isAbsolute path
+  leading proto /== Path.isRelative path
+
+-- Creating a Path from components gives the same components back
+propComponentRoundTrip :: Property
+propComponentRoundTrip =
+  property
+  $ do
+  c <- forAll componentGen
+  tripping c Path.toText Path.fromTextMaybe
+
+-- Creating a Component from an invalid Text fails as expected
+propComponentFail :: Property
+propComponentFail =
+  property
+  $ do
+  txt <- forAll withSlashGen
+  let
+    maybeComponent :: Maybe Path.Component = Path.fromTextMaybe txt
+    eitherComponent :: Either Text Path.Component = Path.fromTextEither txt
+  assert $ isNothing maybeComponent
+  assert $ isLeft eitherComponent
+
+-- Creating a component from a valid text works as expected
+propComponentSucceed :: Property
+propComponentSucceed =
+  property
+  $ do
+  txt <- forAll $ Path.toText <$> componentGen
+  _ :: Path.Component <- evalFromTextSucceed txt
+  success
+
+-- Auxiliary functions
+-- -------------------
+
+-- Test that a valid text can be converted to a FromText and all the fromXXX
+-- functions are coherent
+evalFromTextSucceed ::
+  MonadTest m =>
+  Eq a =>
+  Show a =>
+  Path.FromText a =>
+  Text -> m a
+evalFromTextSucceed txt =
+  do
+    fromMaybe <- evalMaybe $ Path.fromTextMaybe txt
+    fromEither <- evalEither $ Path.fromTextEither txt
+    fromThrow <- eval $ Path.fromTextThrow txt
+    fromMaybe === fromEither
+    fromMaybe === fromThrow
+    pure fromMaybe
 
 -- Test functions
 -- --------------
@@ -202,7 +192,5 @@ main = do
   _ <- check propComponentFail
   _ <- check propPathFromText
   _ <- check propFromComponents
-  _ <- check propRoundTrip
-  _ <- check propFailOnSlash
-  _ <- check propMkComponentFail
+  _ <- check propPathRoundTrip
   pure ()
