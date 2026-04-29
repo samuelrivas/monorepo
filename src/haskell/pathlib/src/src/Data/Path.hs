@@ -13,56 +13,142 @@
 
 module Data.Path (
   Path,
+  Component,
+  FromText(..),
+  ToText(..),
   fromText,
   isAbsolute,
   isRelative,
   fromComponents,
-  fromComponentsMaybe,
-  fromComponentsThrow,
-  components,
-  toText
+  components
   ) where
 
 import           Perlude
 import qualified Prelude
 
-import           Data.List            (intersperse)
-import           Data.Maybe           (catMaybes, fromJust, fromMaybe,
-                                       listToMaybe)
+import           Data.Bifunctor       (first)
+import           Data.Coerce          (coerce)
+import           Data.Maybe           (catMaybes, listToMaybe)
 import qualified Data.Text            as T
 import           GHC.Base             ((<|>))
 import           GHC.Stack            (HasCallStack)
 import           Text.Parsec          (char, many, many1, noneOf)
-import           Text.Parsec.Parselib (Parser, text1, unsafeParseAll)
+import           Text.Parsec.Parselib (Parser, parseAll, text1)
 
-data Token = Slash | Component Text
+--
+-- Parser
+--
+
+data Token = Slash | Name Text
   deriving stock (Show, Eq)
 
--- | An opaque path representation.
---
--- Comparison between paths isn't well defined, so we make this type explicitly
--- non-comparable. For example, we do not guarantee consistent treatment of
--- trailing / when they do not alter the path's meaning.
-newtype Path = Path { unPath :: [Token] }
-
-instance Show Path where
-  show p = T.unpack ("Path(" <> toText p <> ")")
-
 path :: Parser [Token]
-path = many (component <|> slash)
+path = many (name <|> slash)
 
 slash :: Parser Token
 slash = (many1 . char $ '/') *> pure Slash
 
-component :: Parser Token
-component = Component <$> text1 (noneOf "/")
+name :: Parser Token
+name = Name <$> text1 (noneOf "/")
+
+--
+-- FromText and ToText type class
+--
+
+-- TODO Move FromText and ToText to library once we have more use cases
+
+-- | A class for types that have an embedding in 'Text'. 'fromTextThrow' is the
+-- partial inverse of 'toText'.
+--
+-- prop> fromTextThrow . toText = id
+class ToText a where
+  toText :: a -> Text
+
+-- | A class for types that can be parsed from 'Text'. Parsing may fail with a
+-- 'Text' error message.
+class FromText a where
+  fromTextEither :: Text -> Either Text a
+
+  fromTextMaybe :: Text -> Maybe a
+  fromTextMaybe = either fail pure . fromTextEither
+
+  fromTextThrow :: HasCallStack => Text -> a
+  fromTextThrow = either error id . fromTextEither
+
+--
+-- Component data type
+--
+
+-- | A path component
+newtype Component = Component Text
+  deriving stock Eq
+  deriving newtype Ord
+
+instance Show Component where
+  show c = T.unpack ("Component(" <> coerce c <> ")")
+
+instance ToText Component where
+  toText = coerce
+
+instance FromText Component where
+  fromTextEither = mkComponentEither
+
+mkComponentEither :: Text -> Either Text Component
+mkComponentEither t =
+  if T.elem '/' t
+  then Left $ "'" <> t <> "' isn't a valid component name"
+  else Right $ Component t
+
+--
+-- Path data type
+--
+
+-- | An opaque path representation.
+--
+-- Comparison between paths isn't well defined, so we make this type explicitly
+-- non-comparable.
+data Path = Path {
+  _isAbsolute :: Bool,
+  _components :: [Component]
+  }
+
+instance Show Path where
+  show p = T.unpack ("Path(" <> toText p <> ")")
+
+-- | There is no guarantee that @toText . fromText@ is @id@.
+--
+-- >>> toText . fromText $ "//foo///bar///"
+-- "/foo/bar"
+instance ToText Path where
+  toText = pathToText
+
+-- | Constructing a t'Path' from a 'Text' always succeeds. 'fromTextThrow' never
+-- throws.
+instance FromText Path where
+  fromTextEither = parsePathEither
+
+toName :: Token -> Maybe Text
+toName Slash    = Nothing
+toName (Name n) = Just n
 
 -- | Build a t'Path' from a text representation.
 --
--- This is built from a parser, so it can theoretically fail, hence the
--- t'HasCallStack' constraint.
-fromText :: HasCallStack => Text -> Path
-fromText = Path . fromJust . unsafeParseAll path
+parsePathEither :: Text -> Either Text Path
+parsePathEither txt =
+  do
+    tokens <- first show . parseAll path $ txt
+    pure $ Path {
+      _isAbsolute = maybe False (Slash ==) $ Data.Maybe.listToMaybe tokens,
+      _components = Component <$> Data.Maybe.catMaybes (toName <$> tokens)
+      }
+
+-- This is an alias of 'fromTextThrow' as it is build off a parser. It is safe
+-- to assume that it cannot fail, however.
+
+-- | Build a t'Path' from a text representation.
+fromText :: Text -> Path
+fromText = fromTextThrow
+
 
 -- | Whether the t'Path' is absolute.
 --
@@ -73,9 +159,16 @@ fromText = Path . fromJust . unsafeParseAll path
 -- >>> isAbsolute . fromText $ "/foo/bar/baz"
 -- True
 isAbsolute :: Path -> Bool
-isAbsolute = fromMaybe False . fmap (== Slash) . listToMaybe . unPath
+isAbsolute = _isAbsolute
 
 -- | Whether the t'Path' is relative.
+--
+-- prop> isAbsolute a = not . isRelative $ a
+--
+-- >>> isRelative . fromText $ "foo/bar/baz"
+-- True
+-- >>> isRelative . fromText $ "/foo/bar/baz"
+-- False
 isRelative :: Path -> Bool
 isRelative = not . isAbsolute
 
@@ -85,51 +178,25 @@ isRelative = not . isAbsolute
 --
 -- >>> components . fromText $ "foo/bar/baz"
 -- ["foo","bar","baz"]
-components :: Path -> [Text]
-components =
-  let
-    tt Slash         = Nothing
-    tt (Component a) = Just a
-  in
-    catMaybes . fmap tt . unPath
-
--- | Alias of 'fromComponentsMaybe'.
-fromComponents :: Bool -> [Text] -> Maybe Path
-fromComponents = fromComponentsMaybe
+components :: Path -> [Component]
+components = _components
 
 -- | Builds a t'Path' from a list of components.
-fromComponentsMaybe ::
+fromComponents ::
   Bool -- ^ Whether the path is absolute.
-  -> [Text] -- ^ The list of components.
-  -> Maybe Path -- ^ 'Nothing' if any of the components contains a @/@.
-fromComponentsMaybe absolute cs =
-  let
-    prefix True  = (Slash :)
-    prefix False = id
-  in
-    Path . prefix absolute . intersperse Slash <$> traverse validateComponent cs
-
--- | Like 'fromComponentsMaybe', but throwing an exception if the result is
--- 'Nothing'.
-fromComponentsThrow :: HasCallStack => Bool -> [Text] -> Path
-fromComponentsThrow absolute =
-  fromMaybe (error "One or more of the components has '/' in it")
-  . fromComponentsMaybe absolute
-
-validateComponent :: Text -> Maybe Token
-validateComponent c =
-  if T.elem '/' c then Nothing else (Just . Component $ c)
+  -> [Component] -- ^ The list of components.
+  -> Path
+fromComponents = Path
 
 -- | A 'Text' representation of the t'Path'.
 --
 -- There is no guarantee that @toText . fromText@ is @id@.
 --
 -- >>> toText . fromText $ "//foo///bar///"
--- "/foo/bar/
-toText :: Path -> Text
-toText =
+-- "/foo/bar"
+pathToText :: Path -> Text
+pathToText p =
   let
-    tt Slash         = "/"
-    tt (Component a) = a
+    heading = if isAbsolute p then "/" else ""
   in
-    T.concat . fmap tt . unPath
+    heading <> (T.intercalate "/" . fmap toText . components $ p)
