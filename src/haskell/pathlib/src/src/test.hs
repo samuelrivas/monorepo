@@ -14,8 +14,8 @@ import qualified Data.Path      as Path
 import qualified Data.Text      as Text
 import           Hedgehog       (MonadGen, MonadTest, Property, annotateShow,
                                  assert, check, eval, evalEither, evalMaybe,
-                                 failure, forAll, property, success, tripping,
-                                 (/==), (===))
+                                 forAll, property, success, tripping, (/==),
+                                 (===))
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 
