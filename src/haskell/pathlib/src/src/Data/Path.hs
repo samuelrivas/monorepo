@@ -108,7 +108,7 @@ mkComponentEither t =
 -- Comparison between paths isn't well defined, so we make this type explicitly
 -- non-comparable.
 data Path = Path {
-  _isAbsolute :: Bool, -- ^ Whether the path is absolute
+  _isAbsolute :: Bool,
   _components :: [Component]
   }
 
