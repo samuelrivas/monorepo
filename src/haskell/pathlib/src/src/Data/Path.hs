@@ -105,12 +105,14 @@ mkComponentEither t =
 
 -- | An opaque path representation.
 --
--- Comparison between paths isn't well defined, so we make this type explicitly
--- non-comparable.
+--
+-- prop> a == b <=> (isAbsolute a == isAbsolute b)
+--   && (components a == components b)
 data Path = Path {
   _isAbsolute :: Bool,
   _components :: [Component]
   }
+  deriving stock Eq
 
 instance Show Path where
   show p = T.unpack ("Path(" <> toText p <> ")")

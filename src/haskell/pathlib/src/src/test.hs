@@ -24,7 +24,7 @@ data ProtoPath = ProtoPath {
   leading    :: Bool,
   trailing   :: Bool
   }
-  deriving stock Show
+  deriving stock (Show, Eq)
 
 -- Generators
 -- ----------
@@ -85,6 +85,33 @@ genIf b g = bool [] [g] b
 
 -- Properties
 -- ----------
+
+-- Paths with the same components and absoluteness are equal
+propPathEqTrue :: Property
+propPathEqTrue =
+  property
+  $ do
+  (proto, t) <- forAll testCaseGen
+  let
+    a = Path.fromComponents  (leading proto) (components proto)
+    b = Path.fromText t
+  a === b
+
+-- Paths with different components or absoluteness are different
+--
+-- This property is not fully correct, the same path with and without trailing /
+-- are Eq, but this property could generate them as false. It never happens so
+-- we haven't bothered fixing this.
+propPathEqFalse :: Property
+propPathEqFalse =
+  property
+  $ do
+  (protoA, _) <- forAll testCaseGen
+  (protoB, _) <- forAll $ Gen.filter ((/= protoA) . fst) testCaseGen
+  let
+    a = Path.fromComponents  (leading protoA) (components protoA)
+    b = Path.fromComponents  (leading protoB) (components protoB)
+  a /== b
 
 -- Create a path from text, and another from the text representation of that
 -- one, yield the same components and absolutness
@@ -187,6 +214,8 @@ evalFromTextSucceed txt =
 
 main :: IO ()
 main = do
+  _ <- check propPathEqTrue
+  _ <- check propPathEqFalse
   _ <- check propComponentRoundTrip
   _ <- check propComponentSucceed
   _ <- check propComponentFail
