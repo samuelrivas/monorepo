@@ -167,11 +167,13 @@ INSERT INTO asset_info (asset, currency, type) VALUES ('GRIFOLS SA', 'EUR', 'sto
 INSERT INTO asset_info (asset, currency, type) VALUES ('IBERDROLA', 'EUR', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('INDITEX', 'EUR', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('ISHARES S&P 500', 'EUR', 'stock');
+INSERT INTO asset_info (asset, currency, type) VALUES ('ISHARES CORE S&P 500 UCITS ETF USD (DIST)', 'EUR', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('MAPFRE', 'EUR', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('NATURGY ENERGY GROUP SA', 'EUR', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('SIEMENS GAMESA RENEWABLE ENERGY', 'EUR', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('Avanza Global', 'SEK', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('ISHARES B E AGG', 'EUR', 'debt security');
+INSERT INTO asset_info (asset, currency, type) VALUES ('ISHARES   AGGREGATE BOND ESG SRI UCITS ETF EUR D', 'EUR', 'debt security');
 INSERT INTO asset_info (asset, currency, type) VALUES ('FUTUR', 'SEK', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('SPP', 'SEK', 'stock');
 INSERT INTO asset_info (asset, currency, type) VALUES ('BTP1 Trygg', 'SEK', 'stock');
