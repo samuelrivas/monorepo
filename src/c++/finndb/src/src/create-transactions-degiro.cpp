@@ -16,10 +16,12 @@
  * For now, we use the transactions csv (turned into a tsv, and . translated
  * into , afterwards)
  *
- * 0    ,1   ,2       ,3   ,4       ,5                  ,6     ,7     ,,9          ,,11   ,,13            ,14                   ,,16   ,,18
- * Fecha,Hora,Producto,ISIN,Bolsa de,Centro de ejecución,Número,Precio,,Valor local,,Valor,,Tipo de cambio,Costes de transacción,,Total,,ID Orden
+ * 0    ,1   ,2       ,3   ,4                  ,5                  ,6     ,7     ,,9          ,,11       ,12            ,13              ,14                                   ,15      ,16       ,17
+ * Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comision AutoFX,Costes de transaccion y/o externos EUR,Total EUR,ID Orden,
  *
- * The fields without name seem to contain the currency id
+ * The fields without name seem to contain the currency id.
+ *
+ * As of 2026-05-31, ID Orden seems to be displaced one to the right in some rows. After a given date that seems to have been corrected.
  */
 
 #include <iostream>
@@ -45,7 +47,13 @@ using boost::format;
 string rearrange_date(const string& in) {
   vector<string> tokens = split(in, '-');
   ostringstream out;
-  assert(tokens.size() == 3);
+
+  if (tokens.size() != 3) {
+    cerr <<
+      format("Date '%s' doesn't have the expected format with 2 dashes") % in;
+    assert(false);
+  }
+
   out << format("%s-%s-%s") % tokens[2] % tokens[1] % tokens[0];
   return out.str();
 }
@@ -65,8 +73,8 @@ int main() {
   for (string line; std::getline(cin, line);) {
     vector<string> tokens = split(line, '\t');
 
-    if (tokens.size() != 19) {
-      cerr << format("Line '%s' produces %d tokens, we want 19\n")
+    if (tokens.size() != 18 && tokens.size() != 17) {
+      cerr << format("Line '%s' produces %d tokens, we want 18 or 17\n")
         % line % tokens.size();
       std::flush(cerr);
       assert(false);
@@ -81,7 +89,8 @@ int main() {
                           transaction_id);
 
     // Cash movement
-    cout << movement_line(date, tokens[17], "degiro-es", "degiro", tokens[16],
+    // Field 15 is "Total EUR" so we hardcode the asset
+    cout << movement_line(date, "EUR", "degiro-es", "degiro", tokens[15],
                           transaction_id);
     // cout << valuation_line(date, tokens[2], tokens[8]);
   }

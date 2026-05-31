@@ -33,7 +33,7 @@ TransactionType parse_type(const string& type_text) {
     return TransactionType::BUY;
   }
 
-  cerr << format("%s is not yet supported as transaction type\n") % type_text;
+  cerr << format("'%s' is not yet supported as transaction type\n") % type_text;
   std::flush(cerr);
   assert(false);
 }
