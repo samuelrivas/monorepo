@@ -33,8 +33,8 @@
           rndlib
           sh-lib
         ]
-        ++ lib.optional doCheck [valgrind]
-        ++ lib.optional stdenv.isDarwin [makeWrapper];
+        ++ lib.optionals doCheck [valgrind]
+        ++ lib.optionals stdenv.isDarwin [makeWrapper];
 
       prePatch = ''
         patchShebangs .
