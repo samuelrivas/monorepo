@@ -16,8 +16,7 @@
   gopls,
   jedi-language-server,
   nil,
-  nodejs,
-  silver-searcher,
+  ripgrep,
   stylish-haskell,
   stdenv,
   symlinkJoin,
@@ -68,8 +67,6 @@
     auctex
     colorThemeSolarized
     consult
-    copilot
-    copilot-chat
     corfu
     eglot
     flycheck
@@ -99,8 +96,7 @@
     gopls
     jedi-language-server
     nil
-    nodejs # Needed by copilot
-    silver-searcher
+    ripgrep
     stylish-haskell
     terraform-ls
   ];
