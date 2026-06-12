@@ -16,7 +16,6 @@
   gopls,
   jedi-language-server,
   nil,
-  nodejs,
   ripgrep,
   stylish-haskell,
   stdenv,
@@ -97,7 +96,6 @@
     gopls
     jedi-language-server
     nil
-    nodejs # Needed by copilot
     ripgrep
     stylish-haskell
     terraform-ls
