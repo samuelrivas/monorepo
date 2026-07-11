@@ -6,11 +6,13 @@
   lib,
   rubber,
   stdenv,
-  texlive,
+  texliveSmall,
 }: let
-  tex = texlive.combine {
-    inherit (texlive) scheme-small;
-  };
+  tex = texliveSmall.withPackages (
+    ps: [
+      ps.scheme-small
+    ]
+  );
   drv = stdenv.mkDerivation {
     src = ./../src;
     name = "latex-base";
