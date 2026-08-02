@@ -141,6 +141,26 @@
     adventofcode-2023 = haskellPackages.adventofcode-2023;
     kattis = haskellPackages.kattis;
 
+    # Games
+    # =====
+
+    # Later versions of the game don't seem to work with the phoebus
+    # tileset. They also seem to largely ignore the init files in
+    # ~/.local/share/df_linux and pick ~/.local/share/Bay 12 Games/Dwarf
+    # Fortress instead
+    dwarf-fortress = nixpkgs.dwarf-fortress-full.override {
+      theme = "phoebus";
+      enableDwarfTherapist = false;
+      enableDFHack = false;
+      enableStoneSense = false;
+      dfVersion = "0.47.05";
+    };
+
+    # Patched version to play a more recent version of Dwarf Fortress
+    itch = callPackage ./pkgs/applications/games/itch {
+      inherit (nixpkgs) itch;
+    };
+
     # External tools that are broken upstream
     cpplint = callPackage ./pkgs/development/tools/cpplint {};
   };
