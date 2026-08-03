@@ -8,7 +8,7 @@
   runCommand,
   sexp,
   sh-lib,
-  ubuntu_font_family,
+  ubuntu-classic,
 }: let
   go-drv = buildGoModule {
     pname = "passman-go";
@@ -44,7 +44,7 @@
         my-emacs
         sexp
         sh-lib
-        ubuntu_font_family
+        ubuntu-classic
       ];
     build-inputs = go-drv.buildInputs;
     shell-hook = ''
