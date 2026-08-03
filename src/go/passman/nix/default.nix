@@ -23,7 +23,7 @@
     # derivation. Normally, changing a character works, but if you get invalid
     # hash errors, you can use lib.fakeHash, just add lib to the arguments of
     # the derivation, callPackage in packages.nix will input it automagically
-    vendorHash = "sha256-zwPr0MmlOViWRYx3PfR8iCH4J36I2m+H0QG9cvUtbN8=";
+    vendorHash = "sha256-eEAht9WWq+NQcnuCsgLeGULGuBHXBX+P9JOZnUHeQ04=";
   };
 
   # This could be extracted if we had more go projects in this repo
