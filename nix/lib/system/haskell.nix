@@ -60,10 +60,17 @@ let
           if is-lib
           then haskell-libs
           else [];
-        installPhase =
-          if is-lib
-          then install-lib
-          else install-bin;
+        installPhase = ''
+          runHook preInstall
+
+          ${
+            if is-lib
+            then install-lib
+            else install-bin
+          }
+
+          runHook postInstall
+        '';
 
         # ghcWithPackages needs this to be true for libraries, for non libraries
         # it could be omitted
