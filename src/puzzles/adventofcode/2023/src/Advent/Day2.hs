@@ -12,7 +12,7 @@ module Advent.Day2 where
 
 import           Perlude
 
-import           Control.Lens         (allOf)
+import           Control.Lens         (allOf, each, productOf)
 import           Data.Advent          (Day (..))
 import           Data.Functor         (($>))
 import           Data.Maybe           (fromJust)
@@ -117,7 +117,7 @@ maxes l =
     foldl' f (0, 0, 0) l
 
 power :: (Int, Int, Int) -> Int
-power (r, g, b) = r * g * b
+power = productOf each
 
 solve1 :: Parsed -> Int
 solve1 = sum . fmap gameNumber . filter validGame
