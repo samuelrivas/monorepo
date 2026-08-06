@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -12,21 +13,24 @@ module Advent.Day2 where
 
 import           Perlude
 
-import           Control.Lens         (allOf, each, productOf)
-import           Data.Advent          (Day (..))
-import           Data.Functor         (($>))
-import           Data.Maybe           (fromJust)
-import           Data.Text            (intercalate)
-import           System.IO.Advent     (getInput, getParsedInput)
-import           Text.Parsec          (choice, sepBy)
-import           Text.Parsec.Parselib (Parser, digitsAsNum, linesOf, literal,
-                                       unsafeParseAll)
+import           Control.Lens          (Lens', allOf, each, filtered, productOf,
+                                        sumOf, traversed, view)
+import           Data.Advent           (Day (..))
+import           Data.Functor          (($>))
+import           Data.Generics.Product (position)
+import           Data.Maybe            (fromJust)
+import           Data.Text             (intercalate)
+import           GHC.Internal.Generics (Generic)
+import           System.IO.Advent      (getInput, getParsedInput)
+import           Text.Parsec           (choice, sepBy)
+import           Text.Parsec.Parselib  (Parser, digitsAsNum, linesOf, literal,
+                                        unsafeParseAll)
 
 data Colour = Red | Green | Blue
   deriving stock (Show, Eq)
 
 data Game = Game Int [[(Int, Colour)]]
-  deriving stock Show
+  deriving stock (Show, Generic)
 
 -- Ongoing algebraisation
 data Round = Round Red' Green' Blue'
@@ -35,12 +39,11 @@ newtype Red' = Red' Int
 newtype Green' = Green' Int
 newtype Blue' = Blue' Int
 
--- TODO: lens this
-gameNumber :: Game -> Int
-gameNumber (Game n _) = n
+gameNumber :: Lens' Game Int
+gameNumber = position @1
 
-gameRounds :: Game -> [[(Int, Colour)]]
-gameRounds (Game _ rs) = rs
+gameRounds :: Lens' Game [[(Int, Colour)]]
+gameRounds = position @2
 
 type Parsed = [Game]
 
@@ -120,12 +123,12 @@ power :: (Int, Int, Int) -> Int
 power = productOf each
 
 solve1 :: Parsed -> Int
-solve1 = sum . fmap gameNumber . filter validGame
+solve1 = sumOf (traversed . filtered validGame . gameNumber)
 
 solve2 :: Parsed -> Int
 solve2 x =
   let
-    allRounds = concat . gameRounds <$> x
+    allRounds = concat . view gameRounds <$> x
   in
     sum $ power . maxes <$> allRounds
 
