@@ -21,6 +21,7 @@ import           Data.Foldable         (fold)
 import           Data.Functor          (($>))
 import           Data.Generics.Product (position)
 import           Data.Maybe            (fromJust)
+import           Data.Monoid           (Sum)
 import           Data.Text             (intercalate)
 import           Fmt                   (fmt, (+|), (|+))
 import           GHC.Internal.Generics (Generic)
@@ -36,7 +37,7 @@ data Colour = Red | Green | Blue
 data Game = Game Int [[(Int, Colour)]]
   deriving stock (Show, Generic)
 
-data Round = Round Red' Green' Blue'
+data Round a = Round a a a
   deriving stock (Generic)
 
 -- TODO Try to implement this as a single parameterised type where the color is
@@ -53,16 +54,16 @@ newtype Blue' = Blue' Int
   deriving stock (Generic)
   deriving newtype (Num, Ord, Eq)
 
-data Game' = Game' Int [Round]
+data Game' a = Game' Int [Round a]
   deriving stock (Show, Generic)
 
-instance Semigroup Round where
-  (Round r g b) <> (Round r' g' b') = Round (r + r') (g + g') (b + b')
+instance Semigroup a => Semigroup (Round a) where
+  (Round r g b) <> (Round r' g' b') = Round (r <> r') (g <> g') (b <> b')
 
-instance Monoid Round where
-  mempty = Round 0 0 0
+instance Monoid a => Monoid (Round a) where
+  mempty = Round mempty mempty mempty
 
-instance Show Round where
+instance Show a => Show (Round a) where
   show (Round r g b) = fmt $
     "(" +|
     Perlude.show r |+ "," +|
@@ -81,22 +82,25 @@ instance Show Blue' where
 gameNumber :: Lens' Game Int
 gameNumber = position @1
 
-gameNumber' :: Lens' Game' Int
+gameNumber' :: Lens' (Game' a) Int
 gameNumber' = position @1
 
 gameRounds :: Lens' Game [[(Int, Colour)]]
 gameRounds = position @2
 
-red :: Lens' Round Red'
+gameRounds' :: Lens' (Game' a) [Round a]
+gameRounds' = position @2
+
+red :: Lens' (Round a) a
 red = position @1
 
-green :: Lens' Round Green'
+green :: Lens' (Round a) a
 green = position @2
 
-blue :: Lens' Round Blue'
+blue :: Lens' (Round a) a
 blue = position @3
 
-type Parsed = [Game']
+type Parsed = [Game' (Sum Int)]
 
 day :: Day
 day = D2
@@ -122,32 +126,32 @@ parsedInput = getParsedInput day parser
 parser' :: Parser Parsed
 parser' = linesOf gameP'
 
-parser :: Parser [Game']
+parser :: Parser [Game' (Sum Int)]
 parser = linesOf gameP'
 
-gameP' :: Parser Game'
+gameP' :: Parser (Game' (Sum Int))
 gameP' =
   Game'
   <$> gameNumberP <* literal ": "
   <*> roundsP
 
-roundsP :: Parser [Round]
+roundsP :: Parser [Round (Sum Int)]
 roundsP = roundP `sepBy` literal "; "
 
-roundP :: Parser Round
+roundP :: Parser (Round (Sum Int))
 roundP = fold <$> ballCountP' `sepBy` literal ", "
 
 -- Parses a single ball count into a Round where all the other counts are mempty
 --
 -- TODO: Improve this using a setter over a mempty Round
-ballCountP' :: Parser Round
+ballCountP' :: (Monoid a, Num a) => Parser (Round a)
 ballCountP' =
   do
-    n :: Int <- digitsAsNum <* literal " "
+    n <- digitsAsNum <* literal " "
     choice [
-      literal "red" $> set red (coerce n),
-      literal "green" $> set green (coerce n),
-      literal "blue" $> set blue (coerce n)
+      literal "red" $> set red n,
+      literal "green" $> set green n,
+      literal "blue" $> set blue n
       ] <*> mempty
 
 gameNumberP :: Parser Int
@@ -184,13 +188,13 @@ underMax (x, Red)   = x <= 12
 underMax (x, Green) = x <= 13
 underMax (x, Blue)  = x <= 14
 
-validRound :: Round -> Bool
+validRound :: (Num a, Ord a) => Round a -> Bool
 validRound (Round r g b) =
   r <= 12 &&
   g <= 13 &&
   b <= 14
 
-validGame :: Game' -> Bool
+validGame :: (Num a, Ord a) => Game' a -> Bool
 validGame (Game' _ rounds) = all validRound rounds
 
 -- TODO deuglify this
@@ -211,11 +215,12 @@ solve1 :: Parsed -> Int
 solve1 = sumOf (traversed . filtered validGame . gameNumber')
 
 solve2 :: Parsed -> Int
-solve2 x = undefined
-  -- let
-  --   allRounds = concat . view gameRounds <$> x
-  -- in
-  --   sum $ power . maxes <$> allRounds
+solve2 x =
+  let
+    allRounds = view gameRounds' <$> x
+  in
+    undefined
+    -- sum $ power . maxes <$> allRounds
 
 main :: IO ()
 main = do
