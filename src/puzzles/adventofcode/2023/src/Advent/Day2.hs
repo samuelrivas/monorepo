@@ -98,18 +98,19 @@ roundsP :: Parser [Round (Sum Int)]
 roundsP = roundP `sepBy` literal "; "
 
 roundP :: Parser (Round (Sum Int))
-roundP = fold <$> ballCountP' `sepBy` literal ", "
+roundP = fold <$> ballCountP `sepBy` literal ", "
 
 -- Parses a single ball count into a Round where all the other counts are mempty
-ballCountP' :: (Monoid a, Num a) => Parser (Round a)
-ballCountP' =
+
+ballCountP :: (Monoid a, Num a) => Parser (Round a)
+ballCountP =
   do
     n <- digitsAsNum <* literal " "
     choice [
       literal "red" $> set red n,
       literal "green" $> set green n,
       literal "blue" $> set blue n
-      ] <*> mempty
+      ] <*> pure mempty
 
 gameNumberP :: Parser Int
 gameNumberP = literal "Game " *> digitsAsNum
