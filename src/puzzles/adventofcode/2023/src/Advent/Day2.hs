@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -5,44 +6,63 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- Re-solve stretch: Use only algebraic datatypes, do not rely on lists of
--- colours
-
 module Advent.Day2 where
 
 import           Perlude
 
-import           Control.Lens         (allOf)
-import           Data.Advent          (Day (..))
-import           Data.Functor         (($>))
-import           Data.Maybe           (fromJust)
-import           Data.Text            (intercalate)
-import           System.IO.Advent     (getInput, getParsedInput)
-import           Text.Parsec          (choice, sepBy)
-import           Text.Parsec.Parselib (Parser, digitsAsNum, linesOf, literal,
-                                       unsafeParseAll)
+import           Control.Lens          (Lens', filtered, set, sumOf, traversed,
+                                        view)
+import           Data.Advent           (Day (..))
+import           Data.Coerce           (coerce)
+import           Data.Foldable         (fold)
+import           Data.Functor          (($>))
+import           Data.Generics.Product (position)
+import           Data.Maybe            (fromJust)
+import           Data.Semigroup        (Max (..), Sum (..))
+import           Data.Text             (intercalate)
+import           Fmt                   (fmt, (+|), (|+))
+import           GHC.Internal.Generics (Generic)
+import           System.IO.Advent      (getInput, getParsedInput)
+import           Text.Parsec           (choice, sepBy)
+import           Text.Parsec.Parselib  (Parser, digitsAsNum, linesOf, literal,
+                                        unsafeParseAll)
+import           Text.Show             (show)
 
-data Colour = Red | Green | Blue
-  deriving stock (Show, Eq)
+data Round a = Round a a a
+  deriving stock (Generic)
 
-data Game = Game Int [[(Int, Colour)]]
-  deriving stock Show
+data Game a = Game Int [Round a]
+  deriving stock (Show, Generic)
 
--- Ongoing algebraisation
-data Round = Round Red' Green' Blue'
+instance Semigroup a => Semigroup (Round a) where
+  (Round r g b) <> (Round r' g' b') = Round (r <> r') (g <> g') (b <> b')
 
-newtype Red' = Red' Int
-newtype Green' = Green' Int
-newtype Blue' = Blue' Int
+instance Monoid a => Monoid (Round a) where
+  mempty = Round mempty mempty mempty
 
--- TODO: lens this
-gameNumber :: Game -> Int
-gameNumber (Game n _) = n
+instance Show a => Show (Round a) where
+  show (Round r g b) = fmt $
+    "(" +|
+    Perlude.show r |+ "," +|
+    Perlude.show g |+ "," +|
+    Perlude.show b |+ ")"
 
-gameRounds :: Game -> [[(Int, Colour)]]
-gameRounds (Game _ rs) = rs
+gameNumber :: Lens' (Game a) Int
+gameNumber = position @1
 
-type Parsed = [Game]
+gameRounds :: Lens' (Game a) [Round a]
+gameRounds = position @2
+
+red :: Lens' (Round a) a
+red = position @1
+
+green :: Lens' (Round a) a
+green = position @2
+
+blue :: Lens' (Round a) a
+blue = position @3
+
+type Parsed = [Game (Sum Int)]
 
 day :: Day
 day = D2
@@ -68,66 +88,55 @@ parsedInput = getParsedInput day parser
 parser :: Parser Parsed
 parser = linesOf gameP
 
-gameNumberP :: Parser Int
-gameNumberP = literal "Game " *> digitsAsNum
-
-colourP :: Parser Colour
-colourP =
-  choice [
-  literal "red" $> Red,
-  literal "green" $> Green,
-  literal "blue" $> Blue
-  ]
-
-ballCountP :: Parser (Int, Colour)
-ballCountP =
-  (,)
-  <$> digitsAsNum <* literal " "
-  <*> colourP
-
-subsetP :: Parser [(Int, Colour)]
-subsetP = ballCountP `sepBy` literal ", "
-
-subsetsP :: Parser [[(Int, Colour)]]
-subsetsP = subsetP `sepBy` literal "; "
-
-gameP :: Parser Game
+gameP :: Parser (Game (Sum Int))
 gameP =
   Game
   <$> gameNumberP <* literal ": "
-  <*> subsetsP
+  <*> roundsP
 
-underMax :: (Int, Colour) -> Bool
-underMax (x, Red)   = x <= 12
-underMax (x, Green) = x <= 13
-underMax (x, Blue)  = x <= 14
+roundsP :: Parser [Round (Sum Int)]
+roundsP = roundP `sepBy` literal "; "
 
-validGame :: Game -> Bool
-validGame (Game _ rounds) = allOf (traverse . traverse) underMax rounds
+roundP :: Parser (Round (Sum Int))
+roundP = fold <$> ballCountP `sepBy` literal ", "
 
--- TODO deuglify this
-maxes :: [(Int, Colour)] -> (Int, Int, Int)
-maxes l =
-  let
-    f (r, g, b) = \case
-      (r', Red) -> (max r' r, g, b)
-      (g', Green) -> (r, max g' g, b)
-      (b', Blue) -> (r, g, max b' b)
-  in
-    foldl' f (0, 0, 0) l
+-- Parses a single ball count into a Round where all the other counts are mempty
 
-power :: (Int, Int, Int) -> Int
-power (r, g, b) = r * g * b
+ballCountP :: (Monoid a, Num a) => Parser (Round a)
+ballCountP =
+  do
+    n <- digitsAsNum <* literal " "
+    choice [
+      literal "red" $> set red n,
+      literal "green" $> set green n,
+      literal "blue" $> set blue n
+      ] <*> pure mempty
+
+gameNumberP :: Parser Int
+gameNumberP = literal "Game " *> digitsAsNum
+
+validRound :: (Num a, Ord a) => Round a -> Bool
+validRound (Round r g b) =
+  r <= 12 &&
+  g <= 13 &&
+  b <= 14
+
+validGame :: (Num a, Ord a) => Game a -> Bool
+validGame (Game _ rounds) = all validRound rounds
+
+power :: Num a => Round a -> a
+power r  = view red r * view green r * view blue r
 
 solve1 :: Parsed -> Int
-solve1 = sum . fmap gameNumber . filter validGame
+solve1 = sumOf (traversed . filtered validGame . gameNumber)
 
 solve2 :: Parsed -> Int
 solve2 x =
   let
-    allRounds = concat . gameRounds <$> x
+    maxRounds :: [[Round (Max Int)]] = coerce . view gameRounds <$> x
+    maxes :: [Round (Sum Int)] = coerce . fold <$> maxRounds
   in
-    sum $ power . maxes <$> allRounds
+    coerce . fold $ (power <$> maxes)
 
 main :: IO ()
 main = do

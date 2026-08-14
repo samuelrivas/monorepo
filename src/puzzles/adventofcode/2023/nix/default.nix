@@ -1,8 +1,7 @@
 {
   adventlib,
   boollib,
-  deque,
-  fingertree,
+  fmt,
   generic-lens,
   haskell-pkg,
   lens,
@@ -20,7 +19,6 @@
   transformers,
   unliftio,
   unordered-containers,
-  zippers,
 }: let
   advent-input-dir = ./../src/inputs;
 in
@@ -30,8 +28,7 @@ in
     haskell-libs = [
       adventlib
       boollib
-      deque
-      fingertree
+      fmt
       generic-lens
       lens
       matrix
@@ -47,7 +44,6 @@ in
       transformers
       unliftio
       unordered-containers
-      zippers
     ];
 
     extra-build-inputs = [makeWrapper];
