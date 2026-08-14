@@ -6,22 +6,19 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- Re-solve stretch: Use only algebraic datatypes, do not rely on lists of
--- colours
-
 module Advent.Day2 where
 
 import           Perlude
 
-import           Control.Lens          (Lens', allOf, each, filtered, productOf,
-                                        set, sumOf, traversed, view)
+import           Control.Lens          (Lens', filtered, set, sumOf, traversed,
+                                        view)
 import           Data.Advent           (Day (..))
 import           Data.Coerce           (coerce)
 import           Data.Foldable         (fold)
 import           Data.Functor          (($>))
 import           Data.Generics.Product (position)
 import           Data.Maybe            (fromJust)
-import           Data.Monoid           (Sum)
+import           Data.Semigroup        (Max (..), Sum (..))
 import           Data.Text             (intercalate)
 import           Fmt                   (fmt, (+|), (|+))
 import           GHC.Internal.Generics (Generic)
@@ -197,19 +194,8 @@ validRound (Round r g b) =
 validGame :: (Num a, Ord a) => Game' a -> Bool
 validGame (Game' _ rounds) = all validRound rounds
 
--- TODO deuglify this
-maxes :: [(Int, Colour)] -> (Int, Int, Int)
-maxes l =
-  let
-    f (r, g, b) = \case
-      (r', Red) -> (max r' r, g, b)
-      (g', Green) -> (r, max g' g, b)
-      (b', Blue) -> (r, g, max b' b)
-  in
-    foldl' f (0, 0, 0) l
-
-power :: (Int, Int, Int) -> Int
-power = productOf each
+power :: Num a => Round a -> a
+power r  = view red r * view green r * view blue r
 
 solve1 :: Parsed -> Int
 solve1 = sumOf (traversed . filtered validGame . gameNumber')
@@ -217,10 +203,10 @@ solve1 = sumOf (traversed . filtered validGame . gameNumber')
 solve2 :: Parsed -> Int
 solve2 x =
   let
-    allRounds = view gameRounds' <$> x
+    maxRounds :: [[Round (Max Int)]] = coerce . view gameRounds' <$> x
+    maxes :: [Round (Sum Int)] = coerce . fold <$> maxRounds
   in
-    undefined
-    -- sum $ power . maxes <$> allRounds
+    coerce . fold $ (power <$> maxes)
 
 main :: IO ()
 main = do
