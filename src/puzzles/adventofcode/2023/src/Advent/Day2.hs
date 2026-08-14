@@ -28,30 +28,10 @@ import           Text.Parsec.Parselib  (Parser, digitsAsNum, linesOf, literal,
                                         unsafeParseAll)
 import           Text.Show             (show)
 
-data Colour = Red | Green | Blue
-  deriving stock (Show, Eq, Generic)
-
-data Game = Game Int [[(Int, Colour)]]
-  deriving stock (Show, Generic)
-
 data Round a = Round a a a
   deriving stock (Generic)
 
--- TODO Try to implement this as a single parameterised type where the color is
--- a type literal
-newtype Red' = Red' Int
-  deriving stock (Generic)
-  deriving newtype (Num, Ord, Eq)
-
-newtype Green' = Green' Int
-  deriving stock (Generic)
-  deriving newtype (Num, Ord, Eq)
-
-newtype Blue' = Blue' Int
-  deriving stock (Generic)
-  deriving newtype (Num, Ord, Eq)
-
-data Game' a = Game' Int [Round a]
+data Game a = Game Int [Round a]
   deriving stock (Show, Generic)
 
 instance Semigroup a => Semigroup (Round a) where
@@ -67,26 +47,11 @@ instance Show a => Show (Round a) where
     Perlude.show g |+ "," +|
     Perlude.show b |+ ")"
 
-instance Show Red' where
-  show (Red' n) = "r" +| n |+ ""
-
-instance Show Green' where
-  show (Green' n) = "g" +| n |+ ""
-
-instance Show Blue' where
-  show (Blue' n) = "b" +| n |+ ""
-
-gameNumber :: Lens' Game Int
+gameNumber :: Lens' (Game a) Int
 gameNumber = position @1
 
-gameNumber' :: Lens' (Game' a) Int
-gameNumber' = position @1
-
-gameRounds :: Lens' Game [[(Int, Colour)]]
+gameRounds :: Lens' (Game a) [Round a]
 gameRounds = position @2
-
-gameRounds' :: Lens' (Game' a) [Round a]
-gameRounds' = position @2
 
 red :: Lens' (Round a) a
 red = position @1
@@ -97,7 +62,7 @@ green = position @2
 blue :: Lens' (Round a) a
 blue = position @3
 
-type Parsed = [Game' (Sum Int)]
+type Parsed = [Game (Sum Int)]
 
 day :: Day
 day = D2
@@ -120,15 +85,12 @@ parsedExample = fromJust $ unsafeParseAll parser example
 parsedInput :: IO Parsed
 parsedInput = getParsedInput day parser
 
-parser' :: Parser Parsed
-parser' = linesOf gameP'
+parser :: Parser Parsed
+parser = linesOf gameP
 
-parser :: Parser [Game' (Sum Int)]
-parser = linesOf gameP'
-
-gameP' :: Parser (Game' (Sum Int))
-gameP' =
-  Game'
+gameP :: Parser (Game (Sum Int))
+gameP =
+  Game
   <$> gameNumberP <* literal ": "
   <*> roundsP
 
@@ -139,8 +101,6 @@ roundP :: Parser (Round (Sum Int))
 roundP = fold <$> ballCountP' `sepBy` literal ", "
 
 -- Parses a single ball count into a Round where all the other counts are mempty
---
--- TODO: Improve this using a setter over a mempty Round
 ballCountP' :: (Monoid a, Num a) => Parser (Round a)
 ballCountP' =
   do
@@ -154,56 +114,25 @@ ballCountP' =
 gameNumberP :: Parser Int
 gameNumberP = literal "Game " *> digitsAsNum
 
-colourP :: Parser Colour
-colourP =
-  choice [
-  literal "red" $> Red,
-  literal "green" $> Green,
-  literal "blue" $> Blue
-  ]
-
-ballCountP :: Parser (Int, Colour)
-ballCountP =
-  (,)
-  <$> digitsAsNum <* literal " "
-  <*> colourP
-
-subsetP :: Parser [(Int, Colour)]
-subsetP = ballCountP `sepBy` literal ", "
-
-subsetsP :: Parser [[(Int, Colour)]]
-subsetsP = subsetP `sepBy` literal "; "
-
-gameP :: Parser Game
-gameP =
-  Game
-  <$> gameNumberP <* literal ": "
-  <*> subsetsP
-
-underMax :: (Int, Colour) -> Bool
-underMax (x, Red)   = x <= 12
-underMax (x, Green) = x <= 13
-underMax (x, Blue)  = x <= 14
-
 validRound :: (Num a, Ord a) => Round a -> Bool
 validRound (Round r g b) =
   r <= 12 &&
   g <= 13 &&
   b <= 14
 
-validGame :: (Num a, Ord a) => Game' a -> Bool
-validGame (Game' _ rounds) = all validRound rounds
+validGame :: (Num a, Ord a) => Game a -> Bool
+validGame (Game _ rounds) = all validRound rounds
 
 power :: Num a => Round a -> a
 power r  = view red r * view green r * view blue r
 
 solve1 :: Parsed -> Int
-solve1 = sumOf (traversed . filtered validGame . gameNumber')
+solve1 = sumOf (traversed . filtered validGame . gameNumber)
 
 solve2 :: Parsed -> Int
 solve2 x =
   let
-    maxRounds :: [[Round (Max Int)]] = coerce . view gameRounds' <$> x
+    maxRounds :: [[Round (Max Int)]] = coerce . view gameRounds <$> x
     maxes :: [Round (Sum Int)] = coerce . fold <$> maxRounds
   in
     coerce . fold $ (power <$> maxes)
