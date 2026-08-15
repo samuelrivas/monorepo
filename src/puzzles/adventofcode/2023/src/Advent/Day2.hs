@@ -20,13 +20,13 @@ import           Data.Generics.Product (position)
 import           Data.Maybe            (fromJust)
 import           Data.Semigroup        (Max (..), Sum (..))
 import           Data.Text             (intercalate)
-import           Fmt                   (fmt, (+|), (|+))
+import           Fmt                   (fmt, (+|), (+||), (|+), (||+))
 import           GHC.Internal.Generics (Generic)
+import           Prelude               (show)
 import           System.IO.Advent      (getInput, getParsedInput)
 import           Text.Parsec           (choice, sepBy)
 import           Text.Parsec.Parselib  (Parser, digitsAsNum, linesOf, literal,
                                         unsafeParseAll)
-import           Text.Show             (show)
 
 data Round a = Round a a a
   deriving stock (Generic)
@@ -41,11 +41,7 @@ instance Monoid a => Monoid (Round a) where
   mempty = Round mempty mempty mempty
 
 instance Show a => Show (Round a) where
-  show (Round r g b) = fmt $
-    "(" +|
-    Perlude.show r |+ "," +|
-    Perlude.show g |+ "," +|
-    Perlude.show b |+ ")"
+  show (Round r g b) = fmt $ "(" +|| r ||+ "r," +|| g ||+ "g," +|| b ||+ "b)"
 
 gameNumber :: Lens' (Game a) Int
 gameNumber = position @1
