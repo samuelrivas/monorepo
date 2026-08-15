@@ -20,13 +20,13 @@ import           Data.Generics.Product (position)
 import           Data.Maybe            (fromJust)
 import           Data.Semigroup        (Max (..), Sum (..))
 import           Data.Text             (intercalate)
-import           Fmt                   (fmt, (+|), (|+))
+import           Fmt                   (fmt, (+|), (+||), (|+), (||+))
 import           GHC.Internal.Generics (Generic)
+import           Prelude               (show)
 import           System.IO.Advent      (getInput, getParsedInput)
 import           Text.Parsec           (choice, sepBy)
 import           Text.Parsec.Parselib  (Parser, digitsAsNum, linesOf, literal,
                                         unsafeParseAll)
-import           Text.Show             (show)
 
 data Round a = Round a a a
   deriving stock (Generic)
@@ -41,11 +41,7 @@ instance Monoid a => Monoid (Round a) where
   mempty = Round mempty mempty mempty
 
 instance Show a => Show (Round a) where
-  show (Round r g b) = fmt $
-    "(" +|
-    Perlude.show r |+ "," +|
-    Perlude.show g |+ "," +|
-    Perlude.show b |+ ")"
+  show (Round r g b) = fmt $ "(" +|| r ||+ "r," +|| g ||+ "g," +|| b ||+ "b)"
 
 gameNumber :: Lens' (Game a) Int
 gameNumber = position @1
@@ -79,25 +75,25 @@ example = intercalate "\n" [
   "Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
   ]
 
-parsedExample :: Parsed
+parsedExample :: (Monoid a, Num a) => [Game a]
 parsedExample = fromJust $ unsafeParseAll parser example
 
-parsedInput :: IO Parsed
+parsedInput :: (Monoid a, Num a) => IO [Game a]
 parsedInput = getParsedInput day parser
 
-parser :: Parser Parsed
+parser :: (Monoid a, Num a) => Parser [Game a]
 parser = linesOf gameP
 
-gameP :: Parser (Game (Sum Int))
+gameP :: (Monoid a, Num a) => Parser (Game a)
 gameP =
   Game
   <$> gameNumberP <* literal ": "
   <*> roundsP
 
-roundsP :: Parser [Round (Sum Int)]
+roundsP :: (Monoid a, Num a) => Parser [Round a]
 roundsP = roundP `sepBy` literal "; "
 
-roundP :: Parser (Round (Sum Int))
+roundP :: (Monoid a, Num a) => Parser (Round a)
 roundP = fold <$> ballCountP `sepBy` literal ", "
 
 -- Parses a single ball count into a Round where all the other counts are mempty
@@ -127,13 +123,13 @@ validGame (Game _ rounds) = all validRound rounds
 power :: Num a => Round a -> a
 power r  = view red r * view green r * view blue r
 
-solve1 :: Parsed -> Int
+solve1 :: [Game (Sum Int)] -> Int
 solve1 = sumOf (traversed . filtered validGame . gameNumber)
 
-solve2 :: Parsed -> Int
+solve2 :: [Game (Max Int)] -> Int
 solve2 x =
   let
-    maxRounds :: [[Round (Max Int)]] = coerce . view gameRounds <$> x
+    maxRounds = view gameRounds <$> x
     maxes :: [Round (Sum Int)] = coerce . fold <$> maxRounds
   in
     coerce . fold $ (power <$> maxes)
@@ -146,4 +142,4 @@ main = do
   print $ solve1 input
 
   putStr "Solution 2: "
-  print $ solve2 input
+  print $ solve2 (coerce input)
