@@ -82,6 +82,8 @@
     nix-mode
     orderless
     terraform-mode
+    treesit-auto
+    treesit-grammars.with-all-grammars
     vertico
     yaml-mode
   ];
