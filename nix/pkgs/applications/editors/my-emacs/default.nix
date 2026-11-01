@@ -81,6 +81,7 @@
     markdown-mode
     nix-mode
     orderless
+    ox-asciidoc
     terraform-mode
     treesit-auto
     treesit-grammars.with-all-grammars
