@@ -23,11 +23,11 @@
         cpplint
         gcc
       ]
-      ++ lib.optional (!stdenv.isDarwin) valgrind;
+      ++ lib.optional (!stdenv.hostPlatform.isDarwin) valgrind;
 
     # FIXME: Tests require valgrind, which is not available for Darwin in
     # nixpkgs. We could still refactor them to run without valgrind on mac
-    doCheck = !stdenv.isDarwin;
+    doCheck = !stdenv.hostPlatform.isDarwin;
     installPhase = ''
       mkdir -p "$out/bin"
     '';
@@ -40,6 +40,6 @@ in
       // {
         nativeBuildInputs =
           drv.nativeBuildInputs
-          ++ lib.optionals (!stdenv.isDarwin) extra-sandbox;
+          ++ lib.optionals (!stdenv.hostPlatform.isDarwin) extra-sandbox;
       };
   }

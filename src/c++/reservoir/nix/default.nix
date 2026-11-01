@@ -12,7 +12,7 @@
   strace,
   valgrind,
 }: let
-  extra-sandbox.native-build-inputs = lib.optionals (!stdenv.isDarwin) [
+  extra-sandbox.native-build-inputs = lib.optionals (!stdenv.hostPlatform.isDarwin) [
     gdb
     strace
   ];
@@ -34,7 +34,7 @@
           sh-lib
         ]
         ++ lib.optionals doCheck [valgrind]
-        ++ lib.optionals stdenv.isDarwin [makeWrapper];
+        ++ lib.optionals stdenv.hostPlatform.isDarwin [makeWrapper];
 
       prePatch = ''
         patchShebangs .
@@ -44,7 +44,7 @@
         cp ../build/install/bin/reservoir $out/bin
       '';
     }
-    // lib.optionalAttrs stdenv.isDarwin {
+    // lib.optionalAttrs stdenv.hostPlatform.isDarwin {
       # Loading c++libraries is broken in Darwin
       postFixup = ''
         wrapProgram "$out/bin/reservoir" \

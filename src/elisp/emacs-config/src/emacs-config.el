@@ -129,6 +129,10 @@
   ((prog-mode . flyspell-prog-mode)
    (text-mode . flyspell-mode)))
 
+(use-package treesit-auto
+  :config
+  (global-treesit-auto-mode))
+
 (use-package eglot
   :bind (:map eglot-mode-map
               ("C-c l" . eglot-code-actions)

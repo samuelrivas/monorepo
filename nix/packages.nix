@@ -51,7 +51,7 @@
     # An emacs wrapper with the needed packages accessible
     my-emacs = let
       emacs-package =
-        if nixpkgs.stdenv.isDarwin
+        if nixpkgs.stdenv.hostPlatform.isDarwin
         then nixpkgs.emacs-macport
         else nixpkgs.emacs;
     in

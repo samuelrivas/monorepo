@@ -59,11 +59,12 @@
       exec "${drv}/bin/emacs" "$@"
     '';
   wrap =
-    if stdenv.isDarwin
+    if stdenv.hostPlatform.isDarwin
     then wrapDarwin
     else wrapLinux;
 
   emacs-packages = with emacs.pkgs; [
+    adoc-mode
     auctex
     colorThemeSolarized
     consult
@@ -81,6 +82,8 @@
     nix-mode
     orderless
     terraform-mode
+    treesit-auto
+    treesit-grammars.with-all-grammars
     vertico
     yaml-mode
   ];

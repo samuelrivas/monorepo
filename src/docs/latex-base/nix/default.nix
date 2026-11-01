@@ -33,5 +33,5 @@ in
   {
     native-build-inputs =
       [emacs digestif]
-      ++ lib.optional (!stdenv.isDarwin) inotify-tools;
+      ++ lib.optional (!stdenv.hostPlatform.isDarwin) inotify-tools;
   }
