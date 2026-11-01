@@ -64,6 +64,7 @@
     else wrapLinux;
 
   emacs-packages = with emacs.pkgs; [
+    adoc-mode
     auctex
     colorThemeSolarized
     consult
