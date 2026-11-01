@@ -59,7 +59,7 @@
       exec "${drv}/bin/emacs" "$@"
     '';
   wrap =
-    if stdenv.isDarwin
+    if stdenv.hostPlatform.isDarwin
     then wrapDarwin
     else wrapLinux;
 

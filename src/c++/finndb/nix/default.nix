@@ -29,7 +29,7 @@
   };
 in
   add-dev-shell drv {
-    native-build-inputs = lib.optionals (!stdenv.isDarwin) [
+    native-build-inputs = lib.optionals (!stdenv.hostPlatform.isDarwin) [
       gdb
       strace
       valgrind
