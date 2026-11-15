@@ -8,7 +8,6 @@
   makeWrapper,
   monad-loops,
   readline,
-  regex-pcre,
   unliftio,
   unordered-containers,
 }: let
@@ -25,7 +24,6 @@ in
       lens
       monad-loops
       readline
-      regex-pcre
       unliftio
       unordered-containers
     ];
